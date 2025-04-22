@@ -5,7 +5,7 @@
 
 <div align="center">
   <h1><b>LiveContainer</b></h1>
-  <p><i>An app launcher that runs iOS app without actually installing it! </i></p>
+  <p><i>An app launcher that runs iOS apps without actually installing them! </i></p>
 </div>
 <h6 align="center">
 
@@ -14,7 +14,7 @@
 # LiveContainer
 
 - LiveContainer is an app launcher (not emulator or hypervisor) that allows you to run app inside it.
-- Allows you to install unlimited apps (10 apps limit of free developer account do not apply here!), have multiple versions of an app installed and multiple data containers.
+- Allows you to install unlimited apps (3 app/10 app id free developer account limit does not apply here!), can have multiple versions of an app installed with multiple data containers.
 - When JIT is available, codesign is entirely bypassed, no need to sign your apps before installing. Otherwise, app will be signed with the same certificate used by LiveContainer.
 
 >[!Note]

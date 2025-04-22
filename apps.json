@@ -1,30 +1,30 @@
 {
   "name": "LiveContainer",
   "identifier": "com.livecontainer.source",
-  "website": "https://github.com/khanhduytran0/LiveContainer",
-  "subtitle": "LiveContainer official Altstore source.",
-  "description": "This is the official Altstore source for LiveContainer.\n\n Run iOS app without actually installing it!",
+  "website": "https://github.com/LiveContainer/LiveContainer",
+  "subtitle": "LiveContainer official AltStore source.",
+  "description": "This is the official AltStore source for LiveContainer.\n\n Run iOS apps without actually installing them!",
   "tintColor": "#0784FC",
-  "iconURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/Resources/AppIcon76x76.png",
-  "headerURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/header.png",
+  "iconURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/Resources/AppIcon76x76.png",
+  "headerURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/header.png",
   "apps": [
     {
       "beta": false,
       "name": "LiveContainer",
       "bundleIdentifier": "com.kdt.livecontainer",
-      "developerName": "khanhduytran0",
+      "developerName": "LiveContainer Team",
       "subtitle": "Run iOS app without actually installing it!",
       "version": "3.4.0",
       "versionDate": "2025-04-20",
       "versionDescription": "\u26a0\ufe0fThis version \u26a0\ufe0fREQUIRES\u26a0\ufe0f SideStore 0.6.0+ / AltStore 2.0+ to install.\r \nThis version improved app re-signing experience, add support for new JIT enablers, increased compatibility with relatively old apps and add translation for Arabic, French, German, Japanese, Portuguese and Swedish.\r \n>[!Note]\r\nLiveContainer has upgraded SDK version to 18.2, which breaks some apps that works on previous versions. Fortunately we have developed the \"Spoof SDK Version\" feature, forcing system libraries to operate in the SDK version the app is built with. You can enable \"Spoof SDK Version\".\r \n\r\nNew Features\r\n1. New Re-Sign Strategy\r\nInstead of keeping track of expiration date, LiveContainer now directly ask iOS to determine whether the code signature is valid, which significantly decreases app re-sign rate. For now your apps will be re-signed only if their code signature is invalid, which probably happens when your certificate is expired (usually takes a year), or is revoked (when you reinstall SideStore/AltStore).\r \n2. Support for StikJIT(StikDebug), SideStore JIT\r\n [StikJIT(StikDebug)](https://github.com/StephenDev0/StikJIT) is the newest on-device JIT enabler powered by [idevice](https://github.com/jkcoxson/idevice). You can now install it both as a standalone app or install it inside LiveContainer. See 265 item 5.8 for more information.\r \nSideStore has recently switched its backend to idevice and added on-device JIT support. For now its JIT URL Scheme has not been implemented so you have to manually enable JIT for LiveContainer.\r \n3. Spoof SDK version\r\nSpoofing SDK version forces system libraries to operate in the SDK version the app is built with. This fix works surprisingly well so we decided to enable it by default for newly installed apps. This fixes some old apps crashing because of the new SDK. We also removed the \"Bypass AssertBarrierOnQueue\" fix since the root cause is SDK version.\r \nFix 421 422\r \n4. Support Import Certificate From SideStore\r\nWith [this SideStore pr](https://github.com/SideStore/SideStore/pull/959), we can now directly retrieve certificate from SideStore (0.6.2-20250420.25+) without the patch, thus simplifying the process of enabling JIT-Less mode.\r \n5. Game Mode Support\r\nWith the SDK version upgrade, LiveContainer now supports game mode. If you don't need it, you can turn it off in the control center. \r \nBug Fixes\r\n1. Fix a regression caused by NSBundle path fix. Fix 409\r\n2. Keep app's plugin folder in case some apps need files inside. Fix hugeBlack/LiveContainer43\r\n3. Add TPRO rw in overwrite exec path in case the executable path is TPRO protected. Fix 327\r\n4. Replace all \"withCheckedContinuation\" with \"withUnsafeContinuation\" to solve crash on iOS 18.0 beta. Fix 435\r\n5. Add file permission to solve some sign issues. Fix 448\r \nRemoved Features\r\nThe following features are removed because it's not useful in current version or constantly causing issues.\r\n1. AltSign: We drop AltSign support because it's constantly causing issues and it's relatively old.\r\n2. Bypass AssertBarrierOnQueue: It is replaced by \"Spoof SDK version\"\r\n3. Sign Only on Signature Expires: It's now useless as we directly determine if an app's code signature is valid by asking the system.\r \nTranslation\r\nLiveContainer is now translated into Arabic, Simplified Chinese, French, German, Japanese, Portuguese and Swedish\r\n\u2022 Arabic: translated by dlshad2\r\n\u2022 French: translated by @p-sage\r\n\u2022 German: translated by @BeityBytes\r\n\u2022 Japanese: translated by @naolad\r\n\u2022 Portuguese: translated by damn_the_daniel\r\n\u2022 Swedish: translated by @se2crid\r \nCredit\r\nShout out to @khanhduytran0 for doing a lot of research under the hood!\r \nOther\r\nLiveContainer is now migrated from a Theos project to a Xcode project, which simplifies the development and significantly decreased Github Actions build time (2 minutes now and around 10 minutes previously)",
       "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.4.0/LiveContainer.ipa",
       "localizedDescription": "Run iOS app without actually installing it!",
-      "iconURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/Resources/AppIcon76x76.png",
+      "iconURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/Resources/AppIcon76x76.png",
       "tintColor": "#0784FC",
       "category": "utilities",
       "size": 2764540,
       "screenshotURLs": [
-        "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/1.png"
+        "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/1.png"
       ],
       "appPermissions": {
         "entitlements": [
@@ -86,43 +86,43 @@
         {
           "version": "3.3.1",
           "date": "2025-03-16",
-          "localizedDescription": "\u26a0\ufe0fThis version *\u26a0\ufe0fREQUIRES\u26a0\ufe0f* SideStore 0.6.0+ / AltStore 2.0+ to install.\r \nNew Features\r\nAdapt JitStreamer-EB 0.2.4 Protocol\r\nLiveContainer is now compatible with JitStreamer-EB 0.2.4. Now JIT acquisition happens after app launch, so LiveContainer will show an alert to tell you whether JIT is successfully acquired.\r \nSee [3.3.0](https://github.com/khanhduytran0/LiveContainer/releases/3.3.0) for more new features.",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/3.3.1/com.kdt.livecontainer_3.3.1.ipa",
+          "localizedDescription": "\u26a0\ufe0fThis version *\u26a0\ufe0fREQUIRES\u26a0\ufe0f* SideStore 0.6.0+ / AltStore 2.0+ to install.\r \nNew Features\r\nAdapt JitStreamer-EB 0.2.4 Protocol\r\nLiveContainer is now compatible with JitStreamer-EB 0.2.4. Now JIT acquisition happens after app launch, so LiveContainer will show an alert to tell you whether JIT is successfully acquired.\r \nSee [3.3.0](https://github.com/LiveContainer/LiveContainer/releases/3.3.0) for more new features.",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.3.1/com.kdt.livecontainer_3.3.1.ipa",
           "size": 3146175
         },
         {
           "version": "3.3.0",
           "date": "2025-03-14",
           "localizedDescription": "This update includes several compatibility and bug fixes, as well as new features such as JITStreamer-EB support and the ability to install from URLs and share sheets. Additionally, we have changed some confusing text.\r \n>[!Note]\r\nDue to a change of LiveContainer's entitlement and a bug with SideStore/AltStore, SideStore 0.6.0+ / AltStore 2.0+ is required to install LiveContainer 3.3.0\r \nNew Features\r\nInstall from URL / Share Sheet\r\nYou can now install apps directly from a URL by using the plus button on the \"My Apps\" page or by using an install URL like \"livecontainer://install?url=xxxxxxx\". Additionally, you can share an IPA file directly from other apps via the share sheet. (Please note that iOS may hide LiveContainer in the \"More\" section\u2014simply tap \"More\" and scroll down to find it.)\r\nShare File to Guest Apps\r\nFiles can now be shared to guest apps when they are running through the share sheet.\r \nImplement 320\r \nJITStreamer-EB Support\r\n[JITStreamer-EB](https://jkcoxson.com/jitstreamer) is now available in LiveContainer. To use it:\r\n\u2022 Set it up first in JITStreamer-EB's website\r\n\u2022 Go to LiveContainer settings->JIT Enabler->Select JITStreamer-EB. You can leave the \"Address\" blank if you are using official server and it's default to \"http://[fd00::]:9172\".\r\n\u2022 Long press the app that needs JIT->Settings->enable Launch with JIT->Tap Run, LiveContainer will contact the server and enable JIT for that app.\r \n>[!Note]\r\nJIT is broken in iOS 18.4 Beta 1, please avoid this version.\r \n\"Entitlement File\" Section in JITLess Diagnose\r\nThe \"Entitlement File\" section is now available in the JITLess Diagnose page, making it easier and more accurate to diagnose issues with your JITLess setup.\r \nPersonal Certificate Support (Untestsed)\r\nLiveContainer can now be used without SideStore/AltStore if you import the certificate used to sign it. Please note that for LiveContainer to work correctly, some changes must be made to the bundle and entitlement:\r\n\u2022 The bundle ID must match the one in the .mobileprovision file without a prefix.\r\n\u2022 LiveContainer must be signed with the get-task-allow=true entitlement, meaning Enterprise certificates will not work.\r\n\u2022 To use the keychain separation feature, LiveContainer must be signed with the correct entitlement. Please refer to entitlements.xml for the required keychain access groups.\r \n\r\nYou can check these criteria in Settings->JITLess Diagnose->Entitlement File. All items except com.apple.security.application-groups should be green.\r \nImplement 54 64 231\r \nUp to 128 Containers Per App\r\nWith the release of SideStore 0.6.0, which fixes the entitlement issue with Keychain Access Groups, you can now create up to 128 containers for each app. Each container created in version 3.3.0 will be assigned a random Keychain Access Group to prevent crashes caused by Keychain Access Group collisions.\r \nHide LiveContainer\r\nTo bypass some app's injection detection, 3 following options are added to app-specific settings.\r\n\u2022 Hide LiveContainer from Dyld Api\r\n\u2022 Don't Inject TweakLoader\r\n\u2022 Don't Load TweakLoader\r \nFor most apps, enabling the first two options should be sufficient to bypass injection detection. However, please note that if TweakLoader is not loaded, some features (like app fast switching) may not be available.\r \nFix 146 338\r \nArchive Option when Installing 2nd LiveContainer\r\nYou can now archive the second LiveContainer instead of installing it directly, allowing you to customize it as needed.\r \nURL to Launch to LiveContainer's UI\r\nYou can now use \"livecontainer://livecontainer-launch?bundle-name=ui\"to launch to LiveContainer's UI\r \nBug Fixes\r\n\u2022 Fix 314: Frameworks in the tweaks folder are now signed and injected correctly.\r\n\u2022 Fix 318: Resolved an issue in fishhook that caused crashes when handling invalid \"symtab_index\".\r\n\u2022 Fix 332: Fixed a dyld issue where the wrong image was being used when dyld functions were hooked.\r\n\u2022 Fix 329: Insert \"LC_ID_DYLIB\" load command to resolve segment-related issues.\r\n\u2022 Fix 358 374: Dopamine's dyld patch is taken into account when bypassing dyld library validation.\r\n\u2022 Fix 381: LiveContainer can correctly close itself when it is hidden.\r\n\u2022 Fix 384: All settings are correctly copied when replacing app.\r\n\u2022 Fixed UI issues when the \"Button Shape\" accessibility setting was enabled.\r\n\u2022 Improved some previously confusing or misleading text.",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/3.3.0/com.kdt.livecontainer_3.3.0.ipa",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.3.0/com.kdt.livecontainer_3.3.0.ipa",
           "size": 3155485
         },
         {
           "version": "3.2.0",
           "date": "2025-01-15",
-          "localizedDescription": "This version focuses on compatibility issues, bug fixes, and QOL changes.\r \n> [!Note]\r\nThis update introduces a change in how settings are stored. Downgrading after updating will result in the loss of all app-specific settings. Please remember to reinstall the second LiveContainer to prevent data conflict.\r\nAdditionally, some apps may display a black screen and crash after 10 seconds in v3.2.0. Please refer to the \"Black Screen Fix\" section below for more details.\r \nNew Features\r\nBlack Screen Fix\r\nThe Black Screen Fix is no longer applied automatically to prevent loading \"UIKit.framework\" before the app\u2019s main executable is opened, which could cause symbol binding issues. You can enable it in Long press app -> Settings -> enable Fix Black Screen\r \nApp Group Isolation\r\nYou can now isolate app groups for different containers, allowing multiple accounts (e.g., in SideStore) to be signed in within separate containers. You can find files inside app group in container folder -> LCAppGroup\r \nYou can enable this feature by: Long press app -> Settings -> (Container name) -> enable Isolate App Group\r\nFix 279\r \nOpen URL Automatically\r\nYou can now automatically open an URL in current app without being prompted.\r\nImplement 285 \r \nIgnore Error During dlopen\r\nThis fixes errors like \"dlsym(xxxx, xxxx)\" caused by app's initializers calling dlsym with a non-existing symbol\r \nFix issues like 124\r \nBetter App Signature Check\r\nThe team ID used in app signing is now considered when determining if an app needs re-signing. This allows apps to be re-signed if they are transferred between LiveContainers installed by different Apple IDs.\r \nJIT-Less Mode Diagnose Page & LiveContainer Help\r\nA new JIT-Less Mode Diagnose Page helps new users quickly identify configuration issues. Problematic items are highlighted in red for easy troubleshooting.\r \nYou can see this page in Settings -> JIT-Less Mode Diagnose.\r\nYou can see LiveContainer help in Apps -> ? Button\r \nBug Fixes & Compatibility\r\nSeparate App-Specific Settings from Info.plist\r\nApp-Specific Settings is now saved in a different file to prevent app from crashing due to reading it.\r \nFix 277\r \nHook dlsym(RTLD_MAIN_ONLY,xxx)\r\nRedirect this call to the app's main executable instead of LiveContainer's to prevent issues.\r \nFix 124 130 140 221 225\r \nDon't Link against UIKit.framework\r\n*This solution is provided by khanhduytran0*\r\n\"UIKit.framework\" is now not linked by LiveContainer's main executable to prevent symbol binding issues. However this will prevent the black screen fix to be automatically applied.\r \nFix 277 272 200 139\r \nApp Hiding Without Device Password\r\nApp hiding now works even if the device doesn\u2019t have a password set.\r \nFix 281\r \n(Regression) Fix 2 Bugs in NSUserDefaultsHook in 3.1.0\r\nFix 276 291\r \nFix long press actions of last guest app remain\r\nFix 235\r \nFix Apps Unable to Open Their Own URL Schemes\r\nFix 44\r \nResolve Crash Loop with Blank \"Info.plist\"\r\nHandles cases where \"Info.plist\" is blank due to app corruption, which previously crashes LiveContainerSwiftUI.\r\nFix 293\r \nFix CallKit Unable to Initialize \r\nFix 258\r \nFix Crash when Patching Store\r\nThe cause of this issue is that LiveContainer cannot access App Group due to incorrect setup.",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/3.2.0/com.kdt.livecontainer_3.2.0.ipa",
+          "localizedDescription": "This version focuses on compatibility issues, bug fixes, and QOL changes.\r \n> [!Note]\r\nThis update introduces a change in how settings are stored. Downgrading after updating will result in the loss of all app-specific settings. Please remember to reinstall the second LiveContainer to prevent data conflict.\r\nAdditionally, some apps may display a black screen and crash after 10 seconds in v3.2.0. Please refer to the \"Black Screen Fix\" section below for more details.\r \nNew Features\r\nBlack Screen Fix\r\nThe Black Screen Fix is no longer applied automatically to prevent loading \"UIKit.framework\" before the app\u2019s main executable is opened, which could cause symbol binding issues. You can enable it in Long press app -> Settings -> enable Fix Black Screen\r \nApp Group Isolation\r\nYou can now isolate app groups for different containers, allowing multiple accounts (e.g., in SideStore) to be signed in within separate containers. You can find files inside app group in container folder -> LCAppGroup\r \nYou can enable this feature by: Long press app -> Settings -> (Container name) -> enable Isolate App Group\r\nFix 279\r \nOpen URL Automatically\r\nYou can now automatically open an URL in current app without being prompted.\r\nImplement 285 \r \nIgnore Error During dlopen\r\nThis fixes errors like \"dlsym(xxxx, xxxx)\" caused by app's initializers calling dlsym with a non-existing symbol\r \nFix issues like 124\r \nBetter App Signature Check\r\nThe team ID used in app signing is now considered when determining if an app needs re-signing. This allows apps to be re-signed if they are transferred between LiveContainers installed by different Apple IDs.\r \nJIT-Less Mode Diagnose Page & LiveContainer Help\r\nA new JIT-Less Mode Diagnose Page helps new users quickly identify configuration issues. Problematic items are highlighted in red for easy troubleshooting.\r \nYou can see this page in Settings -> JIT-Less Mode Diagnose.\r\nYou can see LiveContainer help in Apps -> ? Button\r \nBug Fixes & Compatibility\r\nSeparate App-Specific Settings from Info.plist\r\nApp-Specific Settings is now saved in a different file to prevent app from crashing due to reading it.\r \nFix 277\r \nHook dlsym(RTLD_MAIN_ONLY,xxx)\r\nRedirect this call to the app's main executable instead of LiveContainer's to prevent issues.\r \nFix 124 130 140 221 225\r \nDon't Link against UIKit.framework\r\n*This solution is provided by LiveContainer*\r\n\"UIKit.framework\" is now not linked by LiveContainer's main executable to prevent symbol binding issues. However this will prevent the black screen fix to be automatically applied.\r \nFix 277 272 200 139\r \nApp Hiding Without Device Password\r\nApp hiding now works even if the device doesn\u2019t have a password set.\r \nFix 281\r \n(Regression) Fix 2 Bugs in NSUserDefaultsHook in 3.1.0\r\nFix 276 291\r \nFix long press actions of last guest app remain\r\nFix 235\r \nFix Apps Unable to Open Their Own URL Schemes\r\nFix 44\r \nResolve Crash Loop with Blank \"Info.plist\"\r\nHandles cases where \"Info.plist\" is blank due to app corruption, which previously crashes LiveContainerSwiftUI.\r\nFix 293\r \nFix CallKit Unable to Initialize \r\nFix 258\r \nFix Crash when Patching Store\r\nThe cause of this issue is that LiveContainer cannot access App Group due to incorrect setup.",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.2.0/com.kdt.livecontainer_3.2.0.ipa",
           "size": 2962233
         },
         {
           "version": "3.1.0",
           "date": "2024-12-16",
           "localizedDescription": "New Features\r\nNew Signer: ZSign\r\nZSign is now added as one of LiveContainer's signers.\r\n\u2022 ZSign has less format check comparing to AltSign, the signer used by SideStore/AltStore/LiveContainer, so it potentially signs apps then AltSign, solving issues like 222 and 134. \r\n\u2022 Its caching feature allows it to sign faster than AltSign.\r \nAltSign remains the default signer for competibility reasons. You can switch signer in Settings and app-specific settings for one specific app.\r \nRe-Sign Only on Expiration\r\nLiveContainer now keeps track of the date of expiration of each app's code signature and only signs when its signature is expired. So re-signing happens less frequent than before.\r \nAutomatic Tweak Re-Sign\r\nLiveContainer now keeps track of the tweaks you added and re-signs it if it is changed or its code signature expires, which makes tweak development with LiveContainer more convenient.\r \nImplement 175.\r \nMultiple Container Support\r\nYou can now create up to 3 containers for each app, so you can log in multiple accounts in different containers(data folders).\r \nKeychains are now semi-separated between app containers. Note that keychains will be removed if you delete a container in LiveContainer.\r \nkeychains created in older version will remain untouched so you can continue using your apps like before. To use this feature, clean up your keychain in LiveContainer settings.\r \nThis feature, along with the following fix of NSUserDefault leak impelements 218 176.\r \nLanguage Selection for Each App\r\nYou can now choose an language for an app in app-specific settings.\r \nImplement 171\r \nApp Preferences\r\nYou can now modify app preferences in LiveContainer like in iOS Settings. To change app preferences, go to app-specific settings -> (container name) -> Container Preferences\r \nImplement 252\r \nForce Orientation Lock\r\nThis option can be used to solve some game having stretched/mal-functioning UI when launched in portrait mode\r \nImplement 251\r \nJITLess Support for Multiple SideStores\r\nIf you use Multiple SideStores with SparseRestore, you can now export the tweaked SideStore IPA and install it manually to enable JITLess mode.\r \nImplement 219\r \nBug Fixes\r\n\u2022 NSUserDefault Leak & Random Signing out: NSUserDefault(app preferences) are now *almost* separated and properly placed in app's data folder. Solve 149 163 215\r\n\u2022 Game Controller Support: You can now use game controllers in LiveContainer\r\n\u2022 Hook \"-[VSSubscriptionRegistrationCenter setCurrentSubscription:]\": Solve 227\r\n\u2022 New file picker & local notification fix\r\n\u2022 App receiving LiveContainer's launch URL after launch: Solve 243\r\n",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/3.1.0/com.kdt.livecontainer_3.1.0.ipa",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.1.0/com.kdt.livecontainer_3.1.0.ipa",
           "size": 2899038
         },
         {
           "version": "3.0.0",
           "date": "2024-12-16",
           "localizedDescription": "Features\r\niOS 18.2+ Support\r \nSwiftUI rewrite (153)\r\nLiveContainer now has a AltStore-like UI. \r\n\u2022 Main page is colorful now (192) by @slds1 \r\n\u2022 SideJITServer/JITStreamer 2.0 support\r\n\u2022 AltStore support\r\n\u2022 New JITLess mode that patch your store, so no jitless renew is required\r\n\u2022 Locking(164) apps by @fkunn1326 & hiding apps\r \nMultiple LiveContainer (153)\r\nNow you can install 2 LiveContainers to run 2 apps at the same time. App and their data, Keychains and most preferences can be shared between these two. If user open an app via URL Scheme or from My Apps screen, the LiveContainer that last ran that app will be switched to.\r \nBetter Open in App Support (153)\r\nIt turns out that some apps don't rely on URL Schemes and use Universal Links instead. In this update, the web page's \"apple-app-site-association\" will be checked and LiveContainer will launch app based on it.\r \nLocalization (153)\r\nLocalization is now supported. You can add a language in LiveContainerSwiftUI project and add your translation in \"Localizable.xcstrings\", then submit your translation as PR. We may consider adding something like a Crowdin page if it\u2019s large enough (?)\r \nDedicated AltStore/SideStore source (156)\r \nFixes\r\niOS file picker issue (153): 68, 123, 142\r \nDuplicated Flutter-based app bundle name (153): 112\r\n",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/3.0.0/com.kdt.livecontainer_3.0.0.ipa",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/3.0.0/com.kdt.livecontainer_3.0.0.ipa",
           "size": 905495
         },
         {
           "version": "2.1.2",
           "date": "2024-08-15",
           "localizedDescription": "Feature: AltStore support\r\n(untested)\r \nBug fixes\r\n\u2022 JIT-less setup may fail to find the signing certificate. This is worked around by re-adding the glob keychain group entitlement. (not guaranteed to work, as I couldn\u2019t reproduce the issue in the first place)\r\n\u2022 Switches in settings not working. Apparently using the private Preference framework causing changes to be saved to the wrong preference file.\r\n\u2022 Some apps may get stuck on a black screen caused by an unknown deadlock. This is worked around by pre-initializing \"UIScreen\".\r\n\u2022 Some apps may fail to create temporary files. This is fixed by redirecting guest app\u2019s temporary directory to that of LiveContainer using symlink instead of creating its own. (thanks @hugeBlack for hinting me the issue)",
-          "downloadURL": "https://github.com/khanhduytran0/LiveContainer/releases/download/2.1.2/com.kdt.livecontainer_2.1.2.ipa",
+          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/2.1.2/com.kdt.livecontainer_2.1.2.ipa",
           "size": 194586
         }
       ]
@@ -134,77 +134,77 @@
       "caption": "Update of LiveContainer just got released!",
       "date": "2024-08-15T08:24:55Z",
       "identifier": "release-2.1.2",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "2.1.2 - LiveContainer  15/08/24",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/2.1.2"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/2.1.2"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2024-12-16T11:15:27Z",
       "identifier": "release-3.0.0",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.0.0 - LiveContainer  16/12/24",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.0.0"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.0.0"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2024-12-16T12:38:30Z",
       "identifier": "release-3.1.0",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.1.0 - LiveContainer  16/12/24",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.1.0"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.1.0"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2025-01-15T02:53:35Z",
       "identifier": "release-3.2.0",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.2.0 - LiveContainer  15/01/25",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.2.0"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.2.0"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2025-03-14T04:28:26Z",
       "identifier": "release-3.3.0",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.3.0 - LiveContainer  14/03/25",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.3.0"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.3.0"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2025-03-16T11:00:44Z",
       "identifier": "release-3.3.1",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.3.1 - LiveContainer  16/03/25",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.3.1"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.3.1"
     },
     {
       "appID": "com.kdt.livecontainer",
       "caption": "Update of LiveContainer just got released!",
       "date": "2025-04-20T10:41:31Z",
       "identifier": "release-3.4.0",
-      "imageURL": "https://raw.githubusercontent.com/khanhduytran0/LiveContainer/main/screenshots/release.png",
+      "imageURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/release.png",
       "notify": true,
       "tintColor": "#0784FC",
       "title": "3.4.0 - LiveContainer  20/04/25",
-      "url": "https://github.com/khanhduytran0/LiveContainer/releases/tag/3.4.0"
+      "url": "https://github.com/LiveContainer/LiveContainer/releases/tag/3.4.0"
     }
   ]
 }

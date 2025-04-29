@@ -84,7 +84,7 @@ LiveContainer comes with its own TweakLoader, which automatically load CydiaSubs
 
 `.dylib` files in `Tweaks` folder are global, they are loaded to all apps. You can create app-specific tweaks folder and switch between them instantly.
 
-To download tweaks, you can use the app [PostBox](https://www.postbox.news/downloads). After you have chosen a tweak to download, tap on the "Install" button, navigate to "Download" and then choose "Extract .deb file". The file app should now open and show a `Click me once.tar` file, tap on it once to extract it and then navigate to `/Library/MobileSubstrate/DynamicLibraries` in the new extracted folder to get the `.dylib` file(s).
+To download tweaks, you can use the app [PostBox](https://www.postbox.news/downloads). After you have chosen a tweak to download, tap on the "Install" button, navigate to "Download" and then choose "Extract .deb file". Then tap on "Open in Files" and a `Click me once.tar` file should be shown in the Files app, tap on it once to extract it and then navigate to `/Library/MobileSubstrate/DynamicLibraries` in the new extracted folder to get the `.dylib` file(s).
 
 To install tweaks (`.dylib`), you can use the built-in tweak manager in LiveContainer, which will automatically sign tweaks as you import. Otherwise, you can manually add them and then use the tweak manager to sign them.
 

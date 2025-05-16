@@ -35,7 +35,7 @@ It’s recommended to follow the following steps to set up JIT-Less mode for usi
 ## Installation
 
 
-### JIT-Less mode (Without JIT)
+### JIT-Less mode (Without JIT \[recommended])
 Without JIT, guest apps need to be codesigned, which requires retrieving the certificate and password from SideStore or AltStore.
 
 >[!Note] 

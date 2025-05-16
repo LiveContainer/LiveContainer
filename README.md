@@ -59,7 +59,8 @@ If you reinstall SideStore/AltStore using AltServer, you will need to go through
 - Install your app via the "Apps" tab.
 - Tap the run icon, it will attempt to restart LiveContainer with guest app loaded.
 
-Note: If you update or reinstall SideStore/AltStore, you'll need to reapply the patch. Re-patch is not needed when you refresh your store.
+>[!Note]
+If you update or reinstall SideStore/AltStore, you'll need to reapply the patch. Re-patch is not needed when you refresh your store.
 
 ### With JIT (requires SideStore)
 - Tap the play icon, it will jump to SideStore and exit.

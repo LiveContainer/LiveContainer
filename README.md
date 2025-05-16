@@ -62,10 +62,6 @@ If you reinstall SideStore/AltStore using AltServer, you will need to go through
 >[!Note]
 If you update or reinstall SideStore/AltStore, you'll need to reapply the patch. Re-patch is not needed when you refresh your store.
 
-### With JIT (requires SideStore)
-- Tap the play icon, it will jump to SideStore and exit.
-- In SideStore, hold down LiveContainer and tap `Enable JIT`. If you have SideStore build supporting JIT URL scheme, it jumps back to LiveContainer with JIT enabled and the guest app is ready to use.
-
 ### Installing Apps
 - Open LiveContainer, tap the plus icon in the upper right hand corner and select IPA files to install.
 - Choose the app you want to open in the next launch.

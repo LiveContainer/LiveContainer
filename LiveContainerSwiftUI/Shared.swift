@@ -843,7 +843,7 @@ extension LCUtils {
                 onServerMessage?("Failed to contact JitStreamer-EB server: \(error)")
             }
             
-        } else if jitEnabler == .StkiJIT || jitEnabler == .StikJITLC {
+        } else if jitEnabler == .StikDebug || jitEnabler == .StikJITLC {
             let launchURLStr = "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)"
             let launchURL : URL
             if jitEnabler == .StikJITLC {
@@ -866,7 +866,7 @@ extension LCUtils {
                 
             } else {
                 launchURL = URL(string: launchURLStr)!
-                onServerMessage?("JIT acquisition will continue in StikJIT.")
+                onServerMessage?("JIT acquisition will continue in StikDebug.")
             }
             await UIApplication.shared.open(launchURL)
         } else if jitEnabler == .SideStore {

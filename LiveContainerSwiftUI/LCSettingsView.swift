@@ -16,7 +16,7 @@ enum PatchChoice {
 
 enum JITEnablerType : Int {
     case SideJITServer = 0
-    case StkiJIT = 1
+    case StikDebug = 1
     case JITStreamerEBLegacy = 2
     case StikJITLC = 3
     case SideStore = 4
@@ -173,7 +173,7 @@ struct LCSettingsView: View {
                     }
                     Picker(selection: $JITEnabler) {
                         Text("SideJITServer/JITStreamer 2.0").tag(JITEnablerType.SideJITServer)
-                        Text("StikJIT (StandAlone)").tag(JITEnablerType.StkiJIT)
+                        Text("StikDebug (Standalone)").tag(JITEnablerType.StikDebug)
                         Text("StikJIT (Another LiveContainer)").tag(JITEnablerType.StikJITLC)
                         Text("SideStore").tag(JITEnablerType.SideStore)
                         Text("JitStreamer-EB (Relaunch)").tag(JITEnablerType.JITStreamerEBLegacy)

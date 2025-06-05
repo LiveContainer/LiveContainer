@@ -61,6 +61,9 @@ class SharedModel: ObservableObject {
     @AppStorage("LCCertificateImported") var certificateImported = false
     
     @Published var enableMultipleWindow = false
+
+    /// Currently selected tab index in ``LCTabView``
+    @Published var selectedTab = 0
     
     @Published var apps : [LCAppModel] = []
     @Published var hiddenApps : [LCAppModel] = []

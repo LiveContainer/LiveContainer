@@ -15631,6 +15631,21 @@
         }
       }
     },
+    "lc.tabView.sources" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } }
+      }
+    },
     "lc.tweakView.appFolderDesc" : {
       "extractionState" : "manual",
       "localizations" : {

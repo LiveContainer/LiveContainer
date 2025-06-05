@@ -16,27 +16,42 @@ struct LCTabView: View {
     @State var errorInfo = ""
     
     @EnvironmentObject var sceneDelegate: SceneDelegate
+    @EnvironmentObject var model: SharedModel
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
     var body: some View {
-        TabView {
+        TabView(selection: $model.selectedTab) {
+            LCSourcesView()
+                .tabItem {
+                    Label("lc.tabView.sources".loc, systemImage: "tray.and.arrow.down")
+                }
+                .tag(0)
             LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 .tabItem {
                     Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
                 }
+                .tag(1)
             if DataManager.shared.model.multiLCStatus != 2 {
                 LCTweaksView(tweakFolders: $tweakFolderNames)
                     .tabItem{
                         Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
                     }
-            }
+                    .tag(2)
 
-            LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                .tabItem {
-                    Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
-                }
+                LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                    .tabItem {
+                        Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
+                    }
+                    .tag(3)
+            } else {
+                LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                    .tabItem {
+                        Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
+                    }
+                    .tag(2)
+            }
         }
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
@@ -59,7 +74,6 @@ struct LCTabView: View {
                 }
             }
         }
-        .environmentObject(DataManager.shared.model)
     }
     
     func closeDuplicatedWindow() {

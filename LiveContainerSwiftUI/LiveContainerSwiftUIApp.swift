@@ -88,6 +88,7 @@ struct LiveContainerSwiftUIApp : App {
     var body: some Scene {
         WindowGroup(id: "Main") {
             LCTabView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                .environmentObject(DataManager.shared.model)
                 .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
             if #available(iOS 16.1, *) {
                 GetOpenWindowActionView()

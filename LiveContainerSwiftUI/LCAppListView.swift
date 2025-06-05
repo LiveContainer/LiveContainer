@@ -14,6 +14,14 @@ struct AppReplaceOption : Hashable {
     var appToReplace: LCAppModel?
 }
 
+struct InstallTask: Hashable {
+    enum Source: Hashable {
+        case url(String)
+        case file(URL)
+    }
+    let source: Source
+}
+
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     @Binding var appDataFolderNames: [String]
@@ -46,9 +54,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     @State private var navigateTo : AnyView?
     @State private var isNavigationActive = false
-    
+
     @State private var helpPresent = false
-    
+
+    @State private var installQueue: [InstallTask] = []
+
     @EnvironmentObject private var sharedModel : SharedModel
 
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
@@ -210,8 +220,12 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } message: {
             Text(errorInfo)
         }
-        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
+        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa], multiple: true, callback: { fileUrls in
+            Task {
+                for fileUrl in fileUrls {
+                    await enqueueInstallFromFile(fileUrl)
+                }
+            }
         }, onDismiss: {
             choosingIPA = false
         })
@@ -287,7 +301,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         
         AppDelegate.setLaunchAppFunc(handler: launchAppWithBundleId)
         AppDelegate.setOpenUrlStrFunc(handler: openWebView)
-        AppDelegate.setInstallFromUrlStrFunc(handler: installFromUrl)
+        AppDelegate.setInstallFromUrlStrFunc(handler: enqueueInstallFromUrl)
         
         didAppear = true
     }
@@ -358,6 +372,32 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
 
+    @MainActor
+    func enqueueInstallFromUrl(urlStr: String) async {
+        installQueue.append(InstallTask(source: .url(urlStr)))
+        await processInstallQueue()
+    }
+
+    @MainActor
+    func enqueueInstallFromFile(_ fileUrl: URL) async {
+        installQueue.append(InstallTask(source: .file(fileUrl)))
+        await processInstallQueue()
+    }
+
+    @MainActor
+    func processInstallQueue() async {
+        if installprogressVisible || installQueue.isEmpty {
+            return
+        }
+        let task = installQueue.removeFirst()
+        switch task.source {
+        case .url(let str):
+            await installFromUrl(urlStr: str)
+        case .file(let url):
+            await startInstallApp(url)
+        }
+    }
+
 
     
     func startInstallApp(_ fileUrl:URL) async {
@@ -368,8 +408,9 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
-            self.installprogressVisible = false
         }
+        self.installprogressVisible = false
+        await processInstallQueue()
     }
     
     nonisolated func decompress(_ path: String, _ destination: String ,_ progress: Progress) async {
@@ -558,7 +599,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard let installUrlStr = await installUrlInput.open(), installUrlStr.count > 0 else {
             return
         }
-        await installFromUrl(urlStr: installUrlStr)
+        await enqueueInstallFromUrl(urlStr: installUrlStr)
     }
     
     func installFromUrl(urlStr: String) async {
@@ -580,15 +621,14 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
         
         self.installprogressVisible = true
-        defer {
-            self.installprogressVisible = false
-        }
         
         if installUrl.isFileURL {
             // install from local, we directly call local install method
             if !installUrl.lastPathComponent.hasSuffix(".ipa") {
                 errorInfo = "lc.appList.urlFileIsNotIpaError".loc
                 errorShow = true
+                self.installprogressVisible = false
+                await processInstallQueue()
                 return
             }
             
@@ -596,6 +636,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if !fm.isReadableFile(atPath: installUrl.path) && !installUrl.startAccessingSecurityScopedResource() {
                 errorInfo = "lc.appList.ipaAccessError".loc
                 errorShow = true
+                self.installprogressVisible = false
+                await processInstallQueue()
                 return
             }
             
@@ -626,6 +668,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 errorInfo = error.localizedDescription
                 errorShow = true
             }
+            self.installprogressVisible = false
+            await processInstallQueue()
             return
         }
         
@@ -638,6 +682,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             
             try await downloadHelper.download(url: installUrl, to: destinationURL)
             if downloadHelper.cancelled {
+                self.installprogressVisible = false
+                await processInstallQueue()
                 return
             }
             try await installIpaFile(destinationURL)
@@ -646,7 +692,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-        
+        self.installprogressVisible = false
+        await processInstallQueue()
     }
     
     func removeApp(app: LCAppModel) {

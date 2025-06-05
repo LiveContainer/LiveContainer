@@ -29,6 +29,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State var installProgressPercentage = 0.0
     @State var uiInstallProgressPercentage = 0.0
     @State var installObserver : NSKeyValueObservation?
+    @State private var installQueue : [URL] = []
+    @State private var processingQueue = false
     
     @State var installOptions: [AppReplaceOption]
     @StateObject var installReplaceAlert = AlertHelper<AppReplaceOption>()
@@ -216,8 +218,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } message: {
             Text(errorInfo)
         }
-        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
+        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: true, callback: { fileUrls in
+            queueInstallApps(fileUrls)
         }, onDismiss: {
             choosingIPA = false
         })
@@ -435,6 +437,22 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorInfo = error.localizedDescription
             errorShow = true
             self.installprogressVisible = false
+        }
+    }
+
+    func queueInstallApps(_ urls: [URL]) {
+        installQueue.append(contentsOf: urls)
+        processInstallQueue()
+    }
+
+    private func processInstallQueue() {
+        guard !processingQueue, installQueue.count > 0 else { return }
+        processingQueue = true
+        let next = installQueue.removeFirst()
+        Task {
+            await startInstallApp(next)
+            processingQueue = false
+            processInstallQueue()
         }
     }
     

@@ -31,6 +31,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State var installObserver : NSKeyValueObservation?
     @State private var installQueue : [URL] = []
     @State private var processingQueue = false
+    @State private var totalInstallCount = 0
+    @State private var currentInstallIndex = 0
     
     @State var installOptions: [AppReplaceOption]
     @StateObject var installReplaceAlert = AlertHelper<AppReplaceOption>()
@@ -78,20 +80,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 .hidden()
                 
                 GeometryReader { g in
-                    ProgressView(value: uiInstallProgressPercentage)
-                        .labelsHidden()
-                        .opacity(installprogressVisible ? 1 : 0)
-                        .scaleEffect(y: 0.5)
-                        .onChange(of: installProgressPercentage) { newValue in
-                            if newValue > uiInstallProgressPercentage {
-                                withAnimation(.easeIn(duration: 0.3)) {
-                                    uiInstallProgressPercentage = newValue
-                                }
-                            } else {
+                    VStack(spacing: 2) {
+                        ProgressView(value: uiInstallProgressPercentage)
+                            .labelsHidden()
+                            .scaleEffect(y: 0.5)
+                        if totalInstallCount > 1 {
+                            Text("\(currentInstallIndex) of \(totalInstallCount)")
+                                .font(.caption2.monospacedDigit())
+                        }
+                    }
+                    .opacity(installprogressVisible ? 1 : 0)
+                    .onChange(of: installProgressPercentage) { newValue in
+                        if newValue > uiInstallProgressPercentage {
+                            withAnimation(.easeIn(duration: 0.3)) {
                                 uiInstallProgressPercentage = newValue
                             }
+                        } else {
+                            uiInstallProgressPercentage = newValue
                         }
-                        .offset(CGSize(width: 0, height: max(0,-g.frame(in: .named("scroll")).minY) - 1))
+                    }
+                    .offset(CGSize(width: 0, height: max(0,-g.frame(in: .named("scroll")).minY) - 1))
                 }
                 .zIndex(.infinity)
                 LazyVStack {
@@ -190,7 +198,12 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if installprogressVisible {
-                        ProgressView().progressViewStyle(.circular)
+                        HStack {
+                            ProgressView().progressViewStyle(.circular)
+                            if totalInstallCount > 1 {
+                                Text("\(currentInstallIndex) of \(totalInstallCount)")
+                            }
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
@@ -442,6 +455,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     func queueInstallApps(_ urls: [URL]) {
         installQueue.append(contentsOf: urls)
+        totalInstallCount += urls.count
         processInstallQueue()
     }
 
@@ -449,9 +463,14 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard !processingQueue, installQueue.count > 0 else { return }
         processingQueue = true
         let next = installQueue.removeFirst()
+        currentInstallIndex = totalInstallCount - installQueue.count
         Task {
             await startInstallApp(next)
             processingQueue = false
+            if installQueue.isEmpty {
+                totalInstallCount = 0
+                currentInstallIndex = 0
+            }
             processInstallQueue()
         }
     }

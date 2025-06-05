@@ -175,22 +175,22 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if sharedModel.multiLCStatus != 2 {
-                        if !installprogressVisible {
-                            Menu {
-                                
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
-                                    choosingIPA = true
-                                })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
-                                    Task{ await startInstallFromUrl() }
-                                })
-                            } label: {
-                                Label("add", systemImage: "plus")
-                            }
-                            
-                        } else {
-                            ProgressView().progressViewStyle(.circular)
+                        Menu {
+
+                            Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
+                                choosingIPA = true
+                            })
+                            Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
+                                Task{ await startInstallFromUrl() }
+                            })
+                        } label: {
+                            Label("add", systemImage: "plus")
                         }
+                    }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    if installprogressVisible {
+                        ProgressView().progressViewStyle(.circular)
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
@@ -646,11 +646,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
     
     func installFromUrl(urlStr: String) async {
-        // ignore any install request if we are installing another app
-        if self.installprogressVisible {
-            return
-        }
-        
         if sharedModel.multiLCStatus == 2 {
             errorInfo = "lc.appList.manageInPrimaryTip".loc
             errorShow = true
@@ -663,11 +658,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
         
-        self.installprogressVisible = true
-        defer {
-            self.installprogressVisible = false
-        }
-        
         if installUrl.isFileURL {
             // install from local, we directly call local install method
             if !installUrl.lastPathComponent.hasSuffix(".ipa") && !installUrl.lastPathComponent.hasSuffix(".tipa") {
@@ -675,32 +665,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 errorShow = true
                 return
             }
-            
+
             let fm = FileManager.default
             if !fm.isReadableFile(atPath: installUrl.path) && !installUrl.startAccessingSecurityScopedResource() {
                 errorInfo = "lc.appList.ipaAccessError".loc
                 errorShow = true
                 return
             }
-            
+
             defer {
                 installUrl.stopAccessingSecurityScopedResource()
             }
-            
+            queueInstallApps([installUrl])
+
+            // delete ipa if it's in inbox after enqueuing
             do {
-                try await installIpaFile(installUrl)
-            } catch {
-                errorInfo = error.localizedDescription
-                errorShow = true
-            }
-            
-            do {
-                // delete ipa if it's in inbox
                 var shouldDelete = false
                 if let documentsDirectory = fm.urls(for: .documentDirectory, in: .userDomainMask).first {
                     let inboxURL = documentsDirectory.appendingPathComponent("Inbox")
                     let fileURL = inboxURL.appendingPathComponent(installUrl.lastPathComponent)
-                    
+
                     shouldDelete = fm.fileExists(atPath: fileURL.path)
                 }
                 if shouldDelete {
@@ -712,7 +696,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
             return
         }
-        
+
         do {
             let fileManager = FileManager.default
             let destinationURL = fileManager.temporaryDirectory.appendingPathComponent(installUrl.lastPathComponent)
@@ -724,8 +708,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if downloadHelper.cancelled {
                 return
             }
-            try await installIpaFile(destinationURL)
-            try fileManager.removeItem(at: destinationURL)
+            queueInstallApps([destinationURL])
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true

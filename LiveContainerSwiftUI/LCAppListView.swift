@@ -197,16 +197,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
-                    if installprogressVisible {
-                        HStack {
-                            ProgressView().progressViewStyle(.circular)
-                            if totalInstallCount > 1 {
-                                Text("\(currentInstallIndex) of \(totalInstallCount)")
-                            }
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) {
                     Button("Help", systemImage: "questionmark") {
                         helpPresent = true
                     }

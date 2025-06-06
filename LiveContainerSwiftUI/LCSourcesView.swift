@@ -2,19 +2,83 @@ import SwiftUI
 
 struct AltStoreVersion: Codable {
     let version: String?
+    let date: String?
     let downloadURL: String?
+    let localizedDescription: String?
+    let size: Int?
+    let absoluteVersion: String?
+}
+
+struct AltStoreAppPermissions: Codable {
+    let entitlements: [String]?
+    let privacy: [String: String]?
 }
 
 struct AltStoreApp: Codable, Identifiable {
-    var id: String { bundleIdentifier }
-    let name: String
-    let bundleIdentifier: String
-    let developerName: String?
-    let subtitle: String?
-    let iconURL: String?
-    let versions: [AltStoreVersion]?
-    let version: String?
-    let downloadURL: String?
+    var id: String { appID ?? bundleIdentifier ?? name }
+    var name: String = ""
+    var bundleIdentifier: String?
+    var developerName: String?
+    var subtitle: String?
+    var iconURL: String?
+    var tintColor: String?
+    var screenshotURLs: [String]?
+    var localizedDescription: String?
+    var appPermissions: AltStoreAppPermissions?
+    var versions: [AltStoreVersion]?
+    var version: String?
+    var versionDate: String?
+    var versionDescription: String?
+    var downloadURL: String?
+    var absoluteVersion: String?
+    var appID: String?
+    var size: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case bundleIdentifier
+        case developerName
+        case subtitle
+        case iconURL
+        case tintColor
+        case screenshotURLs
+        case localizedDescription
+        case appPermissions
+        case versions
+        case version
+        case versionDate
+        case versionDescription
+        case downloadURL
+        case absoluteVersion
+        case appID
+        case size
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = (try? container.decode(String.self, forKey: .name)) ?? ""
+        bundleIdentifier = try? container.decode(String.self, forKey: .bundleIdentifier)
+        developerName = try? container.decode(String.self, forKey: .developerName)
+        subtitle = try? container.decode(String.self, forKey: .subtitle)
+        iconURL = try? container.decode(String.self, forKey: .iconURL)
+        tintColor = try? container.decode(String.self, forKey: .tintColor)
+        screenshotURLs = try? container.decode([String].self, forKey: .screenshotURLs)
+        localizedDescription = try? container.decode(String.self, forKey: .localizedDescription)
+        appPermissions = try? container.decode(AltStoreAppPermissions.self, forKey: .appPermissions)
+        versions = try? container.decode([AltStoreVersion].self, forKey: .versions)
+        version = try? container.decode(String.self, forKey: .version)
+        versionDate = try? container.decode(String.self, forKey: .versionDate)
+        versionDescription = try? container.decode(String.self, forKey: .versionDescription)
+        downloadURL = try? container.decode(String.self, forKey: .downloadURL)
+        absoluteVersion = try? container.decode(String.self, forKey: .absoluteVersion)
+        appID = try? container.decode(String.self, forKey: .appID)
+        if let intVal = try? container.decodeIfPresent(Int.self, forKey: .size) {
+            size = intVal
+        } else if let strVal = try? container.decodeIfPresent(String.self, forKey: .size),
+                  let intVal = Int(strVal) {
+            size = intVal
+        }
+    }
 
     var latestDownloadURL: String? {
         if let versions, let first = versions.first {
@@ -24,10 +88,40 @@ struct AltStoreApp: Codable, Identifiable {
     }
 }
 
-struct AltStoreSource: Codable {
+struct AltStoreSource: Decodable {
     let name: String
     let identifier: String
+    let version: Int?
+    let apiVersion: String?
     let apps: [AltStoreApp]
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case identifier
+        case version
+        case apiVersion
+        case apps
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        identifier = try container.decode(String.self, forKey: .identifier)
+        version = try? container.decode(Int.self, forKey: .version)
+        apiVersion = try? container.decode(String.self, forKey: .apiVersion)
+        if let appArray = try? container.decode([AltStoreApp].self, forKey: .apps) {
+            apps = appArray
+        } else if let appDict = try? container.decode([String: AltStoreApp].self, forKey: .apps) {
+            apps = appDict.map { key, value in
+                var app = value
+                if app.appID == nil { app.appID = key }
+                if app.bundleIdentifier == nil { app.bundleIdentifier = key }
+                return app
+            }
+        } else {
+            throw DecodingError.dataCorruptedError(forKey: .apps, in: container, debugDescription: "Unsupported apps format")
+        }
+    }
 }
 
 struct AltStoreAppBanner: View {
@@ -210,6 +304,7 @@ struct LCSourcesView: View {
                 await MainActor.run {
                     if self.sources[url] == nil {
                         self.error = error.localizedDescription
+                        self.removeSource(url: url)
                     }
                     self.loadingSources.remove(url)
                 }

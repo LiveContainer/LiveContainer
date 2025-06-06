@@ -63,7 +63,11 @@ class SharedModel: ObservableObject {
     @Published var enableMultipleWindow = false
 
     /// Currently selected tab index in ``LCTabView``
-    @Published var selectedTab = 0
+    @Published var selectedTab = UserDefaults.standard.integer(forKey: "LCSelectedTab") {
+        didSet {
+            UserDefaults.standard.set(selectedTab, forKey: "LCSelectedTab")
+        }
+    }
     
     @Published var apps : [LCAppModel] = []
     @Published var hiddenApps : [LCAppModel] = []

@@ -13,12 +13,15 @@ import SwiftUI
                 UserDefaults.standard.removeObject(forKey: "selected")
                 UserDefaults.standard.removeObject(forKey: "selectedContainer")
             }
-            
+
             if (UserDefaults.standard.object(forKey: "LCLastLanguages") != nil) {
                 // recover livecontainer's own language
                 UserDefaults.standard.set(UserDefaults.standard.object(forKey: "LCLastLanguages"), forKey: "AppleLanguages")
                 UserDefaults.standard.removeObject(forKey: "LCLastLanguages")
             }
+
+            // Ensure any changes are flushed to disk so the last opened tab is restored
+            UserDefaults.standard.synchronize()
         }
         return true
     }

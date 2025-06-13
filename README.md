@@ -51,6 +51,12 @@ If something goes wrong, please check "JIT-Less Mode Diagnose" for more informat
 
 Note: If you update or reinstall SideStore/AltStore, you'll need to reapply the patch. Re-patch is not needed when you refresh your store.
 
+#### Method 3 (Requires AltStore/SideStore)
+- Open Settings in AltStore/SideStore, tap on "Export Signing Certificate" and choose a password.
+- Save the `.p12` file to the Files app.
+- Open Settings in LiveContainer, tap on "Import Certificate" and type in the password you chose before.
+- Go to "JIT-Less Mode Diagnose" and tap "Test JIT-Less Mode." If it says "Test Passed," JIT-less mode is ready.
+
 ### With JIT (requires SideStore)
 - Tap the play icon, it will jump to SideStore and exit.
 - In SideStore, hold down LiveContainer and tap `Enable JIT`. If you have SideStore build supporting JIT URL scheme, it jumps back to LiveContainer with JIT enabled and the guest app is ready to use.

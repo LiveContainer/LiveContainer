@@ -51,7 +51,7 @@ If something goes wrong, please check "JIT-Less Mode Diagnose" for more informat
 
 Note: If you update or reinstall SideStore/AltStore, you'll need to reapply the patch. Re-patch is not needed when you refresh your store.
 
-#### Method 3 (Requires AltStore/SideStore)
+#### Method 3 (Requires AltStore 2.2.1+/SideStore 0.6.2-20250612.25+6c45eb09+)
 - Open Settings in AltStore/SideStore, tap on "Export Signing Certificate" and choose a password.
 - Save the `.p12` file to the Files app.
 - Open Settings in LiveContainer, tap on "Import Certificate" and type in the password you chose before.

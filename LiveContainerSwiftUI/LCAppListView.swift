@@ -29,6 +29,10 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State var installProgressPercentage = 0.0
     @State var uiInstallProgressPercentage = 0.0
     @State var installObserver : NSKeyValueObservation?
+    @State private var installQueue : [URL] = []
+    @State private var processingQueue = false
+    @State private var totalInstallCount = 0
+    @State private var currentInstallIndex = 0
     
     @State var installOptions: [AppReplaceOption]
     @StateObject var installReplaceAlert = AlertHelper<AppReplaceOption>()
@@ -76,20 +80,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 .hidden()
                 
                 GeometryReader { g in
-                    ProgressView(value: uiInstallProgressPercentage)
-                        .labelsHidden()
-                        .opacity(installprogressVisible ? 1 : 0)
-                        .scaleEffect(y: 0.5)
-                        .onChange(of: installProgressPercentage) { newValue in
-                            if newValue > uiInstallProgressPercentage {
-                                withAnimation(.easeIn(duration: 0.3)) {
-                                    uiInstallProgressPercentage = newValue
-                                }
-                            } else {
+                    VStack(spacing: 2) {
+                        ProgressView(value: uiInstallProgressPercentage)
+                            .labelsHidden()
+                            .scaleEffect(y: 0.5)
+                        if totalInstallCount > 1 {
+                            Text("\(currentInstallIndex) of \(totalInstallCount)")
+                                .font(.caption2.monospacedDigit())
+                        }
+                    }
+                    .opacity(installprogressVisible ? 1 : 0)
+                    .onChange(of: installProgressPercentage) { newValue in
+                        if newValue > uiInstallProgressPercentage {
+                            withAnimation(.easeIn(duration: 0.3)) {
                                 uiInstallProgressPercentage = newValue
                             }
+                        } else {
+                            uiInstallProgressPercentage = newValue
                         }
-                        .offset(CGSize(width: 0, height: max(0,-g.frame(in: .named("scroll")).minY) - 1))
+                    }
+                    .offset(CGSize(width: 0, height: max(0,-g.frame(in: .named("scroll")).minY) - 1))
                 }
                 .zIndex(.infinity)
                 LazyVStack {
@@ -173,21 +183,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if sharedModel.multiLCStatus != 2 {
-                        if !installprogressVisible {
-                            Menu {
-                                
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
-                                    choosingIPA = true
-                                })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
-                                    Task{ await startInstallFromUrl() }
-                                })
-                            } label: {
-                                Label("add", systemImage: "plus")
-                            }
-                            
-                        } else {
-                            ProgressView().progressViewStyle(.circular)
+                        Menu {
+
+                            Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
+                                choosingIPA = true
+                            })
+                            Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
+                                Task{ await startInstallFromUrl() }
+                            })
+                        } label: {
+                            Label("add", systemImage: "plus")
                         }
                     }
                 }
@@ -216,8 +221,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } message: {
             Text(errorInfo)
         }
-        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
+        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: true, callback: { fileUrls in
+            queueInstallApps(fileUrls)
         }, onDismiss: {
             choosingIPA = false
         })
@@ -437,6 +442,28 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             self.installprogressVisible = false
         }
     }
+
+    func queueInstallApps(_ urls: [URL]) {
+        installQueue.append(contentsOf: urls)
+        totalInstallCount += urls.count
+        processInstallQueue()
+    }
+
+    private func processInstallQueue() {
+        guard !processingQueue, installQueue.count > 0 else { return }
+        processingQueue = true
+        let next = installQueue.removeFirst()
+        currentInstallIndex = totalInstallCount - installQueue.count
+        Task {
+            await startInstallApp(next)
+            processingQueue = false
+            if installQueue.isEmpty {
+                totalInstallCount = 0
+                currentInstallIndex = 0
+            }
+            processInstallQueue()
+        }
+    }
     
     nonisolated func decompress(_ path: String, _ destination: String ,_ progress: Progress) async {
         extract(path, destination, progress)
@@ -628,11 +655,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
     
     func installFromUrl(urlStr: String) async {
-        // ignore any install request if we are installing another app
-        if self.installprogressVisible {
-            return
-        }
-        
         if sharedModel.multiLCStatus == 2 {
             errorInfo = "lc.appList.manageInPrimaryTip".loc
             errorShow = true
@@ -645,11 +667,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
         
-        self.installprogressVisible = true
-        defer {
-            self.installprogressVisible = false
-        }
-        
         if installUrl.isFileURL {
             // install from local, we directly call local install method
             if !installUrl.lastPathComponent.hasSuffix(".ipa") && !installUrl.lastPathComponent.hasSuffix(".tipa") {
@@ -657,32 +674,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 errorShow = true
                 return
             }
-            
+
             let fm = FileManager.default
             if !fm.isReadableFile(atPath: installUrl.path) && !installUrl.startAccessingSecurityScopedResource() {
                 errorInfo = "lc.appList.ipaAccessError".loc
                 errorShow = true
                 return
             }
-            
+
             defer {
                 installUrl.stopAccessingSecurityScopedResource()
             }
-            
+            queueInstallApps([installUrl])
+
+            // delete ipa if it's in inbox after enqueuing
             do {
-                try await installIpaFile(installUrl)
-            } catch {
-                errorInfo = error.localizedDescription
-                errorShow = true
-            }
-            
-            do {
-                // delete ipa if it's in inbox
                 var shouldDelete = false
                 if let documentsDirectory = fm.urls(for: .documentDirectory, in: .userDomainMask).first {
                     let inboxURL = documentsDirectory.appendingPathComponent("Inbox")
                     let fileURL = inboxURL.appendingPathComponent(installUrl.lastPathComponent)
-                    
+
                     shouldDelete = fm.fileExists(atPath: fileURL.path)
                 }
                 if shouldDelete {
@@ -694,7 +705,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
             return
         }
-        
+
         do {
             let fileManager = FileManager.default
             let destinationURL = fileManager.temporaryDirectory.appendingPathComponent(installUrl.lastPathComponent)
@@ -706,8 +717,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if downloadHelper.cancelled {
                 return
             }
-            try await installIpaFile(destinationURL)
-            try fileManager.removeItem(at: destinationURL)
+            queueInstallApps([destinationURL])
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true

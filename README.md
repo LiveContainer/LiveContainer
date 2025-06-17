@@ -99,9 +99,15 @@ Check out section 5.8 in [LiveContainer FAQ](https://github.com/LiveContainer/Li
 ### Installing external tweaks
 LiveContainer comes with its own TweakLoader, which automatically load CydiaSubstrate and tweaks. TweakLoader is injected to every app you install. You can override `TweakLoader.dylib` symlink with your own implementation if you wish.
 
-.dylib files in `Tweaks` folder are global, they are loaded to all apps. You can create app-specific tweaks folder and switch between them instantly.
+`.dylib` files in `Tweaks` folder are global, they are loaded to all apps. You can create app-specific tweaks folder and switch between them instantly.
 
-To install tweaks, you can use the built-in tweak manager in LiveContainer, which will automatically sign tweaks as you import. Otherwise, you can manually add them and then use the tweak manager to sign them.
+To download tweaks, you can use the app [PostBox](https://www.postbox.news/downloads). After you have chosen a tweak to download, tap on the "Install" button, navigate to "Download" and then choose "Extract .deb file". Next, tap on "Open in Files" and a `Click me once.tar` file should be shown in the Files app, tap on it once to extract it and then navigate to `/Library/MobileSubstrate/DynamicLibraries` in the new extracted folder to get the `.dylib` file(s).
+
+>[!Note]
+Tweaks that inject into [SpringBoard](https://en.wikipedia.org/wiki/SpringBoard) are not supported by LiveContainer and even if a tweak doesn´t try to inject into SpringBoard it is not guaranteed that it will work with LiveContainer. Please do **not** make a new issue about non-working or partially working tweaks.
+
+
+To install tweaks (`.dylib`), you can use the built-in tweak manager in LiveContainer, which will automatically sign tweaks as you import. Otherwise, you can manually add them and then use the tweak manager to sign them.
 
 ### Hiding Apps
 LiveContainer offers three levels of app hiding:

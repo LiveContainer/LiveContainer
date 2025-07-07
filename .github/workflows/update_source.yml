@@ -26,22 +26,30 @@ jobs:
       id: job_start_time
       run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-    - name: Update AltStore source
-      id: update_source
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get latest commit info
+      id: commit_info
       run: |
-        python update_json.py
-        git config --global user.name 'GitHub Action'
-        git config --global user.email 'action@github.com'
-        git add apps.json
-        if git diff --staged --quiet; then
-          echo "changes=false" >> $GITHUB_OUTPUT
-        else
-          git commit -m "Updated source with latest release"
-          git push
-          echo "changes=true" >> $GITHUB_OUTPUT
-        fi
+        COMMIT_SHA=$(git rev-list -n 1 HEAD)
+        COMMIT_MSG=$(git log -1 --pretty=%s)
+        echo "commit_sha=$COMMIT_SHA" >> $GITHUB_ENV
+        echo "commit_msg=$COMMIT_MSG" >> $GITHUB_ENV
+    
+        - name: Update AltStore source
+          id: update_source
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            python update_json.py
+            git config --global user.name 'GitHub Action'
+            git config --global user.email 'action@github.com'
+            git add apps.json
+            if git diff --staged --quiet; then
+              echo "changes=false" >> $GITHUB_OUTPUT
+            else
+              git commit -m "Updated source with latest release"
+              git push
+              echo "changes=true" >> $GITHUB_OUTPUT
+            fi
 
     - name: Calculate job duration
       id: duration

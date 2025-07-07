@@ -154,8 +154,16 @@ def update_json_file_nightly(json_file, nightly_release):
     date_obj = datetime.strptime(version_date, "%Y-%m-%dT%H:%M:%SZ")
     version_date = date_obj.strftime("%Y-%m-%d")
 
-    nightly_link = os.environ.get("NIGHTLY_LINK")
-    description = f"This is a nightly release [created automatically with GitHub Actions workflow]({nightly_link})"
+    nightly_link = os.environ.get("NIGHTLY_LINK", "")
+    commit_sha = os.environ.get("commit_sha", "")[:7]
+    commit_msg = os.environ.get("commit_msg", "").strip()
+
+    description = f"""\
+Nightly build from [{commit_sha}](https://github.com/LiveContainer/LiveContainer/commit/{commit_sha}):\
+ {commit_msg}
+
+This is a nightly release [created automatically with GitHub Actions workflow]({nightly_link}).
+"""
     description = prepare_description(description)
 
     assets = nightly_release.get("assets", [])
@@ -176,7 +184,9 @@ def update_json_file_nightly(json_file, nightly_release):
         "date": version_date,
         "localizedDescription": description,
         "downloadURL": download_url,
-        "size": size
+        "size": size,
+        "commit": commit_sha,
+        "headline": commit_msg
     }
 
     app["versions"].clear()
@@ -187,7 +197,9 @@ def update_json_file_nightly(json_file, nightly_release):
         "versionDate": version_date,
         "versionDescription": description,
         "downloadURL": download_url,
-        "size": size
+        "size": size,
+        "commit": commit_sha,
+        "headline": commit_msg
     })
 
     data["news"] = []
@@ -199,6 +211,7 @@ def update_json_file_nightly(json_file, nightly_release):
     except IOError as e:
         print(f"Error writing to JSON file: {e}")
         raise
+
 
 def main():
     repo_url = "LiveContainer/LiveContainer"

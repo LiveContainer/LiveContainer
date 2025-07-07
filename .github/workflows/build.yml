@@ -93,7 +93,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact }}
-          fetch-depth: 0
       - name: Get Commit Info
         id: commit_info
         run: |

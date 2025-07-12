@@ -916,7 +916,7 @@ extension LCUtils {
                 
             } else {
                 launchURL = URL(string: launchURLStr)!
-                onServerMessage?("JIT acquisition will continue in StikJIT.")
+                onServerMessage?("JIT acquisition will continue in StikDebug.")
             }
             await UIApplication.shared.open(launchURL)
         } else if jitEnabler == .SideStore {

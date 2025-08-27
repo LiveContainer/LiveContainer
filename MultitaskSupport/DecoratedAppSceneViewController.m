@@ -347,6 +347,16 @@ void UIKitFixesInit(void) {
         } else {
             self.pid = vc.pid;
             [self updateOriginalFrame];
+            
+            // Check if default maximized mode is enabled
+            if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskDefaultMaximized"]) {
+                // Delay the maximization slightly to allow the window to be properly set up
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    if (!self.isMaximized) {
+                        [self maximizeWindow];
+                    }
+                });
+            }
         }
     });
 }

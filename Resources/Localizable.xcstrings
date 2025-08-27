@@ -22246,6 +22246,23 @@
           }
         }
       }
+    },
+    "lc.settings.multitaskDefaultMaximized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multitask Default Maximized"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "多任务默认全屏"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

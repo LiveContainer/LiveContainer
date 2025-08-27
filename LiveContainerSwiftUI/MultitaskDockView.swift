@@ -214,10 +214,12 @@ class AppInfoProvider {
         
         let userWidth = originalDockWidth
         let iconSize = calculateIconSize(for: userWidth)
-        let requiredHeight = CGFloat(apps.count) * iconSize + Constants.iconAreaVerticalPadding
+        // Account for apps + LiveContainer icon (1 additional icon) when calculating required height
+        let totalIconCount = apps.count + 1  // +1 for LiveContainer icon
+        let requiredHeight = CGFloat(totalIconCount) * iconSize + Constants.iconAreaVerticalPadding
         
         if requiredHeight > maxSafeHeight {
-            let maxAllowedIconSize = (maxSafeHeight - Constants.iconAreaVerticalPadding) / CGFloat(apps.count)
+            let maxAllowedIconSize = (maxSafeHeight - Constants.iconAreaVerticalPadding) / CGFloat(totalIconCount)
             
             let targetIconSize = max(Constants.minAdaptiveIconSize, maxAllowedIconSize)
             
@@ -338,7 +340,9 @@ class AppInfoProvider {
             return max(Constants.minCollapsedHeight, collapsedHeight)
         } else {
             let currentIconSize = self.adaptiveIconSize
-            return CGFloat(self.apps.count) * currentIconSize + Constants.iconAreaVerticalPadding
+            // Account for apps + LiveContainer icon (1 additional icon) when calculating dock height
+            let totalIconCount = self.apps.count + 1  // +1 for LiveContainer icon
+            return CGFloat(totalIconCount) * currentIconSize + Constants.iconAreaVerticalPadding
         }
     }
 
@@ -702,6 +706,17 @@ class AppInfoProvider {
         }
     }
     
+    // Minimize all virtual windows to return to LiveContainer desktop
+    @objc public func minimizeAllWindows() {
+        DispatchQueue.main.async {
+            self.apps.forEach { app in
+                if let vc = app.view?._viewControllerForAncestor() as? DecoratedAppSceneViewController {
+                    vc.minimizeWindow()
+                }
+            }
+        }
+    }
+    
     @objc public func showDockFromHidden() {
         DispatchQueue.main.async {
             self.isDockHidden = false
@@ -794,6 +809,10 @@ public struct MultitaskDockSwiftView: View {
                             .onTapGesture {
                                 dockManager.toggleDockCollapse()
                             }
+                        
+                        // LiveContainer desktop icon - always show at the top
+                        LiveContainerIconView()
+                            .environmentObject(dockManager)
                         
                         ForEach(dockManager.apps) { app in
                             AppIconView(app: app, showTooltip: $showTooltip, tooltipApp: $tooltipApp)
@@ -1023,6 +1042,76 @@ class IconCacheManager {
         }
     }
 }
+// MARK: - LiveContainer Desktop Icon View
+@available(iOS 16.0, *)
+struct LiveContainerIconView: View {
+    @State private var isPressed = false
+    @State private var lcIcon: UIImage?
+    @EnvironmentObject var dockManager: MultitaskDockManager
+    
+    private var iconSize: CGFloat {
+        return dockManager.adaptiveIconSize
+    }
+    
+    var body: some View {
+        Group {
+            if let icon = lcIcon {
+                Image(uiImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                // Fallback with house icon
+                Image(systemName: "house.fill")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundColor(.white)
+                    .padding(iconSize * 0.2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.blue)
+                    )
+            }
+        }
+        .frame(width: iconSize, height: iconSize)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 3)
+        .scaleEffect(isPressed ? 1.15 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .onAppear {
+            loadLiveContainerIcon()
+        }
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = false
+                }
+                // Minimize all windows
+                dockManager.minimizeAllWindows()
+            }
+        }
+    }
+    
+    private func loadLiveContainerIcon() {
+        DispatchQueue.global(qos: .userInteractive).async {
+            // Try to load LiveContainer's app icon
+            var icon: UIImage?
+            
+            if let appIcon = UIImage(named: "AppIcon60x60@2x") {
+                icon = appIcon
+            } else if let defaultIcon = UIImage(named: "DefaultIcon") {
+                icon = defaultIcon
+            }
+            
+            DispatchQueue.main.async {
+                self.lcIcon = icon
+            }
+        }
+    }
+}
+
 // MARK: - App Icon View
 @available(iOS 16.0, *)
 struct AppIconView: View {

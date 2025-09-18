@@ -31,10 +31,10 @@ It’s recommended to follow the following steps to set up JIT-Less mode for usi
 
 ## Downloads
 ### Stable:
-  [AltSource (raw)](https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json) ([Add to AltStore](https://tinyurl.com/LCAltStoreClassic), [Add to SideStore](https://tinyurl.com/LCSideStore)), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/latest/download/LiveContainer.ipa)
+  [AltSource](https://celloserenity.github.io/altsource-redirector/?url=https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/latest/download/LiveContainer.ipa)
 
 ### Nightly:
-  [AltSource (raw)](https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json) ([Add to AltStore](https://tinyurl.com/LC-NAltStoreClassic), [Add to SideStore](https://tinyurl.com/LC-NSideStore)), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa)
+  [AltSource](https://celloserenity.github.io/altsource-redirector/?url=https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa)
 
 - It is recommended to setup JIT-Less mode, in which LiveContainer signs your apps with your certificate from AltStore/SideStore (see the instructions below).
 
@@ -141,7 +141,7 @@ Open Xcode, edit `DEVELOPMENT_TEAM[config=Debug]` in `xcconfigs/Global.xcconfig`
 - The app signer shipped with LiveContainer.
 - Originally made by [zhlynn](https://github.com/zhlynn/zsign).
 - LiveContainer uses [Feather's](https://github.com/khcrysalis/Feather) version of ZSign modified by khcrysalis.
-- Changes are made to meet LiveContainer's need.
+- Changes are made to meet LiveContainer's needs.
 
 ## How does it work?
 

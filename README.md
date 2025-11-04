@@ -31,17 +31,24 @@ It’s recommended to follow the following steps to set up JIT-Less mode for usi
 
 ## Downloads
 ### Stable:
-  [AltSource (raw)](https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json) 
-  ([Add to AltStore](https://intradeus.github.io/http-protocol-redirector?r=altstore://source?url=https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json), 
-  [Add to SideStore](https://intradeus.github.io/http-protocol-redirector?r=sidestore://source?url=https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json)), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/latest/download/LiveContainer.ipa)
+<a href="https://celloserenity.github.io/altdirect/?url=https://raw.githubusercontent.com/LiveContainer/LiveContainer/refs/heads/main/apps.json&exclude=livecontainer" target="_blank">
+   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Alt_Blue.png?raw=true" alt="Add AltSource" width="200">
+</a>
+<a href="https://github.com/LiveContainer/LiveContainer/releases/latest/download/LiveContainer.ipa" target="_blank">
+   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
+</a>
 
 ### Nightly:
-  [AltSource (raw)](https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json) ([Add to AltStore](https://intradeus.github.io/http-protocol-redirector?r=altstore://source?url=https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json), [Add to SideStore](https://intradeus.github.io/http-protocol-redirector?r=sidestore://source?url=https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json)), [IPA download](https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa)
+<a href="https://celloserenity.github.io/altdirect/?url=https://github.com/LiveContainer/LiveContainer/releases/download/nightly/apps_nightly.json&exclude=livecontainer" target="_blank">
+   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Alt_Blue.png?raw=true" alt="Add AltSource" width="200">
+</a>
+<a href="https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa" target="_blank">
+   <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
+</a>
 
-- It is recommended to setup JIT-Less mode, in which LiveContainer signs your apps with your certificate from AltStore/SideStore (see the instructions below).
 
 ## Installation
-
+- It is recommended to setup JIT-Less mode, in which LiveContainer signs your apps with your certificate from AltStore/SideStore (see the instructions below).
 ### JIT-Less mode (Without JIT \[recommended])
 These steps can be bypassed if you don't mind enabling JIT for your app every time, but it is not recommended. Without JIT, guest apps need to be codesigned, which requires retrieving the certificate and password from AltStore/SideStore.
 

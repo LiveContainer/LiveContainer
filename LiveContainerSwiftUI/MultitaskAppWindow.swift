@@ -20,9 +20,9 @@ struct MultitaskAppInfo {
 }
 
 @available(iOS 16.1, *)
-@objc class MultitaskWindowManager : NSObject {
+@objc class MultitaskWindowManager: NSObject {
     @Environment(\.openWindow) static var openWindow
-    static var appDict: [String:MultitaskAppInfo] = [:]
+    static var appDict: [String: MultitaskAppInfo] = [:]
     
     @objc class func openAppWindow(displayName: String, dataUUID: String, bundleId: String) {
         DataManager.shared.model.enableMultipleWindow = true
@@ -42,26 +42,25 @@ struct MultitaskAppInfo {
 }
 
 @available(iOS 16.1, *)
-struct AppSceneViewSwiftUI : UIViewControllerRepresentable {
-    
-    @Binding var show : Bool
+struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
+    @Binding var show: Bool
     let bundleId: String
     let dataUUID: String
     let initSize: CGSize
-    let onAppInitialize : (Int32, Error?) -> Void
+    let onAppInitialize: (Int32, Error?) -> Void
     
     class Coordinator: NSObject, AppSceneViewControllerDelegate {
-        let onExit : () -> Void
-        let onAppInitialize : (Int32, Error?) -> Void
-        init(onAppInitialize : @escaping (Int32, Error?) -> Void, onExit: @escaping () -> Void) {
+        let onExit: () -> Void
+        let onAppInitialize: (Int32, Error?) -> Void
+        init(onAppInitialize: @escaping (Int32, Error?) -> Void, onExit: @escaping () -> Void) {
             self.onAppInitialize = onAppInitialize
             self.onExit = onExit
         }
         
-        func appSceneVCAppDidExit(_ vc: AppSceneViewController!) {
+        func appSceneVCAppDidExit(_: AppSceneViewController!) {
             onExit()
         }
-
+        
         func appSceneVC(_ vc: AppSceneViewController!, didInitializeWithError error: (any Error)!) {
             onAppInitialize(vc.pid, error)
         }
@@ -72,12 +71,12 @@ struct AppSceneViewSwiftUI : UIViewControllerRepresentable {
             show = false
         })
     }
-
+    
     func makeUIViewController(context: Context) -> UIViewController {
         return AppSceneViewController(bundleId: bundleId, dataUUID: dataUUID, delegate: context.coordinator)
     }
     
-    func updateUIViewController(_ vc: UIViewController, context: Context) {
+    func updateUIViewController(_ vc: UIViewController, context _: Context) {
         if let vc = vc as? AppSceneViewController {
             if !show {
                 vc.terminate()
@@ -87,37 +86,38 @@ struct AppSceneViewSwiftUI : UIViewControllerRepresentable {
 }
 
 @available(iOS 16.1, *)
-struct MultitaskAppWindow : View {
+struct MultitaskAppWindow: View {
     @State var show = true
     @State var pid = 0
-    @State var appInfo : MultitaskAppInfo? = nil
+    @State var appInfo: MultitaskAppInfo? = nil
     @State private var hasScheduledAutoClose = false
     @State private var didRequestManualClose = false
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @Environment(\.openWindow) var openWindow
+    @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
     @AppStorage("LCSkipTerminatedScreen", store: LCUtils.appGroupUserDefault) var skipTerminatedScreen = false
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     init(id: String) {
         guard let appInfo = MultitaskWindowManager.appDict[id] else {
             return
         }
-        self._appInfo = State(initialValue: appInfo)
-        
+        _appInfo = State(initialValue: appInfo)
     }
-
+    
     var body: some View {
+        let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
-                AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize:geometry.size,
+                AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
                                     onAppInitialize: { pid, error in
-                    if(error == nil) {
+                    if error == nil {
                         DispatchQueue.main.async {
                             self.pid = Int(pid)
                         }
                     }
                 })
-                    .background(.black)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.black)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .ignoresSafeArea(.all, edges: .all)
             .navigationTitle(Text("\(appInfo.displayName) - \(String(pid))"))
@@ -127,7 +127,7 @@ struct MultitaskAppWindow : View {
                 }
             }
             
-        } else if skipTerminatedScreen, appInfo != nil {
+        } else if skipTerminatedScreen && isVirtualWindowMode, appInfo != nil {
             Color.clear
                 .ignoresSafeArea(.all, edges: .all)
                 .onAppear {
@@ -148,7 +148,7 @@ struct MultitaskAppWindow : View {
                 Button("lc.common.close".loc) {
                     requestSceneDestruction(isManual: true)
                 }
-            }.onAppear() {
+            }.onAppear {
                 // appInfo == nil indicates this is the first scene opened in this launch. We don't want this so we open lc's main scene and close this view
                 // however lc's main view may already be starting in another scene so we wait a bit before opening the main view
                 // also we have to keep the view open for a little bit otherwise lc will be killed by iOS
@@ -163,12 +163,10 @@ struct MultitaskAppWindow : View {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 requestSceneDestruction()
                             }
-
                         }
                     }
                 }
             }
-
         }
     }
     
@@ -188,10 +186,12 @@ class MultitaskRelaunchManager: NSObject {
     private static var pendingKeys: Set<String> = []
     private static let pendingLock = NSLock()
     
-    @objc static func scheduleRelaunchIfNeeded(bundleId: String, dataUUID: String, isManualTermination: Bool) {
+    static func scheduleRelaunchIfNeeded(bundleId: String, dataUUID: String, isManualTermination: Bool) {
         let defaults = LCUtils.appGroupUserDefault
+        let multitaskMode = MultitaskMode(rawValue: defaults.integer(forKey: "LCMultitaskMode")) ?? .virtualWindow
         guard defaults.bool(forKey: "LCSkipTerminatedScreen"),
               defaults.bool(forKey: "LCRestartTerminatedApp"),
+              multitaskMode == .virtualWindow,
               !isManualTermination else { return }
         
         let key = "\(bundleId)#\(dataUUID)"
@@ -222,7 +222,8 @@ class MultitaskRelaunchManager: NSObject {
     
     private static func relaunchApp(bundleId: String, dataUUID: String) async {
         guard let appModel = await MainActor.run(body: { lookupAppModel(bundleId: bundleId) }),
-              appModel.appInfo.lastLaunched.distance(to: .now) > 2 else {
+              appModel.appInfo.lastLaunched.distance(to: .now) > 2
+        else {
             return
         }
         

@@ -299,7 +299,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bestätigung der Deinstallation"
+            "value" : "Deinstallation bestätigen"
           }
         },
         "en" : {
@@ -584,7 +584,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Möchten Sie auch den Datenordner von %@ löschen? Sie können ihn für die zukünftige Nutzung behalten."
+            "value" : "Möchten Sie auch den Datenordner von %@ löschen? Sie können ihn für eine spätere Nutzung behalten."
           }
         },
         "en" : {
@@ -1439,7 +1439,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitte verwenden Sie Ihre bevorzugte Variante, um JIT für den aktuellen LiveContainer zu aktivieren."
+            "value" : "Bitte nutzen Sie Ihre bevorzugte Methode, um JIT für den aktuellen LiveContainer zu aktivieren."
           }
         },
         "en" : {
@@ -1629,7 +1629,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abbruch der Installation"
+            "value" : "Installation abbrechen"
           }
         },
         "en" : {
@@ -2397,7 +2397,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Url oder Url-Schema eingeben"
+            "value" : "URL oder URL-Schema eingeben"
           }
         },
         "en" : {
@@ -2492,7 +2492,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apps verstecken"
+            "value" : "Ausgeblendete Apps"
           }
         },
         "en" : {
@@ -3062,7 +3062,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vom URL installieren"
+            "value" : "Von URL installieren"
           }
         },
         "en" : {
@@ -3252,7 +3252,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drücken Sie das Plus, um Apps zu installieren."
+            "value" : "Tippen Sie auf das Plus, um Apps zu installieren."
           }
         },
         "en" : {
@@ -3891,7 +3891,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das Schema \"%@\" kann von keiner im LiveContainer installierten Anwendung geöffnet werden."
+            "value" : "Das Schema \"%@\" kann von keiner in LiveContainer installierten App geöffnet werden."
           }
         },
         "en" : {
@@ -4081,7 +4081,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name (A bis Z)"
+            "value" : "Name (A-Z)"
           }
         },
         "en" : {
@@ -4248,7 +4248,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neuanordnen"
+            "value" : "Neu anordnen"
           }
         },
         "en" : {
@@ -4581,7 +4581,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name (A bis Z)"
+            "value" : "Name (Z-A)"
           }
         },
         "en" : {
@@ -4765,7 +4765,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der eingegebene URL ist ungültig. Bitte prüfen Sie ihn und versuchen Sie es erneut."
+            "value" : "Die eingegebene URL ist ungültig. Bitte überprüfen Sie sie und versuchen Sie es erneut."
           }
         },
         "en" : {
@@ -5179,7 +5179,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Daten dieser App befinden sich derzeit in %@. Öffnen Sie %@ und starten Sie die App auf der Seite „Meine Apps“ und versuchen Sie es erneut."
+            "value" : "Die Daten dieser App befinden sich derzeit in %@. Öffnen Sie %@, starten Sie die App auf der Seite 'Meine Apps' und versuchen Sie es erneut."
           }
         },
         "en" : {
@@ -5749,7 +5749,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beheben Sie, dass die Dateiauswahl nicht reagiert, wenn Sie auf „Öffnen“ klicken, indem Sie diese App zwingen, ausgewählte Dateien in den Eingang zu kopieren. Sie können importierte Dateien im Ordner „Eingang“ im Datenordner der App anzeigen."
+            "value" : "Behebt das Problem, dass der Dateiauswahldialog beim Tippen auf \"Öffnen\" nicht reagiert, indem die App die ausgewählten Dateien in ihren Inbox-Ordner kopiert. Importierte Dateien finden Sie im Ordner \"Inbox\" im Datenordner der App."
           }
         },
         "en" : {
@@ -6094,7 +6094,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Versuchen Sie erneut zu signieren, wenn diese Anwendung mit der Fehlermeldung „Ungültige Signatur“ nicht gestartet werden konnte. Wenn dies immer noch nicht funktioniert, erneuern Sie das JIT-Less-Zertifikat."
+            "value" : "Versuchen Sie erneut zu signieren, wenn diese Anwendung mit der Fehlermeldung \"Ungültige Signatur\" nicht gestartet werden konnte. Wenn es immer noch nicht funktioniert, erneuern Sie das JIT-Less-Zertifikat."
           }
         },
         "en" : {
@@ -6379,7 +6379,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um Anwendungen vollständig auszublenden, aktivieren Sie in den Einstellungen den Modus \"Striktes Ausblenden\"."
+            "value" : "Um Anwendungen vollständig auszublenden, aktivieren Sie in den Modus \"Striktes Ausblenden\" in den Einstellungen ."
           }
         },
         "en" : {
@@ -6474,7 +6474,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verstecke LiveContainer von \"Dyld Api\""
+            "value" : "Verstecke LiveContainer von Dyld Api"
           }
         },
         "en" : {
@@ -6664,7 +6664,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "JIT Startskript"
+            "value" : "JIT-Startskript"
           }
         },
         "en" : {
@@ -6742,7 +6742,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eine JavaScript-Datei an StikDebug übergeben, wenn JIT die App startet"
+            "value" : "Eine JavaScript-Datei, die beim Starten der App mit JIT an StikDebug übergeben wird."
           }
         },
         "en" : {
@@ -6991,7 +6991,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LiveContainer wird versuchen, die JIT-Berechtigung zu erhalten, bevor die Anwendung gestartet wird."
+            "value" : "LiveContainer wird vor dem Start der App versuchen, die JIT-Berechtigung zu erlangen."
           }
         },
         "en" : {
@@ -7086,7 +7086,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "App verschließen"
+            "value" : "App sperren"
           }
         },
         "en" : {
@@ -7671,7 +7671,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn Sie diese App in den privaten Dokumentenordner verschieben, können Sie in der Dateien-App auf ihre Daten und Tweaks zugreifen, aber sie kann nicht von anderen LiveContainern ausgeführt werden."
+            "value" : "Wenn Sie diese App in einen privaten Dokumentenordner verschieben, können Sie in der Dateien-App auf ihre Daten und Tweaks zugreifen, aber sie kann nicht von anderen LiveContainern ausgeführt werden."
           }
         },
         "en" : {
@@ -8983,7 +8983,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datein"
+            "value" : "Daten"
           }
         },
         "en" : {
@@ -10456,7 +10456,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Okey"
+            "value" : "Ok"
           }
         },
         "en" : {
@@ -11874,7 +11874,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Container ist derzeit in Verwendung."
+            "value" : "Der Container ist derzeit in Verwendung"
           }
         },
         "en" : {
@@ -12159,7 +12159,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keine Schlüsselbund-Gruppen-Berechtigung."
+            "value" : "Unzureichende Keychain-Zugriffsgruppe."
           }
         },
         "en" : {
@@ -13014,7 +13014,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "identifierForVendor überbrücken"
+            "value" : "Spoof identifierForVendor"
           }
         },
         "en" : {
@@ -13180,7 +13180,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verknüpfung von der App lösen"
+            "value" : "App-Verknüpfung aufheben"
           }
         },
         "en" : {
@@ -13275,7 +13275,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Herunterladen"
+            "value" : "Wird heruntergeladen"
           }
         },
         "en" : {
@@ -13370,7 +13370,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sind Sie sicher, dass Sie zu \"%@\" wechseln wollen? Dadurch wird diese Anwendung beendet."
+            "value" : "Sind Sie sicher, dass Sie zu %@ wechseln wollen? Dadurch wird diese Anwendung beendet."
           }
         },
         "en" : {
@@ -13940,7 +13940,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Richten Sie den JIT-freien-Modus in den Einstellungen ein, um LiveContainer ohne JIT zu verwenden.\n\n**Prüfen Sie die JITless-Diagnose-Seite in den Einstellungen, wenn Sie Probleme mit der Aktivierung des JIT-Less-Modus haben.**\n\nDrücken Sie die Plus-Taste, um Apps zu installieren.\n\nDrücken Sie lange auf die App, um app-spezifische Einstellungen, Fehlerbehebungen und das Hinzufügen von Apps zum Homescreen zu erhalten."
+            "value" : "Richten Sie den JIT-freien-Modus in den Einstellungen ein, um LiveContainer ohne JIT zu verwenden.\n\n**Überprüfen Sie die JITLess-Diagnoseseite in den Einstellungen, falls Sie Probleme beim Aktivieren des JITLess-Modus haben**\n\nTippen Sie auf das Plus, um Apps zu installieren.\n\nDurch Gedrückthalten des App-Banners öffnen Sie app-spezifische Einstellungen, Korrekturen und können Apps zum Home-Bildschirm hinzufügen."
           }
         },
         "en" : {
@@ -14035,7 +14035,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "**Sehen Sie sich [LiveContainer FAQ](https://github.com/khanhduytran0/LiveContainer/issues/265) für allgemeine Probleme an.**\n                         \nWenn du einen Fehler oder ein Kompatibilitätsproblem entdeckst, melde dich bitte auf [GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)."
+            "value" : "**Sehen Sie sich [LiveContainer FAQ](https://github.com/khanhduytran0/LiveContainer/issues/265) für allgemeine Probleme an.**\n                         \nWenn Sie einen Fehler oder ein Kompatibilitätsproblem entdecken, melden Sie es bitte auf [GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)."
           }
         },
         "en" : {
@@ -14225,7 +14225,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Berechtigungsdatei"
+            "value" : "Entitlement-Datei"
           }
         },
         "en" : {
@@ -15383,7 +15383,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Überprüfen"
+            "value" : "Wird überprüft"
           }
         },
         "en" : {
@@ -15495,7 +15495,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ich brauche Hilfe"
+            "value" : "Hilfe erhalten"
           }
         },
         "en" : {
@@ -15780,7 +15780,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Testbibliothek konnte nicht geladen werden. Dies bedeutet, dass Ihr Zertifikat möglicherweise ein Problem aufweist. Bitte versuchen Sie es: 1. Öffnen Sie %@ erneut; 2. aktualisieren Sie alle Anwendungen in %@; 3. patchen Sie %@ erneut und versuchen Sie es erneut."
+            "value" : "Die Testbibliothek konnte nicht geladen werden. Dies bedeutet, dass Ihr Zertifikat möglicherweise ein Problem aufweist. Bitte versuchen Sie Folgendes: 1. %@ erneut öffnen; 2. alle Apps in %@ aktualisieren; 3. %@ erneut patchen und es noch einmal versuchen."
           }
         },
         "en" : {
@@ -15839,7 +15839,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Test im JIT-freien-Modus erfolgreich"
+            "value" : "JIT-Less-Modus-Test bestanden"
           }
         },
         "en" : {
@@ -16410,7 +16410,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verschieben erfolgreich."
+            "value" : "Erfolgreich verschoben."
           }
         },
         "en" : {
@@ -16505,7 +16505,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es gibt Dateien im Gruppenordner der geteilten App. Bitte verschieben Sie zuerst und versuche es erneut."
+            "value" : "Im geteilten App-Gruppen-Ordner sind noch Dateien vorhanden. Bitte verschieben Sie diese und versuchen Sie es erneut."
           }
         },
         "en" : {
@@ -16600,7 +16600,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es gibt Dateien im Gruppenordner der privaten App. Bitte verschieben Sie zuerst und versuche es erneut."
+            "value" : "Im privaten App-Gruppen-Ordner befinden sich Dateien. Verschieben Sie diese zuerst und versuchen Sie es erneut."
           }
         },
         "en" : {
@@ -16695,7 +16695,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Private App-Gruppe in den Ordner \"geteilte Dokumente“ verschieben"
+            "value" : "Private App-Gruppe in den gemeinsamen Dokumente-Ordner verschieben"
           }
         },
         "en" : {
@@ -16790,7 +16790,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geteilte App-Gruppen in den Ordner \"private Dokumente\" verschieben"
+            "value" : "Dateien der freigegebenen App-Gruppe in den privaten Dokumente-Ordner verschieben"
           }
         },
         "en" : {
@@ -17153,7 +17153,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Bundle-ID vom LiveContainer, „%@“, stimmt nicht mit der AppID in den Berechtigungen überein, die eine Bundle-ID von „%@“ erwartet. Einige Funktionen sind möglicherweise nicht verfügbar."
+            "value" : "Die Bundle-ID von LiveContainer \"%@\" entspricht nicht dem Application-Identifier in den Entitlements, der \"%@\" als Bundle-ID erwartet. Einige Funktionen sind möglicherweise nicht verfügbar."
           }
         },
         "en" : {
@@ -18091,7 +18091,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signiere keine neuen Apps"
+            "value" : "Keine neuen Apps signieren"
           }
         },
         "en" : {
@@ -18566,7 +18566,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rahmen-verknüpfungssymbol"
+            "value" : "Verknüpfungs-Icon einrahmen"
           }
         },
         "en" : {
@@ -18661,7 +18661,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rahmen-verknüpfungssymbole mit LiveContainer-Symbol."
+            "value" : "Shortcut-Icons mit dem LiveContainer-Icon umrahmen."
           }
         },
         "en" : {
@@ -18756,7 +18756,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zertifikat von dem eingebetteten SideStore importieren"
+            "value" : "Zertifikat aus der integrierten SideStore-Version importieren"
           }
         },
         "en" : {
@@ -18839,7 +18839,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zertifikat konnte nicht gefunden werden. Haben Sie sich im eingebetteten SideStore angemeldet?"
+            "value" : "Zertifikat nicht gefunden. Haben Sie sich bei der integrierten SideStore-Version angemeldet?"
           }
         },
         "en" : {
@@ -18922,7 +18922,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eingebetter SideStore erkannt. Möchten Sie das Zertifikat davon importieren?"
+            "value" : "Integrierter SideStore erkannt. Möchten Sie das Zertifikat daraus importieren?"
           }
         },
         "en" : {
@@ -19100,7 +19100,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Um den JITLess-Modus ohne AltStore/SideStore zu verwenden, müssen Sie das Zertifikat importieren, das zum Signieren von LiveContainer verwendet wurde. Fortfahren?"
+            "value" : "Wenn Sie den JITLess-Modus ohne AltStore/SideStore nutzen möchten, müssen Sie das Zertifikat importieren, mit dem LiveContainer signiert wurde. Fortfahren?"
           }
         },
         "en" : {
@@ -19385,7 +19385,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tweaks selber in LiveContainer laden"
+            "value" : "Tweaks in LiveContainer selbst laden"
           }
         },
         "en" : {
@@ -19592,7 +19592,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zertifikat konnte nicht validiert werden. Bitte überprüfen Sie das Passwort und ob das ausgewählte Zertifikat zum Signieren des LiveContainers verwendet wird."
+            "value" : "Zertifikat konnte nicht validiert werden. Bitte überprüfen Sie das Passwort und ob das ausgewählte Zertifikat zum Signieren von LiveContainer verwendet wird."
           }
         },
         "en" : {
@@ -19972,7 +19972,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "JIT-frei"
+            "value" : "JIT-Less"
           }
         },
         "en" : {
@@ -21196,7 +21196,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbleibende Ordner aus der App-Gruppe verschieben"
+            "value" : "Nicht zugeordnete Ordner aus der App-Gruppe verschieben"
           }
         },
         "en" : {
@@ -21760,7 +21760,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mit dem eingebetteten SideStore installieren"
+            "value" : "Mit integriertem SideStore installieren"
           }
         },
         "en" : {
@@ -21843,7 +21843,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kategorie als Spiel festlegen"
+            "value" : "Kategorie auf Spiel setzen"
           }
         },
         "en" : {
@@ -21926,7 +21926,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LiveContainer wird die IPA für einen anderen LiveContainer generieren. Bitte öffnen Sie die Datei in %@, um sie zu installieren, Weiter?"
+            "value" : "LiveContainer wird eine IPA für einen weiteren LiveContainer generieren. Bitte teilen Sie diese mit %@, um sie zu installieren. Fortfahren?"
           }
         },
         "en" : {
@@ -22116,7 +22116,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LiveContainer2 neu installieren"
+            "value" : "Einen weiteren LiveContainer neu installieren"
           }
         },
         "en" : {
@@ -22579,7 +22579,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kein Datenordner zu entfernen. Alle Datenordner sind in Gebrauch."
+            "value" : "Kein Datenordner zum Entfernen vorhanden. Alle Datenordner werden verwendet."
           }
         },
         "en" : {
@@ -23224,7 +23224,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Standardmäßig fragt LiveContainer Sie, wie Sie eine URL öffnen wollen. Aktivieren Sie dies, um die URL automatisch in der aktuellen Anwendung zu öffnen."
+            "value" : "Standardmäßig fragt LiveContainer, wie eine URL geöffnet werden soll. Aktivieren Sie diese Option, um URLs automatisch in der aktuellen App zu öffnen."
           }
         },
         "en" : {
@@ -23414,7 +23414,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Standardmäßig fragt LiveContainer Sie, bevor Sie die App wechseln. Aktivieren Sie dies, um die App sofort zu wechseln. Alle ungespeicherten Daten gehen dabei verloren."
+            "value" : "Standardmäßig fragt LiveContainer Sie, bevor Sie die App wechseln. Aktivieren Sie diese Option, um sofort zur App zu wechseln. Nicht gespeicherte Daten gehen dabei verloren."
           }
         },
         "en" : {
@@ -23906,7 +23906,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bitte benutzen Sie LiveContainer **nicht** für Raubkopien."
+            "value" : "Bitte benutzen Sie LiveContainer nicht für Raubkopien."
           }
         },
         "en" : {
@@ -24001,7 +24001,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LiveContainer scheint beim letzten Signieren der App abzustürzen, und die App könnte beschädigt sein. Bitte überlegen Sie, die App neu zu installieren oder zu einem anderen Signierer zu wechseln."
+            "value" : "LiveContainer scheint während der letzten App-Signierung abgestürzt zu sein, und die App könnte beschädigt sein. Bitte erwägen Sie, die App neu zu installieren oder zu einem anderen Signierer zu wechseln."
           }
         },
         "en" : {
@@ -24096,7 +24096,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die App ist mit dem neuesten Zertifikat signiert, aber die Codesignatur ist ungültig. Bitte überprüfen Sie die \"JIT-frei\"-Diagnoseseite und prüfen sie nach Fehlern in der JIT-freien-Einrichtung."
+            "value" : "Die App wurde mit dem neuesten Zertifikat signiert, aber ihre Code-Signatur ist ungültig. Bitte prüfen Sie die JIT-Less-Diagnoseseite und sehen Sie nach, ob es Probleme mit Ihrer JIT-Less-Konfiguration gibt."
           }
         },
         "en" : {
@@ -24191,7 +24191,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signierzertifikat konnte nicht gefunden werden. Bitte überprüfen Sie die \"JIT-frei\"-Diagnoseseite und suchen Sie nach Fehlern in der JIT-freien-Einrichtung."
+            "value" : "Bitte prüfen Sie die JIT-Less-Diagnoseseite und sehen Sie nach, ob es Probleme mit Ihrer JIT-Less-Konfiguration gibt."
           }
         },
         "en" : {
@@ -26128,7 +26128,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dies ist der app-spezifische Ordner. Legen Sie den Tweak-Ordner fest, und die Gast-App wird sie automatisch abrufen."
+            "value" : "Dies ist der app-spezifische Ordner. Legen Sie hier den Tweak-Ordner fest, und die Gast-App übernimmt dessen Inhalt rekursiv."
           }
         },
         "en" : {
@@ -26318,7 +26318,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tweaks importieren"
+            "value" : "Tweak importieren"
           }
         },
         "en" : {

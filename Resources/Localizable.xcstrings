@@ -109,7 +109,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einige Apps werden im Multitasking-Modus ausgeführt. Wenn Sie diese Anwendung ausführen, werden diese Anwendungen beendet. Fortsetzen?"
+            "value" : "Einige Apps werden im Multitasking-Modus ausgeführt. Wenn Sie diese Anwendung ausführen, werden diese Anwendungen beendet. Fortfahren?"
           }
         },
         "en" : {
@@ -204,7 +204,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sind Sie sicher, dass Sie %@ deinstallieren wollen?"
+            "value" : "Sind Sie sicher, dass Sie %@ deinstallieren möchten?"
           }
         },
         "en" : {
@@ -584,7 +584,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Möchten Sie auch den Datenordner von %@ löschen? Sie können ihn für eine spätere Nutzung behalten."
+            "value" : "Möchten Sie außerdem den Datenordner von %@ löschen? Sie können ihn für spätere Verwendung behalten."
           }
         },
         "en" : {
@@ -964,7 +964,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datenordner noch nicht erstellt"
+            "value" : "Der Datenordner wurde noch nicht erstellt."
           }
         },
         "en" : {
@@ -17731,7 +17731,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wenn ein Account einer App nicht zwischen LiveContainern synchronisiert werden kann, liegt das möglicherweise daran, dass es noch im privaten Schlüsselbund des aktuellen LiveContainers gespeichert ist. Das Bereinigen des Schlüsselbundes kann dieses Problem lösen, aber es kann dazu führen, dass Sie sich von einigen Ihrer Accounts abmelden. Fortsetzen?"
+            "value" : "Wenn ein Account einer App nicht zwischen LiveContainern synchronisiert werden kann, liegt das möglicherweise daran, dass es noch im privaten Schlüsselbund des aktuellen LiveContainers gespeichert ist. Das Bereinigen des Schlüsselbundes kann dieses Problem lösen, aber es kann dazu führen, dass Sie sich von einigen Ihrer Accounts abmelden. Fortfahren?"
           }
         },
         "en" : {

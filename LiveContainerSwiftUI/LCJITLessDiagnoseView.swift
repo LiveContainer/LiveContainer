@@ -379,22 +379,30 @@ struct LCJITLessDiagnoseView : View {
     func validateCertificate() {
         certificateStatus = -1
         certificateValidateUntil = nil
-        LCUtils.validateCertificate { status, date, ou, error in
-            if let error {
-                errorInfo = error.loc
+        
+        Task {
+            do {
+                let certWrapper = try LCCertWrapper.initWithCertData(LCUtils.certificateData(), password: LCUtils.certificatePassword())
+                if let date = certWrapper.notValidAfter {
+                    let formatter1 = DateFormatter()
+                    formatter1.dateStyle = .short
+                    formatter1.timeStyle = .medium
+                    certificateValidateUntil = formatter1.string(from: date)
+                }
+                if let ou = certWrapper.organizationalUnit {
+                    certTeamId = ou
+                }
+                let statusStr = try certWrapper.checkValidity()
+                if statusStr == "Valid" {
+                    certificateStatus = 0
+                } else {
+                    certificateStatus = 1
+                }
+
+            } catch {
+                errorInfo = error.localizedDescription.loc
                 errorShow = true
                 certificateStatus = 2
-                return
-            }
-            certificateStatus = Int(status)
-            if let date {
-                let formatter1 = DateFormatter()
-                formatter1.dateStyle = .short
-                formatter1.timeStyle = .medium
-                certificateValidateUntil = formatter1.string(from: date)
-            }
-            if let ou {
-                certTeamId = ou
             }
         }
     }

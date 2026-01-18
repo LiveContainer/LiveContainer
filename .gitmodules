@@ -1,9 +1,6 @@
 [submodule "fishhook"]
 	path = fishhook
 	url = https://github.com/LiveContainer/fishhook
-[submodule "OpenSSL"]
-	path = OpenSSL
-	url = https://github.com/krzyzanowskim/OpenSSL
 [submodule "litehook"]
 	path = litehook
 	url = https://github.com/LiveContainer/litehook

@@ -615,7 +615,7 @@ extension LCUtils {
                 }
                 c.resume()
             }
-            let progress = LCUtils.signAppBundle(withZSign: url, completionHandler: compeletionHandler)
+            let progress = LCUtils.signAppBundle(with: url, completionHandler: compeletionHandler)
             
             guard let progress = progress else {
                 ans = "lc.utils.initSigningError".loc

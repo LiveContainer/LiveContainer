@@ -7,7 +7,7 @@
 #import "LCUtils.h"
 #import "LCAppInfo.h"
 #import "../MultitaskSupport/DecoratedAppSceneViewController.h"
-#import "../ZSign/zsigner.h"
+#import "../codesign/CodeSigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
 
 Class LCSharedUtilsClass = nil;
@@ -154,27 +154,6 @@ Class LCSharedUtilsClass = nil;
 
 #pragma mark Code signing
 
-
-+ (void)loadStoreFrameworksWithError2:(NSError **)error {
-    // too lazy to use dispatch_once
-    static BOOL loaded = NO;
-    if (loaded) return;
-
-    void* handle = dlopen("@executable_path/Frameworks/ZSign.dylib", RTLD_GLOBAL);
-    const char* dlerr = dlerror();
-    if (!handle || (uint64_t)handle > 0xf00000000000) {
-        if (dlerr) {
-            *error = [NSError errorWithDomain:NSBundle.mainBundle.bundleIdentifier code:1 userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Failed to load ZSign: %s", dlerr]}];
-        } else {
-            *error = [NSError errorWithDomain:NSBundle.mainBundle.bundleIdentifier code:1 userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Failed to load ZSign: An unknown error occurred."]}];
-        }
-        NSLog(@"[LC] %s", dlerr);
-        return;
-    }
-    
-    loaded = YES;
-}
-
 + (NSURL *)storeBundlePath {
     if ([self store] == SideStore) {
         return [self.appGroupPath URLByAppendingPathComponent:@"Apps/com.SideStore.SideStore/App.app"];
@@ -191,49 +170,13 @@ Class LCSharedUtilsClass = nil;
     }
 }
 
-+ (NSProgress *)signAppBundleWithZSign:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler {
++ (NSProgress *)signAppBundleWithURL:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler {
     NSError *error;
-
-    // use zsign as our signer~
-    NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
-    NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
-    // Load libraries from Documents, yeah
-    [self loadStoreFrameworksWithError2:&error];
-
-    if (error) {
-        completionHandler(NO, error);
-        return nil;
-    }
 
     NSLog(@"[LC] starting signing...");
     
-    NSProgress* ans = [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
+    NSProgress* ans = [SecuritySigner signWithAppURL:path key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
     
-    return ans;
-}
-
-+ (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData password:(NSString*)password {
-    NSError *error;
-    NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
-    NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
-    [self loadStoreFrameworksWithError2:&error];
-    if (error) {
-        return nil;
-    }
-    NSString* ans = [NSClassFromString(@"ZSigner") getTeamIdWithProv:profileData key:keyData pass:password];
-    return ans;
-}
-
-+ (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *organizationalUnitName, NSString *error))completionHandler {
-    NSError *error;
-    NSURL *profilePath = [NSBundle.mainBundle URLForResource:@"embedded" withExtension:@"mobileprovision"];
-    NSData *profileData = [NSData dataWithContentsOfURL:profilePath];
-    NSData *certData = [LCUtils certificateData];
-    if (error) {
-        return -6;
-    }
-    [self loadStoreFrameworksWithError2:&error];
-    int ans = [NSClassFromString(@"ZSigner") checkCertWithProv:profileData key:certData pass:[LCUtils certificatePassword] completionHandler:completionHandler];
     return ans;
 }
 
@@ -306,7 +249,7 @@ Class LCSharedUtilsClass = nil;
     
     // Sign the test app bundle
 
-    [LCUtils signAppBundleWithZSign:[NSURL fileURLWithPath:path]
+    [LCUtils signAppBundleWithURL:[NSURL fileURLWithPath:path]
                   completionHandler:^(BOOL success, NSError *_Nullable error) {
         signSuccess = success;
         signError = error;
@@ -438,8 +381,8 @@ Class LCSharedUtilsClass = nil;
     }
     
     NSData* newEntitlementData = [NSPropertyListSerialization dataWithPropertyList:dict format:NSPropertyListXMLFormat_v1_0 options:0 error:error];
-    [LCUtils loadStoreFrameworksWithError2:error];
-    BOOL adhocSignSuccess = [NSClassFromString(@"ZSigner") adhocSignMachOAtPath:execFromPath.path bundleId:infoDict[@"CFBundleIdentifier"] entitlementData:newEntitlementData];
+
+    BOOL adhocSignSuccess = [SecuritySigner adhocSignMachOAtPath:execFromPath bundleId:infoDict[@"CFBundleIdentifier"] entitlementData:newEntitlementData];
     if (!adhocSignSuccess) {
         *error = [NSError errorWithDomain:@"archiveIPAWithBundleName" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"Failed to adhoc sign main executable!"}];
         return nil;

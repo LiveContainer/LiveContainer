@@ -572,7 +572,22 @@ struct LCSettingsView: View {
             return
         }
         
-        guard let _ = LCUtils.getCertTeamId(withKeyData: certificateData, password: certificatePassword) else {
+        // check if cert is valid and OU matches mp's team id
+        guard let certWrapper = try? LCCertWrapper.initWithCertData(certificateData, password: certificatePassword) else {
+            errorInfo = "lc.settings.invalidCertError".loc
+            errorShow = true
+            return
+        }
+        
+        guard let mpURL = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+              let mpWrapper = try? LCMobileProvisionWarpepr.initWithMPData(try Data(contentsOf: mpURL))
+        else {
+            errorInfo = "embedded.mobileprovision not found or invalid!"
+            errorShow = true
+            return
+        }
+        
+        guard let ou = certWrapper.organizationalUnit, let mpTeamId = mpWrapper.getTeamId(), ou == mpTeamId else {
             errorInfo = "lc.settings.invalidCertError".loc
             errorShow = true
             return

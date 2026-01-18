@@ -151,11 +151,9 @@ Open Xcode, edit `DEVELOPMENT_TEAM[config=Debug]` in `xcconfigs/Global.xcconfig`
 - A simple tweak injector, which loads CydiaSubstrate and loads tweaks.
 - Injected to every app you install in LiveContainer.
 
-### ZSign
-- The app signer shipped with LiveContainer.
-- Originally made by [zhlynn](https://github.com/zhlynn/zsign).
-- LiveContainer uses [Feather's](https://github.com/khcrysalis/Feather) version of ZSign modified by khcrysalis.
-- Changes are made to meet LiveContainer's needs.
+### codesign
+- The app signer / Security.framework wrapper shipped with LiveContainer, which signs app using native Security.framework functions.
+- Originally made by [khcrysalis](https://github.com/khcrysalis/Feather)
 
 ## How does it work?
 

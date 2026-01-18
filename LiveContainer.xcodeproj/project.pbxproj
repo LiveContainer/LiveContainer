@@ -10,11 +10,8 @@
 		173545AF2E2C7913001B3B4C /* SideStore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 173545A82E2C7913001B3B4C /* SideStore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		17413FBC2D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		174140902D9C0E8200F3F928 /* TweakLoader.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		174140942D9C0E8200F3F928 /* ZSign.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 174140542D9C0D6D00F3F928 /* ZSign.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		174140BA2D9C0F9100F3F928 /* TestJITLess.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 174140AD2D9C0F4100F3F928 /* TestJITLess.dylib */; };
 		174140D62D9C176F00F3F928 /* libarchive.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 174140D52D9C176700F3F928 /* libarchive.tbd */; };
-		17554B732DA16988004C6D90 /* OpenSSL.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 17554B712DA16988004C6D90 /* OpenSSL.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		17554B742DA169AA004C6D90 /* OpenSSL.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17554B712DA16988004C6D90 /* OpenSSL.xcframework */; };
 		E11884B92EF7A164009C6FA6 /* dyld_bypass_validation.h in Headers */ = {isa = PBXBuildFile; fileRef = E11884B82EF7A15F009C6FA6 /* dyld_bypass_validation.h */; };
 		E1292AF32DCA3A660065E12D /* LiveProcess.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E1292AE52DCA3A660065E12D /* LiveProcess.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E1292BEC2DCA3B670065E12D /* LiveContainerShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -51,13 +48,6 @@
 			remoteGlobalIDString = 174140392D9C0D0000F3F928;
 			remoteInfo = TweakLoader;
 		};
-		174140FF2D9C1EDA00F3F928 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 17DCE9952C7067EC00731D42 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 174140532D9C0D6D00F3F928;
-			remoteInfo = ZSign;
-		};
 		E1292AF12DCA3A660065E12D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 17DCE9952C7067EC00731D42 /* Project object */;
@@ -84,20 +74,8 @@
 				174140902D9C0E8200F3F928 /* TweakLoader.dylib in Embed Frameworks */,
 				173545AF2E2C7913001B3B4C /* SideStore.framework in Embed Frameworks */,
 				174140BA2D9C0F9100F3F928 /* TestJITLess.dylib in Embed Frameworks */,
-				17554B732DA16988004C6D90 /* OpenSSL.xcframework in Embed Frameworks */,
 				E1292BEC2DCA3B670065E12D /* LiveContainerShared.framework in Embed Frameworks */,
 				17413FBC2D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework in Embed Frameworks */,
-				174140942D9C0E8200F3F928 /* ZSign.dylib in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		17554B762DA169AA004C6D90 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -130,7 +108,6 @@
 		173545A82E2C7913001B3B4C /* SideStore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SideStore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LiveContainerSwiftUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = TweakLoader.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		174140542D9C0D6D00F3F928 /* ZSign.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ZSign.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		174140AD2D9C0F4100F3F928 /* TestJITLess.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = TestJITLess.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		174140D52D9C176700F3F928 /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/lib/libarchive.tbd; sourceTree = DEVELOPER_DIR; };
 		17554B712DA16988004C6D90 /* OpenSSL.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:67RAULRX93:Marcin Krzyzanowski"; lastKnownFileType = wrapper.xcframework; name = OpenSSL.xcframework; path = OpenSSL/Frameworks/OpenSSL.xcframework; sourceTree = "<group>"; };
@@ -183,6 +160,13 @@
 				src/litehook.c,
 			);
 			target = E1292BD52DCA3B660065E12D /* LiveContainerShared */;
+		};
+		17FCB2C72F1B26FF0070E560 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CodeSigner.m,
+			);
+			target = 17413FB42D9C0BAE00F3F928 /* LiveContainerSwiftUI */;
 		};
 		E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -261,6 +245,7 @@
 		174140AE2D9C0F4100F3F928 /* TestJITLess */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = TestJITLess; sourceTree = "<group>"; };
 		17780D3B2E1C02420077E636 /* litehook */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17780E512E1C039D0077E636 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = litehook; sourceTree = "<group>"; };
 		17B0F8452DE16FE4008110EA /* xcconfigs */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = xcconfigs; sourceTree = "<group>"; };
+		17FCB2BD2F1B26B90070E560 /* codesign */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17FCB2C72F1B26FF0070E560 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = codesign; sourceTree = "<group>"; };
 		E1292AE72DCA3A660065E12D /* LiveProcess */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveProcess; sourceTree = "<group>"; };
 		E1292C1A2DCA48F00065E12D /* Tweaks */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C202DCA48F00065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Tweaks; sourceTree = "<group>"; };
 		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
@@ -287,14 +272,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		174140522D9C0D6D00F3F928 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				17554B742DA169AA004C6D90 /* OpenSSL.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,6 +342,7 @@
 		17DCE9942C7067EC00731D42 = {
 			isa = PBXGroup;
 			children = (
+				17FCB2BD2F1B26B90070E560 /* codesign */,
 				E16D9BA02E1D48DE0068EB63 /* README.md */,
 				17B0F8452DE16FE4008110EA /* xcconfigs */,
 				E1292C242DCA4E6F0065E12D /* MultitaskSupport */,
@@ -389,7 +367,6 @@
 				17DCE99D2C7067EC00731D42 /* LiveContainer.app */,
 				17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */,
 				1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */,
-				174140542D9C0D6D00F3F928 /* ZSign.dylib */,
 				174140AD2D9C0F4100F3F928 /* TestJITLess.dylib */,
 				E1292AE52DCA3A660065E12D /* LiveProcess.appex */,
 				E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */,
@@ -416,13 +393,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		174140362D9C0D0000F3F928 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		174140502D9C0D6D00F3F928 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -512,29 +482,6 @@
 			productReference = 1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
-		174140532D9C0D6D00F3F928 /* ZSign */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 1741405A2D9C0D6D00F3F928 /* Build configuration list for PBXNativeTarget "ZSign" */;
-			buildPhases = (
-				174140502D9C0D6D00F3F928 /* Headers */,
-				174140512D9C0D6D00F3F928 /* Sources */,
-				174140522D9C0D6D00F3F928 /* Frameworks */,
-				17554B762DA169AA004C6D90 /* Embed Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				174140552D9C0D6D00F3F928 /* ZSign */,
-			);
-			name = ZSign;
-			packageProductDependencies = (
-			);
-			productName = ZSign;
-			productReference = 174140542D9C0D6D00F3F928 /* ZSign.dylib */;
-			productType = "com.apple.product-type.library.dynamic";
-		};
 		174140AC2D9C0F4100F3F928 /* TestJITLess */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 174140B32D9C0F4100F3F928 /* Build configuration list for PBXNativeTarget "TestJITLess" */;
@@ -573,7 +520,6 @@
 			dependencies = (
 				174140FA2D9C1EDA00F3F928 /* PBXTargetDependency */,
 				174140FE2D9C1EDA00F3F928 /* PBXTargetDependency */,
-				174141002D9C1EDA00F3F928 /* PBXTargetDependency */,
 				E1292AF22DCA3A660065E12D /* PBXTargetDependency */,
 				E1292BEA2DCA3B670065E12D /* PBXTargetDependency */,
 				173545AD2E2C7913001B3B4C /* PBXTargetDependency */,
@@ -647,9 +593,6 @@
 					174140392D9C0D0000F3F928 = {
 						CreatedOnToolsVersion = 16.2;
 					};
-					174140532D9C0D6D00F3F928 = {
-						CreatedOnToolsVersion = 16.2;
-					};
 					174140AC2D9C0F4100F3F928 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -721,7 +664,6 @@
 				17DCE99C2C7067EC00731D42 /* LiveContainer */,
 				17413FB42D9C0BAE00F3F928 /* LiveContainerSwiftUI */,
 				174140392D9C0D0000F3F928 /* TweakLoader */,
-				174140532D9C0D6D00F3F928 /* ZSign */,
 				174140AC2D9C0F4100F3F928 /* TestJITLess */,
 				E1292AE42DCA3A660065E12D /* LiveProcess */,
 				E1292BD52DCA3B660065E12D /* LiveContainerShared */,
@@ -811,13 +753,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		174140512D9C0D6D00F3F928 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		174140AA2D9C0F4100F3F928 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -870,11 +805,6 @@
 			isa = PBXTargetDependency;
 			target = 174140392D9C0D0000F3F928 /* TweakLoader */;
 			targetProxy = 174140FD2D9C1EDA00F3F928 /* PBXContainerItemProxy */;
-		};
-		174141002D9C1EDA00F3F928 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 174140532D9C0D6D00F3F928 /* ZSign */;
-			targetProxy = 174140FF2D9C1EDA00F3F928 /* PBXContainerItemProxy */;
 		};
 		E1292AF22DCA3A660065E12D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1098,56 +1028,6 @@
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_DOCConfiguration",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		1741405B2D9C0D6D00F3F928 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = OpenSSL/Frameworks/iphoneos/OpenSSL.framework;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/OpenSSL/Frameworks/iphoneos",
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LOCALIZED_STRING_SWIFTUI_SUPPORT = NO;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		1741405C2D9C0D6D00F3F928 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = OpenSSL/Frameworks/iphoneos/OpenSSL.framework;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				EXECUTABLE_PREFIX = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/OpenSSL/Frameworks/iphoneos",
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LOCALIZED_STRING_SWIFTUI_SUPPORT = NO;
-				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1657,15 +1537,6 @@
 			buildConfigurations = (
 				174140412D9C0D0000F3F928 /* Debug */,
 				174140422D9C0D0000F3F928 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		1741405A2D9C0D6D00F3F928 /* Build configuration list for PBXNativeTarget "ZSign" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1741405B2D9C0D6D00F3F928 /* Debug */,
-				1741405C2D9C0D6D00F3F928 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

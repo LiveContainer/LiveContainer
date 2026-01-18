@@ -36,8 +36,7 @@ int dyld_get_program_sdk_version(void);
 + (void)launchMultitaskGuestAppWithPIDCallback:(NSString *)displayName pidCompletionHandler:(void (^)(NSNumber *pid, NSError *error))completionHandler API_AVAILABLE(ios(16.0));
 + (NSString*)getContainerUsingLCSchemeWithFolderName:(NSString*)folderName;
 
-+ (NSProgress *)signAppBundleWithZSign:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
-+ (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData password:(NSString*)password;
++ (NSProgress *)signAppBundleWithURL:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *organizationalUnitName, NSString *error))completionHandler;
 
 + (BOOL)isAppGroupAltStoreLike;
@@ -54,14 +53,6 @@ int dyld_get_program_sdk_version(void);
 
 @interface NSUserDefaults(LiveContainer)
 + (bool)sideStoreExist;
-@end
-
-@interface LCP12CertHelper : NSObject
-
-- (instancetype)initWithP12Data:(NSData*)p12Data password:(NSString*)password error:(NSError**)error;
-- (NSDate*)getNotValidityNotAfterWithError:(NSError**)error;
-- (NSString*)getOrgnizationUnitWithError:(NSError**)error;
-
 @end
 
 @interface UIImage(LiveContainer)

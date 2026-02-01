@@ -288,13 +288,9 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         return @"Container not found!";
     }
     
-    if(isSharedBundle) {
-        NSString *urlScheme = lcAppUrlScheme;
-        if(isLiveProcess) {
-            NSString *hostScheme = [lcUserDefaults stringForKey:@"hostUrlScheme"];
-            [lcUserDefaults removeObjectForKey:@"hostUrlScheme"];
-            urlScheme = [hostScheme stringByAppendingPathExtension:urlScheme];
-        }
+    if(isLiveProcess) {
+        lcAppUrlScheme = [lcUserDefaults stringForKey:@"hostUrlScheme"];
+        [lcUserDefaults removeObjectForKey:@"hostUrlScheme"];
     }
     
     NSError *error;

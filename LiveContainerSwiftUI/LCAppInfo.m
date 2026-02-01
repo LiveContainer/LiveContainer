@@ -79,7 +79,7 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     _bundlePath = newBundlePath;
 }
 
-- (NSMutableArray*)urlSchemes {
+- (NSMutableArray<NSString *>*)urlSchemes {
     // find all url schemes
     NSMutableArray* urlSchemes = [[NSMutableArray alloc] init];
     int nowSchemeCount = 0;

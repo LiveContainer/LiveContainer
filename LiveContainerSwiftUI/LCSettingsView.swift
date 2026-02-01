@@ -53,6 +53,7 @@ struct LCSettingsView: View {
     @AppStorage("LCRestartTerminatedApp", store: LCUtils.appGroupUserDefault) var restartTerminatedApp = false
     @AppStorage("LCMaxOneAppOnStage", store: LCUtils.appGroupUserDefault) var onlyOneAppOnStage = false
     @AppStorage("LCDockWidth", store: LCUtils.appGroupUserDefault) var dockWidth: Double = 80
+    @AppStorage("LCRedirectURLToHost", store: LCUtils.appGroupUserDefault) var redirectURLToHost = false
     
     @State var store : Store = .Unknown
     
@@ -265,6 +266,9 @@ struct LCSettingsView: View {
                             }
                             Toggle(isOn: $bottomWindowBar) {
                                 Text("lc.settings.bottomWindowBar".loc)
+                            }
+                            Toggle(isOn: $redirectURLToHost) {
+                                Text("lc.settings.redirectURLToHost".loc)
                             }
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {

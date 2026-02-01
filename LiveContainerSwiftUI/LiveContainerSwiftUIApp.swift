@@ -20,6 +20,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         
         var tempApps: [LCAppModel] = []
         var tempHiddenApps: [LCAppModel] = []
+        var tempURLSchemes: Set<String> = Set()
 
         do {
             // load apps
@@ -36,6 +37,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                     tempHiddenApps.append(LCAppModel(appInfo: newApp))
                 } else {
                     tempApps.append(LCAppModel(appInfo: newApp))
+                    tempURLSchemes.formUnion(newApp.urlSchemes() as! [String])
                 }
             }
             if LCPath.lcGroupDocPath != LCPath.docPath {
@@ -52,6 +54,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                         tempHiddenApps.append(LCAppModel(appInfo: newApp))
                     } else {
                         tempApps.append(LCAppModel(appInfo: newApp))
+                        tempURLSchemes.formUnion(newApp.urlSchemes() as! [String])
                     }
                 }
             }
@@ -82,6 +85,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         
         DataManager.shared.model.apps = tempApps
         DataManager.shared.model.hiddenApps = tempHiddenApps
+        UserDefaults.lcShared().set(Array(tempURLSchemes), forKey: "LCGuestURLSchemes")
         
         _appDataFolderNames = State(initialValue: tempAppDataFolderNames)
         _tweakFolderNames = State(initialValue: tempTweakFolderNames)

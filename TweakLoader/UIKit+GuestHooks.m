@@ -358,6 +358,12 @@ void handleLiveContainerLaunch(NSURL* url) {
     }
 }
 
+BOOL shouldRedirectOpenURLToHost(NSURL* url) {
+    NSUserDefaults *ud = NSUserDefaults.lcSharedDefaults;
+    return NSUserDefaults.isLiveProcess &&
+    [ud boolForKey:@"LCRedirectURLToHost"] &&
+    [[ud arrayForKey:@"LCGuestURLSchemes"] containsObject:url.scheme];
+}
 BOOL canAppOpenItself(NSURL* url) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -451,15 +457,18 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 - (void)hook_openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options completionHandler:(void (^)(_Bool))completion {
-    if(NSUserDefaults.isSideStore && ![url.scheme isEqualToString:@"livecontainer"]) {
+    if(NSUserDefaults.isSideStore && ![url.scheme isEqualToString:LCUrlSchemes[0]]) {
         [self hook_openURL:url options:options completionHandler:completion];
         return;
     }
     
-    if(canAppOpenItself(url)) {
+    BOOL openSelf = canAppOpenItself(url);
+    BOOL redirectToHost = shouldRedirectOpenURLToHost(url);;
+    if(openSelf || redirectToHost) {
+        NSString* schemeToUse = openSelf ? NSUserDefaults.lcAppUrlScheme : LCUrlSchemes[0];
         NSData *data = [url.absoluteString dataUsingEncoding:NSUTF8StringEncoding];
         NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
-        NSString* finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", NSUserDefaults.lcAppUrlScheme, encodedUrl];
+        NSString* finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", schemeToUse, encodedUrl];
         NSURL* finalUrl = [NSURL URLWithString:finalUrlStr];
         [self hook_openURL:finalUrl options:options completionHandler:completion];
     } else {
@@ -467,11 +476,7 @@ BOOL canAppOpenItself(NSURL* url) {
     }
 }
 - (BOOL)hook_canOpenURL:(NSURL *) url {
-    if(canAppOpenItself(url)) {
-        return YES;
-    } else {
-        return [self hook_canOpenURL:url];
-    }
+    return canAppOpenItself(url) || shouldRedirectOpenURLToHost(url) || [self hook_canOpenURL:url];
 }
 
 - (void)hook_setDelegate:(id<UIApplicationDelegate>)delegate {
@@ -514,7 +519,7 @@ BOOL canAppOpenItself(NSURL* url) {
     }
 
     // Don't have UIOpenURLAction or is passing a file to app? pass it
-    if (!urlAction || urlAction.url.isFileURL || (NSUserDefaults.isSideStore && ![urlAction.url.scheme isEqualToString:@"livecontainer"])) {
+    if (!urlAction || urlAction.url.isFileURL || (NSUserDefaults.isSideStore && ![urlAction.url.scheme isEqualToString:LCUrlSchemes[0]])) {
         [self hook_scene:scene didReceiveActions:actions fromTransitionContext:context];
         return;
     }
@@ -576,10 +581,13 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 - (void)hook_openURL:(NSURL *)url options:(UISceneOpenExternalURLOptions *)options completionHandler:(void (^)(BOOL success))completion {
-    if(canAppOpenItself(url)) {
+    BOOL openSelf = canAppOpenItself(url);
+    BOOL redirectToHost = shouldRedirectOpenURLToHost(url);
+    if(openSelf || redirectToHost) {
+        NSString* schemeToUse = openSelf ? NSUserDefaults.lcAppUrlScheme : LCUrlSchemes[0];
         NSData *data = [url.absoluteString dataUsingEncoding:NSUTF8StringEncoding];
         NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
-        NSString* finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", NSUserDefaults.lcAppUrlScheme, encodedUrl];
+        NSString* finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", schemeToUse, encodedUrl];
         NSURL* finalUrl = [NSURL URLWithString:finalUrlStr];
         [self hook_openURL:finalUrl options:options completionHandler:completion];
     } else {

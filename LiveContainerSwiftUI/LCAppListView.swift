@@ -734,6 +734,12 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             } else {
                 let newAppModel = LCAppModel(appInfo: finalNewApp, delegate: self)
                 sharedModel.apps.append(newAppModel)
+                
+                // add url schemes
+                if let urlSchemes = finalNewApp.urlSchemes(), urlSchemes.count > 0 {
+                    UserDefaults.lcShared().mutableArrayValue(forKey: "LCGuestURLSchemes")
+                        .addObjects(from: urlSchemes as! [Any])
+                }
             }
 
             self.installprogressVisible = false

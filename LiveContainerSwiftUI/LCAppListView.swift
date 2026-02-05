@@ -66,6 +66,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     @StateObject private var runWhenMultitaskAlert = YesNoHelper()
     
+    @StateObject private var generatedIconStyleSelector = AlertHelper<GeneratedIconStyle>()
+    
     @State var safariViewOpened = false
     @State var safariViewURL = URL(string: "https://google.com")!
     
@@ -338,6 +340,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         } message: {
             Text("lc.appBanner.confirmRunWhenMultitasking".loc)
+        }
+        .alert("lc.appList.generatedIconStyleSelector.title".loc, isPresented:$generatedIconStyleSelector.show) {
+            Button {
+                generatedIconStyleSelector.close(result: .Light)
+            } label: {
+                Text("lc.appList.generatedIconStyleSelector.light".loc)
+            }
+            Button {
+                generatedIconStyleSelector.close(result: .Dark)
+            } label: {
+                Text("lc.appList.generatedIconStyleSelector.dark".loc)
+            }
+            Button {
+                generatedIconStyleSelector.close(result: .Original)
+            } label: {
+                Text("lc.appList.generatedIconStyleSelector.original".loc)
+            }
+            Button("lc.common.cancel".loc, role: .cancel) {
+                generatedIconStyleSelector.close(result: nil)
+            }
         }
         .textFieldAlert(
             isPresented: $webViewUrlInput.show,
@@ -1035,7 +1057,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             enableJITTask.cancel()
             return
         }
-        LCUtils.launchToGuestApp()
+        LCSharedUtils.launchToGuestApp()
 
     }
     
@@ -1068,6 +1090,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     func openNavigationView(view: AnyView) {
         navigateTo = view
         isNavigationActive = true
+    }
+    
+    func promptForGeneratedIconStyle() async -> GeneratedIconStyle? {
+        if #available(iOS 18.0, *) {
+            return await generatedIconStyleSelector.open()
+        } else {
+            return .Light
+        }
+        
     }
     
     func closeNavigationView() {

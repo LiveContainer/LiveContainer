@@ -358,7 +358,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
                     [lcUserDefaults setObject:@"Bookmark resolution timed out. Is the data storage offline?" forKey:@"error"];
                     NSError* err = nil;
                     BOOL isStale = false;
-                    bookmarkURL = [NSURL URLByResolvingBookmarkData:bookmarkData options:(1 << 10) relativeToURL:nil bookmarkDataIsStale:&isStale error:&err];
+                    bookmarkURL = [NSURL URLByResolvingBookmarkData:bookmarkData options:0 relativeToURL:nil bookmarkDataIsStale:&isStale error:&err];
                     bool access = [bookmarkURL startAccessingSecurityScopedResource];
                     if(!bookmarkURL || !access) {
                         return [@"Bookmark resolution failed or unable to access the container. You might need to readd the data storage. %@" stringByAppendingString:err.localizedDescription];
@@ -423,9 +423,9 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     }
     
     setenv("CFFIXED_USER_HOME", newHomePath.UTF8String, 1);
-    newTmpPath = [newTmpPath stringByAppendingPathComponent:@"."];
     setenv("HOME", newHomePath.UTF8String, 1);
-    setenv("TMPDIR", newTmpPath.UTF8String, 1);
+    // we don't change TMP's env in case some apps clear cache by directly deleting the tmp folder,
+    // which if symlinked, the new tmp cannot be recreated (#1040, #1125) or the app may camplain about the tmp folder being a symlimk (#884)
 
     // Setup directories
     NSArray *dirList = @[@"Library/Caches", @"Library/Cookies", @"Documents", @"SystemData"];

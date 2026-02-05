@@ -326,11 +326,11 @@ struct LCJITLessDiagnoseView : View {
     }
     
     func onAppear() {
-        appGroupId = LCUtils.appGroupID() ?? "lc.common.unknown".loc
+        appGroupId = LCSharedUtils.appGroupID() ?? "lc.common.unknown".loc
         store = LCUtils.store()
-        appGroupAccessible = LCUtils.appGroupPath() != nil
+        appGroupAccessible = LCSharedUtils.appGroupPath() != nil
         certificateDataFound = LCUtils.certificateData() != nil
-        certificatePasswordFound = LCUtils.certificatePassword() != nil
+        certificatePasswordFound = LCSharedUtils.certificatePassword() != nil
         if let lastUpdateDate = LCUtils.appGroupUserDefault.object(forKey: "LCCertificateUpdateDate") as? Date {
             let formatter1 = DateFormatter()
             formatter1.dateStyle = .short

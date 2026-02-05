@@ -202,7 +202,7 @@ struct LCTabView: View {
             return
         }
         
-        guard let currentTeamId = LCUtils.teamIdentifier() else {
+        guard let currentTeamId = LCSharedUtils.teamIdentifier() else {
             print("Failed to determine team id.")
             return
         }

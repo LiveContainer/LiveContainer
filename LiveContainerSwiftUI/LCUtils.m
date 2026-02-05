@@ -5,12 +5,11 @@
 @import Security;
 
 #import "LCUtils.h"
+#import "../LiveContainer/LCSharedUtils.h"
 #import "LCAppInfo.h"
 #import "../MultitaskSupport/DecoratedAppSceneViewController.h"
 #import "../ZSign/zsigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
-
-Class LCSharedUtilsClass = nil;
 
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)
@@ -21,53 +20,22 @@ Class LCSharedUtilsClass = nil;
 @end
 
 @implementation LCUtils
-
-+ (void)load {
-    LCSharedUtilsClass = NSClassFromString(@"LCSharedUtils");
-}
-
 #pragma mark Certificate & password
-+ (NSString *)teamIdentifier {
-    return [LCSharedUtilsClass teamIdentifier];
-}
-
-+ (NSURL *)appGroupPath {
-    return [LCSharedUtilsClass appGroupPath];
-}
 
 + (NSData *)certificateData {
-    NSUserDefaults* nud = [[NSUserDefaults alloc] initWithSuiteName:[self appGroupID]];
+    NSUserDefaults* nud = [[NSUserDefaults alloc] initWithSuiteName:[LCSharedUtils appGroupID]];
     if(!nud) {
         nud = NSUserDefaults.standardUserDefaults;
     }
     return [nud objectForKey:@"LCCertificateData"];
 }
 
-+ (NSString *)certificatePassword {
-    return [LCSharedUtilsClass certificatePassword];
-}
 
 + (void)setCertificatePassword:(NSString *)certPassword {
     [NSUserDefaults.standardUserDefaults setObject:certPassword forKey:@"LCCertificatePassword"];
-    [[[NSUserDefaults alloc] initWithSuiteName:[self appGroupID]] setObject:certPassword forKey:@"LCCertificatePassword"];
+    [[[NSUserDefaults alloc] initWithSuiteName:[LCSharedUtils appGroupID]] setObject:certPassword forKey:@"LCCertificatePassword"];
 }
 
-+ (NSString *)appGroupID {
-    return [LCSharedUtilsClass appGroupID];
-}
-
-#pragma mark LCSharedUtils wrappers
-+ (BOOL)launchToGuestApp {
-    return [LCSharedUtilsClass launchToGuestApp];
-}
-
-+ (BOOL)launchToGuestAppWithURL:(NSURL *)url {
-    return [LCSharedUtilsClass launchToGuestAppWithURL:url];
-}
-
-+ (NSString*)getContainerUsingLCSchemeWithFolderName:(NSString*)folderName {
-    return [LCSharedUtilsClass getContainerUsingLCSchemeWithFolderName:folderName];
-}
 
 #pragma mark Multitasking
 + (NSString *)liveProcessBundleIdentifier {
@@ -78,7 +46,7 @@ Class LCSharedUtilsClass = nil;
     }
     
     // in LC2, attempt to guess LC1's LiveProcess extension
-    NSString *bundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", self.teamIdentifier];
+    NSString *bundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", LCSharedUtils.teamIdentifier];
     if([NSExtension extensionWithIdentifier:bundleID error:nil]) {
         return bundleID;
     }
@@ -177,9 +145,9 @@ Class LCSharedUtilsClass = nil;
 
 + (NSURL *)storeBundlePath {
     if ([self store] == SideStore) {
-        return [self.appGroupPath URLByAppendingPathComponent:@"Apps/com.SideStore.SideStore/App.app"];
+        return [LCSharedUtils.appGroupPath URLByAppendingPathComponent:@"Apps/com.SideStore.SideStore/App.app"];
     } else {
-        return [self.appGroupPath URLByAppendingPathComponent:@"Apps/com.rileytestut.AltStore/App.app"];
+        return [LCSharedUtils.appGroupPath URLByAppendingPathComponent:@"Apps/com.rileytestut.AltStore/App.app"];
     }
 }
 
@@ -207,7 +175,7 @@ Class LCSharedUtilsClass = nil;
 
     NSLog(@"[LC] starting signing...");
     
-    NSProgress* ans = [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:self.certificatePassword completionHandler:completionHandler];
+    NSProgress* ans = [NSClassFromString(@"ZSigner") signWithAppPath:[path path] prov:profileData key: self.certificateData pass:LCSharedUtils.certificatePassword completionHandler:completionHandler];
     
     return ans;
 }
@@ -233,7 +201,7 @@ Class LCSharedUtilsClass = nil;
         return -6;
     }
     [self loadStoreFrameworksWithError2:&error];
-    int ans = [NSClassFromString(@"ZSigner") checkCertWithProv:profileData key:certData pass:[LCUtils certificatePassword] completionHandler:completionHandler];
+    int ans = [NSClassFromString(@"ZSigner") checkCertWithProv:profileData key:certData pass:[LCSharedUtils certificatePassword] completionHandler:completionHandler];
     return ans;
 }
 
@@ -256,11 +224,11 @@ Class LCSharedUtilsClass = nil;
             return;
         }
         
-        if([[self appGroupID] containsString:@"AltStore"] && ![[self appGroupID] isEqualToString:@"group.com.rileytestut.AltStore"]) {
+        if([[LCSharedUtils appGroupID] containsString:@"AltStore"] && ![[LCSharedUtils appGroupID] isEqualToString:@"group.com.rileytestut.AltStore"]) {
             ans = AltStore;
-        } else if ([[self appGroupID] containsString:@"SideStore"] && ![[self appGroupID] isEqualToString:@"group.com.SideStore.SideStore"]) {
+        } else if ([[LCSharedUtils appGroupID] containsString:@"SideStore"] && ![[LCSharedUtils appGroupID] isEqualToString:@"group.com.SideStore.SideStore"]) {
             ans = SideStore;
-        } else if (![[self appGroupID] containsString:@"Unknown"] ) {
+        } else if (![[LCSharedUtils appGroupID] containsString:@"Unknown"] ) {
             ans = ADP;
         } else {
             ans = Unknown;
@@ -274,11 +242,11 @@ Class LCSharedUtilsClass = nil;
 }
 
 + (BOOL)isAppGroupAltStoreLike {
-    return [self.appGroupID containsString:@"SideStore"] || [self.appGroupID containsString:@"AltStore"];
+    return [LCSharedUtils.appGroupID containsString:@"SideStore"] || [LCSharedUtils.appGroupID containsString:@"AltStore"];
 }
 
 + (void)changeMainExecutableTo:(NSString *)exec error:(NSError **)error {
-    NSURL *infoPath = [self.appGroupPath URLByAppendingPathComponent:@"Apps/com.kdt.livecontainer/App.app/Info.plist"];
+    NSURL *infoPath = [LCSharedUtils.appGroupPath URLByAppendingPathComponent:@"Apps/com.kdt.livecontainer/App.app/Info.plist"];
     NSMutableDictionary *infoDict = [NSMutableDictionary dictionaryWithContentsOfURL:infoPath];
     if (!infoDict) return;
 

@@ -9,6 +9,7 @@
 @import ObjectiveC;
 @import UniformTypeIdentifiers;
 #include <dlfcn.h>
+#import "LCUtils.h"
 
 #define PrivClass(name) ((Class)objc_lookUpClass(#name))
 
@@ -107,6 +108,10 @@
 -(void)setIconShape:(NSUInteger)type; // below ios 17
 @end
 
+@interface ISBundleResourceProvider : NSObject
+- (id)initWithBundle:(id)arg1 options:(unsigned long long)arg2;
+@end
+
 @interface ISiOSAppRecipe : NSObject
 - (instancetype)init;
 @end
@@ -172,7 +177,7 @@
 @end
 
 
-
+NSMutableSet<ISBundleIcon*>* iconsNeedToGenerateOriginalIcon;
 @interface ISBundleIconFake : NSObject
 @end
 
@@ -181,6 +186,12 @@
 - (id)makeResourceProvider {
     NSURL* url = [(ISBundleIcon*)self url];
     NSBundle* bundle = [[NSBundle alloc] initWithURL:url];
+    
+    if([iconsNeedToGenerateOriginalIcon containsObject:(ISBundleIcon *)self]) {
+//        return [[PrivClass(ISBundleResourceProvider) alloc] initWithBundle:bundle options:0];
+        return [self makeResourceProviderOrignal];
+    }
+    
     // to make IconServices generate an app icon, we need ISRecordResourceProvider instead of ISBundleResourceProvider, but it requires a LSApplicationRecord, so we create a fake LSApplicationRecordFake with necessary methods to make it initialize correctly
     LSApplicationRecordFake* record = [[LSApplicationRecordFake alloc] initWithBundle:bundle];
     ISRecordResourceProvider* provider = [[PrivClass(ISRecordResourceProvider) alloc] initWithRecord:record options:0];
@@ -196,6 +207,10 @@
         [provider setIconShape:7];
     }
     return provider;
+}
+
+- (id)makeResourceProviderOrignal {
+    return nil;
 }
 
 @end
@@ -264,42 +279,30 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
 }
 
 @implementation UIImage(LiveContainer)
-+ (instancetype)iconForBundleURL:(NSURL*)url isDarkIcon:(BOOL)isDarkIcon hasBorder:(BOOL)hasBorder ignoreCache:(BOOL)ignoreCache {
-    if(@available(iOS 18.0, *)) {
-        
-    } else {
-        isDarkIcon = NO;
-    }
-    
-    NSURL* cachedIconUrl;
-    NSString* cachedIconPath;
-    if(isDarkIcon) {
-        cachedIconUrl = [url URLByAppendingPathComponent:@"LCAppIconDark.png"];
-    } else {
-        cachedIconUrl = [url URLByAppendingPathComponent:@"LCAppIconLight.png"];
-    }
-    cachedIconPath = cachedIconUrl.path;
-    
-    if(!ignoreCache && [NSFileManager.defaultManager fileExistsAtPath:cachedIconPath]) {
-        CGImageRef imageRef = loadCGImageFromURL(cachedIconUrl);
-        UIImage* img = [UIImage imageWithCGImage:imageRef];
-        if(img) {
-            return img;
-        }
-    }
-    
++ (instancetype)generateIconForBundleURL:(NSURL*)url style:(GeneratedIconStyle)style hasBorder:(BOOL)hasBorder {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        iconsNeedToGenerateOriginalIcon = [NSMutableSet new];
+        
         void* handle = dlopen("/System/Library/PrivateFrameworks/IconServices.framework/IconServices", RTLD_LAZY|RTLD_GLOBAL);
         assert(handle);
 
-        method_exchangeImplementations(class_getInstanceMethod(PrivClass(ISBundleIcon), @selector(makeResourceProvider)), class_getInstanceMethod(ISBundleIconFake.class, @selector(makeResourceProvider)));
+        Class isBundleClass = PrivClass(ISBundleIcon);
+        Method originalGetProviderMethod = class_getInstanceMethod(isBundleClass, @selector(makeResourceProvider));
+        class_addMethod(isBundleClass, @selector(makeResourceProviderOrignal), method_getImplementation(originalGetProviderMethod), method_getTypeEncoding(originalGetProviderMethod));
+        method_exchangeImplementations(originalGetProviderMethod, class_getInstanceMethod(ISBundleIconFake.class, @selector(makeResourceProvider)));
 
         // stop IFBundle from trying to connect to lsd database
         method_exchangeImplementations(class_getInstanceMethod(PrivClass(IFBundle), @selector(platform)), class_getInstanceMethod(IFBundleFake.class, @selector(platform)));
         // stop LSBundleIcon from trying to connect to lsd database
         method_exchangeImplementations(class_getInstanceMethod(PrivClass(LSApplicationRecord), @selector(initWithURL:allowPlaceholder:error:)), class_getInstanceMethod(LSApplicationRecordFake.class, @selector(initWithURL:allowPlaceholder:error:)));
     });
+    
+    if(@available(iOS 18.0, *)) {
+        
+    } else {
+        style = 0;
+    }
     
     ISBundleIcon* icon = [[PrivClass(ISBundleIcon) alloc] initWithBundleURL:url];
     ISImageDescriptor *descriptor = [PrivClass(ISImageDescriptor) imageDescriptorNamed:@"com.apple.IconServices.ImageDescriptor.HomeScreen"];
@@ -315,26 +318,34 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
 
     if (@available(iOS 16.0, *)) {
         // 0 = light mode, 1 = dark mode
-        if(isDarkIcon) {
+        if(style == 1) {
             descriptor.appearance = 1;
         } else {
             descriptor.appearance = 0;
         }
     }
     if (@available(iOS 18.0, *)) {
-        // 0 = normal, 2 = tinted mode, 3 = liquid glass (gray scale)
-        descriptor.appearanceVariant = 0;
+        if(@available(iOS 18.2, *)) {
+            // 0 = normal, 2 = tinted mode, 3 = liquid glass (gray scale)
+            descriptor.appearanceVariant = 0;
+        }
         descriptor.specialIconOptions = 2;
     }
     
     descriptor.drawBorder = hasBorder;
     descriptor.shouldApplyMask = hasBorder;
     
+    if(style == Original) {
+        [iconsNeedToGenerateOriginalIcon addObject:icon];
+    }
+    
     IFImage* ifImage = [request generateImageReturningRecordIdentifiers:nil];
     CGImageRef imageRef = [ifImage CGImage];
-    if(!ignoreCache) {
-        saveCGImage(imageRef, cachedIconUrl);
+    
+    if(style == Original) {
+        [iconsNeedToGenerateOriginalIcon removeObject:icon];
     }
+
     return [UIImage imageWithCGImage:imageRef];
 }
 

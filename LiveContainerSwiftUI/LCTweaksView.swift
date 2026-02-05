@@ -122,7 +122,7 @@ struct LCTweakFolderView : View {
         .navigationTitle(isRoot ? "lc.tabView.tweaks".loc : baseUrl.lastPathComponent)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                if !isTweakSigning && LCUtils.certificatePassword() != nil {
+                if !isTweakSigning && LCSharedUtils.certificatePassword() != nil {
                     Button {
                         Task { await signAllTweaks() }
                     } label: {

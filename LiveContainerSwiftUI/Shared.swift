@@ -30,7 +30,7 @@ struct LCPath {
     public static let lcGroupDocPath = {
         let fm = FileManager()
         // it seems that Apple don't want to create one for us, so we just borrow our Store's
-        if let appGroupPathUrl = LCUtils.appGroupPath() {
+        if let appGroupPathUrl = LCSharedUtils.appGroupPath() {
             return appGroupPathUrl.appendingPathComponent("LiveContainer")
         } else if let appGroupPathUrl =
                     FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.SideStore.SideStore") {
@@ -65,7 +65,8 @@ class SharedModel: ObservableObject {
     
     @Published var isHiddenAppUnlocked = false
     @Published var developerMode = false
-    // 0= not installed, 2=current liveContainer is not the primary one
+    // 0 = current liveContainer is the primary one,
+    // 2 = current liveContainer is not the primary one
     @Published var multiLCStatus = 0
     @Published var isJITModalOpen = false
     
@@ -579,7 +580,7 @@ struct SiteAssociation : Codable {
 }
 
 extension LCUtils {
-    public static let appGroupUserDefault = UserDefaults.init(suiteName: LCUtils.appGroupID()) ?? UserDefaults.standard
+    public static let appGroupUserDefault = UserDefaults.init(suiteName: LCSharedUtils.appGroupID()) ?? UserDefaults.standard
     
     public static func signFilesInFolder(url: URL, onProgressCreated: (Progress) -> Void) async -> String? {
         let fm = FileManager()
@@ -632,7 +633,7 @@ extension LCUtils {
     }
     
     public static func signTweaks(tweakFolderUrl: URL, force : Bool = false, progressHandler : ((Progress) -> Void)? = nil) async throws {
-        guard LCUtils.certificatePassword() != nil else {
+        guard LCSharedUtils.certificatePassword() != nil else {
             return
         }
         let fm = FileManager.default
@@ -843,15 +844,41 @@ extension LCUtils {
         }
     }
     
+    public static func forEachInstalledLC(isFree: Bool, block: (String, inout Bool) -> Void) {
+        for scheme in LCSharedUtils.lcUrlSchemes() {
+            if scheme == UserDefaults.lcAppUrlScheme() {
+                continue
+            }
+            
+            // Check if the app is installed
+            guard let url = URL(string: "\(scheme)://"),
+                  UIApplication.shared.canOpenURL(url) else {
+                continue
+            }
+            
+            // Check shared utility logic
+            if isFree && LCSharedUtils.isLCScheme(inUse: scheme) {
+                continue
+            }
+            
+            var shouldBreak = false
+            block(scheme, &shouldBreak)
+            
+            if shouldBreak {
+                break
+            }
+        }
+    }
+    
     public static func askForJIT(withScript script: String? = nil, onServerMessage: ((String) -> Void)? = nil) async -> Bool {
         // if LiveContainer is installed by TrollStore
         let tsPath = "\(Bundle.main.bundlePath)/../_TrollStore"
         if (access((tsPath as NSString).utf8String, 0) == 0) {
-            LCUtils.launchToGuestApp()
+            LCSharedUtils.launchToGuestApp()
             return true
         }
         
-        guard let groupUserDefaults = UserDefaults(suiteName: appGroupID()),
+        guard let groupUserDefaults = UserDefaults(suiteName: LCSharedUtils.appGroupID()),
               let jitEnabler = JITEnablerType(rawValue: groupUserDefaults.integer(forKey: "LCJITEnablerType")) else {
             return false
         }
@@ -939,20 +966,49 @@ extension LCUtils {
             let launchURL : URL
             if jitEnabler == .StikJITLC {
                 let encodedStr = Data(launchURLStr.utf8).base64EncodedString()
-                switch DataManager.shared.model.multiLCStatus {
-                case 0:
-                    onServerMessage?("Another LiveContainer is not installed. Please choose another method to enable JIT.")
-                    return false;
-                case 1:
-                    launchURL = URL(string: "livecontainer2://open-url?url=\(encodedStr)")!
-                    break
-                case 2:
-                    launchURL = URL(string: "livecontainer://open-url?url=\(encodedStr)")!
-                    break
-                default:
-                    onServerMessage?("Unable to determine multiple LiveContainer status. This should not happen.")
+
+
+                var appToLaunch: LCAppModel? = nil
+                // find an app that can respond to stikjit://
+                appLoop:
+                for app in DataManager.shared.model.apps {
+                    if let schemes = app.appInfo.urlSchemes() {
+                        for scheme in schemes {
+                            if let scheme = scheme as? String, scheme == "stikjit" {
+                                appToLaunch = app
+                                break appLoop
+                            }
+                        }
+                    }
+                }
+                guard let appToLaunch else {
+                    onServerMessage?("StikDebug is not installed in LiveContainer.")
                     return false
                 }
+                
+                if !appToLaunch.uiIsShared {
+                    onServerMessage?("StikDebug is installed in LiveContainer, but is not a shared app. Convert it to a shared app to continue.")
+                    return false
+                }
+                // check if stikdebug is already running
+                var freeScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
+                
+                if(freeScheme == nil) {
+                    // if not, try to find a free lc
+                    forEachInstalledLC(isFree: true) { scheme, shouldBreak in
+                        freeScheme = scheme
+                        shouldBreak = true
+                    }
+                }
+                guard let freeScheme else {
+                    onServerMessage?("No free LiveContainer is available. Please either: \n(1)close one, \n(2)install a new one, \n(3)choose another method to enable JIT.")
+                    return false
+                }
+                
+                launchURL = URL(string: "\(freeScheme)://open-url?url=\(encodedStr)")!
+                
+                LCUtils.appGroupUserDefault.set(appToLaunch.appInfo.relativeBundlePath, forKey: "LCLaunchExtensionBundleID")
+                LCUtils.appGroupUserDefault.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
                 onServerMessage?("JIT acquisition will continue in another LiveContainer.")
                 
             } else {

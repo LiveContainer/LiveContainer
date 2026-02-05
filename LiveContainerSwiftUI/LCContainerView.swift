@@ -105,7 +105,7 @@ struct LCContainerView : View {
                             .foregroundStyle(.gray)
                         
                     } else {
-                        if !container.isShared {
+                        if !container.isShared || container.storageBookMark != nil {
                             Button {
                                 openDataFolder()
                             } label: {
@@ -211,7 +211,7 @@ struct LCContainerView : View {
         .onAppear() {
             container.reloadInfoPlist()
             settingsBundle = delegate.getSettingsBundle()
-            runningLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName)
+            runningLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName)
             inUse = runningLC != nil
         }
         
@@ -219,7 +219,7 @@ struct LCContainerView : View {
     
     
     func saveContainer() {
-        if let usingLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
+        if let usingLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
             errorInfo = "lc.container.inUseBy %@".localizeWithFormat(usingLC)
             errorShow = true
             return
@@ -238,7 +238,7 @@ struct LCContainerView : View {
     }
     
     func removeContainer() async {
-        if let usingLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
+        if let usingLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
             errorInfo = "lc.container.inUseBy %@".localizeWithFormat(usingLC)
             errorShow = true
             return
@@ -260,7 +260,7 @@ struct LCContainerView : View {
     }
     
     func unbindContainer() {
-        if let usingLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
+        if let usingLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
             errorInfo = "lc.container.inUseBy %@".localizeWithFormat(usingLC)
             errorShow = true
             return
@@ -271,7 +271,7 @@ struct LCContainerView : View {
     }
     
     func cleanUpKeychain() async {
-        if let usingLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
+        if let usingLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
             errorInfo = "lc.container.inUseBy %@".localizeWithFormat(usingLC)
             errorShow = true
             return
@@ -284,7 +284,7 @@ struct LCContainerView : View {
     }
     
     func deleteData() async {
-        if let usingLC = LCUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
+        if let usingLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: container.folderName) {
             errorInfo = "lc.container.inUseBy %@".localizeWithFormat(usingLC)
             errorShow = true
             return

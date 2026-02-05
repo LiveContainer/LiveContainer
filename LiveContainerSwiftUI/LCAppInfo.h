@@ -52,8 +52,8 @@ typedef NS_ENUM(NSInteger, LCOrientationLock){
 - (NSString*)version;
 - (NSMutableArray<NSString *>*)urlSchemes;
 - (instancetype)initWithBundlePath:(NSString*)bundlePath;
-- (UIImage *)generateLiveContainerWrappedIcon;
-- (NSDictionary *)generateWebClipConfigWithContainerId:(NSString*)containerId;
+- (UIImage *)generateLiveContainerWrappedIconWithStyle:(GeneratedIconStyle)style;
+- (NSDictionary *)generateWebClipConfigWithContainerId:(NSString*)containerId iconStyle:(GeneratedIconStyle)style;
 - (void)save;
 - (void)patchExecAndSignIfNeedWithCompletionHandler:(void(^)(bool success, NSString* errorInfo))completetionHandler progressHandler:(void(^)(NSProgress* progress))progressHandler  forceSign:(BOOL)forceSign;
 @end

@@ -5,6 +5,7 @@
 #import <UIKit/UIKit.h>
 #import "LCAppInfo.h"
 #import "LCUtils.h"
+#import "../LiveContainer/LCSharedUtils.h"
 
 uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 
@@ -181,12 +182,35 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 }
 
 - (UIImage*)iconIsDarkIcon:(BOOL)isDarkIcon {
+    // if icon is already loaded in memory, return it
     if(_cachedIcon && !isDarkIcon) {
         return _cachedIcon;
     } else if (_cachedIconDark && isDarkIcon) {
         return _cachedIconDark;
     }
-    UIImage* uiIcon = [UIImage iconForBundleURL:[NSURL fileURLWithPath:_bundlePath] isDarkIcon:isDarkIcon hasBorder:YES ignoreCache:NO];
+    
+    // check if icon is cached on disk
+    UIImage* uiIcon;
+    NSString* cachedIconPath;
+    if(isDarkIcon) {
+        cachedIconPath = [_bundlePath stringByAppendingPathComponent:@"LCAppIconDark.png"];
+    } else {
+        cachedIconPath = [_bundlePath stringByAppendingPathComponent:@"LCAppIconLight.png"];
+    }
+    NSURL* cachedIconUrl = [NSURL fileURLWithPath:cachedIconPath];
+    
+    if([NSFileManager.defaultManager fileExistsAtPath:cachedIconPath]) {
+        CGImageRef imageRef = loadCGImageFromURL(cachedIconUrl);
+        uiIcon = [UIImage imageWithCGImage:imageRef];
+    }
+    
+    // generate and save icon cache to disk
+    if(!uiIcon) {
+        uiIcon = [UIImage generateIconForBundleURL:[NSURL fileURLWithPath:_bundlePath] style:isDarkIcon hasBorder:YES];
+        saveCGImage([uiIcon CGImage], cachedIconUrl);
+    }
+    
+    // cache icon to memory
     if(isDarkIcon) {
         _cachedIconDark = uiIcon;
     } else {
@@ -208,9 +232,8 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     _cachedIconDark = nil;
 }
 
-- (UIImage *)generateLiveContainerWrappedIcon {
-//    UIImage *icon = [self iconIsDarkIcon:[NSUserDefaults.lcSharedDefaults boolForKey:@"darkModeIcon"]];
-    UIImage* icon = [UIImage iconForBundleURL:[NSURL fileURLWithPath:_bundlePath] isDarkIcon:[NSUserDefaults.lcSharedDefaults boolForKey:@"darkModeIcon"] hasBorder:NO ignoreCache:YES];
+- (UIImage *)generateLiveContainerWrappedIconWithStyle:(GeneratedIconStyle)style {
+    UIImage* icon = [UIImage generateIconForBundleURL:[NSURL fileURLWithPath:_bundlePath] style:style hasBorder:NO];
     if (![NSUserDefaults.standardUserDefaults boolForKey:@"LCFrameShortcutIcons"]) {
         return icon;
     }
@@ -227,7 +250,7 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     return newIcon;
 }
 
-- (NSDictionary *)generateWebClipConfigWithContainerId:(NSString*)containerId {
+- (NSDictionary *)generateWebClipConfigWithContainerId:(NSString*)containerId iconStyle:(GeneratedIconStyle)style{
     NSString* appClipUrl;
     if(containerId) {
         appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@&container-folder-name=%@", self.bundlePath.lastPathComponent, containerId];
@@ -235,9 +258,11 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@", self.bundlePath.lastPathComponent];
     }
     
+    UIImage* icon = [self generateLiveContainerWrappedIconWithStyle:style];
+    
     NSDictionary *payload = @{
         @"FullScreen": @YES,
-        @"Icon": UIImagePNGRepresentation(self.generateLiveContainerWrappedIcon),
+        @"Icon": UIImagePNGRepresentation(icon),
         @"IgnoreManifestScope": @YES,
         @"IsRemovable": @YES,
         @"Label": self.displayName,
@@ -339,7 +364,7 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     self.is32Bit = is32bit;
 #endif
 
-    if (!LCUtils.certificatePassword || is32bit || self.dontSign) {
+    if (!LCSharedUtils.certificatePassword || is32bit || self.dontSign) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"SigningInProgress"];
         completetionHandler(YES, nil);
         return;

@@ -5,8 +5,7 @@ protocol LCAppModelDelegate {
     func changeAppVisibility(app : LCAppModel)
     func jitLaunch() async
     func jitLaunch(withScript script: String) async
-    func jitLaunch(withPID pid: Int) async
-    func jitLaunch(withPID pid: Int, withScript script: String) async
+    func jitLaunch(withPID pid: Int, withScript script: String?) async
     func showRunWhenMultitaskAlert() async -> Bool?
 }
 
@@ -265,7 +264,7 @@ class LCAppModel: ObservableObject, Hashable {
                             if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
                                 await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData)
                             } else {
-                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue)
+                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil)
                             }
                             continuation.resume()
                         }

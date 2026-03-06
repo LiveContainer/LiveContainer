@@ -16,6 +16,13 @@ struct LCEntitlementView : View {
     @State var correctBundleId : String?
     @State var isBundleIdCorrect = false
     @State var appGroup = false
+    @State var runtimeCSFlagsHex = "unavailable"
+    @State var runtimeCSInstaller = false
+    @State var runtimeCSPlatformBinary = false
+    @State var runtimeCSGetTaskAllow = false
+    @State var runtimeHasReceipt = false
+    @State var runtimeHasTrollStoreMarker = false
+    @State var runtimeCanQueryPmapTrust = false
     
     @State var entitlementContent = "Failed to Load Entitlement."
     
@@ -65,6 +72,52 @@ struct LCEntitlementView : View {
                                 .foregroundStyle(keyChainAccessGroup ? .green : .red)
                         }
 
+                    }
+                }
+
+                Section("Code Signing Runtime") {
+                    HStack {
+                        Text("csops status flags")
+                        Spacer()
+                        Text(runtimeCSFlagsHex)
+                            .foregroundStyle(.gray)
+                            .font(.system(.subheadline, design: .monospaced))
+                    }
+                    HStack {
+                        Text("CS_INSTALLER")
+                        Spacer()
+                        Text(runtimeCSInstaller ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeCSInstaller ? .green : .red)
+                    }
+                    HStack {
+                        Text("CS_PLATFORM_BINARY")
+                        Spacer()
+                        Text(runtimeCSPlatformBinary ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeCSPlatformBinary ? .green : .red)
+                    }
+                    HStack {
+                        Text("CS_GET_TASK_ALLOW")
+                        Spacer()
+                        Text(runtimeCSGetTaskAllow ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeCSGetTaskAllow ? .green : .red)
+                    }
+                    HStack {
+                        Text("App Store receipt file present")
+                        Spacer()
+                        Text(runtimeHasReceipt ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeHasReceipt ? .green : .red)
+                    }
+                    HStack {
+                        Text("TrollStore marker present")
+                        Spacer()
+                        Text(runtimeHasTrollStoreMarker ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeHasTrollStoreMarker ? .green : .red)
+                    }
+                    HStack {
+                        Text("Can app query PMAP trust")
+                        Spacer()
+                        Text(runtimeCanQueryPmapTrust ? "lc.common.yes".loc : "lc.common.no".loc)
+                            .foregroundStyle(runtimeCanQueryPmapTrust ? .green : .red)
                     }
                 }
 
@@ -140,6 +193,13 @@ struct LCEntitlementView : View {
         }
         
         getTaskAllow = entitlementDict["get-task-allow"] as? Bool ?? false
+        runtimeCSFlagsHex = LCUtils.runtimeCSFlagsHex()
+        runtimeCSInstaller = LCUtils.runtimeCSFlagInstaller()
+        runtimeCSPlatformBinary = LCUtils.runtimeCSFlagPlatformBinary()
+        runtimeCSGetTaskAllow = LCUtils.runtimeCSFlagGetTaskAllow()
+        runtimeHasReceipt = LCUtils.runtimeHasAppStoreReceipt()
+        runtimeHasTrollStoreMarker = LCUtils.runtimeHasTrollStoreMarker()
+        runtimeCanQueryPmapTrust = LCUtils.runtimeCanQueryPmapCustomTrust()
 
     }
     

@@ -92,6 +92,7 @@ struct LCSettingsView: View {
                                 Text("lc.settings.importCertificate".loc)
                             }
                         } else {
+                            // SideStore/AltStore import option
                             Button {
                                 Task{ await removeCertificate() }
                             } label: {
@@ -108,6 +109,24 @@ struct LCSettingsView: View {
                                     Text("lc.settings.importCertificateFromStore %@".localizeWithFormat(storeName))
                                 }
                             }
+                            
+                            // Manual certificate import option (always show)
+                            Button {
+                                Task{ await importCertificate() }
+                            } label: {
+                                Text("lc.settings.importCertificate".loc)
+                            }
+                            
+                            // Remove certificate option (only if certificate exists)
+                            if certificateDataFound {
+                                Button {
+                                    Task{ await removeCertificate() }
+                                } label: {
+                                    Text("lc.settings.removeCertificate".loc)
+                                }
+                                .foregroundColor(.red)
+                            }
+                        
                         }
                         
                         NavigationLink {
@@ -339,7 +358,7 @@ struct LCSettingsView: View {
                     Text(LCUtils.getVersionInfo())
                         .foregroundStyle(.gray)
                         .onTapGesture(count: 5) {
-                            sharedModel.developerMode = true
+                            sharedModel.developerMode.toggle()
                         }
                 }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

@@ -249,6 +249,7 @@ struct LCContainerView : View {
         do {
             let fm = FileManager.default
             try fm.removeItem(at: container.containerURL)
+            LCUtils.removeAppKeychain(dataUUID: container.folderName)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
@@ -300,6 +301,7 @@ struct LCContainerView : View {
                 }
                 try fm.removeItem(at: file)
             }
+            LCUtils.removeAppKeychain(dataUUID: container.folderName)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true

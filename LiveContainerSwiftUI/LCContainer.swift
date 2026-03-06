@@ -28,6 +28,7 @@ class LCContainer : ObservableObject, Hashable {
     }
     public var spoofedIdentifier: String?
     private var infoDict : [String:Any]?
+    
     public var containerURL : URL {
         if let resolvedContainerURL {
             return resolvedContainerURL
@@ -82,8 +83,8 @@ class LCContainer : ObservableObject, Hashable {
         self.init(folderName: infoDict["folderName"] as? String ?? "ERROR",
                   name: infoDict["name"] as? String ?? "ERROR",
                   isShared: isShared,
-                  isolateAppGroup: false,
-                  spoofIdentifierForVendor: false,
+                  isolateAppGroup: infoDict["isolateAppGroup"] as? Bool ?? true,
+                  spoofIdentifierForVendor: infoDict["spoofIdentifierForVendor"] as? Bool ?? false,
                   bookmarkData: bookmarkData,
                   resolvedContainerURL: nil
         )
@@ -114,7 +115,7 @@ class LCContainer : ObservableObject, Hashable {
             
             let plistInfo = try PropertyListSerialization.propertyList(from: Data(contentsOf: infoDictUrl), format: nil)
             if let plistInfo = plistInfo as? [String : Any] {
-                isolateAppGroup = plistInfo["isolateAppGroup"] as? Bool ?? false
+                isolateAppGroup = plistInfo["isolateAppGroup"] as? Bool ?? true
                 spoofIdentifierForVendor = plistInfo["spoofIdentifierForVendor"] as? Bool ?? false
                 spoofedIdentifier = plistInfo["spoofedIdentifierForVendor"] as? String
             }
@@ -140,7 +141,7 @@ class LCContainer : ObservableObject, Hashable {
             "name" : name,
             "keychainGroupId" : keychainGroupId,
             "isolateAppGroup" : isolateAppGroup,
-            "spoofIdentifierForVendor": spoofIdentifierForVendor
+            "spoofIdentifierForVendor": spoofIdentifierForVendor,
         ]
         if let spoofedIdentifier {
             infoDict!["spoofedIdentifierForVendor"] = spoofedIdentifier
@@ -171,7 +172,7 @@ class LCContainer : ObservableObject, Hashable {
             return
         }
         name = infoDict["name"] as? String ?? "ERROR"
-        isolateAppGroup = infoDict["isolateAppGroup"] as? Bool ?? false
+        isolateAppGroup = infoDict["isolateAppGroup"] as? Bool ?? true
         spoofIdentifierForVendor = infoDict["spoofIdentifierForVendor"] as? Bool ?? false
         spoofedIdentifier = infoDict["spoofedIdentifierForVendor"] as? String
     }
@@ -193,7 +194,9 @@ extension LCAppInfo {
             if let oldDataUUID = dataUUID, containerInfo == nil {
                 containerInfo = [[
                     "folderName": oldDataUUID,
-                    "name": oldDataUUID
+                    "name": oldDataUUID,
+                    "isolateAppGroup": true,
+                    "spoofIdentifierForVendor": false,
                 ]]
                 upgrade = true
             }
@@ -212,5 +215,4 @@ extension LCAppInfo {
             }
         }
     }
-
 }

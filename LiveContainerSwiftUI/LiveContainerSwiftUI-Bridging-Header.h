@@ -10,11 +10,14 @@
 #include "../LiveContainer/LCSharedUtils.h"
 #include "LCUtils.h"
 #include "unarchive.h"
+#include <CoreLocation/CoreLocation.h>
 #include "../MultitaskSupport/AppSceneViewController.h"
 #include "../MultitaskSupport/DecoratedAppSceneViewController.h"
 #include "../MultitaskSupport/LCStatusBarManager.h"
 #include "../MultitaskSupport/PiPManager.h"
 #include "../MultitaskSupport/VirtualWindowsHostView.h"
 #include "../LiveContainer/FoundationPrivate.h"
+#include "../LiveContainer/Tweaks/CoreLocation+GuestHooks.h"
+#include "../LiveContainer/Tweaks/AVFoundation+GuestHooks.h"
 
 #endif /* LiveContainerSwiftUI_Bridging_Header_h_h */

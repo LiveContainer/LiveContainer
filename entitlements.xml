@@ -23,6 +23,10 @@
 	</array>
 	<key>get-task-allow</key>
 	<true/>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)com.kdt.livecontainer.shared</string>

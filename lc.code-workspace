@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../roothide/rh-jailed"
+		},
+		{
+			"path": "../lc-resources"
+		}
+	],
+	"settings": {}
+}

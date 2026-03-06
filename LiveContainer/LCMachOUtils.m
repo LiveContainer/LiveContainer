@@ -31,10 +31,34 @@ struct dyld_all_image_infos *_alt_dyld_get_all_image_infos(void) {
     return result;
 }
 
+// static void insertDylibCommand(uint32_t cmd, const char *path, struct mach_header_64 *header) {
+//     const char *name = cmd==LC_ID_DYLIB ? basename((char *)path) : path;
+//     struct dylib_command *dylib;
+//     size_t cmdsize = sizeof(struct dylib_command) + rnd32((uint32_t)strlen(name) + 1, 8);
+//     if (cmd == LC_ID_DYLIB) {
+//         // Make this the first load command on the list (like dylibify does), or some UE3 games may break
+//         dylib = (struct dylib_command *)(sizeof(struct mach_header_64) + (uintptr_t)header);
+//         memmove((void *)((uintptr_t)dylib + cmdsize), (void *)dylib, header->sizeofcmds);
+//         bzero(dylib, cmdsize);
+//     } else {
+//         dylib = (struct dylib_command *)(sizeof(struct mach_header_64) + (void *)header+header->sizeofcmds);
+//     }
+//     dylib->cmd = cmd;
+//     dylib->cmdsize = cmdsize;
+//     dylib->dylib.name.offset = sizeof(struct dylib_command);
+//     dylib->dylib.compatibility_version = 0x10000;
+//     dylib->dylib.current_version = 0x10000;
+//     dylib->dylib.timestamp = 2;
+//     strncpy((void *)dylib + dylib->dylib.name.offset, name, strlen(name));
+//     header->ncmds++;
+//     header->sizeofcmds += dylib->cmdsize;
+// }
 static void insertDylibCommand(uint32_t cmd, const char *path, struct mach_header_64 *header) {
     const char *name = cmd==LC_ID_DYLIB ? basename((char *)path) : path;
     struct dylib_command *dylib;
-    size_t cmdsize = sizeof(struct dylib_command) + rnd32((uint32_t)strlen(name) + 1, 8);
+    size_t nameLen = strlen(name) + 1; // +1 for null terminator
+    size_t cmdsize = sizeof(struct dylib_command) + rnd32((uint32_t)nameLen, 8);
+    
     if (cmd == LC_ID_DYLIB) {
         // Make this the first load command on the list (like dylibify does), or some UE3 games may break
         dylib = (struct dylib_command *)(sizeof(struct mach_header_64) + (uintptr_t)header);
@@ -42,14 +66,21 @@ static void insertDylibCommand(uint32_t cmd, const char *path, struct mach_heade
         bzero(dylib, cmdsize);
     } else {
         dylib = (struct dylib_command *)(sizeof(struct mach_header_64) + (void *)header+header->sizeofcmds);
+        bzero(dylib, cmdsize); // Zero out the new command
     }
+    
     dylib->cmd = cmd;
     dylib->cmdsize = cmdsize;
     dylib->dylib.name.offset = sizeof(struct dylib_command);
     dylib->dylib.compatibility_version = 0x10000;
     dylib->dylib.current_version = 0x10000;
     dylib->dylib.timestamp = 2;
-    strncpy((void *)dylib + dylib->dylib.name.offset, name, strlen(name));
+    
+    // Safe string copying with proper null termination
+    char *pathDest = (void *)dylib + dylib->dylib.name.offset;
+    size_t stringSpaceAvailable = cmdsize - sizeof(struct dylib_command);
+    strlcpy(pathDest, name, stringSpaceAvailable);
+    
     header->ncmds++;
     header->sizeofcmds += dylib->cmdsize;
 }
@@ -160,15 +191,46 @@ int LCPatchExecSlice(const char *path, struct mach_header_64 *header, bool doInj
         }
     }
 
+    // if (dylibLoaderCommand) {
+    //     dylibLoaderCommand->cmd = doInject ? LC_LOAD_DYLIB : 0x114514;
+    //     strcpy((void *)dylibLoaderCommand + dylibLoaderCommand->dylib.name.offset, doInject ? tweakLoaderPath : libCppPath);
+    // } else  {
+    //     if (freeLoadCommandCountLeft >= tweakLoaderLoadDylibCmdSize) {
+    //         freeLoadCommandCountLeft -= tweakLoaderLoadDylibCmdSize;
+    //         insertDylibCommand(doInject ? LC_LOAD_DYLIB : 0x114514, doInject ? tweakLoaderPath : libCppPath, header);
+    //     } else {
+    //         // Not enough free space of injection tweak loader!
+    //         ans |= PATCH_EXEC_RESULT_NO_SPACE_FOR_TWEAKLOADER;
+    //     }
+    // }
     if (dylibLoaderCommand) {
         dylibLoaderCommand->cmd = doInject ? LC_LOAD_DYLIB : 0x114514;
-        strcpy((void *)dylibLoaderCommand + dylibLoaderCommand->dylib.name.offset, doInject ? tweakLoaderPath : libCppPath);
-    } else  {
-        if (freeLoadCommandCountLeft >= tweakLoaderLoadDylibCmdSize) {
-            freeLoadCommandCountLeft -= tweakLoaderLoadDylibCmdSize;
-            insertDylibCommand(doInject ? LC_LOAD_DYLIB : 0x114514, doInject ? tweakLoaderPath : libCppPath, header);
+        
+        // Calculate available space for the path
+        size_t availableSpace = dylibLoaderCommand->cmdsize - dylibLoaderCommand->dylib.name.offset;
+        const char *newPath = doInject ? tweakLoaderPath : libCppPath;
+        size_t newPathLen = strlen(newPath) + 1; // +1 for null terminator
+        
+        if (newPathLen <= availableSpace) {
+            // Safe to copy the new path
+            strlcpy((void *)dylibLoaderCommand + dylibLoaderCommand->dylib.name.offset, newPath, availableSpace);
         } else {
-            // Not enough free space of injection tweak loader!
+            // Not enough space - this shouldn't happen with the existing commands, but let's be safe
+            NSLog(@"[LC] ERROR: New path too long for existing dylib command space");
+            ans |= PATCH_EXEC_RESULT_NO_SPACE_FOR_TWEAKLOADER;
+        }
+    } else {
+        // Calculate required space more accurately
+        const char *pathToUse = doInject ? tweakLoaderPath : libCppPath;
+        size_t pathLen = strlen(pathToUse) + 1;
+        size_t requiredCmdSize = sizeof(struct dylib_command) + rnd32((uint32_t)pathLen, 8);
+        
+        if (freeLoadCommandCountLeft >= requiredCmdSize) {
+            freeLoadCommandCountLeft -= requiredCmdSize;
+            insertDylibCommand(doInject ? LC_LOAD_DYLIB : 0x114514, pathToUse, header);
+        } else {
+            // Not enough free space for injection tweak loader!
+            NSLog(@"[LC] ERROR: Not enough space for TweakLoader injection (need %zu, have %ld)", requiredCmdSize, freeLoadCommandCountLeft);
             ans |= PATCH_EXEC_RESULT_NO_SPACE_FOR_TWEAKLOADER;
         }
     }

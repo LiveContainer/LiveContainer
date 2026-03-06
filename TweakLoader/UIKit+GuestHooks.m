@@ -1,13 +1,60 @@
 @import UIKit;
 #import "LCSharedUtils.h"
 #import "UIKitPrivate.h"
-#import "utils.h"
+#import "../Livecontainer/utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
 #import "Localization.h"
 
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
+static NSString *const LCExternalURLBlockBypassDepthKey = @"LCExternalURLBlockBypassDepth";
+
+static BOOL LCIsExternalURLBlockBypassed(void) {
+    NSNumber *depth = NSThread.currentThread.threadDictionary[LCExternalURLBlockBypassDepthKey];
+    return depth.integerValue > 0;
+}
+
+static void LCWithExternalURLBlockBypass(void (^block)(void)) {
+    if (!block) {
+        return;
+    }
+    NSMutableDictionary *threadDictionary = NSThread.currentThread.threadDictionary;
+    NSInteger depth = [threadDictionary[LCExternalURLBlockBypassDepthKey] integerValue];
+    threadDictionary[LCExternalURLBlockBypassDepthKey] = @(depth + 1);
+    block();
+    depth = [threadDictionary[LCExternalURLBlockBypassDepthKey] integerValue] - 1;
+    if (depth <= 0) {
+        [threadDictionary removeObjectForKey:LCExternalURLBlockBypassDepthKey];
+    } else {
+        threadDictionary[LCExternalURLBlockBypassDepthKey] = @(depth);
+    }
+}
+
+static NSSet<NSString *> *LCBlockedExternalURLSchemes(void) {
+    static NSSet<NSString *> *blockedSchemes = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        blockedSchemes = [NSSet setWithArray:@[
+            @"github",
+            @"sidestore",
+            @"livecontainer",
+            // TODO: Shadowrocket
+        ]];
+    });
+    return blockedSchemes;
+}
+
+static BOOL LCShouldBlockExternalURL(NSURL *url) {
+    if (!url || LCIsExternalURLBlockBypassed()) {
+        return NO;
+    }
+    NSString *scheme = url.scheme.lowercaseString;
+    if (scheme.length == 0) {
+        return NO;
+    }
+    return [LCBlockedExternalURLSchemes() containsObject:scheme];
+}
 
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
@@ -74,7 +121,10 @@ void forEachInstalledNotCurrentLC(BOOL isFree, void (^block)(NSString* scheme, B
         if([scheme isEqualToString:NSUserDefaults.lcAppUrlScheme]) {
             continue;
         }
-        BOOL isInstalled = [UIApplication.sharedApplication canOpenURL:[NSURL URLWithString: [NSString stringWithFormat: @"%@://", scheme]]];
+        __block BOOL isInstalled = NO;
+        LCWithExternalURLBlockBypass(^{
+            isInstalled = [UIApplication.sharedApplication canOpenURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://", scheme]]];
+        });
         if(!isInstalled) {
             continue;
         }
@@ -97,7 +147,9 @@ void LCShowSwitchAppConfirmation(NSURL *url, NSString* bundleId, bool isSharedAp
         __block BOOL anotherLCLaunched = false;
         forEachInstalledNotCurrentLC(YES, ^(NSString * scheme, BOOL* isBreak) {
             newUrlComp.scheme = scheme;
-            [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+            LCWithExternalURLBlockBypass(^{
+                [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+            });
             *isBreak = YES;
             anotherLCLaunched = YES;
             return;
@@ -127,7 +179,9 @@ void LCShowSwitchAppConfirmation(NSURL *url, NSString* bundleId, bool isSharedAp
         forEachInstalledNotCurrentLC(NO, ^(NSString * scheme, BOOL* isBreak) {
             UIAlertAction* openlcAction = [UIAlertAction actionWithTitle:[@"lc.guestTweak.openInLc %@" localizeWithFormat:scheme] style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
                 newUrlComp.scheme = scheme;
-                [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+                LCWithExternalURLBlockBypass(^{
+                    [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+                });
                 window.windowScene = nil;
             }];
             [alert addAction:openlcAction];
@@ -167,14 +221,19 @@ void LCShowAppNotFoundAlert(NSString* bundleId) {
 
 void openUniversalLink(NSString* decodedUrl) {
     NSURL* urlToOpen = [NSURL URLWithString: decodedUrl];
+    if (LCShouldBlockExternalURL(urlToOpen)) {
+        NSLog(@"[LC] Blocked external URL scheme: %@", urlToOpen.scheme);
+        return;
+    }
     if(![urlToOpen.scheme isEqualToString:@"https"] && ![urlToOpen.scheme isEqualToString:@"http"]) {
         NSData *data = [decodedUrl dataUsingEncoding:NSUTF8StringEncoding];
         NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
         
         NSString* finalUrl = [NSString stringWithFormat:@"%@://open-url?url=%@", NSUserDefaults.lcAppUrlScheme, encodedUrl];
         NSURL* url = [NSURL URLWithString: finalUrl];
-        
-        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        LCWithExternalURLBlockBypass(^{
+            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        });
         return;
     }
     
@@ -205,7 +264,9 @@ void LCOpenWebPage(NSString* webPageUrlString, NSString* originalUrl) {
     __block BOOL anotherLCLaunched = false;
     forEachInstalledNotCurrentLC(YES, ^(NSString * scheme, BOOL* isBreak) {
         newUrlComp.scheme = scheme;
-        [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+        LCWithExternalURLBlockBypass(^{
+            [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+        });
         *isBreak = YES;
         anotherLCLaunched = YES;
         return;
@@ -230,7 +291,9 @@ void LCOpenWebPage(NSString* webPageUrlString, NSString* originalUrl) {
     forEachInstalledNotCurrentLC(NO, ^(NSString * scheme, BOOL* isBreak) {
         UIAlertAction* openlc2Action = [UIAlertAction actionWithTitle:[@"lc.guestTweak.openInLc %@" localizeWithFormat:scheme] style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
             newUrlComp.scheme = scheme;
-            [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+            LCWithExternalURLBlockBypass(^{
+                [UIApplication.sharedApplication openURL:newUrlComp.URL options:@{} completionHandler:nil];
+            });
             window.windowScene = nil;
         }];
         [alert addAction:openlc2Action];
@@ -350,7 +413,9 @@ void handleLiveContainerLaunch(NSURL* url) {
                 runningLC = runningLC.stringByDeletingPathExtension;
             }
             NSString* urlStr = [NSString stringWithFormat:@"%@://livecontainer-launch?bundle-name=%@&container-folder-name=%@", runningLC, bundleName, containerFolderName];
-            [UIApplication.sharedApplication openURL:[NSURL URLWithString:urlStr] options:@{} completionHandler:nil];
+            LCWithExternalURLBlockBypass(^{
+                [UIApplication.sharedApplication openURL:[NSURL URLWithString:urlStr] options:@{} completionHandler:nil];
+            });
             return;
         }
         
@@ -536,6 +601,13 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 - (void)hook_openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options completionHandler:(void (^)(_Bool))completion {
+    if (LCShouldBlockExternalURL(url)) {
+        NSLog(@"[LC] Blocked external URL scheme: %@", url.scheme);
+        if (completion) {
+            completion(NO);
+        }
+        return;
+    }
     if(NSUserDefaults.isSideStore && ![url.scheme isEqualToString:@"livecontainer"]) {
         [self hook_openURL:url options:options completionHandler:completion];
         return;
@@ -555,6 +627,9 @@ BOOL canAppOpenItself(NSURL* url) {
     }
 }
 - (BOOL)hook_canOpenURL:(NSURL *) url {
+    if (LCShouldBlockExternalURL(url)) {
+        return NO;
+    }
     return canAppOpenItself(url) || shouldRedirectOpenURLToHost(url) || [self hook_canOpenURL:url];
 }
 
@@ -665,6 +740,13 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 - (void)hook_openURL:(NSURL *)url options:(UISceneOpenExternalURLOptions *)options completionHandler:(void (^)(BOOL success))completion {
+    if (LCShouldBlockExternalURL(url)) {
+        NSLog(@"[LC] Blocked external URL scheme: %@", url.scheme);
+        if (completion) {
+            completion(NO);
+        }
+        return;
+    }
     BOOL openSelf = canAppOpenItself(url);
     BOOL redirectToHost = shouldRedirectOpenURLToHost(url);
     if(openSelf || redirectToHost) {

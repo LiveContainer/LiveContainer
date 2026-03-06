@@ -87,6 +87,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
+    
     var sortedApps: [LCAppModel] {
         return sharedAppSortManager.sortedApps
     }
@@ -137,6 +138,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 .hidden()
                 
                 LazyVStack {
+                    // Use filteredApps instead of sharedModel.apps
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
                     }
@@ -754,8 +756,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.autoSaveDisabled = false
             finalNewApp.save()
         } else {
-            // enable SDK version spoof by defalut
+            // enable SDK version spoof by default
             finalNewApp.spoofSDKVersion = true
+            // Set TweakLoader defaults for new apps (disable by default for security)
+            finalNewApp.dontInjectTweakLoader = true
+            finalNewApp.dontLoadTweakLoader = true
         }
         finalNewApp.installationDate = Date.now
         

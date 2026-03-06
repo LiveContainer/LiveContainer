@@ -42,6 +42,13 @@ int dyld_get_program_sdk_version(void);
 + (NSString *)getVersionInfo;
 + (NSString *)liveProcessBundleIdentifier;
 + (NSData*)bookmarkForURL:(NSURL*) url;
++ (NSString *)runtimeCSFlagsHex;
++ (BOOL)runtimeCSFlagInstaller;
++ (BOOL)runtimeCSFlagPlatformBinary;
++ (BOOL)runtimeCSFlagGetTaskAllow;
++ (BOOL)runtimeHasAppStoreReceipt;
++ (BOOL)runtimeHasTrollStoreMarker;
++ (BOOL)runtimeCanQueryPmapCustomTrust;
 @end
 
 @interface NSUserDefaults(LiveContainer)

@@ -110,16 +110,57 @@ struct LCAppBanner : View {
                                     Capsule().fill(Color("BadgeColor"))
                                 )
                         }
+                        if model.uiSpoofCamera {
+                            Image(systemName: "camera.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.red)
+                                    // .frame(width: 16, height: 16)
+                            // Image(systemName: "camera.fill")
+                            //     .font(.system(size: 10, weight: .bold))
+                            //     .foregroundColor(.red)
+                            //     .frame(width: 16, height:16)
+                            //     .background(
+                            //         Capsule().fill(Color.red)
+                            //     )
+                        }
+                        if model.uiDeviceSpoofingEnabled {
+                            Image(systemName: "iphone.gen3")
+                                .font(.system(size: 16))
+                                .foregroundColor(.red)
+                        }
                     }
-
-                    Text("\(appInfo.version() ?? "?") - \(appInfo.bundleIdentifier() ?? "?")").font(.system(size: 12)).foregroundColor(textColor)
-                    if !model.uiRemark.isEmpty {
-                        Text(model.uiRemark)
-                            .font(.system(size: 10))
-                            .foregroundColor(textColor.opacity(0.8))
-                            .lineLimit(1)
+                    
+                    HStack {
+                        Text("\(appInfo.version() ?? "") - \(appInfo.bundleIdentifier()!)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                        Spacer()
                     }
-                    Text(model.uiSelectedContainer?.name ?? "lc.appBanner.noDataFolder".loc).font(.system(size: 8)).foregroundColor(textColor)
+                    
+                    // Container name
+                    if let selectedContainer = model.uiSelectedContainer {
+                        HStack {
+                            Text(selectedContainer.name)
+                                .font(.system(size: 12))
+                                .foregroundColor(.blue)
+                            Spacer()
+                        }
+                        
+                        // GPS Location display
+                        if model.uiSpoofGPS {
+                            HStack {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.red)
+                                
+                                Text(locationDisplayText)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.red)
+                                
+                                Spacer()
+                            }
+                        }
+                    }
                 })
             }
             .allowsHitTesting(false)
@@ -369,8 +410,10 @@ struct LCAppBanner : View {
             if doRemoveAppFolder {
                 for container in containers {
                     let dataUUID = container.folderName
-                    let dataFolderPath = LCPath.dataPath.appendingPathComponent(dataUUID)
-                    try fm.removeItem(at: dataFolderPath)
+                    let dataFolderPath = container.containerURL
+                    if fm.fileExists(atPath: dataFolderPath.path) {
+                        try fm.removeItem(at: dataFolderPath)
+                    }
                     LCUtils.removeAppKeychain(dataUUID: dataUUID)
                     
                     DispatchQueue.main.async {
@@ -476,6 +519,14 @@ struct LCAppBanner : View {
     
     func copyError() {
         UIPasteboard.general.string = errorInfo
+    }
+    
+    private var locationDisplayText: String {
+        if !model.uiSpoofLocationName.isEmpty && model.uiSpoofLocationName != "Unknown Location" {
+            return model.uiSpoofLocationName
+        } else {
+            return String(format: "%.4f, %.4f", model.uiSpoofLatitude, model.uiSpoofLongitude)
+        }
     }
 
 }

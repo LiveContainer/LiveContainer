@@ -1,5 +1,8 @@
 .theos/
+.deriveddata/
+build/
 packages/
+tools/
 .DS_Store
 *.xcscmblueprint
 *.xccheckout
@@ -7,3 +10,4 @@ packages/
 xcuserdata
 Resources/Frameworks/OpenSSL.framework
 apps_nightly.json
+lc-resources/

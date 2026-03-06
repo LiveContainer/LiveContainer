@@ -86,7 +86,7 @@ jobs:
     name: Nightly Release
     permissions:
       contents: write
-    if: inputs.release__nightly || github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    if: inputs.release__nightly || github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: [build]
     concurrency:
@@ -96,7 +96,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Download a Build Artifact
+
+      - name: Download LiveContainer Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact }}
@@ -126,8 +127,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
           body: |
-            **Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             **Message:** ${{ github.event.head_commit.message }}
+            **Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            
+            **Downloads:**
+            - `LiveContainer.ipa` - Standalone version
+            - `LiveContainer+SideStore.ipa` - Integrated with SideStore features (widgets, etc.)
             
             This is a nightly release [created automatically with GitHub Actions workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}).
           files: |

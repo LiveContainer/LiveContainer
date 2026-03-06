@@ -358,23 +358,34 @@ extern NSBundle *lcMainBundle;
     NSFileManager* fm = [[NSFileManager alloc] init];
     NSError* error1;
     
-    NSDictionary* preferences = [lcUserDefaults objectForKey:dataUUID];
-    if(!preferences) {
-        return;
+    NSMutableArray<NSUserDefaults*>* userDefaultsPool = [[NSMutableArray alloc] init];
+    for(int i = 0; i < 8; ++i) {
+        NSUserDefaults* cur = [[NSUserDefaults alloc] initWithSuiteName:[NSString stringWithFormat:@"com.kdt.livecontainer.userDefaultsStorage.%d", i]];
+        [userDefaultsPool addObject:cur];
     }
+    // backward compatability
+    [userDefaultsPool addObject:lcUserDefaults];
     
-    [fm createDirectoryAtPath:plistLocationTo withIntermediateDirectories:YES attributes:@{} error:&error1];
-    for(NSString* identifier in preferences) {
-        NSDictionary* preference = preferences[identifier];
-        NSString *itemPath = [plistLocationTo stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.plist", identifier]];
-        if([preference count] == 0) {
-            // Attempt to delete the file
-            [fm removeItemAtPath:itemPath error:&error1];
+    for(NSUserDefaults* curNud in userDefaultsPool) {
+        
+        NSDictionary* preferences = [curNud objectForKey:dataUUID];
+        if(!preferences) {
             continue;
         }
-        [preference writeToFile:itemPath atomically:YES];
+        
+        [fm createDirectoryAtPath:plistLocationTo withIntermediateDirectories:YES attributes:@{} error:&error1];
+        for(NSString* identifier in preferences) {
+            NSDictionary* preference = preferences[identifier];
+            NSString *itemPath = [plistLocationTo stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.plist", identifier]];
+            if([preference count] == 0) {
+                // Attempt to delete the file
+                [fm removeItemAtPath:itemPath error:&error1];
+                continue;
+            }
+            [preference writeToFile:itemPath atomically:YES];
+        }
+        [curNud removeObjectForKey:dataUUID];
     }
-    [lcUserDefaults removeObjectForKey:dataUUID];
 }
 
 + (NSString*)findDefaultContainerWithBundleId:(NSString*)bundleId {

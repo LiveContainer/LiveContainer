@@ -59,11 +59,17 @@ struct LCPath {
 }
 
 class SharedModel: ObservableObject {
+    private static let developerModeDefaultsKey = "LCDeveloperMode"
+
     @Published var selectedTab: LCTabIdentifier = .apps
     @Published var deepLink: URL?
     
     @Published var isHiddenAppUnlocked = false
-    @Published var developerMode = false
+    @Published var developerMode = false {
+        didSet {
+            LCUtils.appGroupUserDefault.set(developerMode, forKey: Self.developerModeDefaultsKey)
+        }
+    }
     // 0 = current liveContainer is the primary one,
     // 2 = current liveContainer is not the primary one
     @Published var multiLCStatus = 0
@@ -108,6 +114,7 @@ class SharedModel: ObservableObject {
     }
     
     init() {
+        developerMode = LCUtils.appGroupUserDefault.bool(forKey: Self.developerModeDefaultsKey)
         updateMultiLCStatus()
     }
 }
@@ -835,17 +842,86 @@ extension LCUtils {
         }
     }
     
-    public static func removeAppKeychain(dataUUID label: String) {
-        [kSecClassGenericPassword, kSecClassInternetPassword, kSecClassCertificate, kSecClassKey, kSecClassIdentity].forEach {
-          let status = SecItemDelete([
-            kSecClass as String: $0,
-            "alis": label,
-          ] as CFDictionary)
-          if status != errSecSuccess && status != errSecItemNotFound {
-              //Error while removing class $0
-              NSLog("[LC] Failed to find keychain items: \(status)")
-          }
+    private static let lcKeychainClasses: [CFString] = [
+        kSecClassGenericPassword,
+        kSecClassInternetPassword,
+        kSecClassCertificate,
+        kSecClassKey,
+        kSecClassIdentity
+    ]
+    private static let ignoredKeychainDeleteStatuses: Set<OSStatus> = [
+        errSecSuccess,
+        errSecItemNotFound,
+        errSecMissingEntitlement
+    ]
+
+    private static func liveContainerAccessGroups() -> [String] {
+        guard let teamId = LCSharedUtils.teamIdentifier(), !teamId.isEmpty else {
+            return []
         }
+
+        var groups: [String] = []
+        groups.reserveCapacity(SharedModel.keychainAccessGroupCount)
+        for groupId in 0..<SharedModel.keychainAccessGroupCount {
+            if groupId == 0 {
+                groups.append("\(teamId).com.kdt.livecontainer.shared")
+            } else {
+                groups.append("\(teamId).com.kdt.livecontainer.shared.\(groupId)")
+            }
+        }
+        return groups
+    }
+
+    private static func removeKeychainItems(dataUUID label: String?, accessGroups: [String]) -> [OSStatus] {
+        let targetGroups: [String?] = accessGroups.isEmpty ? [nil] : accessGroups.map { Optional($0) }
+        var failures: [OSStatus] = []
+        var sawUsableStatus = false
+        var attemptedExplicitGroups = false
+
+        for secClass in lcKeychainClasses {
+            for group in targetGroups {
+                if group != nil {
+                    attemptedExplicitGroups = true
+                }
+
+                var query: [String: Any] = [
+                    kSecClass as String: secClass,
+                    kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+                ]
+                if let label, !label.isEmpty {
+                    query["alis"] = label
+                }
+                if let group, !group.isEmpty {
+                    query[kSecAttrAccessGroup as String] = group
+                }
+
+                let status = SecItemDelete(query as CFDictionary)
+                if status != errSecMissingEntitlement {
+                    sawUsableStatus = true
+                }
+                if !ignoredKeychainDeleteStatuses.contains(status) {
+                    failures.append(status)
+                }
+            }
+        }
+
+        if attemptedExplicitGroups && !sawUsableStatus {
+            // Older/limited signatures may not expose all groups. Retry without explicit group scoping.
+            return removeKeychainItems(dataUUID: label, accessGroups: [])
+        }
+
+        return failures
+    }
+
+    public static func removeAppKeychain(dataUUID label: String) {
+        let failures = removeKeychainItems(dataUUID: label, accessGroups: liveContainerAccessGroups())
+        for status in failures {
+            NSLog("[LC] Failed to remove keychain items for container \(label): \(status)")
+        }
+    }
+
+    public static func removeAllAppKeychain() -> [OSStatus] {
+        removeKeychainItems(dataUUID: nil, accessGroups: liveContainerAccessGroups())
     }
     
     public static func forEachInstalledLC(isFree: Bool, block: (String, inout Bool) -> Void) {

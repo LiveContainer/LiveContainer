@@ -11,6 +11,7 @@
 #import "utils.h"
 #import "../../litehook/src/litehook.h"
 #include "Tweaks.h"
+#include <mach-o/dyld.h>
 @import ObjectiveC;
 @import MachO;
 
@@ -18,22 +19,222 @@ BOOL hook_return_false(void) {
     return NO;
 }
 
-void swizzle(Class class, SEL originalAction, SEL swizzledAction) {
-    method_exchangeImplementations(class_getInstanceMethod(class, originalAction), class_getInstanceMethod(class, swizzledAction));
-}
+// void swizzle(Class class, SEL originalAction, SEL swizzledAction) {
+//     method_exchangeImplementations(class_getInstanceMethod(class, originalAction), class_getInstanceMethod(class, swizzledAction));
+// }
 
-void swizzle2(Class class, SEL originalAction, Class class2, SEL swizzledAction) {
-    Method m1 = class_getInstanceMethod(class2, swizzledAction);
-    class_addMethod(class, swizzledAction, method_getImplementation(m1), method_getTypeEncoding(m1));
-    method_exchangeImplementations(class_getInstanceMethod(class, originalAction), class_getInstanceMethod(class, swizzledAction));
-}
+// void swizzle2(Class class, SEL originalAction, Class class2, SEL swizzledAction) {
+//     Method m1 = class_getInstanceMethod(class2, swizzledAction);
+//     class_addMethod(class, swizzledAction, method_getImplementation(m1), method_getTypeEncoding(m1));
+//     method_exchangeImplementations(class_getInstanceMethod(class, originalAction), class_getInstanceMethod(class, swizzledAction));
+// }
 
 NSURL* appContainerURL = 0;
 NSString* appContainerPath = 0;
+static bool isAppleIdentifier(NSString* identifier);
+
+static id (*orig_CKContainer_setupWithContainerID_options)(id, SEL, id, id) = nil;
+static id (*orig_CKContainer_initWithContainerIdentifier)(id, SEL, id) = nil;
+static id (*orig_CKEntitlements_initWithEntitlementsDict)(id, SEL, NSDictionary *) = nil;
+static id (*orig_NSUserDefaults_initWithSuiteName_container)(id, SEL, NSString *, NSURL *) = nil;
+
+static os_unfair_lock lcRegramCompatHookLock = OS_UNFAIR_LOCK_INIT;
+static BOOL lcCKContainerSetupHooked = NO;
+static BOOL lcCKContainerInitHooked = NO;
+static BOOL lcCKEntitlementsHooked = NO;
+static BOOL lcNSDefaultsContainerHooked = NO;
+
+static BOOL LCShouldUseInstagramCloudKitWorkaround(void) {
+    static dispatch_once_t onceToken;
+    static BOOL shouldUse = NO;
+    dispatch_once(&onceToken, ^{
+        NSString *guestBundleID = NSUserDefaults.lcGuestAppId.lowercaseString ?: @"";
+        NSString *mainBundleID = NSBundle.mainBundle.bundleIdentifier.lowercaseString ?: @"";
+        NSString *processName = NSProcessInfo.processInfo.processName.lowercaseString ?: @"";
+        shouldUse = [guestBundleID isEqualToString:@"com.burbn.instagram"] ||
+                    [guestBundleID containsString:@"instagram"] ||
+                    [mainBundleID isEqualToString:@"com.burbn.instagram"] ||
+                    [mainBundleID containsString:@"instagram"] ||
+                    [processName containsString:@"instagram"];
+    });
+    return shouldUse;
+}
+
+static BOOL LCHookInstanceMethodInHierarchy(Class targetClass, SEL selector, IMP replacement, IMP *originalOut) {
+    if (!targetClass || !selector || !replacement) {
+        return NO;
+    }
+
+    for (Class cursor = targetClass; cursor != nil; cursor = class_getSuperclass(cursor)) {
+        unsigned int methodCount = 0;
+        Method *methodList = class_copyMethodList(cursor, &methodCount);
+        Method matchedMethod = nil;
+
+        for (unsigned int idx = 0; idx < methodCount; idx++) {
+            Method candidate = methodList[idx];
+            if (method_getName(candidate) == selector) {
+                matchedMethod = candidate;
+                break;
+            }
+        }
+
+        if (!matchedMethod) {
+            free(methodList);
+            continue;
+        }
+
+        if (cursor != targetClass) {
+            IMP inheritedImplementation = method_getImplementation(matchedMethod);
+            const char *typeEncoding = method_getTypeEncoding(matchedMethod);
+            BOOL added = class_addMethod(targetClass, selector, replacement, typeEncoding);
+            if (!added) {
+                Method ownMethod = class_getInstanceMethod(targetClass, selector);
+                if (!ownMethod) {
+                    free(methodList);
+                    return NO;
+                }
+                inheritedImplementation = method_setImplementation(ownMethod, replacement);
+            }
+            if (originalOut) {
+                *originalOut = inheritedImplementation;
+            }
+        } else {
+            IMP previousImplementation = method_setImplementation(matchedMethod, replacement);
+            if (originalOut) {
+                *originalOut = previousImplementation;
+            }
+        }
+
+        free(methodList);
+        return YES;
+    }
+
+    return NO;
+}
+
+static NSDictionary *LCSanitizedCloudKitEntitlements(NSDictionary *entitlements) {
+    if (![entitlements isKindOfClass:NSDictionary.class] || entitlements.count == 0) {
+        return entitlements;
+    }
+
+    NSMutableDictionary *mutable = [entitlements mutableCopy];
+    [mutable removeObjectForKey:@"com.apple.developer.icloud-container-environment"];
+    [mutable removeObjectForKey:@"com.apple.developer.icloud-services"];
+    return [mutable copy];
+}
+
+static id hook_CKContainer_setupWithContainerID_options(id self, SEL _cmd, id containerID, id options) {
+    if (!LCShouldUseInstagramCloudKitWorkaround() && orig_CKContainer_setupWithContainerID_options) {
+        return orig_CKContainer_setupWithContainerID_options(self, _cmd, containerID, options);
+    }
+    return nil;
+}
+
+static id hook_CKContainer_initWithContainerIdentifier(id self, SEL _cmd, id containerIdentifier) {
+    if (!LCShouldUseInstagramCloudKitWorkaround() && orig_CKContainer_initWithContainerIdentifier) {
+        return orig_CKContainer_initWithContainerIdentifier(self, _cmd, containerIdentifier);
+    }
+    return nil;
+}
+
+static id hook_CKEntitlements_initWithEntitlementsDict(id self, SEL _cmd, NSDictionary *entitlements) {
+    if (!orig_CKEntitlements_initWithEntitlementsDict) {
+        return nil;
+    }
+    NSDictionary *sanitized = LCShouldUseInstagramCloudKitWorkaround()
+        ? LCSanitizedCloudKitEntitlements(entitlements)
+        : entitlements;
+    return orig_CKEntitlements_initWithEntitlementsDict(self, _cmd, sanitized);
+}
+
+static BOOL LCShouldRemapDefaultsSuiteToGroupContainer(NSString *suiteName) {
+    if (![suiteName isKindOfClass:NSString.class] || suiteName.length == 0) {
+        return NO;
+    }
+    if (![suiteName hasPrefix:@"group."]) {
+        return NO;
+    }
+    return !isAppleIdentifier(suiteName);
+}
+
+static id hook_NSUserDefaults_initWithSuiteName_container(id self, SEL _cmd, NSString *suiteName, NSURL *container) {
+    NSURL *effectiveContainer = container;
+    if (LCShouldRemapDefaultsSuiteToGroupContainer(suiteName)) {
+        NSURL *groupContainerURL = [NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:suiteName];
+        if ([groupContainerURL isKindOfClass:NSURL.class]) {
+            effectiveContainer = groupContainerURL;
+        }
+    }
+
+    if (!orig_NSUserDefaults_initWithSuiteName_container) {
+        return nil;
+    }
+    return orig_NSUserDefaults_initWithSuiteName_container(self, _cmd, suiteName, effectiveContainer);
+}
+
+static void LCInstallRegramCompatHooks(void) {
+    os_unfair_lock_lock(&lcRegramCompatHookLock);
+
+    if (!lcCKContainerSetupHooked) {
+        Class ckContainerClass = NSClassFromString(@"CKContainer");
+        SEL selector = NSSelectorFromString(@"_setupWithContainerID:options:");
+        if (ckContainerClass && selector) {
+            lcCKContainerSetupHooked = LCHookInstanceMethodInHierarchy(ckContainerClass,
+                                                                        selector,
+                                                                        (IMP)hook_CKContainer_setupWithContainerID_options,
+                                                                        (IMP *)&orig_CKContainer_setupWithContainerID_options);
+        }
+    }
+
+    if (!lcCKContainerInitHooked) {
+        Class ckContainerClass = NSClassFromString(@"CKContainer");
+        SEL selector = NSSelectorFromString(@"_initWithContainerIdentifier:");
+        if (ckContainerClass && selector) {
+            lcCKContainerInitHooked = LCHookInstanceMethodInHierarchy(ckContainerClass,
+                                                                       selector,
+                                                                       (IMP)hook_CKContainer_initWithContainerIdentifier,
+                                                                       (IMP *)&orig_CKContainer_initWithContainerIdentifier);
+        }
+    }
+
+    if (!lcCKEntitlementsHooked) {
+        Class ckEntitlementsClass = NSClassFromString(@"CKEntitlements");
+        SEL selector = NSSelectorFromString(@"initWithEntitlementsDict:");
+        if (ckEntitlementsClass && selector) {
+            lcCKEntitlementsHooked = LCHookInstanceMethodInHierarchy(ckEntitlementsClass,
+                                                                      selector,
+                                                                      (IMP)hook_CKEntitlements_initWithEntitlementsDict,
+                                                                      (IMP *)&orig_CKEntitlements_initWithEntitlementsDict);
+        }
+    }
+
+    if (!lcNSDefaultsContainerHooked) {
+        SEL selector = NSSelectorFromString(@"_initWithSuiteName:container:");
+        if (selector) {
+            lcNSDefaultsContainerHooked = LCHookInstanceMethodInHierarchy(NSUserDefaults.class,
+                                                                           selector,
+                                                                           (IMP)hook_NSUserDefaults_initWithSuiteName_container,
+                                                                           (IMP *)&orig_NSUserDefaults_initWithSuiteName_container);
+        }
+    }
+
+    os_unfair_lock_unlock(&lcRegramCompatHookLock);
+}
+
+static void LCRegramCompatImageAdded(const struct mach_header *mh, intptr_t vmaddr_slide) {
+    (void)mh;
+    (void)vmaddr_slide;
+    LCInstallRegramCompatHooks();
+}
 
 void NUDGuestHooksInit(void) {
     appContainerPath = [NSString stringWithUTF8String:getenv("HOME")];
     appContainerURL = [NSURL URLWithString:appContainerPath];
+    LCInstallRegramCompatHooks();
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _dyld_register_func_for_add_image(LCRegramCompatImageAdded);
+    });
     
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
@@ -110,7 +311,7 @@ NSArray* appleIdentifierPrefixes = @[
     @"systemgroup.com.apple."
 ];
 
-bool isAppleIdentifier(NSString* identifier) {
+static bool isAppleIdentifier(NSString* identifier) {
     for(NSString* cur in appleIdentifierPrefixes) {
         if([identifier hasPrefix:cur]) {
             return true;

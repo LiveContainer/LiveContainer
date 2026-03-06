@@ -17,6 +17,7 @@
 #include "../litehook/src/litehook.h"
 #import "Tweaks/Tweaks.h"
 #include <mach-o/ldsyms.h>
+#import "Tweaks/DeviceSpoofing.h"
 
 static int (*appMain)(int, char**);
 NSUserDefaults *lcUserDefaults;
@@ -31,6 +32,231 @@ bool isLiveProcess = false;
 bool isSharedBundle = false;
 bool isSideStore = false;
 bool sideStoreExist = false;
+
+static NSString *originalGuestBundleId = nil;
+static NSString *liveContainerBundleId = nil;
+static BOOL useSelectiveBundleIdSpoofing = NO;
+
+static NSString *LCSpoofBuildForSystemVersion(NSString *version) {
+    static NSDictionary<NSString *, NSString *> *versionToBuild = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        versionToBuild = @{
+            @"26.0": @"23A341",
+            @"26.0.1": @"23A355",
+            @"26.1": @"23B85",
+            @"26.2": @"23C55",
+            @"26.2.1": @"23C71",
+            @"26.3": @"23D127",
+            @"18.6": @"22G86",
+            @"18.6.1": @"22G90",
+            @"18.6.2": @"22G100",
+        };
+    });
+    return versionToBuild[version];
+}
+
+static NSString *LCDefaultStorageCapacityForProfile(NSString *profile) {
+    static NSDictionary<NSString *, NSString *> *profileToCapacity = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        profileToCapacity = @{
+            @"iPhone 17 Pro Max": @"256",
+            @"iPhone 17 Pro": @"256",
+            @"iPhone 17": @"256",
+            @"iPhone 17 Air": @"256",
+            @"iPhone 16 Pro Max": @"256",
+            @"iPhone 16 Pro": @"128",
+            @"iPhone 16": @"128",
+            @"iPhone 16e": @"128",
+            @"iPhone 15 Pro Max": @"256",
+            @"iPhone 15 Pro": @"128",
+            @"iPhone 14 Pro Max": @"128",
+            @"iPhone 14 Pro": @"128",
+            @"iPhone 13 Pro Max": @"128",
+            @"iPhone 13 Pro": @"128",
+        };
+    });
+
+    NSString *resolvedProfile = [profile isKindOfClass:NSString.class] && profile.length > 0 ? profile : @"iPhone 17";
+    return profileToCapacity[resolvedProfile] ?: @"256";
+}
+
+static NSTimeInterval LCUptimeSecondsFromPreset(NSString *preset) {
+    NSString *value = [[preset ?: @"medium" lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if ([value isEqualToString:@"short"]) return 2 * 3600;      // midpoint of 1-4h
+    if ([value isEqualToString:@"medium"]) return 12 * 3600;    // midpoint of 4-24h
+    if ([value isEqualToString:@"long"]) return 48 * 3600;      // midpoint of 1-3d
+    if ([value isEqualToString:@"week"]) return 5 * 24 * 3600;  // midpoint of 3-7d
+    if ([value isEqualToString:@"month"]) return 30 * 24 * 3600;
+    if ([value isEqualToString:@"year"]) return 365 * 24 * 3600;
+
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"^\\s*([0-9]+)\\s*([a-z]+)\\s*$" options:NSRegularExpressionCaseInsensitive error:nil];
+    NSTextCheckingResult *match = [regex firstMatchInString:value options:0 range:NSMakeRange(0, value.length)];
+    if (match && match.numberOfRanges >= 3) {
+        NSString *countString = [value substringWithRange:[match rangeAtIndex:1]];
+        NSString *unit = [[value substringWithRange:[match rangeAtIndex:2]] lowercaseString];
+        NSInteger count = countString.integerValue;
+        if (count > 0) {
+            if ([unit isEqualToString:@"h"] || [unit isEqualToString:@"hr"] || [unit isEqualToString:@"hour"] || [unit isEqualToString:@"hours"]) return count * 3600.0;
+            if ([unit isEqualToString:@"d"] || [unit isEqualToString:@"day"] || [unit isEqualToString:@"days"]) return count * 24.0 * 3600.0;
+            if ([unit isEqualToString:@"w"] || [unit isEqualToString:@"wk"] || [unit isEqualToString:@"week"] || [unit isEqualToString:@"weeks"]) return count * 7.0 * 24.0 * 3600.0;
+            if ([unit isEqualToString:@"mo"] || [unit isEqualToString:@"month"] || [unit isEqualToString:@"months"]) return count * 30.0 * 24.0 * 3600.0;
+            if ([unit isEqualToString:@"y"] || [unit isEqualToString:@"yr"] || [unit isEqualToString:@"year"] || [unit isEqualToString:@"years"]) return count * 365.0 * 24.0 * 3600.0;
+        }
+    }
+
+    return 12 * 3600;
+}
+
+static NSSet<NSString *> *LCAddonScopedLegacyKeys(void) {
+    static NSSet<NSString *> *keys = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keys = [NSSet setWithArray:@[
+            @"spoofGPS",
+            @"spoofLatitude",
+            @"spoofLongitude",
+            @"spoofAltitude",
+            @"spoofLocationName",
+            @"spoofCamera",
+            @"spoofCameraType",
+            @"spoofCameraImagePath",
+            @"spoofCameraVideoPath",
+            @"spoofCameraLoop",
+            @"spoofCameraUseVideoAudio",
+            @"spoofCameraMode",
+            @"spoofCameraTransformOrientation",
+            @"spoofCameraTransformScale",
+            @"spoofCameraTransformFlip",
+        ]];
+    });
+    return keys;
+}
+
+static BOOL LCIsContainerScopedAddonKey(NSString *key) {
+    if (![key isKindOfClass:NSString.class] || key.length == 0) {
+        return NO;
+    }
+    if ([key hasPrefix:@"deviceSpoof"] || [key hasPrefix:@"enableSpoof"]) {
+        return YES;
+    }
+    return [LCAddonScopedLegacyKeys() containsObject:key];
+}
+
+static NSDictionary *LCGuestAppInfoWithMergedAddonSettings(NSDictionary *appInfo,
+                                                            NSString *containerId,
+                                                            NSDictionary *containerInfo) {
+    if (![appInfo isKindOfClass:NSDictionary.class]) {
+        return appInfo;
+    }
+
+    NSMutableDictionary *merged = [appInfo mutableCopy];
+    if (!merged) {
+        return appInfo;
+    }
+
+    NSMutableDictionary *legacyScopedFallback = [NSMutableDictionary dictionary];
+    for (id keyObj in appInfo) {
+        if (![keyObj isKindOfClass:NSString.class]) {
+            continue;
+        }
+        NSString *key = (NSString *)keyObj;
+        if (!LCIsContainerScopedAddonKey(key)) {
+            continue;
+        }
+        id value = appInfo[key];
+        if (value != nil && ![value isKindOfClass:NSNull.class]) {
+            legacyScopedFallback[key] = value;
+        }
+    }
+
+    NSDictionary *containerSettings = nil;
+    id settingsByContainerObj = appInfo[@"LCAddonSettingsByContainer"];
+    if ([settingsByContainerObj isKindOfClass:NSDictionary.class] && containerId.length > 0) {
+        id settingsObj = ((NSDictionary *)settingsByContainerObj)[containerId];
+        if ([settingsObj isKindOfClass:NSDictionary.class]) {
+            containerSettings = settingsObj;
+        }
+    }
+
+    NSArray<NSString *> *existingKeys = [merged.allKeys copy];
+    for (id keyObj in existingKeys) {
+        if (![keyObj isKindOfClass:NSString.class]) {
+            continue;
+        }
+        NSString *key = (NSString *)keyObj;
+        if (LCIsContainerScopedAddonKey(key)) {
+            [merged removeObjectForKey:key];
+        }
+    }
+
+    if (containerSettings) {
+        for (id keyObj in containerSettings) {
+            if (![keyObj isKindOfClass:NSString.class]) {
+                continue;
+            }
+            NSString *key = (NSString *)keyObj;
+            id value = containerSettings[key];
+            if (LCIsContainerScopedAddonKey(key) && value != nil && ![value isKindOfClass:NSNull.class]) {
+                merged[key] = value;
+            }
+        }
+    }
+
+    for (id keyObj in legacyScopedFallback) {
+        if (![keyObj isKindOfClass:NSString.class]) {
+            continue;
+        }
+        NSString *key = (NSString *)keyObj;
+        if (merged[key] == nil) {
+            id value = legacyScopedFallback[key];
+            if (value != nil && ![value isKindOfClass:NSNull.class]) {
+                merged[key] = value;
+            }
+        }
+    }
+
+    BOOL spoofIDFV = [containerInfo[@"spoofIdentifierForVendor"] boolValue];
+    id scopedSpoofIDFV = containerSettings[@"deviceSpoofIdentifiers"];
+    if ([scopedSpoofIDFV respondsToSelector:@selector(boolValue)]) {
+        spoofIDFV = [scopedSpoofIDFV boolValue];
+    }
+    merged[@"deviceSpoofIdentifiers"] = @(spoofIDFV);
+
+    NSString *vendorID = @"";
+    id scopedVendorID = containerSettings[@"deviceSpoofVendorID"];
+    if ([scopedVendorID isKindOfClass:NSString.class]) {
+        vendorID = (NSString *)scopedVendorID;
+    } else {
+        id fallbackVendorID = containerInfo[@"spoofedIdentifierForVendor"];
+        if ([fallbackVendorID isKindOfClass:NSString.class]) {
+            vendorID = (NSString *)fallbackVendorID;
+        }
+    }
+
+    if (spoofIDFV) {
+        if (vendorID.length == 0) {
+            vendorID = NSUUID.UUID.UUIDString;
+        }
+        merged[@"deviceSpoofVendorID"] = vendorID;
+    } else {
+        [merged removeObjectForKey:@"deviceSpoofVendorID"];
+    }
+
+    if (containerId.length > 0) {
+        merged[@"LCDataUUID"] = containerId;
+    }
+
+    NSLog(@"[LC] addon merge container=%@ hasContainerSettings=%@ spoofGPS=%@ lat=%@ lon=%@",
+          containerId ?: @"(nil)",
+          containerSettings ? @"YES" : @"NO",
+          merged[@"spoofGPS"],
+          merged[@"spoofLatitude"],
+          merged[@"spoofLongitude"]);
+
+    return [merged copy];
+}
 
 @implementation NSUserDefaults(LiveContainer)
 + (instancetype)lcUserDefaults {
@@ -300,6 +526,8 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     
     NSError *error;
 
+
+
     // Setup tweak loader
     NSString *tweakFolder = nil;
     if (isSharedBundle) {
@@ -441,6 +669,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     
     NSString* containerInfoPath = [newHomePath stringByAppendingPathComponent:@"LCContainerInfo.plist"];
     guestContainerInfo = [NSDictionary dictionaryWithContentsOfFile:containerInfoPath];
+    guestAppInfo = LCGuestAppInfoWithMergedAddonSettings(guestAppInfo, dataUUID, guestContainerInfo);
     
     [LCSharedUtils setContainerUsingByLC:lcAppUrlScheme folderName:dataUUID auditToken:0];
 
@@ -474,11 +703,496 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         NSFMGuestHooksInit();
         initDead10ccFix();
     }
+    
+    // Initialize Ghost-style device spoofing (profile-based with per-feature overrides)
+    BOOL useProfileSpoofing = [guestAppInfo[@"deviceSpoofingEnabled"] boolValue];
+    BOOL legacyContainerIDFVEnabled = [guestContainerInfo[@"spoofIdentifierForVendor"] boolValue];
+    LCDeviceSpoofingBeginConfiguration();
+    LCSetDeviceSpoofingEnabled(NO);
+    // Reset per-launch version/kernel overrides so previous guest settings cannot leak.
+    LCSetSpoofedSystemVersion(nil);
+    LCSetSpoofedBuildVersion(nil);
+    LCSetSpoofedKernelVersion(nil);
+    LCSetSpoofedKernelRelease(nil);
+
+    if(useProfileSpoofing) {
+        NSString *deviceProfile = guestAppInfo[@"deviceSpoofProfile"];
+        if (deviceProfile.length == 0) {
+            deviceProfile = @"iPhone 17";
+        }
+        LCSetDeviceProfile(deviceProfile);
+        // Always derive CPU core count and RAM from selected device profile.
+        // Clearing custom overrides prevents stale cross-launch mismatches.
+        LCSetSpoofedCPUCount(0);
+        LCSetSpoofedPhysicalMemory(0);
+
+        // Independent iOS version override
+        NSString *customVersion = guestAppInfo[@"deviceSpoofCustomVersion"];
+        if (customVersion.length > 0) {
+            LCSetSpoofedSystemVersion(customVersion);
+            NSString *mappedBuild = LCSpoofBuildForSystemVersion(customVersion);
+            if (mappedBuild.length > 0) {
+                LCSetSpoofedBuildVersion(mappedBuild);
+            }
+        }
+        NSString *buildOverride = guestAppInfo[@"deviceSpoofBuildVersion"];
+        if (buildOverride.length == 0) {
+            buildOverride = guestAppInfo[@"iosVersionBuild"];
+        }
+        if (buildOverride.length > 0) {
+            LCSetSpoofedBuildVersion(buildOverride);
+        }
+
+        // Device name spoofing
+        if ([guestAppInfo[@"deviceSpoofDeviceName"] boolValue]) {
+            NSString *deviceName = guestAppInfo[@"deviceSpoofDeviceNameValue"];
+            if (deviceName.length > 0) {
+                LCSetSpoofedDeviceName(deviceName);
+            }
+        }
+
+        // Carrier spoofing
+        if ([guestAppInfo[@"deviceSpoofCarrier"] boolValue]) {
+            NSString *carrierName = guestAppInfo[@"deviceSpoofCarrierName"];
+            if (carrierName.length > 0) {
+                LCSetSpoofedCarrierName(carrierName);
+            }
+            NSString *carrierMCC = guestAppInfo[@"deviceSpoofMCC"];
+            if (carrierMCC.length > 0) {
+                LCSetSpoofedCarrierMCC(carrierMCC);
+            }
+            NSString *carrierMNC = guestAppInfo[@"deviceSpoofMNC"];
+            if (carrierMNC.length > 0) {
+                LCSetSpoofedCarrierMNC(carrierMNC);
+            }
+            NSString *carrierCountry = guestAppInfo[@"deviceSpoofCarrierCountry"];
+            if (carrierCountry.length > 0) {
+                LCSetSpoofedCarrierCountryCode(carrierCountry);
+                LCSetSpoofedPreferredCountryCode(carrierCountry);
+            }
+        }
+
+        BOOL spoofCellularType = [guestAppInfo[@"deviceSpoofCellularTypeEnabled"] boolValue] ||
+                                 [guestAppInfo[@"enableSpoofCellularType"] boolValue];
+        id cellularTypeObj = guestAppInfo[@"deviceSpoofCellularType"] ?: guestAppInfo[@"cellularType"];
+        if (!spoofCellularType &&
+            guestAppInfo[@"deviceSpoofCellularTypeEnabled"] == nil &&
+            guestAppInfo[@"enableSpoofCellularType"] == nil &&
+            cellularTypeObj != nil) {
+            spoofCellularType = YES;
+        }
+        if (spoofCellularType && cellularTypeObj != nil) {
+            LCSetSpoofedCellularType([cellularTypeObj integerValue]);
+        }
+
+        BOOL spoofNetworkInfo = [guestAppInfo[@"deviceSpoofNetworkInfo"] boolValue] ||
+                                [guestAppInfo[@"enableSpoofNetworkInfo"] boolValue];
+        LCSetNetworkInfoSpoofingEnabled(spoofNetworkInfo);
+
+        NSString *wifiSSID = guestAppInfo[@"deviceSpoofWiFiSSID"];
+        if (wifiSSID.length == 0) {
+            wifiSSID = guestAppInfo[@"wifiSSID"];
+        }
+        if (wifiSSID.length > 0) {
+            LCSetSpoofedWiFiSSID(wifiSSID);
+        }
+
+        NSString *wifiBSSID = guestAppInfo[@"deviceSpoofWiFiBSSID"];
+        if (wifiBSSID.length == 0) {
+            wifiBSSID = guestAppInfo[@"wifiBSSID"];
+        }
+        if (wifiBSSID.length > 0) {
+            LCSetSpoofedWiFiBSSID(wifiBSSID);
+        }
+
+        BOOL spoofWiFiAddress = [guestAppInfo[@"deviceSpoofWiFiAddressEnabled"] boolValue] ||
+                                [guestAppInfo[@"enableSpoofWiFi"] boolValue];
+        NSString *wifiAddress = guestAppInfo[@"deviceSpoofWiFiAddress"];
+        if (wifiAddress.length == 0) {
+            wifiAddress = guestAppInfo[@"wifiAddress"];
+        }
+        if (!spoofWiFiAddress &&
+            guestAppInfo[@"deviceSpoofWiFiAddressEnabled"] == nil &&
+            guestAppInfo[@"enableSpoofWiFi"] == nil &&
+            wifiAddress.length > 0) {
+            spoofWiFiAddress = YES;
+        }
+        LCSetWiFiAddressSpoofingEnabled(spoofWiFiAddress);
+        if (wifiAddress.length > 0) {
+            LCSetSpoofedWiFiAddress(wifiAddress);
+        }
+
+        BOOL spoofCellularAddress = [guestAppInfo[@"deviceSpoofCellularAddressEnabled"] boolValue] ||
+                                    [guestAppInfo[@"enableSpoofCellular"] boolValue];
+        NSString *cellularAddress = guestAppInfo[@"deviceSpoofCellularAddress"];
+        if (cellularAddress.length == 0) {
+            cellularAddress = guestAppInfo[@"cellularAddress"];
+        }
+        if (!spoofCellularAddress &&
+            guestAppInfo[@"deviceSpoofCellularAddressEnabled"] == nil &&
+            guestAppInfo[@"enableSpoofCellular"] == nil &&
+            cellularAddress.length > 0) {
+            spoofCellularAddress = YES;
+        }
+        LCSetCellularAddressSpoofingEnabled(spoofCellularAddress);
+        if (cellularAddress.length > 0) {
+            LCSetSpoofedCellularAddress(cellularAddress);
+        }
+
+        // MAC address spoofing (en0)
+        id macEnabledObj = guestAppInfo[@"deviceSpoofMACAddressEnabled"];
+        BOOL spoofMAC = macEnabledObj ? [macEnabledObj boolValue] : NO;
+        NSString *macAddress = guestAppInfo[@"deviceSpoofMACAddress"];
+        if (!spoofMAC && macEnabledObj == nil && macAddress.length > 0) {
+            spoofMAC = YES;
+        }
+        if (spoofMAC && macAddress.length > 0) {
+            LCSetSpoofedMACAddress(macAddress);
+        }
+
+        // Identifier spoofing (IDFV / IDFA)
+        id spoofIdentifiersObj = guestAppInfo[@"deviceSpoofIdentifiers"];
+        BOOL spoofIdentifiers = spoofIdentifiersObj ? [spoofIdentifiersObj boolValue] : legacyContainerIDFVEnabled;
+        if (spoofIdentifiers) {
+            NSString *vendorID = guestAppInfo[@"deviceSpoofVendorID"];
+            if (vendorID.length == 0) {
+                vendorID = guestContainerInfo[@"spoofedIdentifierForVendor"];
+            }
+            if (vendorID.length > 0) {
+                LCSetSpoofedVendorID(vendorID);
+            }
+            NSString *advertisingID = guestAppInfo[@"deviceSpoofAdvertisingID"];
+            if (advertisingID.length > 0) {
+                LCSetSpoofedAdvertisingID(advertisingID);
+            }
+        }
+
+        // Ad tracking spoofing (optional override; auto by default)
+        NSString *adTrackingMode = guestAppInfo[@"deviceSpoofAdTrackingMode"];
+        if ([adTrackingMode isKindOfClass:[NSString class]] && adTrackingMode.length > 0) {
+            NSString *normalized = [adTrackingMode lowercaseString];
+            if ([normalized isEqualToString:@"enabled"]) {
+                LCSetSpoofedAdTrackingEnabled(YES);
+            } else if ([normalized isEqualToString:@"disabled"]) {
+                LCSetSpoofedAdTrackingEnabled(NO);
+            }
+        }
+
+        id securityMasterObj = guestAppInfo[@"deviceSpoofSecurityEnabled"];
+        BOOL securityMasterEnabled = securityMasterObj ? [securityMasterObj boolValue] : YES;
+
+        id deviceCheckerObj = guestAppInfo[@"deviceSpoofDeviceChecker"];
+        if (deviceCheckerObj == nil) {
+            deviceCheckerObj = guestAppInfo[@"enableSpoofDeviceChecker"];
+        }
+        BOOL spoofDeviceCheck = deviceCheckerObj ? [deviceCheckerObj boolValue] :
+                                (securityMasterEnabled || [guestAppInfo[@"deviceSpoofIdentifiers"] boolValue]);
+
+        id appAttestObj = guestAppInfo[@"deviceSpoofAppAttest"];
+        if (appAttestObj == nil) {
+            appAttestObj = guestAppInfo[@"enableSpoofAppAttest"];
+        }
+        BOOL spoofAppAttest = appAttestObj ? [appAttestObj boolValue] : spoofDeviceCheck;
+        LCSetDeviceCheckSpoofingEnabled(spoofDeviceCheck);
+        LCSetAppAttestSpoofingEnabled(spoofAppAttest);
+
+        id cloudTokenSetting = guestAppInfo[@"deviceSpoofCloudToken"];
+        if (cloudTokenSetting == nil) {
+            cloudTokenSetting = guestAppInfo[@"enableSpoofCloudToken"];
+        }
+        BOOL spoofCloudToken = cloudTokenSetting ? [cloudTokenSetting boolValue] : securityMasterEnabled;
+        LCSetICloudPrivacyProtectionEnabled(spoofCloudToken);
+
+        // Siri privacy protection (opt-in)
+        BOOL spoofSiri = [guestAppInfo[@"deviceSpoofSiriPrivacyProtection"] boolValue];
+        LCSetSiriPrivacyProtectionEnabled(spoofSiri);
+
+        // Timezone spoofing
+        if ([guestAppInfo[@"deviceSpoofTimezone"] boolValue]) {
+            NSString *timezone = guestAppInfo[@"deviceSpoofTimezoneValue"];
+            if (timezone.length > 0) {
+                LCSetSpoofedTimezone(timezone);
+            }
+        }
+
+        // Locale spoofing
+        BOOL spoofLocale = [guestAppInfo[@"deviceSpoofLocale"] boolValue] ||
+                           [guestAppInfo[@"enableSpoofLocale"] boolValue];
+        if (spoofLocale) {
+            NSString *locale = guestAppInfo[@"deviceSpoofLocaleValue"];
+            if (locale.length == 0) {
+                locale = guestAppInfo[@"localeID"];
+            }
+            if (locale.length > 0) {
+                LCSetSpoofedLocale(locale);
+            }
+        }
+        NSString *currencyCode = guestAppInfo[@"deviceSpoofLocaleCurrencyCode"];
+        if (currencyCode.length == 0) {
+            currencyCode = guestAppInfo[@"localeCurrencyCode"];
+        }
+        if (currencyCode.length > 0) {
+            LCSetSpoofedLocaleCurrencyCode(currencyCode);
+        }
+        NSString *currencySymbol = guestAppInfo[@"deviceSpoofLocaleCurrencySymbol"];
+        if (currencySymbol.length == 0) {
+            currencySymbol = guestAppInfo[@"localeCurrencySymbol"];
+        }
+        if (currencySymbol.length > 0) {
+            LCSetSpoofedLocaleCurrencySymbol(currencySymbol);
+        }
+
+        NSString *preferredCountry = guestAppInfo[@"deviceSpoofPreferredCountry"];
+        if (preferredCountry.length == 0) {
+            preferredCountry = guestAppInfo[@"localeCountryCode"];
+        }
+        if (preferredCountry.length == 0) {
+            preferredCountry = guestAppInfo[@"deviceSpoofCarrierCountry"];
+        }
+        if (preferredCountry.length > 0) {
+            LCSetSpoofedPreferredCountryCode(preferredCountry);
+        }
+
+        NSString *installationID = guestAppInfo[@"deviceSpoofInstallationID"];
+        if (installationID.length > 0) {
+            LCSetSpoofedInstallationID(installationID);
+        }
+
+        NSString *persistentDeviceID = guestAppInfo[@"deviceSpoofPersistentDeviceID"];
+        if (persistentDeviceID.length == 0) {
+            persistentDeviceID = guestAppInfo[@"persistentDeviceID"];
+        }
+        if (persistentDeviceID.length == 0) {
+            persistentDeviceID = guestAppInfo[@"deviceID"];
+        }
+        if (persistentDeviceID.length > 0) {
+            LCSetSpoofedPersistentDeviceID(persistentDeviceID);
+        }
+
+        BOOL spoofKernelVersion = [guestAppInfo[@"deviceSpoofKernelVersionEnabled"] boolValue] ||
+                                  [guestAppInfo[@"enableSpoofKernelVersion"] boolValue];
+        NSString *kernelVersion = guestAppInfo[@"deviceSpoofKernelVersion"];
+        NSString *kernelRelease = guestAppInfo[@"deviceSpoofKernelRelease"];
+        BOOL explicitKernelOverride = (kernelVersion.length > 0 || kernelRelease.length > 0);
+
+        // Migrate historical iPhone 17 defaults that used older T8140/T8130 kernel codes.
+        // If present, prefer profile-derived kernel metadata (T8150) for consistency.
+        NSString *normalizedProfile = [[[deviceProfile lowercaseString] stringByReplacingOccurrencesOfString:@" " withString:@""]
+                                       stringByReplacingOccurrencesOfString:@"-" withString:@""];
+        BOOL isIPhone17FamilyProfile = [normalizedProfile hasPrefix:@"iphone17"];
+        if (explicitKernelOverride && isIPhone17FamilyProfile) {
+            NSString *normalizedKernel = kernelVersion.lowercaseString;
+            BOOL hasLegacySocCode = [normalizedKernel containsString:@"release_arm64_t8140"] ||
+                                    [normalizedKernel containsString:@"release_arm64_t8130"];
+            BOOL hasLegacyKernelRelease = (kernelRelease.length > 0 && [kernelRelease hasPrefix:@"24."]);
+            if (hasLegacySocCode || hasLegacyKernelRelease) {
+                kernelVersion = @"";
+                kernelRelease = @"";
+                explicitKernelOverride = NO;
+            }
+        }
+
+        // In profile mode, do not fallback to legacy keys to avoid stale overrides
+        // superseding the selected profile's kernel metadata.
+        if (!explicitKernelOverride && !useProfileSpoofing) {
+            if (kernelVersion.length == 0) {
+                kernelVersion = guestAppInfo[@"kernelVersion"];
+            }
+            if (kernelVersion.length == 0) {
+                kernelVersion = guestAppInfo[@"selectedKernelVersion"];
+            }
+            if (kernelRelease.length == 0) {
+                kernelRelease = guestAppInfo[@"kernelVersionDarwin"];
+            }
+            explicitKernelOverride = (kernelVersion.length > 0 || kernelRelease.length > 0);
+        }
+
+        if (!spoofKernelVersion && guestAppInfo[@"enableSpoofKernelVersion"] == nil && explicitKernelOverride) {
+            spoofKernelVersion = YES;
+        }
+        if (spoofKernelVersion && explicitKernelOverride) {
+            if (kernelVersion.length > 0) {
+                LCSetSpoofedKernelVersion(kernelVersion);
+            }
+            if (kernelRelease.length > 0) {
+                LCSetSpoofedKernelRelease(kernelRelease);
+            }
+        }
+
+        BOOL spoofProximity = [guestAppInfo[@"deviceSpoofProximity"] boolValue] ||
+                              [guestAppInfo[@"enableSpoofProximity"] boolValue];
+        BOOL spoofOrientation = [guestAppInfo[@"deviceSpoofOrientation"] boolValue] ||
+                                [guestAppInfo[@"enableSpoofOrientation"] boolValue];
+        BOOL spoofGyroscope = [guestAppInfo[@"deviceSpoofGyroscope"] boolValue] ||
+                              [guestAppInfo[@"enableSpoofGyroscope"] boolValue];
+        LCSetProximitySpoofingEnabled(spoofProximity);
+        LCSetOrientationSpoofingEnabled(spoofOrientation);
+        LCSetGyroscopeSpoofingEnabled(spoofGyroscope);
+
+        // Screen capture detection blocking
+        id spoofMessageObj = guestAppInfo[@"enableSpoofMessage"];
+        BOOL spoofMessage = spoofMessageObj ? [spoofMessageObj boolValue] : securityMasterEnabled;
+        id spoofMailObj = guestAppInfo[@"enableSpoofMail"];
+        BOOL spoofMail = spoofMailObj ? [spoofMailObj boolValue] : securityMasterEnabled;
+        id spoofBugsnagObj = guestAppInfo[@"enableSpoofBugsnag"];
+        BOOL spoofBugsnag = spoofBugsnagObj ? [spoofBugsnagObj boolValue] : securityMasterEnabled;
+        id spoofCraneObj = guestAppInfo[@"enableSpoofCrane"];
+        BOOL spoofCrane = spoofCraneObj ? [spoofCraneObj boolValue] : securityMasterEnabled;
+        id spoofPasteboardObj = guestAppInfo[@"enableSpoofPasteboard"];
+        BOOL spoofPasteboard = spoofPasteboardObj ? [spoofPasteboardObj boolValue] : securityMasterEnabled;
+        id spoofAlbumObj = guestAppInfo[@"enableSpoofAlbum"];
+        BOOL spoofAlbum = spoofAlbumObj ? [spoofAlbumObj boolValue] : securityMasterEnabled;
+        id spoofAppiumObj = guestAppInfo[@"enableSpoofAppium"];
+        if (spoofAppiumObj == nil) {
+            spoofAppiumObj = guestAppInfo[@"deviceSpoofAppium"];
+        }
+        BOOL spoofAppium = spoofAppiumObj ? [spoofAppiumObj boolValue] : securityMasterEnabled;
+        id spoofKeyboardObj = guestAppInfo[@"enableSpoofKeyboard"];
+        if (spoofKeyboardObj == nil) {
+            spoofKeyboardObj = guestAppInfo[@"deviceSpoofKeyboard"];
+        }
+        BOOL spoofKeyboard = spoofKeyboardObj ? [spoofKeyboardObj boolValue] : securityMasterEnabled;
+        id spoofUserDefaultsObj = guestAppInfo[@"enableSpoofUserDefaults"];
+        if (spoofUserDefaultsObj == nil) {
+            spoofUserDefaultsObj = guestAppInfo[@"deviceSpoofUserDefaults"];
+        }
+        BOOL spoofUserDefaults = spoofUserDefaultsObj ? [spoofUserDefaultsObj boolValue] : securityMasterEnabled;
+        id spoofEntitlementsObj = guestAppInfo[@"enableSpoofEntitlements"];
+        if (spoofEntitlementsObj == nil) {
+            spoofEntitlementsObj = guestAppInfo[@"deviceSpoofEntitlements"];
+        }
+        BOOL spoofEntitlements = spoofEntitlementsObj ? [spoofEntitlementsObj boolValue] : securityMasterEnabled;
+        id spoofFileTimestampsObj = guestAppInfo[@"deviceSpoofFileTimestamps"];
+        if (spoofFileTimestampsObj == nil) {
+            spoofFileTimestampsObj = guestAppInfo[@"enableSpoofFileTimestamps"];
+        }
+        BOOL spoofFileTimestamps = spoofFileTimestampsObj ? [spoofFileTimestampsObj boolValue] : securityMasterEnabled;
+        LCSetSpoofMessageEnabled(spoofMessage);
+        LCSetSpoofMailEnabled(spoofMail);
+        LCSetSpoofBugsnagEnabled(spoofBugsnag);
+        LCSetSpoofCraneEnabled(spoofCrane);
+        LCSetSpoofPasteboardEnabled(spoofPasteboard);
+        LCSetSpoofAlbumEnabled(spoofAlbum);
+        LCSetSpoofAppiumEnabled(spoofAppium);
+        LCSetKeyboardSpoofingEnabled(spoofKeyboard);
+        LCSetUserDefaultsSpoofingEnabled(spoofUserDefaults);
+        LCSetEntitlementsSpoofingEnabled(spoofEntitlements);
+        LCSetFileTimestampSpoofingEnabled(spoofFileTimestamps);
+
+        id spoofScreenCaptureObj = guestAppInfo[@"deviceSpoofScreenCapture"];
+        if (spoofScreenCaptureObj == nil) {
+            spoofScreenCaptureObj = guestAppInfo[@"enableSpoofScreenCapture"];
+        }
+        BOOL spoofScreenCaptureMaster = spoofScreenCaptureObj ? [spoofScreenCaptureObj boolValue] : securityMasterEnabled;
+        BOOL spoofScreenCaptureGroup = spoofScreenCaptureMaster ||
+                                       spoofMessage || spoofMail || spoofBugsnag || spoofCrane ||
+                                       spoofPasteboard || spoofAlbum || spoofAppium;
+        if (spoofScreenCaptureGroup) {
+            LCSetScreenCaptureBlockEnabled(YES);
+            id albumBlacklist = guestAppInfo[@"deviceSpoofAlbumBlacklist"] ?: guestAppInfo[@"albumBlacklistArray"];
+            if (spoofAlbum && [albumBlacklist isKindOfClass:[NSArray class]]) {
+                LCSetAlbumBlacklistArray(albumBlacklist);
+            }
+        }
+
+        // Boot time / uptime spoofing (Project-X BootTimeHooks parity)
+        if ([guestAppInfo[@"deviceSpoofBootTime"] boolValue]) {
+            NSString *range = guestAppInfo[@"deviceSpoofBootTimeRange"] ?: @"medium";
+            id randomizeObj = guestAppInfo[@"deviceSpoofBootTimeRandomize"];
+            BOOL randomize = randomizeObj ? [randomizeObj boolValue] : YES;
+            if (randomize) {
+                LCSetSpoofedBootTimeRange(range);
+            } else {
+                LCSetSpoofedUptimeSeconds(LCUptimeSecondsFromPreset(range));
+            }
+        }
+
+        // Canvas/WebGL/Audio fingerprint protection (default ON to match historical profile spoofing behavior)
+        id canvasSetting = guestAppInfo[@"deviceSpoofCanvasFingerprintProtection"];
+        BOOL canvasProtectionEnabled = canvasSetting ? [canvasSetting boolValue] : YES;
+        LCSetCanvasFingerprintProtectionEnabled(canvasProtectionEnabled);
+
+        // User-Agent spoofing
+        if ([guestAppInfo[@"deviceSpoofUserAgent"] boolValue]) {
+            NSString *ua = guestAppInfo[@"deviceSpoofUserAgentValue"];
+            if (ua.length > 0) {
+                LCSetSpoofedUserAgent(ua);
+            }
+        }
+
+        // Battery spoofing (Project-X BatteryHooks parity)
+        if ([guestAppInfo[@"deviceSpoofBattery"] boolValue]) {
+            id randomizeObj = guestAppInfo[@"deviceSpoofBatteryRandomize"];
+            BOOL randomize = randomizeObj ? [randomizeObj boolValue] : YES;
+            if (randomize) {
+                LCRandomizeBattery();
+            } else {
+                float level = [guestAppInfo[@"deviceSpoofBatteryLevel"] floatValue];
+                int state = [guestAppInfo[@"deviceSpoofBatteryState"] intValue];
+                LCSetSpoofedBatteryLevel(level);
+                LCSetSpoofedBatteryState(state);
+            }
+        }
+
+        // Storage capacity spoofing
+        if ([guestAppInfo[@"deviceSpoofStorage"] boolValue]) {
+            NSString *cap = guestAppInfo[@"deviceSpoofStorageCapacity"];
+            if (cap.length == 0) {
+                cap = LCDefaultStorageCapacityForProfile(deviceProfile);
+            }
+            long long capGB = [cap longLongValue];
+            if (capGB <= 0) {
+                cap = LCDefaultStorageCapacityForProfile(deviceProfile);
+                capGB = [cap longLongValue];
+            }
+            id randomizeFreeObj = guestAppInfo[@"deviceSpoofStorageRandomFree"];
+            BOOL randomizeFree = randomizeFreeObj ? [randomizeFreeObj boolValue] : YES;
+            LCSetStorageRandomFreeEnabled(randomizeFree);
+            LCSetSpoofedStorageCapacity(capGB);
+            if (!randomizeFree) {
+                NSString *freeGB = guestAppInfo[@"deviceSpoofStorageFreeGB"];
+                if (freeGB.length > 0) {
+                    LCSetSpoofedStorageFree(freeGB);
+                }
+            }
+        }
+
+        // Brightness spoofing
+        if ([guestAppInfo[@"deviceSpoofBrightness"] boolValue]) {
+            id randomizeObj = guestAppInfo[@"deviceSpoofBrightnessRandomize"];
+            BOOL randomize = randomizeObj ? [randomizeObj boolValue] : NO;
+            if (randomize) {
+                LCRandomizeBrightness();
+            } else {
+                LCSetSpoofedBrightness([guestAppInfo[@"deviceSpoofBrightnessValue"] floatValue]);
+            }
+        }
+
+        // Thermal state spoofing
+        if ([guestAppInfo[@"deviceSpoofThermal"] boolValue]) {
+            LCSetSpoofedThermalState([guestAppInfo[@"deviceSpoofThermalState"] intValue]);
+        }
+
+        // Low power mode spoofing
+        if ([guestAppInfo[@"deviceSpoofLowPowerMode"] boolValue]) {
+            LCSetSpoofedLowPowerMode(YES, [guestAppInfo[@"deviceSpoofLowPowerModeValue"] boolValue]);
+        }
+
+    }
+    
     // ignore setting handler from guest app
     litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, NSSetUncaughtExceptionHandler, hook_do_nothing, nil);
     
     BOOL hookDlopen = !isSideStore && !isSharedBundle && LCSharedUtils.certificatePassword && isLiveProcess;
     DyldHooksInit([guestAppInfo[@"hideLiveContainer"] boolValue], hookDlopen, [guestAppInfo[@"spoofSDKVersion"] unsignedIntValue]);
+
+    LCDeviceSpoofingEndConfiguration();
+    
+    // Install DeviceSpoofing hooks after Dyld so Dyld stays the authoritative owner for shared hook surfaces.
+    if (useProfileSpoofing) {
+        LCSetDeviceSpoofingEnabled(YES);
+        DeviceSpoofingGuestHooksInit();
+    }
 #if is32BitSupported
     bool is32bit = [guestAppInfo[@"is32bit"] boolValue];
     if(is32bit) {
@@ -647,9 +1361,7 @@ int LiveContainerMain(int argc, char *argv[]) {
             [lcUserDefaults removeObjectForKey:@"lastLaunchType"];
         }
     }
-    // in case some weird apps remove the tmp folder
-    [NSFileManager.defaultManager createDirectoryAtPath:@(getenv("TMPDIR")) withIntermediateDirectories:YES attributes:nil error:nil];
-    
+
     if([selectedApp isEqualToString:@"ui"]) {
         selectedApp = nil;
         [lcUserDefaults removeObjectForKey:@"selected"];

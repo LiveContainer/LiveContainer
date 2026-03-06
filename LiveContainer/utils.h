@@ -4,10 +4,48 @@
 #include <os/lock.h>
 #define PrivClass(name) ((Class)objc_lookUpClass(#name))
 
+void swizzle(Class class, SEL originalAction, SEL swizzledAction);
+void swizzleClassMethod(Class class, SEL originalAction, SEL swizzledAction);
+// Cross-class swizzling (adds method from class2 to class, then swizzles)
+void swizzle2(Class class, SEL originalAction, Class class2, SEL swizzledAction);
+
 const char **_CFGetProgname(void);
 const char **_CFGetProcessPath(void);
 int _NSGetExecutablePath(char* buf, uint32_t* bufsize);
 int csops_audittoken(pid_t pid, unsigned int ops, void * useraddr, size_t usersize, audit_token_t * token);
+#ifndef CS_OPS_STATUS
+#define CS_OPS_STATUS 0
+#endif
+#ifndef CS_VALID
+#define CS_VALID 0x00000001
+#endif
+#ifndef CS_ADHOC
+#define CS_ADHOC 0x00000002
+#endif
+#ifndef CS_GET_TASK_ALLOW
+#define CS_GET_TASK_ALLOW 0x00000004
+#endif
+#ifndef CS_INSTALLER
+#define CS_INSTALLER 0x00000008
+#endif
+#ifndef CS_HARD
+#define CS_HARD 0x00000100
+#endif
+#ifndef CS_KILL
+#define CS_KILL 0x00000200
+#endif
+#ifndef CS_RESTRICT
+#define CS_RESTRICT 0x00000800
+#endif
+#ifndef CS_ENFORCEMENT
+#define CS_ENFORCEMENT 0x00001000
+#endif
+#ifndef CS_REQUIRE_LV
+#define CS_REQUIRE_LV 0x00002000
+#endif
+#ifndef CS_PLATFORM_BINARY
+#define CS_PLATFORM_BINARY 0x04000000
+#endif
 #define CS_DEBUGGED 0x10000000
 int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
 void os_unfair_recursive_lock_lock_with_options(void* lock, uint32_t options);

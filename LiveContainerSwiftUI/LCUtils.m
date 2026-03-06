@@ -432,5 +432,58 @@
     return [url bookmarkDataWithOptions:(1<<11) includingResourceValuesForKeys:0 relativeToURL:0 error:0];
 }
 
+// Runtime code-sign diagnostics for sideload vs TrollStore testing.
++ (int)runtimeCSFlagsValue {
+    int flags = 0;
+    if (csops(getpid(), CS_OPS_STATUS, &flags, sizeof(flags)) != 0) {
+        return -1;
+    }
+    return flags;
+}
+
++ (BOOL)runtimeHasCSFlag:(int)flag {
+    int flags = [self runtimeCSFlagsValue];
+    if (flags < 0) {
+        return NO;
+    }
+    return (flags & flag) != 0;
+}
+
++ (NSString *)runtimeCSFlagsHex {
+    int flags = [self runtimeCSFlagsValue];
+    if (flags < 0) {
+        return @"unavailable";
+    }
+    return [NSString stringWithFormat:@"0x%08X", (uint32_t)flags];
+}
+
++ (BOOL)runtimeCSFlagInstaller {
+    return [self runtimeHasCSFlag:CS_INSTALLER];
+}
+
++ (BOOL)runtimeCSFlagPlatformBinary {
+    return [self runtimeHasCSFlag:CS_PLATFORM_BINARY];
+}
+
++ (BOOL)runtimeCSFlagGetTaskAllow {
+    return [self runtimeHasCSFlag:CS_GET_TASK_ALLOW];
+}
+
++ (BOOL)runtimeHasAppStoreReceipt {
+    NSURL *receiptURL = NSBundle.mainBundle.appStoreReceiptURL;
+    return (receiptURL.path.length > 0 &&
+            [NSFileManager.defaultManager fileExistsAtPath:receiptURL.path]);
+}
+
++ (BOOL)runtimeHasTrollStoreMarker {
+    NSString *tsPath = [NSString stringWithFormat:@"%@/../_TrollStore", NSBundle.mainBundle.bundlePath];
+    return access(tsPath.fileSystemRepresentation, F_OK) == 0;
+}
+
++ (BOOL)runtimeCanQueryPmapCustomTrust {
+    // PMAP custom trust (e.g., PMAP_CS_APP_STORE) is not exposed via public app-space APIs.
+    return NO;
+}
+
 
 @end

@@ -17,7 +17,7 @@
       "version": "3.4.50",
       "versionDate": "2025-04-26",
       "versionDescription": "This is a nightly release [created automatically with GitHub Actions workflow](https://github.com/LiveContainer/LiveContainer/actions/runs/14679205373/attempts/1).",
-      "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa",
+      "downloadURL": "https://github.com/m1337v/LiveContainer/releases/download/nightly/LiveContainer.ipa",
       "localizedDescription": "Run iOS apps without actually installing them!",
       "iconURL": "https://raw.githubusercontent.com/LiveContainer/LiveContainer/main/screenshots/AppIcon1024.png",
       "tintColor": "#0784FC",
@@ -83,7 +83,7 @@
           "version": "3.4.50",
           "date": "2025-04-26T07:00:00Z",
           "localizedDescription": "This is a nightly release [created automatically with GitHub Actions workflow](https://github.com/LiveContainer/LiveContainer/actions/runs/14679205373/attempts/1).",
-          "downloadURL": "https://github.com/LiveContainer/LiveContainer/releases/download/nightly/LiveContainer.ipa",
+          "downloadURL": "https://github.com/m1337v/LiveContainer/releases/download/nightly/LiveContainer.ipa",
           "size": 2785962
         }
       ]

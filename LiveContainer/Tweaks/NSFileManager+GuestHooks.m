@@ -8,6 +8,54 @@
 
 BOOL isolateAppGroup = NO;
 void* webKitHeader = 0;
+
+static NSString *LCSanitizedGroupIdentifier(NSString *groupIdentifier) {
+    if (![groupIdentifier isKindOfClass:NSString.class] || groupIdentifier.length == 0) {
+        return @"lc.unknown.group";
+    }
+
+    static NSCharacterSet *allowedCharacters = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        allowedCharacters = [NSCharacterSet characterSetWithCharactersInString:@"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"];
+    });
+
+    NSMutableString *sanitized = [NSMutableString stringWithCapacity:groupIdentifier.length];
+    for (NSUInteger idx = 0; idx < groupIdentifier.length; idx++) {
+        unichar ch = [groupIdentifier characterAtIndex:idx];
+        if ([allowedCharacters characterIsMember:ch]) {
+            [sanitized appendFormat:@"%C", ch];
+        } else {
+            [sanitized appendString:@"_"];
+        }
+    }
+    return sanitized.length > 0 ? sanitized : @"lc.unknown.group";
+}
+
+static NSURL *LCBaseGroupContainerURL(void) {
+    if (isolateAppGroup) {
+        NSString *homePath = [NSString stringWithUTF8String:getenv("HOME") ?: ""];
+        return [NSURL fileURLWithPath:[homePath stringByAppendingPathComponent:@"LCAppGroup"] isDirectory:YES];
+    }
+    if (NSUserDefaults.lcAppGroupPath.length > 0) {
+        return [NSURL fileURLWithPath:[NSUserDefaults.lcAppGroupPath stringByAppendingPathComponent:@"LiveContainer/Data/AppGroup"] isDirectory:YES];
+    }
+    NSString *lcHomePath = [NSString stringWithUTF8String:getenv("LC_HOME_PATH") ?: ""];
+    return [NSURL fileURLWithPath:[lcHomePath stringByAppendingPathComponent:@"Documents/Data/AppGroup"] isDirectory:YES];
+}
+
+static void LCEnsureGroupContainerScaffold(NSURL *containerURL) {
+    if (!containerURL) return;
+    NSFileManager *fm = NSFileManager.defaultManager;
+    [fm createDirectoryAtURL:containerURL withIntermediateDirectories:YES attributes:nil error:nil];
+
+    NSURL *libraryURL = [containerURL URLByAppendingPathComponent:@"Library" isDirectory:YES];
+    [fm createDirectoryAtURL:libraryURL withIntermediateDirectories:YES attributes:nil error:nil];
+
+    NSURL *cachesURL = [libraryURL URLByAppendingPathComponent:@"Caches" isDirectory:YES];
+    [fm createDirectoryAtURL:cachesURL withIntermediateDirectories:YES attributes:nil error:nil];
+}
+
 void NSFMGuestHooksInit(void) {
     NSDictionary* infoDict = [NSUserDefaults guestContainerInfo];
     isolateAppGroup = [infoDict[@"isolateAppGroup"] boolValue];
@@ -36,17 +84,15 @@ void NSFMGuestHooksInit(void) {
 
 - (nullable NSURL *)hook_containerURLForSecurityApplicationGroupIdentifier:(NSString *)groupIdentifier {
     if([groupIdentifier isEqualToString:[NSClassFromString(@"LCSharedUtils") appGroupID]]) {
-        return [NSURL fileURLWithPath: NSUserDefaults.lcAppGroupPath];
+        NSURL *appGroupURL = [NSURL fileURLWithPath:NSUserDefaults.lcAppGroupPath];
+        LCEnsureGroupContainerScaffold(appGroupURL);
+        return appGroupURL;
     }
-    NSURL *result;
-    if(isolateAppGroup) {
-        result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%s/LCAppGroup/%@", getenv("HOME"), groupIdentifier]];
-    } else if (NSUserDefaults.lcAppGroupPath){
-        result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@/LiveContainer/Data/AppGroup/%@", NSUserDefaults.lcAppGroupPath, groupIdentifier]];
-    } else {
-        result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%s/Documents/Data/AppGroup/%@", getenv("LC_HOME_PATH"), groupIdentifier]];
-    }
-    [NSFileManager.defaultManager createDirectoryAtURL:result withIntermediateDirectories:YES attributes:nil error:nil];
+    NSString *safeGroupIdentifier = LCSanitizedGroupIdentifier(groupIdentifier);
+    NSURL *baseURL = LCBaseGroupContainerURL();
+    [NSFileManager.defaultManager createDirectoryAtURL:baseURL withIntermediateDirectories:YES attributes:nil error:nil];
+    NSURL *result = [baseURL URLByAppendingPathComponent:safeGroupIdentifier isDirectory:YES];
+    LCEnsureGroupContainerScaffold(result);
     return result;
 }
 

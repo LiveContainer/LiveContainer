@@ -57,7 +57,13 @@ static void showDlerrAlert(NSString *error) {
  __attribute__((constructor))
 static void TweakLoaderConstructor() {
     const char *tweakFolderC = getenv("LC_GLOBAL_TWEAKS_FOLDER");
-    NSString *globalTweakFolder = @(tweakFolderC);
+
+    // NULL check to prevent *** +[NSString stringWithUTF8String:]: NULL cString
+    // if (!tweakFolderC) {
+    //     NSLog(@"[LC] TweakLoader: LC_GLOBAL_TWEAKS_FOLDER not set, skipping tweak loading");
+    //     return;
+    // }
+    NSString *globalTweakFolder = @(tweakFolderC); // This crashes if tweakFolderC is NULL
     unsetenv("LC_GLOBAL_TWEAKS_FOLDER");
     
     if([NSUserDefaults.guestAppInfo[@"dontInjectTweakLoader"] boolValue]) {

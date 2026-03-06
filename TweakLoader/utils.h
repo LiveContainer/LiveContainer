@@ -1,5 +1,5 @@
-@import Foundation;
-@import ObjectiveC;
+#import <Foundation/Foundation.h>
+#import <objc/runtime.h>
 
 void swizzle(Class class, SEL originalAction, SEL swizzledAction);
 void swizzleClassMethod(Class class, SEL originalAction, SEL swizzledAction);

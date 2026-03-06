@@ -541,11 +541,11 @@ struct LCSettingsView: View {
         UIApplication.shared.open(URL(string: "https://twitter.com/khanhduytran0")!)
     }
     func openForkOwnerGitHub() {
-        UIApplication.shared.open(URL(string: "https://github.com/iamcheese-man")!)
+        UIApplication.shared.open(URL(string: "https://github.com/Mod4-Da-GOAT")!)
     }
 
     func openForkedRepo() {
-        UIApplication.shared.open(URL(string: "https://github.com/iamcheese-man/LiveContainer")!)
+        UIApplication.shared.open(URL(string: "https://github.com/Mod4-Da-GOAT/LiveContainer")!)
     }
     
     func export() {

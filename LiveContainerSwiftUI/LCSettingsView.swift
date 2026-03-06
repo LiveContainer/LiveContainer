@@ -356,13 +356,13 @@ struct LCSettingsView: View {
                 Section {
                     HStack {
                         Image("GitHub")
-                        Button("iamcheese-man") {
+                        Button("Mod4-Da-GOAT") {
                             openForkOwnerGitHub()
                         }
                     }
                     HStack {
                         Image("GitHub")
-                        Button("iamcheese-man/LiveContainer") {
+                        Button("Mod4-Da-GOAT/LiveContainer") {
                             openForkedRepo()
                         }
                     }

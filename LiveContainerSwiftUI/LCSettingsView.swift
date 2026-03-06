@@ -353,6 +353,22 @@ struct LCSettingsView: View {
                 } footer: {
                     Text("lc.settings.warning".loc)
                 }
+                Section {
+                    HStack {
+                        Image("GitHub")
+                        Button("iamcheese-man") {
+                            openForkOwnerGitHub()
+                        }
+                    }
+                    HStack {
+                        Image("GitHub")
+                        Button("iamcheese-man/LiveContainer") {
+                            openForkedRepo()
+                        }
+                    }
+                } header: {
+                    Text("About Fork Owner")
+                }
                 
                 VStack{
                     Text(LCUtils.getVersionInfo())
@@ -523,6 +539,13 @@ struct LCSettingsView: View {
     
     func openTwitter() {
         UIApplication.shared.open(URL(string: "https://twitter.com/khanhduytran0")!)
+    }
+    func openForkOwnerGitHub() {
+        UIApplication.shared.open(URL(string: "https://github.com/iamcheese-man")!)
+    }
+
+    func openForkedRepo() {
+        UIApplication.shared.open(URL(string: "https://github.com/iamcheese-man/LiveContainer")!)
     }
     
     func export() {

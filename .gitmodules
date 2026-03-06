@@ -1,3 +1,6 @@
 [submodule "OpenSSL"]
 	path = OpenSSL
 	url = https://github.com/krzyzanowskim/OpenSSL
+[submodule "litehook"]
+	path = litehook
+	url = https://github.com/Mod4-Da-GOAT/litehook

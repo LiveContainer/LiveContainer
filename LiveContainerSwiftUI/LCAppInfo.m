@@ -2334,5 +2334,54 @@ static BOOL LCIsContainerScopedAddonKey(NSString *key) {
     }
     [self save];
 }
+- (NSString *)bundleSize {
+    // Check cache first
+    if (_info[@"cachedBundleSize"]) {
+        return _info[@"cachedBundleSize"];
+    }
+
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSString *path = _bundlePath;
+
+    if (!path || ![fm fileExistsAtPath:path]) {
+        return @"Unknown";
+    }
+
+    unsigned long long totalSize = 0;
+    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+
+    for (NSString *fileName in enumerator) {
+        NSString *filePath = [path stringByAppendingPathComponent:fileName];
+        NSDictionary *attrs = [fm attributesOfItemAtPath:filePath error:nil];
+        totalSize += [attrs fileSize];
+    }
+
+    NSString *sizeString = [self formatBytes:totalSize];
+
+    // Cache it
+    _info[@"cachedBundleSize"] = sizeString;
+    [self save];
+
+    return sizeString;
+}
+
+
+- (NSString *)formatBytes:(unsigned long long)bytes {
+    double kb = 1024.0;
+    double mb = kb * 1024.0;
+    double gb = mb * 1024.0;
+
+    double bytesDouble = (double)bytes;
+
+    if (bytesDouble >= gb) {
+        return [NSString stringWithFormat:@"%.2f GB", bytesDouble / gb];
+    } else if (bytesDouble >= mb) {
+        return [NSString stringWithFormat:@"%.2f MB", bytesDouble / mb];
+    } else if (bytesDouble >= kb) {
+        return [NSString stringWithFormat:@"%.2f KB", bytesDouble / kb];
+    } else {
+        return [NSString stringWithFormat:@"%llu bytes", bytes];
+    }
+}
 
 @end

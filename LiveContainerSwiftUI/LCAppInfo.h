@@ -176,4 +176,5 @@ typedef NS_ENUM(NSInteger, LCOrientationLock){
           fallbackSpoofIdentifierForVendor:(BOOL)fallbackSpoofIdentifierForVendor
                            fallbackVendorID:(NSString * _Nullable)fallbackVendorID;
 - (void)patchExecAndSignIfNeedWithCompletionHandler:(void(^)(bool success, NSString* errorInfo))completetionHandler progressHandler:(void(^)(NSProgress* progress))progressHandler  forceSign:(BOOL)forceSign;
+- (nonnull NSString *)bundleSize;
 @end

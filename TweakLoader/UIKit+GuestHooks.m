@@ -722,51 +722,52 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    
-    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults]; 
+
+    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
     float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
 
-
-
-
-  static UILabel *debugLabel = nil;
-    if (!debugLabel) {
-        debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 40, 300, 50)];
-        debugLabel.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.7];
-        debugLabel.textColor = [UIColor whiteColor];
-        debugLabel.font = [UIFont boldSystemFontOfSize:14];
-        debugLabel.layer.zPosition = 9999; // 確保在最上層
-        [[UIApplication sharedApplication].keyWindow addSubview:debugLabel];
-    }
-    debugLabel.text = [NSString stringWithFormat:@"Current Ratio: %.4f", ratio];
-
-
-
-
     
-    if (ratio > 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        CGRect screenBounds = [UIScreen mainScreen].bounds;
+    if (ratio <= 0 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+        [self hook_setFrame:frame];
+        return;
+    }
+
+   
+    CGRect screen = [UIScreen mainScreen].bounds;
+    CGFloat screenW = screen.size.width;
+    CGFloat screenH = screen.size.height;
+
+    CGFloat targetW, targetH;
+    
+    
+    if (screenW > screenH) {
+        targetH = screenH;
+        targetW = targetH * ratio;
         
-        
-        CGFloat targetH = screenBounds.size.height;
-        CGFloat targetW = targetH * ratio;
-        
-        
-        if (targetW > screenBounds.size.width) {
-            targetW = screenBounds.size.width;
+        if (targetW > screenW) {
+            targetW = screenW;
             targetH = targetW / ratio;
         }
-
+    } else {
         
-        frame = CGRectMake((screenBounds.size.width - targetW) / 2, 
-                           (screenBounds.size.height - targetH) / 2, 
-                           targetW, targetH);
-        
-        
-        self.backgroundColor = [UIColor blackColor];
+        targetW = screenW;
+        targetH = targetW / ratio;
     }
-    [self hook_setFrame:frame];
+
+    
+    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 
+                                 (screenH - targetH) / 2, 
+                                 targetW, targetH);
+
+    
+    NSLog(@"[LC] Window Resizing: Original(%f, %f) -> New(%f, %f)", 
+          frame.size.width, frame.size.height, targetW, targetH);
+
+    
+    self.backgroundColor = [UIColor blackColor];
+    [self hook_setFrame:newFrame];
 }
+
 
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];

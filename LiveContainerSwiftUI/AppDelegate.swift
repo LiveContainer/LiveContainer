@@ -68,9 +68,23 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
     ) {
         let newOptions = options ?? UIScene.ActivationRequestOptions()
         
-        let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
-        if tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad {
-            newOptions._setRequestFullscreen(false)
+       let tempRatio = LCUtils.appGroupUserDefault().double(forKey: "LCTempAspectRatio")
+// 定義是否為 9:16 模式
+let is916 = tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad
+
+if is916 {
+    // 1. 強制關閉全螢幕請求
+    newOptions._setRequestFullscreen(false)
+    
+    // 2. 💡 關鍵：給予系統一個明確的邊界建議
+    let screen = UIScreen.main.bounds
+    let targetW = screen.height * 9 / 16
+    let targetFrame = CGRect(x: (screen.width - targetW) / 2, y: 0, width: targetW, height: screen.height)
+    
+    // 嘗試調用私有 API 來同步 Scene 的尺寸
+    if newOptions.responds(to: Selector(("_setRequestedSceneBounds:"))) {
+        newOptions.perform(Selector(("_setRequestedSceneBounds:")), with: targetFrame)
+    }
                 
         } else {
             

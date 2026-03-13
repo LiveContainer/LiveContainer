@@ -74,7 +74,7 @@ let is916 = tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad
 
 if is916 {
     // 1. 強制關閉全螢幕請求
-    newOptions._setRequestFullscreen(false)
+    newOptions._setRequestFullscreen(true)
     
     // 2. 💡 關鍵：給予系統一個明確的邊界建議
     let screen = UIScreen.main.bounds

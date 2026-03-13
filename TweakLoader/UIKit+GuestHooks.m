@@ -594,6 +594,21 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
+@implementation UIScreen (LiveContainerHook)
+- (CGRect)hook_bounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    CGRect original = [self hook_bounds];
+
+    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        
+        CGFloat targetW = original.size.height * ratio;
+        return CGRectMake(0, 0, targetW, original.size.height);
+    }
+    return original;
+}
+@end
+
+
 // Handler for SceneDelegate
 @implementation UIScene(LiveContainerHook)
 - (void)hook_scene:(id)scene didReceiveActions:(NSSet *)actions fromTransitionContext:(id)context {
@@ -755,6 +770,11 @@ BOOL canAppOpenItself(NSURL* url) {
 
         self.backgroundColor = [UIColor blackColor];
         [self hook_setFrame:newFrame];
+       if (self.rootViewController) {
+            [self.rootViewController.view setNeedsLayout];
+            [self.rootViewController.view layoutIfNeeded];
+        }
+        
     } else {
         [self hook_setFrame:frame];
     }

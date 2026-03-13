@@ -13,11 +13,12 @@ __attribute__((constructor))
 static void UIKitGuestHooksInit() {
 
 
-swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-    NSLog(@"[LC] UIKit Guest Hooks Initialized!");
+
 
     
     if(!NSUserDefaults.lcGuestAppId) return;
+    swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+    NSLog(@"[LC] UIKit Guest Hooks Initialized!");
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -722,50 +723,53 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-
+    // 1. 取得比例設定
     NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
     float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
 
-    
-    if (ratio <= 0 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        [self hook_setFrame:frame];
-        return;
-    }
-
-   
-    CGRect screen = [UIScreen mainScreen].bounds;
-    CGFloat screenW = screen.size.width;
-    CGFloat screenH = screen.size.height;
-
-    CGFloat targetW, targetH;
-    
-    
-    if (screenW > screenH) {
-        targetH = screenH;
-        targetW = targetH * ratio;
+    // 2. 只有在 iPad 且比例大於 0 時才介入
+    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        CGRect screen = [UIScreen mainScreen].bounds;
+        CGFloat screenW = screen.size.width;
+        CGFloat screenH = screen.size.height;
         
-        if (targetW > screenW) {
-            targetW = screenW;
+        // 確保取到的是當前方向的寬高（處理旋轉）
+        CGFloat currentScreenW = MAX(screenW, screenH);
+        CGFloat currentScreenH = MIN(screenW, screenH);
+        
+        // 如果是豎屏方向，則反轉
+        if (screenW < screenH) {
+            currentScreenW = screenW;
+            currentScreenH = screenH;
+        }
+
+        CGFloat targetW = currentScreenH * ratio;
+        CGFloat targetH = currentScreenH;
+        
+        // 如果算出的寬度大於螢幕寬度，則以寬度為基準縮放高度
+        if (targetW > currentScreenW) {
+            targetW = currentScreenW;
             targetH = targetW / ratio;
         }
-    } else {
+
+        // 居中計算
+        CGRect newFrame = CGRectMake((currentScreenW - targetW) / 2, 
+                                     (currentScreenH - targetH) / 2, 
+                                     targetW, targetH);
         
-        targetW = screenW;
-        targetH = targetW / ratio;
+        // 3. 避免無效的重複設置 (重要：防止黑屏死循環)
+        if (CGRectEqualToRect(self.frame, newFrame)) {
+            return; 
+        }
+
+        // 強制背景黑邊
+        self.backgroundColor = [UIColor blackColor];
+        // 呼叫原始 setFrame
+        [self hook_setFrame:newFrame];
+    } else {
+        // 4. 正常模式：走原有的旋轉鎖定或系統邏輯
+        [self hook_setFrame:frame];
     }
-
-    
-    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 
-                                 (screenH - targetH) / 2, 
-                                 targetW, targetH);
-
-    
-    NSLog(@"[LC] Window Resizing: Original(%f, %f) -> New(%f, %f)", 
-          frame.size.width, frame.size.height, targetW, targetH);
-
-    
-    self.backgroundColor = [UIColor blackColor];
-    [self hook_setFrame:newFrame];
 }
 
 

@@ -612,6 +612,16 @@ BOOL canAppOpenItself(NSURL* url) {
     return original;
 }
 @end
+@implementation UIWindow (LayoutFix)
+- (CGRect)hook_bounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        CGRect frame = self.frame;
+        return CGRectMake(0, 0, frame.size.width, frame.size.height);
+    }
+    return [self hook_bounds];
+}
+@end
 
 
 
@@ -748,25 +758,37 @@ BOOL canAppOpenItself(NSURL* url) {
     if (isResizing) { [self hook_setFrame:frame]; return; }
 
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio <= 0) { [self hook_setFrame:frame]; return; }
+    if (ratio <= 0) {
+        [self hook_setFrame:frame];
+        return;
+    }
 
     isResizing = YES;
-    
-    // 1. 取得真正的 iPad 螢幕寬度 (不被 Hook 影響的原始值)
-    CGFloat physicalWidth = [UIScreen mainScreen].fixedCoordinateSpace.bounds.size.width;
-    
-    // 2. 取得我們 Hook 過的偽造寬度 (約 400px)
-    CGFloat fakeWidth = [UIScreen mainScreen].bounds.size.width;
-    CGFloat height = [UIScreen mainScreen].bounds.size.height;
 
-    // 3. 將座標設定為：(實體寬 - 偽造寬) / 2
-    CGRect newFrame = CGRectMake((physicalWidth - fakeWidth) / 2, 0, fakeWidth, height);
+    // 1. 使用固定坐標系（Fixed Coordinate Space）取得 iPad 真正的物理尺寸
+    // 這是解決「未置中」的關鍵，因為它不會受 UIScreen Hook 影響
+    CGRect physicalBounds = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
+    CGFloat screenW = physicalBounds.size.width;
+    CGFloat screenH = physicalBounds.size.height;
+
+    // 2. 計算 9:16 的尺寸
+    CGFloat targetH = screenH;
+    CGFloat targetW = targetH * ratio;
+    
+    // 3. 強制居中坐標計算
+    // x = (物理寬 - 目標寬) / 2
+    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 0, targetW, targetH);
+
+    // 4. 強制同步 Window 的 Bounds（這能解決內容只剩白線的問題）
+    // 這一步會告訴 App 內部的 View：你的家現在只有這麼大，重新排版！
+    self.bounds = CGRectMake(0, 0, targetW, targetH);
 
     self.backgroundColor = [UIColor blackColor];
     [self hook_setFrame:newFrame];
-    
+
     isResizing = NO;
 }
+
 
 
 

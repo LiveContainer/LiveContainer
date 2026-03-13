@@ -17,6 +17,7 @@ static void UIKitGuestHooksInit() {
 
     
     if(!NSUserDefaults.lcGuestAppId) return;
+    swizzle(UIScreen.class, @selector(bounds), @selector(hook_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     NSLog(@"[LC] UIKit Guest Hooks Initialized!");
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
@@ -599,9 +600,11 @@ BOOL canAppOpenItself(NSURL* url) {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
     CGRect original = [self hook_bounds];
 
+    // 如果是 9:16 模式，強制回報縮小後的螢幕邊界
     if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        
         CGFloat targetW = original.size.height * ratio;
+        // 確保寬度不超過物理極限
+        if (targetW > original.size.width) targetW = original.size.width;
         return CGRectMake(0, 0, targetW, original.size.height);
     }
     return original;
@@ -738,46 +741,29 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    // 1. 遞迴保護：防止 setFrame 內部再次觸發 setFrame 導致死鎖
     static BOOL isHooking = NO;
-    if (isHooking) {
-        [self hook_setFrame:frame];
-        return;
-    }
+    if (isHooking) { [self hook_setFrame:frame]; return; }
 
-    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
-    float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
-
-    // 2. 原始模式安全開關：如果比例為 0，直接走原流程並退出
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
     if (ratio <= 0 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         [self hook_setFrame:frame];
         return;
     }
 
-    // 3. 開始計算 16:9
-    isHooking = YES; // 鎖定
-
-    CGRect screen = [UIScreen mainScreen].bounds;
-    CGFloat targetH = screen.size.height;
-    CGFloat targetW = targetH * ratio;
+    isHooking = YES;
+    CGRect screen = [UIScreen mainScreen].bounds; // 此時會拿到 Hook 後的偽裝邊界
     
-    if (targetW > screen.size.width) {
-        targetW = screen.size.width;
-        targetH = targetW / ratio;
-    }
+    // 強制讓 Window 填滿這個「偽裝螢幕」
+    CGRect newFrame = CGRectMake((UIScreen.mainScreen.fixedCoordinateSpace.bounds.size.width - screen.size.width) / 2, 
+                                 0, 
+                                 screen.size.width, 
+                                 screen.size.height);
 
-    CGRect newFrame = CGRectMake((screen.size.width - targetW) / 2, 
-                                 (screen.size.height - targetH) / 2, 
-                                 targetW, targetH);
-
-    // 4. 設定背景色（僅針對主視窗）
     self.backgroundColor = [UIColor blackColor];
-    
-    // 5. 呼叫原始方法
     [self hook_setFrame:newFrame];
-
-    isHooking = NO; // 解鎖
+    isHooking = NO;
 }
+
 
 
 

@@ -123,7 +123,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     Button {
         isiPhoneMode.toggle()
         
-        UserDefaults.standard.set(isiPhoneMode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
+        UserDefaults.lcShared().set(isiPhoneMode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
     } label: {
         Image(systemName: isiPhoneMode ? "iphone" : "ipad")
             .foregroundColor(isiPhoneMode ? .orange : .green)

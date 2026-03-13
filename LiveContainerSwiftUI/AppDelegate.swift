@@ -68,7 +68,7 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
     ) {
         let newOptions = options ?? UIScene.ActivationRequestOptions()
         
-       let tempRatio = LCUtils.appGroupUserDefault().double(forKey: "LCTempAspectRatio")
+       let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
 // 定義是否為 9:16 模式
 let is916 = tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad
 

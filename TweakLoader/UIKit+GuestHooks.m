@@ -717,34 +717,33 @@ BOOL canAppOpenItself(NSURL* url) {
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
     
-    float ratio = [[NSUserDefaults standardUserDefaults] floatForKey:@"LCTempAspectRatio"];
-    
+    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults]; 
+    float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
     
     if (ratio > 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        CGRect screen = [UIScreen mainScreen].bounds;
-        CGFloat sW = screen.size.width;
-        CGFloat sH = screen.size.height;
+        CGRect screenBounds = [UIScreen mainScreen].bounds;
+        
+        
+        CGFloat targetH = screenBounds.size.height;
+        CGFloat targetW = targetH * ratio;
+        
+        
+        if (targetW > screenBounds.size.width) {
+            targetW = screenBounds.size.width;
+            targetH = targetW / ratio;
+        }
 
         
-        CGFloat targetW = sH * ratio;
-        CGFloat targetH = sH;
-        
-        
-        if (targetW > sW) {
-            targetW = sW;
-            targetH = sW / ratio;
-        }
-        
-        
-        frame = CGRectMake((sW - targetW) / 2, (sH - targetH) / 2, targetW, targetH);
+        frame = CGRectMake((screenBounds.size.width - targetW) / 2, 
+                           (screenBounds.size.height - targetH) / 2, 
+                           targetW, targetH);
         
         
         self.backgroundColor = [UIColor blackColor];
     }
-    
-    
     [self hook_setFrame:frame];
 }
+
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];
 }

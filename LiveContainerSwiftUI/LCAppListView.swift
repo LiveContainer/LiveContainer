@@ -267,7 +267,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
 
 
-                ToolbarItem(placement: .principal) {      
+                ToolbarItem(placement: .TopBarLeading) {      
                        Button {
                           isiPhoneMode.toggle()
                        } label: {

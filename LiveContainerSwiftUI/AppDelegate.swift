@@ -69,7 +69,7 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
         let newOptions = options ?? UIScene.ActivationRequestOptions()
         
        // 在啟動邏輯中
-let tempRatio = LCUtils.appGroupUserDefault().double(forKey: "LCTempAspectRatio")
+let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
 
 // 修正：只有在 ratio 大於 0.1 時才啟用 is916
 let is916 = tempRatio > 0.1 && UIDevice.current.userInterfaceIdiom == .pad

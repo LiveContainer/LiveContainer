@@ -595,23 +595,17 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
-@implementation UIScreen (LiveContainer916)
+@implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_bounds {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    // 取得真正的 iPad 物理尺寸
-    CGRect original = [self hook_bounds]; 
-
-    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        // 根據比例計算偽裝寬度
-        CGFloat targetW = original.size.height * ratio;
-        if (targetW > original.size.width) targetW = original.size.width;
-        
-        // 返回偽造的座標系：寬度變窄，高度不變
-        return CGRectMake(0, 0, targetW, original.size.height);
+    CGRect original = [self hook_bounds];
+    if (ratio > 0) {
+        return CGRectMake(0, 0, original.size.height * ratio, original.size.height);
     }
     return original;
 }
 @end
+
 @implementation UIWindow (LayoutFix)
 - (CGRect)hook_bounds {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
@@ -758,35 +752,41 @@ BOOL canAppOpenItself(NSURL* url) {
     if (isResizing) { [self hook_setFrame:frame]; return; }
 
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio <= 0) {
-        [self hook_setFrame:frame];
-        return;
-    }
+    if (ratio <= 0) { [self hook_setFrame:frame]; return; }
 
     isResizing = YES;
-
-    // 1. 使用固定坐標系（Fixed Coordinate Space）取得 iPad 真正的物理尺寸
-    // 這是解決「未置中」的關鍵，因為它不會受 UIScreen Hook 影響
-    CGRect physicalBounds = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
-    CGFloat screenW = physicalBounds.size.width;
-    CGFloat screenH = physicalBounds.size.height;
-
-    // 2. 計算 9:16 的尺寸
-    CGFloat targetH = screenH;
-    CGFloat targetW = targetH * ratio;
     
-    // 3. 強制居中坐標計算
-    // x = (物理寬 - 目標寬) / 2
-    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 0, targetW, targetH);
+    // 1. 取得絕對物理螢幕尺寸 (不被 Hook 影響)
+    CGRect physicalScreen = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
+    CGFloat screenW = physicalScreen.size.width;
+    CGFloat screenH = physicalScreen.size.height;
 
-    // 4. 強制同步 Window 的 Bounds（這能解決內容只剩白線的問題）
-    // 這一步會告訴 App 內部的 View：你的家現在只有這麼大，重新排版！
-    self.bounds = CGRectMake(0, 0, targetW, targetH);
+    // 2. 計算 9:16 寬度
+    CGFloat targetW = screenH * ratio;
+    
+    // 3. 強制設定 Frame (位置) 與 Bounds (內容大小)
+    // 這是解決「比例奇怪」與「內容跑掉」的關鍵對手戲
+    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 0, targetW, screenH);
+    CGRect newBounds = CGRectMake(0, 0, targetW, screenH);
+
+    [self hook_setFrame:newFrame];
+    self.bounds = newBounds; // 同步修改畫布大小
 
     self.backgroundColor = [UIColor blackColor];
-    [self hook_setFrame:newFrame];
-
     isResizing = NO;
+}
+
+// 4. 解決「閃一下不見」：攔截系統自動回正
+- (void)hook_setBounds:(CGRect)bounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    if (ratio > 0) {
+        // 禁止系統把 bounds 改回 iPad 全螢幕
+        CGRect currentFrame = self.frame;
+        CGRect fixedBounds = CGRectMake(0, 0, currentFrame.size.width, currentFrame.size.height);
+        [self hook_setBounds:fixedBounds];
+    } else {
+        [self hook_setBounds:bounds];
+    }
 }
 
 

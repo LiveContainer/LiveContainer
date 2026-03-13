@@ -8,23 +8,15 @@
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
-
+void swizzle(Class cls, SEL origSel, SEL hookSel);
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
-
-
-
-
-    
     if(!NSUserDefaults.lcGuestAppId) return;
-    
-    swizzle(UIWindow.class, @selector(setCenter:), @selector(hook_setCenter:));
-    
-    // 螢幕 Hook (解決內容閃現與比例奇怪的關鍵)
-    
-    swizzle(UIScreen.class, @selector(bounds), @selector(hook_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-    NSLog(@"[LC] UIKit Guest Hooks Initialized!");
+    swizzle(UIWindow.class, @selector(setCenter:), @selector(hook_setCenter:));
+    swizzle(UIWindow.class, @selector(bounds), @selector(hook_bounds));
+    swizzle(UIScreen.class, @selector(bounds), @selector(hook_bounds));
+    swizzle(UIScreen.class, @selector(nativeBounds), @selector(hook_nativeBounds));
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -45,7 +37,6 @@ static void UIKitGuestHooksInit() {
                 break;
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
-        swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
 //            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
@@ -600,46 +591,6 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
-@implementation UIScreen (LiveContainerHook)
-- (CGRect)hook_bounds {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    CGRect original = [self hook_bounds];
-
-    // 如果比例無效，直接返回原始值
-    if (ratio < 0.1 || ratio > 0.99) return original;
-
-    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        CGFloat targetW = original.size.height * ratio;
-        return CGRectMake(0, 0, targetW, original.size.height);
-    }
-    return original;
-}
-
-// 也要 Hook nativeBounds，否則某些瀏覽器內核會崩潰
-- (CGRect)hook_nativeBounds {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    CGRect original = [self hook_nativeBounds];
-    if (ratio < 0.1 || ratio > 0.99) return original;
-    
-    CGFloat targetW = original.size.height * ratio;
-    return CGRectMake(0, 0, targetW, original.size.height);
-}
-@end
-
-
-@implementation UIWindow (LayoutFix)
-- (CGRect)hook_bounds {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        CGRect frame = self.frame;
-        return CGRectMake(0, 0, frame.size.width, frame.size.height);
-    }
-    return [self hook_bounds];
-}
-@end
-
-
-
 // Handler for SceneDelegate
 @implementation UIScene(LiveContainerHook)
 - (void)hook_scene:(id)scene didReceiveActions:(NSSet *)actions fromTransitionContext:(id)context {
@@ -767,56 +718,71 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
-@implementation UIWindow(hook)
-- (void)hook_setFrame:(CGRect)frame {
-    // 1. 即時讀取，防止快取導致切換失敗
-    [[NSUserDefaults lcSharedDefaults] synchronize];
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+@interface UIScreen (hook)
+@end
 
-    // 2. 原始模式退場邏輯 (ratio 為 0 或接近 1 時恢復)
+@implementation UIScreen (hook)
+- (CGRect)hook_bounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    CGRect original = [self hook_bounds];
+    if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+        return original;
+    }
+    CGFloat targetH = original.size.height;
+    CGFloat targetW = targetH * ratio;
+    return CGRectMake(0, 0, targetW, targetH);
+}
+@end
+@interface UIWindow (hook)
+@end
+
+@implementation UIWindow (hook)
+
+- (void)hook_setFrame:(CGRect)frame {
+    // 1. 即時同步數據
+    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
+    [defaults synchronize];
+    float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
+
+    // 2. 原始模式退場：比例無效或非 iPad
     if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         [self hook_setFrame:frame];
         return;
     }
 
-    // 遞迴保護
+    // 3. 遞迴保護
     static BOOL isResizing = NO;
-    if (isResizing) { [self hook_setFrame:frame]; return; }
+    if (isResizing) {
+        [self hook_setFrame:frame];
+        return;
+    }
     isResizing = YES;
 
-    // 3. 取得當前螢幕尺寸 (自動處理旋轉後的寬高)
-    CGRect screenBounds = [UIScreen mainScreen].bounds;
-    
-    // 4. 計算 9:16 (永遠以高度為基準算出寬度)
-    CGFloat targetH = screenBounds.size.height;
+    // 4. 計算居中 9:16
+    CGRect screen = [UIScreen mainScreen].bounds;
+    CGFloat targetH = screen.size.height;
     CGFloat targetW = targetH * ratio;
 
-    // 如果寬度算出來比螢幕還寬 (極少見)，則反過來算
-    if (targetW > screenBounds.size.width) {
-        targetW = screenBounds.size.width;
+    if (targetW > screen.size.width) {
+        targetW = screen.size.width;
         targetH = targetW / ratio;
     }
 
-    // 5. 強制執行置中佈局
-    // 我們不直接改 frame 的 x, y，而是透過 bounds + center 來鎖死位置
+    // 5. 套用佈局：鎖定 Bounds 與 Center
     self.bounds = CGRectMake(0, 0, targetW, targetH);
-    self.center = CGPointMake(screenBounds.size.width / 2, screenBounds.size.height / 2);
-    
-    // 6. 視覺與背景處理
-    self.backgroundColor = [UIColor blackColor];
-    // 確保內容不超出我們自定義的 9:16 邊界
-    self.clipsToBounds = YES; 
+    // 直接調用原始 setCenter 避免衝突
+    CGPoint center = CGPointMake(screen.size.width / 2, screen.size.height / 2);
+    [self setCenter:center];
 
-    // 呼叫原始方法以確保視窗層級正常
+    self.backgroundColor = [UIColor blackColor];
     [self hook_setFrame:self.frame];
 
     isResizing = NO;
 }
 
-// 攔截系統嘗試將 Center 移回左邊或原位的行為
 - (void)hook_setCenter:(CGPoint)center {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio > 0.1 && ratio < 0.99) {
+    if (ratio > 0.1 && ratio < 0.99 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         CGRect screen = [UIScreen mainScreen].bounds;
         CGPoint fixedCenter = CGPointMake(screen.size.width / 2, screen.size.height / 2);
         [self hook_setCenter:fixedCenter];
@@ -824,26 +790,6 @@ BOOL canAppOpenItself(NSURL* url) {
         [self hook_setCenter:center];
     }
 }
-@end
-
-// 7. 螢幕欺騙：讓 App 內部 UI (如瀏覽器網址列) 以為自己在窄螢幕上
-@implementation UIScreen (LiveContainer916)
-- (CGRect)hook_bounds {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    CGRect original = [self hook_bounds];
-    if (ratio < 0.1 || ratio > 0.99) return original;
-
-    CGFloat targetH = original.size.height;
-    CGFloat targetW = targetH * ratio;
-    return CGRectMake(0, 0, targetW, targetH);
-}
-@end
-
-
-
-
-
-
 
 
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {

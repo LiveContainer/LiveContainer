@@ -719,6 +719,24 @@ BOOL canAppOpenItself(NSURL* url) {
     
     NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults]; 
     float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
+
+
+
+
+  static UILabel *debugLabel = nil;
+    if (!debugLabel) {
+        debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 40, 300, 50)];
+        debugLabel.backgroundColor = [[UIColor redColor] colorWithAlphaComponent:0.7];
+        debugLabel.textColor = [UIColor whiteColor];
+        debugLabel.font = [UIFont boldSystemFontOfSize:14];
+        debugLabel.layer.zPosition = 9999; // 確保在最上層
+        [[UIApplication sharedApplication].keyWindow addSubview:debugLabel];
+    }
+    debugLabel.text = [NSString stringWithFormat:@"Current Ratio: %.4f", ratio];
+
+
+
+
     
     if (ratio > 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         CGRect screenBounds = [UIScreen mainScreen].bounds;

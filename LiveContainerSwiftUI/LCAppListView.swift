@@ -149,7 +149,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     isActive: $isNavigationActive,
                     label: {
                         EmptyView()
-                        .aspectRatio(isiPhoneMode ? 1.777777 : nil ,contentMode: .fit)
+                        .aspectRatio(isiPhoneMode ? 0.5625 : nil ,contentMode: .fit)
                 })
                 .hidden()
                 

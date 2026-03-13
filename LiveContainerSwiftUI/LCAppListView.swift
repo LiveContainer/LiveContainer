@@ -144,13 +144,27 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     var body: some View {
         NavigationView {
             ScrollView {
-                NavigationLink(
-                    destination: navigateTo,
-                    isActive: $isNavigationActive,
-                    label: {
-                        EmptyView()
-                        .aspectRatio(isiPhoneMode ? 0.5625 : nil ,contentMode: .fit)
-                })
+                // 在你的導航邏輯中
+NavigationLink(
+    destination: navigateTo
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // 撐滿全螢幕
+        .background(Color.black) // 設定黑色背景（這就是邊緣的黑條）
+        .overlay(
+            // 在層級上方疊加 9:16 的限制
+            Group {
+                if isiPhoneMode {
+                    navigateTo
+                        .aspectRatio(9.0/16.0, contentMode: .fit)
+                        .clipped() // 確保內容不溢出
+                } else {
+                    navigateTo
+                }
+            }
+        ),
+    isActive: $isNavigationActive,
+    label: { EmptyView() }
+)
+
                 .hidden()
                 
                 LazyVStack {

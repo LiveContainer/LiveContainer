@@ -853,7 +853,7 @@ extension LCAppSettingsView : LCContainerViewDelegate {
         var allCustomSchemes: Set<String> = []
         let allApps = sharedModel.apps + sharedModel.hiddenApps
         for app in allApps {
-            if let schemes = app.appInfo.customUrlSchemes as? [String] {
+            if let schemes = app.appInfo.customUrlSchemes {
                 allCustomSchemes.formUnion(schemes)
             }
         }
@@ -861,7 +861,7 @@ extension LCAppSettingsView : LCContainerViewDelegate {
         let schemesArray = Array(allCustomSchemes)
         
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            LCUtils.repackageLCWithCustom(schemes: schemesArray) { ipaURL, error in
+            LCUtils.repackageLC(withCustomSchemes: schemesArray) { ipaURL, error in
                 DispatchQueue.main.async {
                     if let error = error {
                         self.errorInfo = error.localizedDescription

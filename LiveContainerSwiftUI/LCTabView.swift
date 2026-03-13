@@ -139,7 +139,7 @@ struct LCTabView: View {
                     
                     let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
                     let hasCustomScheme = allApps.contains { app in
-                        guard let schemes = app.appInfo.customUrlSchemes as? [String] else { return false }
+                        guard let schemes = app.appInfo.customUrlSchemes else { return false }
                         return schemes.contains(scheme)
                     }
                     if hasCustomScheme {

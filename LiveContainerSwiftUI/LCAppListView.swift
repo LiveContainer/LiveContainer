@@ -125,7 +125,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         // 立即寫入，這樣啟動時 AppDelegate 就能抓到
         UserDefaults.standard.set(isiPhoneMode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
     } label: {
-        Image(systemName: is169Mode ? "rectangle.center.inset.filled" : "square")
+        Image(systemName: isiPhoneMode ? "rectangle.center.inset.filled" : "square")
             .foregroundColor(isiPhoneMode ? .orange : .primary)
     }
 } 

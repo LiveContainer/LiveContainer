@@ -725,12 +725,10 @@ BOOL canAppOpenItself(NSURL* url) {
 - (CGRect)hook_bounds {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
     CGRect original = [self hook_bounds];
-    if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        return original;
-    }
-    CGFloat targetH = original.size.height;
-    CGFloat targetW = targetH * ratio;
-    return CGRectMake(0, 0, targetW, targetH);
+    if (ratio < 0.1 || ratio > 0.99) return original;
+
+    CGFloat targetW = original.size.height * ratio;
+    return CGRectMake(0, 0, targetW, original.size.height);
 }
 @end
 @interface UIWindow (hook)
@@ -739,58 +737,50 @@ BOOL canAppOpenItself(NSURL* url) {
 @implementation UIWindow (hook)
 
 - (void)hook_setFrame:(CGRect)frame {
-    // 1. 即時同步數據
-    NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
-    [defaults synchronize];
-    float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
 
-    // 2. 原始模式退場：比例無效或非 iPad
+    // 原始模式退場
     if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         [self hook_setFrame:frame];
         return;
     }
 
-    // 3. 遞迴保護
     static BOOL isResizing = NO;
-    if (isResizing) {
-        [self hook_setFrame:frame];
-        return;
-    }
+    if (isResizing) { [self hook_setFrame:frame]; return; }
     isResizing = YES;
 
-    // 4. 計算居中 9:16
-    CGRect screen = [UIScreen mainScreen].bounds;
-    CGFloat targetH = screen.size.height;
+    CGRect screenBounds = [UIScreen mainScreen].bounds;
+    
+    // 計算目標尺寸
+    CGFloat targetH = screenBounds.size.height;
     CGFloat targetW = targetH * ratio;
 
-    if (targetW > screen.size.width) {
-        targetW = screen.size.width;
-        targetH = targetW / ratio;
-    }
-
-    // 5. 套用佈局：鎖定 Bounds 與 Center
+    // 修正點 1：確保內容畫布 (Bounds) 是正確的 9:16 寬度，這能解決「只剩右邊界」的問題
     self.bounds = CGRectMake(0, 0, targetW, targetH);
-    // 直接調用原始 setCenter 避免衝突
-    CGPoint center = CGPointMake(screen.size.width / 2, screen.size.height / 2);
-    [self setCenter:center];
-
+    
+    // 修正點 2：強制將 Center 鎖定在物理螢幕正中央
+    self.center = CGPointMake(screenBounds.size.width / 2, screenBounds.size.height / 2);
+    
     self.backgroundColor = [UIColor blackColor];
+    self.clipsToBounds = YES; 
+
+    // 呼叫原始方法來刷新渲染層級
     [self hook_setFrame:self.frame];
 
     isResizing = NO;
 }
 
+// 防止系統自動佈局 (Auto Layout) 把視窗抓回左邊
 - (void)hook_setCenter:(CGPoint)center {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio > 0.1 && ratio < 0.99 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+    if (ratio > 0.1 && ratio < 0.99) {
         CGRect screen = [UIScreen mainScreen].bounds;
-        CGPoint fixedCenter = CGPointMake(screen.size.width / 2, screen.size.height / 2);
-        [self hook_setCenter:fixedCenter];
+        // 暴力鎖定置中
+        [self hook_setCenter:CGPointMake(screen.size.width / 2, screen.size.height / 2)];
     } else {
         [self hook_setCenter:center];
     }
 }
-
 
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];

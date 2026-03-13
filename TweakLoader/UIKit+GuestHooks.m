@@ -599,12 +599,28 @@ BOOL canAppOpenItself(NSURL* url) {
 - (CGRect)hook_bounds {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
     CGRect original = [self hook_bounds];
-    if (ratio > 0) {
-        return CGRectMake(0, 0, original.size.height * ratio, original.size.height);
+
+    // 如果比例無效，直接返回原始值
+    if (ratio < 0.1 || ratio > 0.99) return original;
+
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        CGFloat targetW = original.size.height * ratio;
+        return CGRectMake(0, 0, targetW, original.size.height);
     }
     return original;
 }
+
+// 也要 Hook nativeBounds，否則某些瀏覽器內核會崩潰
+- (CGRect)hook_nativeBounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    CGRect original = [self hook_nativeBounds];
+    if (ratio < 0.1 || ratio > 0.99) return original;
+    
+    CGFloat targetW = original.size.height * ratio;
+    return CGRectMake(0, 0, targetW, original.size.height);
+}
 @end
+
 
 @implementation UIWindow (LayoutFix)
 - (CGRect)hook_bounds {
@@ -748,33 +764,46 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    static BOOL isHooking = NO;
-    if (isHooking) { [self hook_setFrame:frame]; return; }
-
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    
-    // 修正：比例太小視為原始模式
-    if (ratio < 0.1 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        [self hook_setFrame:frame];
+
+    // 1. 原始模式退場邏輯
+    if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+        [self hook_setFrame:frame]; 
         return;
     }
 
-    isHooking = YES;
+    static BOOL isResizing = NO;
+    if (isResizing) { [self hook_setFrame:frame]; return; }
+    isResizing = YES;
+
+    // 2. 獲取當前旋轉狀態下的真實螢幕尺寸
+    // 注意：這裡不能用 fixedCoordinateSpace，因為它不隨旋轉改變
+    // 我們直接用 UIScreen.mainScreen.bounds 來獲取「旋轉後」的長寬
+    CGRect screen = [UIScreen mainScreen].bounds;
+    CGFloat screenW = screen.size.width;
+    CGFloat screenH = screen.size.height;
+
+    // 3. 計算 9:16 寬度（永遠基於當前高度）
+    CGFloat targetH = screenH;
+    CGFloat targetW = targetH * ratio;
+
+    // 4. 防禦性檢查：如果寬度超過螢幕寬，則反過來縮放
+    if (targetW > screenW) {
+        targetW = screenW;
+        targetH = targetW / ratio;
+    }
+
+    // 5. 套用佈局：同步 bounds 與 center
+    // 這樣不管怎麼轉，App 內容都會被釘在正中央
+    self.bounds = CGRectMake(0, 0, targetW, targetH);
+    self.center = CGPointMake(screenW / 2, screenH / 2);
     
-    CGRect screen = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
-    CGFloat targetW = screen.size.height * ratio;
-    
-    // 1. 先設定大小 (Bounds)
-    self.bounds = CGRectMake(0, 0, targetW, screen.size.height);
-    
-    // 2. 直接設定中心點 (Center)，這是防止閃退最穩的方法
-    self.center = CGPointMake(screen.size.width / 2, screen.size.height / 2);
-    
-    // 3. 設定背景
+    // 強制設定背景，防止旋轉時露出底層桌面的殘影
     self.backgroundColor = [UIColor blackColor];
 
-    isHooking = NO;
+    isResizing = NO;
 }
+
 
 // 4. 解決「閃一下不見」：攔截系統自動回正
 - (void)hook_setBounds:(CGRect)bounds {

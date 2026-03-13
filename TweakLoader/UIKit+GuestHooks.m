@@ -748,32 +748,32 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    static BOOL isResizing = NO;
-    if (isResizing) { [self hook_setFrame:frame]; return; }
+    static BOOL isHooking = NO;
+    if (isHooking) { [self hook_setFrame:frame]; return; }
 
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio <= 0) { [self hook_setFrame:frame]; return; }
-
-    isResizing = YES;
     
-    // 1. 取得絕對物理螢幕尺寸 (不被 Hook 影響)
-    CGRect physicalScreen = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
-    CGFloat screenW = physicalScreen.size.width;
-    CGFloat screenH = physicalScreen.size.height;
+    // 修正：比例太小視為原始模式
+    if (ratio < 0.1 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+        [self hook_setFrame:frame];
+        return;
+    }
 
-    // 2. 計算 9:16 寬度
-    CGFloat targetW = screenH * ratio;
+    isHooking = YES;
     
-    // 3. 強制設定 Frame (位置) 與 Bounds (內容大小)
-    // 這是解決「比例奇怪」與「內容跑掉」的關鍵對手戲
-    CGRect newFrame = CGRectMake((screenW - targetW) / 2, 0, targetW, screenH);
-    CGRect newBounds = CGRectMake(0, 0, targetW, screenH);
-
-    [self hook_setFrame:newFrame];
-    self.bounds = newBounds; // 同步修改畫布大小
-
+    CGRect screen = [UIScreen mainScreen].fixedCoordinateSpace.bounds;
+    CGFloat targetW = screen.size.height * ratio;
+    
+    // 1. 先設定大小 (Bounds)
+    self.bounds = CGRectMake(0, 0, targetW, screen.size.height);
+    
+    // 2. 直接設定中心點 (Center)，這是防止閃退最穩的方法
+    self.center = CGPointMake(screen.size.width / 2, screen.size.height / 2);
+    
+    // 3. 設定背景
     self.backgroundColor = [UIColor blackColor];
-    isResizing = NO;
+
+    isHooking = NO;
 }
 
 // 4. 解決「閃一下不見」：攔截系統自動回正

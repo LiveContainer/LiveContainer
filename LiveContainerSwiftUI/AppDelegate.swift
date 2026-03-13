@@ -70,7 +70,8 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
         
         let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
         if tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad {
-            //newOptions._setRequestFullscreen(false)
+            newOptions._setRequestFullscreen(false)
+                newOptions.allowsSceneRotationNextRequests = true
         } else {
             
             let isFull = UIScreen.main.bounds == (self.keyWindow?.bounds ?? .zero)

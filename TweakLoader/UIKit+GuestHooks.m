@@ -17,6 +17,11 @@ static void UIKitGuestHooksInit() {
 
     
     if(!NSUserDefaults.lcGuestAppId) return;
+    
+    swizzle(UIWindow.class, @selector(setCenter:), @selector(hook_setCenter:));
+    
+    // 螢幕 Hook (解決內容閃現與比例奇怪的關鍵)
+    
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     NSLog(@"[LC] UIKit Guest Hooks Initialized!");
@@ -764,59 +769,76 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
+    // 1. 即時讀取，防止快取導致切換失敗
+    [[NSUserDefaults lcSharedDefaults] synchronize];
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
 
-    // 1. 原始模式退場邏輯
+    // 2. 原始模式退場邏輯 (ratio 為 0 或接近 1 時恢復)
     if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        [self hook_setFrame:frame]; 
+        [self hook_setFrame:frame];
         return;
     }
 
+    // 遞迴保護
     static BOOL isResizing = NO;
     if (isResizing) { [self hook_setFrame:frame]; return; }
     isResizing = YES;
 
-    // 2. 獲取當前旋轉狀態下的真實螢幕尺寸
-    // 注意：這裡不能用 fixedCoordinateSpace，因為它不隨旋轉改變
-    // 我們直接用 UIScreen.mainScreen.bounds 來獲取「旋轉後」的長寬
-    CGRect screen = [UIScreen mainScreen].bounds;
-    CGFloat screenW = screen.size.width;
-    CGFloat screenH = screen.size.height;
-
-    // 3. 計算 9:16 寬度（永遠基於當前高度）
-    CGFloat targetH = screenH;
+    // 3. 取得當前螢幕尺寸 (自動處理旋轉後的寬高)
+    CGRect screenBounds = [UIScreen mainScreen].bounds;
+    
+    // 4. 計算 9:16 (永遠以高度為基準算出寬度)
+    CGFloat targetH = screenBounds.size.height;
     CGFloat targetW = targetH * ratio;
 
-    // 4. 防禦性檢查：如果寬度超過螢幕寬，則反過來縮放
-    if (targetW > screenW) {
-        targetW = screenW;
+    // 如果寬度算出來比螢幕還寬 (極少見)，則反過來算
+    if (targetW > screenBounds.size.width) {
+        targetW = screenBounds.size.width;
         targetH = targetW / ratio;
     }
 
-    // 5. 套用佈局：同步 bounds 與 center
-    // 這樣不管怎麼轉，App 內容都會被釘在正中央
+    // 5. 強制執行置中佈局
+    // 我們不直接改 frame 的 x, y，而是透過 bounds + center 來鎖死位置
     self.bounds = CGRectMake(0, 0, targetW, targetH);
-    self.center = CGPointMake(screenW / 2, screenH / 2);
+    self.center = CGPointMake(screenBounds.size.width / 2, screenBounds.size.height / 2);
     
-    // 強制設定背景，防止旋轉時露出底層桌面的殘影
+    // 6. 視覺與背景處理
     self.backgroundColor = [UIColor blackColor];
+    // 確保內容不超出我們自定義的 9:16 邊界
+    self.clipsToBounds = YES; 
+
+    // 呼叫原始方法以確保視窗層級正常
+    [self hook_setFrame:self.frame];
 
     isResizing = NO;
 }
 
-
-// 4. 解決「閃一下不見」：攔截系統自動回正
-- (void)hook_setBounds:(CGRect)bounds {
+// 攔截系統嘗試將 Center 移回左邊或原位的行為
+- (void)hook_setCenter:(CGPoint)center {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio > 0) {
-        // 禁止系統把 bounds 改回 iPad 全螢幕
-        CGRect currentFrame = self.frame;
-        CGRect fixedBounds = CGRectMake(0, 0, currentFrame.size.width, currentFrame.size.height);
-        [self hook_setBounds:fixedBounds];
+    if (ratio > 0.1 && ratio < 0.99) {
+        CGRect screen = [UIScreen mainScreen].bounds;
+        CGPoint fixedCenter = CGPointMake(screen.size.width / 2, screen.size.height / 2);
+        [self hook_setCenter:fixedCenter];
     } else {
-        [self hook_setBounds:bounds];
+        [self hook_setCenter:center];
     }
 }
+@end
+
+// 7. 螢幕欺騙：讓 App 內部 UI (如瀏覽器網址列) 以為自己在窄螢幕上
+@implementation UIScreen (LiveContainer916)
+- (CGRect)hook_bounds {
+    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
+    CGRect original = [self hook_bounds];
+    if (ratio < 0.1 || ratio > 0.99) return original;
+
+    CGFloat targetH = original.size.height;
+    CGFloat targetW = targetH * ratio;
+    return CGRectMake(0, 0, targetW, targetH);
+}
+@end
+
 
 
 

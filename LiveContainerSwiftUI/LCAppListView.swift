@@ -122,7 +122,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
-        let ratio = isiPhoneMode ? 1.77777778 : 0
+        let ratio = isiPhoneMode ? 0.5625 : 0
         
         UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
         // 同步並列印
@@ -130,7 +130,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         print("DEBUG: Setting Ratio to \(ratio) in App Group: \(LCSharedUtils.appGroupID())")
         
     } label: {
-        Image(systemName: isiPhoneMode ? "rectangle.center.inset.filled" : "square")
+        Image(systemName: isiPhoneMode ? "iphone" : "ipad")
             .foregroundColor(isiPhoneMode ? .orange : .primary)
     }
 }

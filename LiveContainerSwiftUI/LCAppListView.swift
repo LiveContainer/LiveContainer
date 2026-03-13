@@ -121,12 +121,12 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
    var aspectRatioToggleButton: some View {
     Button {
-        is169Mode.toggle()
+        isiPhoneMode.toggle()
         // 立即寫入，這樣啟動時 AppDelegate 就能抓到
-        UserDefaults.standard.set(is169Mode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
+        UserDefaults.standard.set(isiPhoneMode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
     } label: {
         Image(systemName: is169Mode ? "rectangle.center.inset.filled" : "square")
-            .foregroundColor(is169Mode ? .orange : .primary)
+            .foregroundColor(isiPhoneMode ? .orange : .primary)
     }
 } 
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {

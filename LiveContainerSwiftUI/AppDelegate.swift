@@ -60,27 +60,28 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
 
 
 @objc extension UIApplication {
-    
     func hook_requestSceneSessionActivation(
         _ sceneSession: UISceneSession?,
         userActivity: NSUserActivity?,
         options: UIScene.ActivationRequestOptions?,
         errorHandler: ((any Error) -> Void)? = nil
     ) {
-        var newOptions = options
-        if newOptions == nil {
-            newOptions = UIScene.ActivationRequestOptions()
-        }
-            let tempRatio = UserDefaults.standard.double(forKey: "LCTempAspectRatio")
-            if tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad {
-                    newOptions!._setRequestFullscreen(false) 
+        let newOptions = options ?? UIScene.ActivationRequestOptions()
+        
+        let tempRatio = UserDefaults.standard.double(forKey: "LCTempAspectRatio")
+        if tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad {
+            newOptions._setRequestFullscreen(false)
         } else {
-        newOptions!._setRequestFullscreen(UIScreen.main.bounds == self.keyWindow!.bounds)
-            }
+            
+            let isFull = UIScreen.main.bounds == (self.keyWindow?.bounds ?? .zero)
+            newOptions._setRequestFullscreen(isFull)
+        }
+        
+        
         self.hook_requestSceneSessionActivation(sceneSession, userActivity: userActivity, options: newOptions, errorHandler: errorHandler)
     }
-    
 }
+
 
 public class ViewAppIntentHandler: NSObject, ViewAppIntentHandling
 {

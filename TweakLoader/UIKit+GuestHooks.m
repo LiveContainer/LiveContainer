@@ -595,21 +595,24 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
-@implementation UIScreen (LiveContainerHook)
+@implementation UIScreen (LiveContainer916)
 - (CGRect)hook_bounds {
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    CGRect original = [self hook_bounds];
+    // 取得真正的 iPad 物理尺寸
+    CGRect original = [self hook_bounds]; 
 
-    // 如果是 9:16 模式，強制回報縮小後的螢幕邊界
     if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        // 根據比例計算偽裝寬度
         CGFloat targetW = original.size.height * ratio;
-        // 確保寬度不超過物理極限
         if (targetW > original.size.width) targetW = original.size.width;
+        
+        // 返回偽造的座標系：寬度變窄，高度不變
         return CGRectMake(0, 0, targetW, original.size.height);
     }
     return original;
 }
 @end
+
 
 
 // Handler for SceneDelegate
@@ -741,28 +744,30 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    static BOOL isHooking = NO;
-    if (isHooking) { [self hook_setFrame:frame]; return; }
+    static BOOL isResizing = NO;
+    if (isResizing) { [self hook_setFrame:frame]; return; }
 
     float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio <= 0 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        [self hook_setFrame:frame];
-        return;
-    }
+    if (ratio <= 0) { [self hook_setFrame:frame]; return; }
 
-    isHooking = YES;
-    CGRect screen = [UIScreen mainScreen].bounds; // 此時會拿到 Hook 後的偽裝邊界
+    isResizing = YES;
     
-    // 強制讓 Window 填滿這個「偽裝螢幕」
-    CGRect newFrame = CGRectMake((UIScreen.mainScreen.fixedCoordinateSpace.bounds.size.width - screen.size.width) / 2, 
-                                 0, 
-                                 screen.size.width, 
-                                 screen.size.height);
+    // 1. 取得真正的 iPad 螢幕寬度 (不被 Hook 影響的原始值)
+    CGFloat physicalWidth = [UIScreen mainScreen].fixedCoordinateSpace.bounds.size.width;
+    
+    // 2. 取得我們 Hook 過的偽造寬度 (約 400px)
+    CGFloat fakeWidth = [UIScreen mainScreen].bounds.size.width;
+    CGFloat height = [UIScreen mainScreen].bounds.size.height;
+
+    // 3. 將座標設定為：(實體寬 - 偽造寬) / 2
+    CGRect newFrame = CGRectMake((physicalWidth - fakeWidth) / 2, 0, fakeWidth, height);
 
     self.backgroundColor = [UIColor blackColor];
     [self hook_setFrame:newFrame];
-    isHooking = NO;
+    
+    isResizing = NO;
 }
+
 
 
 

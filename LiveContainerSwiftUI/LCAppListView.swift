@@ -119,16 +119,22 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-   var aspectRatioToggleButton: some View {
+ var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
+        let ratio = isiPhoneMode ? 1.77777778 : 0
         
-        UserDefaults.lcShared().set(isiPhoneMode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
+        UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
+        // 同步並列印
+        UserDefaults.lcShared().synchronize()
+        print("DEBUG: Setting Ratio to \(ratio) in App Group: \(LCSharedUtils.appGroupID())")
+        
     } label: {
-        Image(systemName: isiPhoneMode ? "iphone" : "ipad")
-            .foregroundColor(isiPhoneMode ? .orange : .green)
+        Image(systemName: isiPhoneMode ? "rectangle.center.inset.filled" : "square")
+            .foregroundColor(isiPhoneMode ? .orange : .primary)
     }
-} 
+}
+
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _installOptions = State(initialValue: [])
         _appDataFolderNames = appDataFolderNames

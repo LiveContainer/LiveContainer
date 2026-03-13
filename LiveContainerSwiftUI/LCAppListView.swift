@@ -37,6 +37,7 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+    @State private var isiPhoneMode = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
@@ -264,6 +265,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     
 
                 }
+
+
+                ToolbarItem(placement: .principal) {      
+                       Button {
+                          isiPhoneMode.toggle()
+                       } label: {
+                     Label(
+                isiPhoneMode ? "16:9" : "Original",
+                systemImage: isiPhoneMode ? "rectangle.center.inset.filled" : "viewfinder"
+            )
+        }
+    } 
+
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
@@ -1027,6 +1041,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
 
+        let ratio = isiPhoneMode ? 1.7777777777 : 0
+        UserDefaults.standard.set(ratio,forKey: "LCTempAspectRatio")
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)

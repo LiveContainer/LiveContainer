@@ -8,15 +8,10 @@
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
-void swizzle(Class cls, SEL origSel, SEL hookSel);
+
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
-    swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-    swizzle(UIWindow.class, @selector(setCenter:), @selector(hook_setCenter:));
-    swizzle(UIWindow.class, @selector(bounds), @selector(hook_bounds));
-    swizzle(UIScreen.class, @selector(bounds), @selector(hook_bounds));
-    swizzle(UIScreen.class, @selector(nativeBounds), @selector(hook_nativeBounds));
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -718,70 +713,7 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 
-@interface UIScreen (hook)
-@end
-
-@implementation UIScreen (hook)
-- (CGRect)hook_bounds {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    CGRect original = [self hook_bounds];
-    if (ratio < 0.1 || ratio > 0.99) return original;
-
-    CGFloat targetW = original.size.height * ratio;
-    return CGRectMake(0, 0, targetW, original.size.height);
-}
-@end
-@interface UIWindow (hook)
-@end
-
-@implementation UIWindow (hook)
-
-- (void)hook_setFrame:(CGRect)frame {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-
-    // 原始模式退場
-    if (ratio < 0.1 || ratio > 0.99 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        [self hook_setFrame:frame];
-        return;
-    }
-
-    static BOOL isResizing = NO;
-    if (isResizing) { [self hook_setFrame:frame]; return; }
-    isResizing = YES;
-
-    CGRect screenBounds = [UIScreen mainScreen].bounds;
-    
-    // 計算目標尺寸
-    CGFloat targetH = screenBounds.size.height;
-    CGFloat targetW = targetH * ratio;
-
-    // 修正點 1：確保內容畫布 (Bounds) 是正確的 9:16 寬度，這能解決「只剩右邊界」的問題
-    self.bounds = CGRectMake(0, 0, targetW, targetH);
-    
-    // 修正點 2：強制將 Center 鎖定在物理螢幕正中央
-    self.center = CGPointMake(screenBounds.size.width / 2, screenBounds.size.height / 2);
-    
-    self.backgroundColor = [UIColor blackColor];
-    self.clipsToBounds = YES; 
-
-    // 呼叫原始方法來刷新渲染層級
-    [self hook_setFrame:self.frame];
-
-    isResizing = NO;
-}
-
-// 防止系統自動佈局 (Auto Layout) 把視窗抓回左邊
-- (void)hook_setCenter:(CGPoint)center {
-    float ratio = [[NSUserDefaults lcSharedDefaults] floatForKey:@"LCTempAspectRatio"];
-    if (ratio > 0.1 && ratio < 0.99) {
-        CGRect screen = [UIScreen mainScreen].bounds;
-        // 暴力鎖定置中
-        [self hook_setCenter:CGPointMake(screen.size.width / 2, screen.size.height / 2)];
-    } else {
-        [self hook_setCenter:center];
-    }
-}
-
+@implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];
 }

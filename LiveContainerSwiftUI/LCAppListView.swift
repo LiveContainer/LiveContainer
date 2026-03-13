@@ -119,7 +119,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-    
+   var aspectRatioToggleButton: some View {
+    Button {
+        is169Mode.toggle()
+        // 立即寫入，這樣啟動時 AppDelegate 就能抓到
+        UserDefaults.standard.set(is169Mode ? 1.77777778 : 0, forKey: "LCTempAspectRatio")
+    } label: {
+        Image(systemName: is169Mode ? "rectangle.center.inset.filled" : "square")
+            .foregroundColor(is169Mode ? .orange : .primary)
+    }
+} 
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _installOptions = State(initialValue: [])
         _appDataFolderNames = appDataFolderNames
@@ -267,16 +276,9 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
 
 
-                ToolbarItem(placement: .TopBarLeading) {      
-                       Button {
-                          isiPhoneMode.toggle()
-                       } label: {
-                     Label(
-                isiPhoneMode ? "16:9" : "Original",
-                systemImage: isiPhoneMode ? "rectangle.center.inset.filled" : "viewfinder"
-            )
-        }
-    } 
+                ToolbarItem(placement: .topBarTrailing) {
+        aspectRatioToggleButton // 調用下方定義的 View
+    }
 
                 
                 ToolbarItem(placement: .topBarTrailing) {

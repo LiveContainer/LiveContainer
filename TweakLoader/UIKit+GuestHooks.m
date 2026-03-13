@@ -723,54 +723,43 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
-    // 1. 取得比例設定
     NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
     float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
 
-    // 2. 只有在 iPad 且比例大於 0 時才介入
     if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         CGRect screen = [UIScreen mainScreen].bounds;
-        CGFloat screenW = screen.size.width;
+        // 根據 iPad 目前的方向（橫或豎）自動選取最大高度
         CGFloat screenH = screen.size.height;
-        
-        // 確保取到的是當前方向的寬高（處理旋轉）
-        CGFloat currentScreenW = MAX(screenW, screenH);
-        CGFloat currentScreenH = MIN(screenW, screenH);
-        
-        // 如果是豎屏方向，則反轉
-        if (screenW < screenH) {
-            currentScreenW = screenW;
-            currentScreenH = screenH;
-        }
+        CGFloat screenW = screen.size.width;
 
-        CGFloat targetW = currentScreenH * ratio;
-        CGFloat targetH = currentScreenH;
-        
-        // 如果算出的寬度大於螢幕寬度，則以寬度為基準縮放高度
-        if (targetW > currentScreenW) {
-            targetW = currentScreenW;
+        CGFloat targetH = screenH;
+        CGFloat targetW = targetH * ratio;
+
+        // 如果算出的寬度大於螢幕寬度，則反過來以寬度為基準
+        if (targetW > screenW) {
+            targetW = screenW;
             targetH = targetW / ratio;
         }
 
-        // 居中計算
-        CGRect newFrame = CGRectMake((currentScreenW - targetW) / 2, 
-                                     (currentScreenH - targetH) / 2, 
-                                     targetW, targetH);
-        
-        // 3. 避免無效的重複設置 (重要：防止黑屏死循環)
-        if (CGRectEqualToRect(self.frame, newFrame)) {
-            return; 
+        CGRect newFrame = CGRectMake((screenW - targetW) / 2, (screenH - targetH) / 2, targetW, targetH);
+
+        // 防死循環：如果尺寸已經一樣，就不再重複設置
+        if (ABS(self.frame.size.width - newFrame.size.width) < 0.1) {
+            return;
         }
 
-        // 強制背景黑邊
+        // --- 核心修正：確保 Window 綁定了 Scene ---
+        if (!self.windowScene) {
+            [self updateWindowScene]; // 調用 LiveContainer 自帶的 Scene 尋找邏輯
+        }
+
         self.backgroundColor = [UIColor blackColor];
-        // 呼叫原始 setFrame
         [self hook_setFrame:newFrame];
     } else {
-        // 4. 正常模式：走原有的旋轉鎖定或系統邏輯
         [self hook_setFrame:frame];
     }
 }
+
 
 
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {

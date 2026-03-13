@@ -32,6 +32,7 @@ static void UIKitGuestHooksInit() {
                 break;
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
+        swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
 //            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
@@ -714,6 +715,36 @@ BOOL canAppOpenItself(NSURL* url) {
 @end
 
 @implementation UIWindow(hook)
+- (void)hook_setFrame:(CGRect)frame {
+    
+    float ratio = [[NSUserDefaults standardUserDefaults] floatForKey:@"LCTempAspectRatio"];
+    
+    
+    if (ratio > 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        CGRect screen = [UIScreen mainScreen].bounds;
+        CGFloat sW = screen.size.width;
+        CGFloat sH = screen.size.height;
+
+        
+        CGFloat targetW = sH * ratio;
+        CGFloat targetH = sH;
+        
+        
+        if (targetW > sW) {
+            targetW = sW;
+            targetH = sW / ratio;
+        }
+        
+        
+        frame = CGRectMake((sW - targetW) / 2, (sH - targetH) / 2, targetW, targetH);
+        
+        
+        self.backgroundColor = [UIColor blackColor];
+    }
+    
+    
+    [self hook_setFrame:frame];
+}
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];
 }

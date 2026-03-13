@@ -143,6 +143,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     isActive: $isNavigationActive,
                     label: {
                         EmptyView()
+                        .aspectRatio(isiPhoneMode ? 1.777777 : nil ,contentMode: .fit)
                 })
                 .hidden()
                 
@@ -1044,7 +1045,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
 
         let ratio = isiPhoneMode ? 1.7777777777 : 0
-        UserDefaults.standard.set(ratio,forKey: "LCTempAspectRatio")
+        LCUtils.appGroupUserDefaults.set(ratio,forKey: "LCTempAspectRatio")
+        LCUnits.appGroupUserDefaults.synchronize()
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)

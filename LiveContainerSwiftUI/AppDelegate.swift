@@ -68,29 +68,19 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
     ) {
         let newOptions = options ?? UIScene.ActivationRequestOptions()
         
-       let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
-// 定義是否為 9:16 模式
-let is916 = tempRatio > 0 && UIDevice.current.userInterfaceIdiom == .pad
+       // 在啟動邏輯中
+let tempRatio = LCUtils.appGroupUserDefault().double(forKey: "LCTempAspectRatio")
+
+// 修正：只有在 ratio 大於 0.1 時才啟用 is916
+let is916 = tempRatio > 0.1 && UIDevice.current.userInterfaceIdiom == .pad
 
 if is916 {
-    // 1. 強制關閉全螢幕請求
+    newOptions._setRequestFullscreen(false)
+} else {
+    // 關鍵：如果比例是 0，一定要設為 true 恢復原始模式
     newOptions._setRequestFullscreen(true)
-    
-    // 2. 💡 關鍵：給予系統一個明確的邊界建議
-    let screen = UIScreen.main.bounds
-    let targetW = screen.height * 9 / 16
-    let targetFrame = CGRect(x: (screen.width - targetW) / 2, y: 0, width: targetW, height: screen.height)
-    
-    // 嘗試調用私有 API 來同步 Scene 的尺寸
-    if newOptions.responds(to: Selector(("_setRequestedSceneBounds:"))) {
-        newOptions.perform(Selector(("_setRequestedSceneBounds:")), with: targetFrame)
-    }
-                
-        } else {
-            
-            let isFull = UIScreen.main.bounds == (self.keyWindow?.bounds ?? .zero)
-            newOptions._setRequestFullscreen(isFull)
-        }
+}
+
         
         
         self.hook_requestSceneSessionActivation(sceneSession, userActivity: userActivity, options: newOptions, errorHandler: errorHandler)

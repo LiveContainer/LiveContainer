@@ -31,6 +31,13 @@ import Intents
             LCUtils.appGroupUserDefault.setValue(UIDevice.current.buildVersion, forKey: "LCLastIOSBuildVersion")
         }
         
+        // Capture incoming custom scheme URL
+        if let url = launchOptions?[.url] as? URL, let scheme = url.scheme?.lowercased() {
+            if !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+                UserDefaults.standard.set(url.absoluteString, forKey: "incomingCustomSchemeURL")
+            }
+        }
+        
         return true
     }
     

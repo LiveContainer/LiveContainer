@@ -110,6 +110,12 @@ class LCAppModel: ObservableObject, Hashable {
         }
     }
     
+    @Published var uiCustomUrlSchemes : [String] {
+        didSet {
+            appInfo.customUrlSchemes = uiCustomUrlSchemes
+        }
+    }
+    
     @Published var supportedLanguages : [String]?
     
     var delegate : LCAppModelDelegate?
@@ -143,6 +149,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.jitLaunchScriptJs = appInfo.jitLaunchScriptJs
         self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
         self.uiRemark = appInfo.remark ?? ""
+        self.uiCustomUrlSchemes = (appInfo.customUrlSchemes as? [String]) ?? []
 #if is32BitSupported
         self.uiIs32bit = appInfo.is32bit
 #endif

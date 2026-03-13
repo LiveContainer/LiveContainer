@@ -31,6 +31,9 @@ int dyld_get_program_sdk_version(void);
 + (void)launchMultitaskGuestApp:(NSString *)displayName completionHandler:(void (^)(NSNumber *pid, NSError *error))completionHandler API_AVAILABLE(ios(16.0));
 
 
++ (void)repackageLCWithCustomSchemes:(NSArray<NSString*>*)customSchemes
+                   completionHandler:(void(^)(NSURL* ipaURL, NSError* error))completionHandler;
+
 + (NSProgress *)signAppBundleWithZSign:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
 + (NSString*)getCertTeamIdWithKeyData:(NSData*)keyData password:(NSString*)password;
 + (int)validateCertificateWithCompletionHandler:(void(^)(int status, NSDate *expirationDate, NSString *organizationalUnitName, NSString *error))completionHandler;

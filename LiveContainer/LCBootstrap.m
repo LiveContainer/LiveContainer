@@ -618,6 +618,47 @@ int LiveContainerMain(int argc, char *argv[]) {
             [lcSharedDefaults removeObjectForKey:@"LCLaunchExtensionBundleID"];
             [lcSharedDefaults removeObjectForKey:@"LCLaunchExtensionContainerName"];
         }
+        
+        if (!selectedApp && !isLiveProcess) {
+            NSString *incomingUrl = [lcUserDefaults stringForKey:@"incomingCustomSchemeURL"];
+            [lcUserDefaults removeObjectForKey:@"incomingCustomSchemeURL"];
+            
+            if (incomingUrl) {
+                NSURL *url = [NSURL URLWithString:incomingUrl];
+                NSString *scheme = [url.scheme lowercaseString];
+                
+                // Find which app handles this custom scheme
+                NSString *docPath = [NSString stringWithFormat:@"%s/Documents", getenv("LC_HOME_PATH")];
+                NSString *appsPath = [docPath stringByAppendingPathComponent:@"Applications"];
+                NSFileManager *fm = NSFileManager.defaultManager;
+                NSArray *apps = [fm contentsOfDirectoryAtPath:appsPath error:nil];
+                
+                for (NSString *appFolder in apps) {
+                    NSString *infoPath = [NSString stringWithFormat:@"%@/%@/LCAppInfo.plist", appsPath, appFolder];
+                    NSDictionary *appInfo = [NSDictionary dictionaryWithContentsOfFile:infoPath];
+                    NSArray *customSchemes = appInfo[@"LCCustomUrlSchemes"];
+                    
+                    if (customSchemes && [customSchemes containsObject:scheme]) {
+                        selectedApp = appFolder;
+                        NSArray *containers = appInfo[@"LCContainers"];
+                        NSString *defaultDataUUID = appInfo[@"LCDataUUID"];
+                        
+                        if (containers && defaultDataUUID) {
+                            for (NSDictionary *container in containers) {
+                                if ([container[@"folderName"] isEqualToString:defaultDataUUID]) {
+                                    selectedContainer = defaultDataUUID;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Pass the URL to the app
+                        [lcUserDefaults setObject:incomingUrl forKey:@"launchAppUrlScheme"];
+                        break;
+                    }
+                }
+            }
+        }
     }
     
     NSString* lastLaunchDataUUID;

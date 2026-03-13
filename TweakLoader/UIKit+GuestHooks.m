@@ -402,7 +402,7 @@ BOOL canAppOpenItself(NSURL* url) {
                 [LCSupportedUrlSchemes addObject:[scheme lowercaseString]];
             }
         }
-    });
+    }); // It now correctly checks all CFBundleURLSchemes, including our injected ones!
     return [LCSupportedUrlSchemes containsObject:[url.scheme lowercaseString]];
 }
 

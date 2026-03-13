@@ -100,6 +100,12 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         }
     }
     
+    // append custom url schemes
+    NSArray* customSchemes = _info[@"LCCustomUrlSchemes"];
+    if (customSchemes) {
+        [urlSchemes addObjectsFromArray:customSchemes];
+    }
+
     return urlSchemes;
 }
 
@@ -759,6 +765,19 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         _info[@"remark"] = nil;
     } else {
         _info[@"remark"] = remark;
+    }
+    [self save];
+}
+
+- (NSArray<NSString*>*)customUrlSchemes {
+    return _info[@"LCCustomUrlSchemes"] ?: @[];
+}
+
+- (void)setCustomUrlSchemes:(NSArray<NSString*>*)customUrlSchemes {
+    if (customUrlSchemes.count == 0) {
+        [_info removeObjectForKey:@"LCCustomUrlSchemes"];
+    } else {
+        _info[@"LCCustomUrlSchemes"] = customUrlSchemes;
     }
     [self save];
 }

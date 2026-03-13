@@ -133,6 +133,20 @@ struct LCTabView: View {
             }
             
             guard let host = url.host?.lowercased() else {
+                // If there's no host, check if it's a known custom scheme
+                if let scheme = url.scheme?.lowercased(),
+                   !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+                    
+                    let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
+                    let hasCustomScheme = allApps.contains { app in
+                        guard let schemes = app.appInfo.customUrlSchemes as? [String] else { return false }
+                        return schemes.contains(scheme)
+                    }
+                    if hasCustomScheme {
+                        sharedModel.selectedTab = .apps
+                        break
+                    }
+                }
                 return
             }
             

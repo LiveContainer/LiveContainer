@@ -126,6 +126,110 @@
     }
 }
 
++ (void)repackageLCWithCustomSchemes:(NSArray<NSString*>*)customSchemes
+                   completionHandler:(void(^)(NSURL* ipaURL, NSError* error))completionHandler {
+    NSError *error;
+    NSFileManager *manager = NSFileManager.defaultManager;
+    NSURL *bundlePath = NSBundle.mainBundle.bundleURL;
+    NSURL *tmpPath = manager.temporaryDirectory;
+    
+    // Create Payload directory
+    NSURL *tmpPayloadPath = [tmpPath URLByAppendingPathComponent:@"LiveContainerRepack/Payload"];
+    [manager removeItemAtURL:tmpPayloadPath error:nil];
+    [manager createDirectoryAtURL:tmpPayloadPath withIntermediateDirectories:YES attributes:nil error:&error];
+    if (error) {
+        if (completionHandler) completionHandler(nil, error);
+        return;
+    }
+    
+    // Copy LiveContainer.app
+    NSURL *appBundlePath = [tmpPayloadPath URLByAppendingPathComponent:bundlePath.lastPathComponent];
+    [manager copyItemAtURL:bundlePath toURL:appBundlePath error:&error];
+    if (error) {
+        if (completionHandler) completionHandler(nil, error);
+        return;
+    }
+    
+    // Modify Info.plist
+    NSURL *infoPath = [appBundlePath URLByAppendingPathComponent:@"Info.plist"];
+    NSMutableDictionary *infoDict = [NSMutableDictionary dictionaryWithContentsOfURL:infoPath];
+    if (!infoDict) {
+        if (completionHandler) completionHandler(nil, [NSError errorWithDomain:@"repackage" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"Failed to read Info.plist"}]);
+        return;
+    }
+    
+    // 1. Add to CFBundleURLTypes
+    NSMutableArray *urlTypes = [infoDict[@"CFBundleURLTypes"] mutableCopy];
+    if (!urlTypes) urlTypes = [NSMutableArray array];
+    
+    // remove previous custom schemes config if any
+    for (int i = 0; i < urlTypes.count; i++) {
+        if ([urlTypes[i][@"CFBundleURLName"] isEqualToString:@"com.kdt.livecontainer.custom"]) {
+            [urlTypes removeObjectAtIndex:i];
+            break;
+        }
+    }
+    
+    if (customSchemes.count > 0) {
+        [urlTypes addObject:@{
+            @"CFBundleURLName": @"com.kdt.livecontainer.custom",
+            @"CFBundleURLSchemes": customSchemes
+        }];
+    }
+    infoDict[@"CFBundleURLTypes"] = urlTypes;
+    
+    // 2. Add to LSApplicationQueriesSchemes
+    NSMutableArray *querySchemes = [infoDict[@"LSApplicationQueriesSchemes"] mutableCopy];
+    if (!querySchemes) querySchemes = [NSMutableArray array];
+    for (NSString *scheme in customSchemes) {
+        if (![querySchemes containsObject:scheme]) {
+            [querySchemes addObject:scheme];
+        }
+    }
+    infoDict[@"LSApplicationQueriesSchemes"] = querySchemes;
+    
+    [infoDict writeToURL:infoPath error:&error];
+    if (error) {
+        if (completionHandler) completionHandler(nil, error);
+        return;
+    }
+    
+    // Remove _CodeSignature and embedded.mobileprovision to force re-sign
+    [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"_CodeSignature"] error:nil];
+    [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"embedded.mobileprovision"] error:nil];
+    
+    // Sign the repackaged app using ZSign
+    [self signAppBundleWithZSign:appBundlePath completionHandler:^(BOOL success, NSError *signError) {
+        if (!success || signError) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completionHandler) completionHandler(nil, signError);
+            });
+            return;
+        }
+        
+        // Archive to IPA
+        dlopen("/System/Library/PrivateFrameworks/PassKitCore.framework/PassKitCore", RTLD_GLOBAL);
+        NSData *zipData = [[NSClassFromString(@"PKZipArchiver") new] zippedDataForURL:tmpPayloadPath.URLByDeletingLastPathComponent];
+        if (!zipData) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completionHandler) completionHandler(nil, [NSError errorWithDomain:@"repackage" code:-1 userInfo:@{NSLocalizedDescriptionKey:@"PKZipArchiver failed to zip payload"}]);
+            });
+            return;
+        }
+        
+        NSURL *tmpIPAPath = [tmpPath URLByAppendingPathComponent:@"LiveContainer_repack.ipa"];
+        [manager removeItemAtURL:tmpIPAPath error:nil];
+        NSError *writeError;
+        [zipData writeToURL:tmpIPAPath options:0 error:&writeError];
+        
+        [manager removeItemAtURL:tmpPayloadPath.URLByDeletingLastPathComponent error:nil];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completionHandler) completionHandler(tmpIPAPath, writeError);
+        });
+    }];
+}
+
 + (NSProgress *)signAppBundleWithZSign:(NSURL *)path completionHandler:(void (^)(BOOL success, NSError *error))completionHandler {
     NSError *error;
 

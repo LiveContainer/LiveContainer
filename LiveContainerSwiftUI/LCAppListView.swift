@@ -297,7 +297,7 @@ NavigationLink(
                 }
 
 
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
         aspectRatioToggleButton // 調用下方定義的 View
     }
 
@@ -1064,8 +1064,8 @@ NavigationLink(
             return
         }
 
-        let ratio = isiPhoneMode ? 1.7777777777 : 0
-        UserDefaults.standard.set(ratio,forKey: "LCTempAspectRatio")
+        let ratio = isiPhoneMode ? 0.5625 : 0
+        UserDefaults.lcShared().double(ratio,forKey: "LCTempAspectRatio")
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {

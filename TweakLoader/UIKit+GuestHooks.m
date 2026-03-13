@@ -738,47 +738,47 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation UIWindow(hook)
 - (void)hook_setFrame:(CGRect)frame {
+    // 1. 遞迴保護：防止 setFrame 內部再次觸發 setFrame 導致死鎖
+    static BOOL isHooking = NO;
+    if (isHooking) {
+        [self hook_setFrame:frame];
+        return;
+    }
+
     NSUserDefaults *defaults = [NSUserDefaults lcSharedDefaults];
     float ratio = [defaults floatForKey:@"LCTempAspectRatio"];
 
-    if (ratio > 0 && [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        CGRect screen = [UIScreen mainScreen].bounds;
-        // 根據 iPad 目前的方向（橫或豎）自動選取最大高度
-        CGFloat screenH = screen.size.height;
-        CGFloat screenW = screen.size.width;
-
-        CGFloat targetH = screenH;
-        CGFloat targetW = targetH * ratio;
-
-        // 如果算出的寬度大於螢幕寬度，則反過來以寬度為基準
-        if (targetW > screenW) {
-            targetW = screenW;
-            targetH = targetW / ratio;
-        }
-
-        CGRect newFrame = CGRectMake((screenW - targetW) / 2, (screenH - targetH) / 2, targetW, targetH);
-
-        // 防死循環：如果尺寸已經一樣，就不再重複設置
-        if (ABS(self.frame.size.width - newFrame.size.width) < 0.1) {
-            return;
-        }
-
-        // --- 核心修正：確保 Window 綁定了 Scene ---
-        if (!self.windowScene) {
-            [self updateWindowScene]; // 調用 LiveContainer 自帶的 Scene 尋找邏輯
-        }
-
-        self.backgroundColor = [UIColor blackColor];
-        [self hook_setFrame:newFrame];
-       if (self.rootViewController) {
-            [self.rootViewController.view setNeedsLayout];
-            [self.rootViewController.view layoutIfNeeded];
-        }
-        
-    } else {
+    // 2. 原始模式安全開關：如果比例為 0，直接走原流程並退出
+    if (ratio <= 0 || [UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         [self hook_setFrame:frame];
+        return;
     }
+
+    // 3. 開始計算 16:9
+    isHooking = YES; // 鎖定
+
+    CGRect screen = [UIScreen mainScreen].bounds;
+    CGFloat targetH = screen.size.height;
+    CGFloat targetW = targetH * ratio;
+    
+    if (targetW > screen.size.width) {
+        targetW = screen.size.width;
+        targetH = targetW / ratio;
+    }
+
+    CGRect newFrame = CGRectMake((screen.size.width - targetW) / 2, 
+                                 (screen.size.height - targetH) / 2, 
+                                 targetW, targetH);
+
+    // 4. 設定背景色（僅針對主視窗）
+    self.backgroundColor = [UIColor blackColor];
+    
+    // 5. 呼叫原始方法
+    [self hook_setFrame:newFrame];
+
+    isHooking = NO; // 解鎖
 }
+
 
 
 

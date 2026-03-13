@@ -11,6 +11,12 @@ NSUUID* idForVendorUUID = nil;
 
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
+
+
+swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+    NSLog(@"[LC] UIKit Guest Hooks Initialized!");
+
+    
     if(!NSUserDefaults.lcGuestAppId) return;
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));

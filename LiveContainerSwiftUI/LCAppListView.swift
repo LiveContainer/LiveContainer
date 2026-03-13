@@ -1065,7 +1065,7 @@ NavigationLink(
         }
 
         let ratio = isiPhoneMode ? 0.5625 : 0
-        UserDefaults.lcShared().double(ratio,forKey: "LCTempAspectRatio")
+        UserDefaults.lcShared().set(ratio,forKey: "LCTempAspectRatio")
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {

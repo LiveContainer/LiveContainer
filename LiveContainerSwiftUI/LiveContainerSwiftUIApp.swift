@@ -111,7 +111,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             }
             
             .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
-            .defaultValue("") 
+            
         }
         
  

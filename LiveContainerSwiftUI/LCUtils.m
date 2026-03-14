@@ -152,8 +152,8 @@
     
     // Read the current team ID to strip from SideStore duplication
     NSString *teamIdSuffix = nil;
-    NSString *primaryTeamId = NSBundle.mainBundle.infoDictionary[@"PrimaryLiveContainerTeamId"];
-    if (primaryTeamId) {
+    NSString *primaryTeamId = [LCSharedUtils teamIdentifier];
+    if (primaryTeamId.length > 0) {
         teamIdSuffix = [NSString stringWithFormat:@".%@", primaryTeamId];
     }
     

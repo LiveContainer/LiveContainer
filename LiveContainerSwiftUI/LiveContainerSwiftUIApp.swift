@@ -111,12 +111,13 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
  if UIDevice.current.userInterfaceIdiom == .pad,
            #available(iOS 16.1, *) {
             
-            WindowGroup(id: "IPhoneModeWindow") {
-                
-                IPhoneModeWrapperView()
-                    .environmentObject(DataManager.shared.model)
+            WindowGroup(id: "appView", for: String.self) { $id in
+                if let id = id {
+                    MultitaskAppWindow(id: id)
+                        .environmentObject(DataManager.shared.model)
+                }
             }
-            .handlesExternalEvents(matching: ["com.livecontainer.iphonemode"])
+            .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
         }
 
     }

@@ -10,7 +10,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
-protocol LCAppBannerDelegate {
+
     protocol LCAppBannerDelegate {
     func removeApp(app: LCAppModel)
     func installMdm(data: Data)

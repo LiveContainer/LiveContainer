@@ -240,13 +240,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                
-
-         
-          
-
-                
+            ScrollView {               
                 LazyVStack {
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
@@ -429,7 +423,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     .foregroundColor(.white)
             }
             
-            
+          }
         }
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {

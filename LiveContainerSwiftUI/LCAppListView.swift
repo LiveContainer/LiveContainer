@@ -1063,9 +1063,15 @@ NavigationLink(
             errorShow = true
             return
         }
-
-        let ratio = isiPhoneMode ? 0.5625 : 0
-        UserDefaults.lcShared().set(ratio,forKey: "LCTempAspectRatio")
+        if isiPhoneMode {
+            
+            DispatchQueue.main.async {
+                self.navigateTo = AnyView(IPhoneModeHostView(app: appFound))
+                self.isNavigationActive = true
+            }
+            return
+        }
+   
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {

@@ -120,7 +120,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
         
-     @Environment(\.openWindow) private var openWindow  
+     
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
@@ -1049,18 +1049,22 @@ NavigationLink(
         }
     
 if isiPhoneMode {
-        
-        let ratio: Float = 0.5625
-        UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
-        UserDefaults.lcShared().synchronize()
+            let ratio: Float = 0.5625
+            UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
+            UserDefaults.lcShared().synchronize()
 
         
-        if #available(iOS 16.1, *) {
-            
-            openWindow(id: "appView", value: appFound.appInfo.dataUUID)
-            return
+            if #available(iOS 16.1, *) {
+                let activity = NSUserActivity(activityType: "com.livecontainer.openApp")
+                
+                activity.userInfo = ["dataUUID": appFound.appInfo.dataUUID ?? ""]
+                
+                DispatchQueue.main.async {
+                    UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
+                }
+                return
+            }
         }
-    }
 
    
         

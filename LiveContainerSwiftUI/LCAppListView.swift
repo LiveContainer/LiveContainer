@@ -84,7 +84,7 @@ struct IPhoneRunnerView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-          .navigationTitle(")
+          .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar) 
         .onDisappear {
             isAppActive = false

@@ -103,23 +103,18 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         
         if UIApplication.shared.supportsMultipleScenes, #available(iOS 16.1, *) {
             WindowGroup(id: "appView", for: String.self) { $id in
-                if let id {
+                
+                if let id = id {
                     MultitaskAppWindow(id: id)
+                        .environmentObject(DataManager.shared.model)
                 }
             }
-        }
- if UIDevice.current.userInterfaceIdiom == .pad,
-           #available(iOS 16.1, *) {
             
-            WindowGroup(id: "appView", for: String.self) { $id in
-        if let id = id {
-            MultitaskAppWindow(id: id)
-                .environmentObject(DataManager.shared.model)
+            .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
+            .defaultValue("") 
         }
-    }
-    
-    .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
-}
+        
+ 
 
     }
     

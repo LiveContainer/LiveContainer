@@ -602,7 +602,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
         @ViewBuilder
     private var iPhoneDestination: some View {
-        if #available(iOS 16.1, *) { // 這裡必須加，因為 AppSceneViewSwiftUI 需要
+        if #available(iOS 16.1, *) { 
             if let info = pendingIPhoneApp {
                 IPhoneRunnerView(appInfo: info)
             } else {
@@ -1154,14 +1154,20 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
             
-         await MainActor.run {
+         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
+
+    if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
+        
         self.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),
             dataUUID: targetDataUUID,
             bundleId: appFound.appInfo.relativeBundlePath
         )
         
-        self.triggerNavigation = true
+        await MainActor.run {
+            self.triggerNavigation = true
+        }
+        return 
     }
 
 
@@ -1273,7 +1279,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     func copyError() {
         UIPasteboard.general.string = errorInfo
     }
-    
+
+func requestLaunchApp(bundleId: String, container: String?) {
+    Task {
+        await launchAppWithBundleId(bundleId: bundleId, container: container)
+    }
+}
+
     func handleURL(url : URL) {
         if url.isFileURL {
             Task { await installFromUrl(urlStr: url.absoluteString) }

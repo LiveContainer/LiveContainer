@@ -9,6 +9,50 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+@available(iOS 16.1, *)
+struct AppRunnerOverlay: View {
+    let appInfo: SimpleAppInfo
+    let useIPhoneMode: Bool
+    @State private var isAppActive = true
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack {
+        
+            Color(useIPhoneMode ? .black : .systemBackground).ignoresSafeArea()
+
+            GeometryReader { geometry in
+                let h = geometry.size.height * (useIPhoneMode ? 0.9 : 1.0)
+                let w = useIPhoneMode ? (h * 0.5625) : geometry.size.width
+                
+                VStack {
+                    
+                    AppSceneViewSwiftUI(
+                        show: $isAppActive,
+                        bundleId: appInfo.bundleId,
+                        dataUUID: appInfo.dataUUID,
+                        initSize: CGSize(width: w, height: h),
+                        onAppInitialize: { pid, error in
+                            print("App Rendered inside SwiftUI - PID: \(pid)")
+                        }
+                    )
+                    .frame(width: w, height: h)
+                    .cornerRadius(useIPhoneMode ? 15 : 0)
+                    .shadow(radius: useIPhoneMode ? 20 : 0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle(useIPhoneMode ? appInfo.displayName : "")
+        .navigationBarTitleDisplayMode(.inline)
+        
+        .navigationBarHidden(true) 
+        .onDisappear {
+            isAppActive = false 
+        }
+    }
+}
+
 
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
@@ -1110,21 +1154,14 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
             
-         if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-        let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
-        
-        
+         await MainActor.run {
         self.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),
             dataUUID: targetDataUUID,
             bundleId: appFound.appInfo.relativeBundlePath
         )
         
-        
-        await MainActor.run {
-            self.triggerNavigation = true
-        }
-        return 
+        self.triggerNavigation = true
     }
 
 
@@ -1134,7 +1171,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
             } else {
-                try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
+               return //try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
             }
         } catch {
             errorInfo = error.localizedDescription

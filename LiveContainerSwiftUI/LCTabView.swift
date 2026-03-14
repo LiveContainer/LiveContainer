@@ -27,54 +27,42 @@ struct LCTabView: View {
     @State private var position = CGSize(width: 60, height: 60)
 
        var body: some View {
+        VStack(spacing: 0) {
+        
+        
         ZStack {
-       
-            Color.black.ignoresSafeArea()
-            
-            if let appInfo = sharedModel.pendingIPhoneApp {
-                
-                ZStack {
-                      floatingBackButton
-                        .zIndex(99) 
-                    if #available(iOS 16.1, *) {
-                        IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
-                            .ignoresSafeArea()
-                    }
-                    
-              
-                }
-                .transition(.opacity)
-                .statusBar(hidden: true)
-                
-            } else {
-                
-                VStack(spacing: 0) {
-                    
-                    
-                    
-                    
-                    ZStack {
-                        if sharedModel.selectedTab == .sources {
-                            LCSourcesView()
-                        } else if sharedModel.selectedTab == .apps {
-                            LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                        } else if sharedModel.selectedTab == .tweaks {
-                            LCTweaksView(tweakFolders: $tweakFolderNames)
-                        } else if sharedModel.selectedTab == .settings {
-                            LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                          if sharedModel.pendingIPhoneApp == nil {
-                    customToolbar
-                   }
-                }
-                .background(Color(UIColor.systemBackground).ignoresSafeArea())
-                .transition(.opacity)
+            if sharedModel.selectedTab == .sources {
+                LCSourcesView()
+            } else if sharedModel.selectedTab == .apps {
+                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            } else if sharedModel.selectedTab == .tweaks {
+                LCTweaksView(tweakFolders: $tweakFolderNames)
+            } else if sharedModel.selectedTab == .settings {
+                LCSettingsView(appDataFolderNames: $appDataFolderNames)
             }
         }
-            .navigationTitle("")
-    .navigationBarHidden(true) 
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+               customToolbar 
+    }
+    .background(Color(UIColor.systemBackground).ignoresSafeArea())
+    
+    
+    
+    .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if #available(iOS 16.1, *) {
+                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
+                    .ignoresSafeArea()
+            }
+            
+           
+            floatingBackButton
+        }
+        
+            
+
    
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})

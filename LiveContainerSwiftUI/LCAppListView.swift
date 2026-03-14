@@ -37,6 +37,10 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+    
+@State private var pendingIPhoneApp: MultitaskAppInfo? = nil
+@State private var triggerNavigation = false
+
     @State private var isiPhoneMode = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
@@ -142,14 +146,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         NavigationView {
             ScrollView {
                 
-NavigationLink(
-    destination: navigateTo,
-       
-    isActive: $isNavigationActive,
-    label: { EmptyView() }
-)
 
-                .hidden()
+         NavigationLink(
+    destination: Group {
+        if let info = pendingIPhoneApp {
+            IPhoneRunnerView(appInfo: info)
+        }
+    },
+    isActive: $triggerNavigation
+) {
+    EmptyView()
+}
+                .hidden
+
                 
                 LazyVStack {
                     ForEach(filteredApps, id: \.self) { app in
@@ -1049,20 +1058,20 @@ NavigationLink(
         }
             
       if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-       
-        LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
-        LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
-        LCUtils.appGroupUserDefault.synchronize()
-
+        let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
         
-        do {
-            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-            return 
-        } catch {
-            errorShow = true
-            errorInfo = error.localizedDescription
-        }
+        
+        self.pendingIPhoneApp = MultitaskAppInfo(
+            displayName: appFound.appInfo.displayName(),
+            dataUUID: targetDataUUID,
+            bundleId: appFound.appInfo.relativeBundlePath
+        )
+        
+        
+        self.triggerNavigation = true
+        return 
     }
+
 
         
         do {            

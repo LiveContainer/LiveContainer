@@ -418,7 +418,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 
                 if #available(iOS 16.1, *) {
                     IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: self.isiPhoneMode)
-                        .ignoresSafeArea()
+                    
                 } else {
                     Text("iPhone Mode requires iOS 16.1+")
                         .foregroundColor(.white)

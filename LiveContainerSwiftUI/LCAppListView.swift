@@ -10,6 +10,61 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+struct FloatingBackButton: View {
+    @Binding var isPresented: SimpleAppInfo? // 用於關閉 fullScreenCover
+    
+    
+    @State private var position = CGSize(width: 60, height: 60)
+    @State private var dragOffset = CGSize.zero
+    
+    var body: some View {
+        GeometryReader { geo in
+            Button(action: {
+                withAnimation(.spring()) {
+                    isPresented = nil
+                }
+            }) {
+                Image(systemName: "chevron.left")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                    .frame(width: 50, height: 50)
+                    .background(
+                        Circle()
+                            .fill(Color.black.opacity(0.6))
+                            .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
+                    )
+            }
+            
+            .position(
+                x: position.width + dragOffset.width,
+                y: position.height + dragOffset.height
+            )
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        dragOffset = value.translation
+                    }
+                    .onEnded { value in
+                        
+                        position.width += value.translation.width
+                        position.height += value.translation.height
+                        dragOffset = .zero
+                        
+                        
+                        let edgePadding: CGFloat = 30
+                        let screenWidth = geo.size.width
+                        let screenHeight = geo.size.height
+                        
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                            position.width = max(edgePadding, min(position.width, screenWidth - edgePadding))
+                            position.height = max(edgePadding, min(position.height, screenHeight - edgePadding))
+                        }
+                    }
+            )
+        }
+    }
+}
+
 @available(iOS 16.1, *)
 struct AppRunnerOverlay: View {
     let appInfo: SimpleAppInfo
@@ -412,20 +467,20 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .fullScreenCover(item: $pendingIPhoneApp) { appInfo in
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                if #available(iOS 16.1, *) {
-                    IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: self.isiPhoneMode)
+        .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if #available(iOS 16.1, *) {
+                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
                     
-                } else {
-                    Text("iPhone Mode requires iOS 16.1+")
-                        .foregroundColor(.white)
-                }
-                
             }
+            
+            
+            FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
+                .zIndex(99)
         }
+    }
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
             })

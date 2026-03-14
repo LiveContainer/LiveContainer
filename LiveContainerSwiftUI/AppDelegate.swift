@@ -68,18 +68,18 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
     ) {
         let newOptions = options ?? UIScene.ActivationRequestOptions()
         
-       // 在啟動邏輯中
+       
 let tempRatio = UserDefaults.lcShared().double(forKey: "LCTempAspectRatio")
 
-// 修正：只有在 ratio 大於 0.1 時才啟用 is916
+
 let is916 = tempRatio > 0.1 && UIDevice.current.userInterfaceIdiom == .pad
 
 if is916 {
-    newOptions._setRequestFullscreen(true) // 建議先設為 true 讓系統允許繪製
-    // 允許 Scene 隨重力感應旋轉
+    newOptions._setRequestFullscreen(true) 
+    
     newOptions.perform(Selector(("_setRequestedSceneBounds:")), with: UIScreen.main.bounds) 
 }else {
-    // 關鍵：如果比例是 0，一定要設為 true 恢復原始模式
+    
     newOptions._setRequestFullscreen(true)
 }
 

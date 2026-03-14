@@ -112,13 +112,14 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
            #available(iOS 16.1, *) {
             
             WindowGroup(id: "appView", for: String.self) { $id in
-                if let id = id {
-                    MultitaskAppWindow(id: id)
-                        .environmentObject(DataManager.shared.model)
-                }
-            }
-            .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
+        if let id = id {
+            MultitaskAppWindow(id: id)
+                .environmentObject(DataManager.shared.model)
         }
+    }
+    
+    .handlesExternalEvents(matching: ["com.livecontainer.openApp"]) 
+}
 
     }
     

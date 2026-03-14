@@ -57,8 +57,9 @@ struct AppRunnerOverlay: View {
 
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
-       let isiPhoneMode: Bool
+       
     let appInfo: SimpleAppInfo 
+    let isiPhoneMode: Bool
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
 

@@ -1049,23 +1049,29 @@ NavigationLink(
         }
     
 if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-        // 1. 設定比例
-        LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
-        LCUtils.appGroupUserDefault.synchronize()
+    
+    LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
+    LCUtils.appGroupUserDefault.synchronize()
 
-        // 2. 呼叫多工模式的管理器
-        if #available(iOS 16.1, *) {
-            MultitaskWindowManager.openAppWindow(
-                displayName: appFound.appInfo.displayName(),
-                dataUUID: appFound.appInfo.dataUUID ?? "",
-                bundleId: appFound.appInfo.relativeBundlePath,
-                pidCallback: nil
+    
+    if #available(iOS 16.1, *) {
+        do {
+            
+            try await appFound.runApp(
+                multitask: true, 
+                containerFolderName: container, 
+                forceJIT: forceJIT
             )
-            return
+            return 
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
         }
     }
+}
+
     
-    // 如果不是 iPhone 模式，則清除比例並走原本流程
+    
     LCUtils.appGroupUserDefault.set(0, forKey: "LCTempAspectRatio")
 
    

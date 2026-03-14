@@ -57,6 +57,7 @@ struct LCTabView: View {
                 }
                 
                 floatingBackButton
+                .zIndex(99)
             }
         } 
         .alert("lc.common.error".loc, isPresented: $errorShow) {
@@ -137,7 +138,7 @@ struct LCTabView: View {
                         position.height += value.translation.height
                         dragOffset = .zero
                         
-                        position.width = max(30, min(position.width, geo.size.width - 30))
+                        position.width = max(50, min(position.width, geo.size.width - 50))
                         position.height = max(50, min(position.height, geo.size.height - 50))
                     }
             )

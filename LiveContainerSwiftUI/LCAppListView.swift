@@ -9,6 +9,48 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+
+struct IPhoneRunnerView: View {
+    let appInfo: MultitaskAppInfo
+    @State private var isAppActive = true
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack {
+            
+            Color.black.ignoresSafeArea()
+
+            GeometryReader { geometry in
+              
+                let height = geometry.size.height 
+                let width = height * 0.5625
+                
+                VStack {
+                    // App 視窗本體
+                    AppSceneViewSwiftUI(
+                        show: $isAppActive,
+                        bundleId: appInfo.bundleId,
+                        dataUUID: appInfo.dataUUID,
+                        initSize: CGSize(width: width, height: height),
+                        onAppInitialize: { pid, error in
+                            print("iPhone Mode App Started: \(pid)")
+                        }
+                    )
+                    .frame(width: width, height: height)
+                    
+                    
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle(appInfo.displayName)
+        .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            isAppActive = false 
+        }
+    }
+}
+
 struct SimpleAppInfo {
     let displayName: String
     let dataUUID: String
@@ -156,19 +198,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 
 
          // 在 ScrollView 內部的 NavigationLink 改成這樣，比較容易編譯成功
-NavigationLink(
-    destination: Group {
-        if let info = pendingIPhoneApp {
-            IPhoneRunnerView(appInfo: info)
-        } else {
-            EmptyView()
-        }
-    },
-    isActive: $triggerNavigation
-) {
-    EmptyView()
-}
-.hidden()
+          NavigationLink(
+                    destination: iPhoneDestination,
+                    isActive: $triggerNavigation
+                ) {
+                    EmptyView()
+                }
+                .hidden()
 
                 
                 LazyVStack {

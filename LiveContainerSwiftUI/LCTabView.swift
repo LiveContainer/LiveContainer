@@ -52,7 +52,7 @@ struct LCTabView: View {
                            Spacer()
                     customToolbar
                     }.zIndex(99)
-                   ZStack{ 
+                   
                         if sharedModel.selectedTab == .sources {
                             LCSourcesView()
                         } else if sharedModel.selectedTab == .apps {

@@ -122,12 +122,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
-        let ratio = isiPhoneMode ? 0.5625 : 0
-        
-        UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
-        // 同步並列印
-        UserDefaults.lcShared().synchronize()
-        print("DEBUG: Setting Ratio to \(ratio) in App Group: \(LCSharedUtils.appGroupID())")
+       
         
     } label: {
         Image(systemName: isiPhoneMode ? "iphone" : "ipad")
@@ -144,23 +139,10 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     var body: some View {
         NavigationView {
             ScrollView {
-                // 在你的導航邏輯中
+                
 NavigationLink(
-    destination: navigateTo
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // 撐滿全螢幕
-        .background(Color.black) // 設定黑色背景（這就是邊緣的黑條）
-        .overlay(
-            // 在層級上方疊加 9:16 的限制
-            Group {
-                if isiPhoneMode {
-                    navigateTo
-                        .aspectRatio(9.0/16.0, contentMode: .fit)
-                        .clipped() // 確保內容不溢出
-                } else {
-                    navigateTo
-                }
-            }
-        ),
+    destination: navigateTo,
+       
     isActive: $isNavigationActive,
     label: { EmptyView() }
 )
@@ -298,7 +280,7 @@ NavigationLink(
 
 
                 ToolbarItem(placement: .topBarLeading) {
-        aspectRatioToggleButton // 調用下方定義的 View
+        aspectRatioToggleButton 
     }
 
                 

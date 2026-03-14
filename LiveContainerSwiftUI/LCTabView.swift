@@ -26,22 +26,22 @@ struct LCTabView: View {
     @State private var dragOffset = CGSize.zero
     @State private var position = CGSize(width: 60, height: 60)
 
-   var body: some View {
+       var body: some View {
         ZStack {
-            
+       
             Color.black.ignoresSafeArea()
             
             if let appInfo = sharedModel.pendingIPhoneApp {
                 
                 ZStack {
+                      floatingBackButton
+                        .zIndex(99) 
                     if #available(iOS 16.1, *) {
                         IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
                             .ignoresSafeArea()
                     }
                     
-                    
-                    floatingBackButton
-                        .zIndex(99)
+              
                 }
                 .transition(.opacity)
                 
@@ -49,7 +49,7 @@ struct LCTabView: View {
                 
                 VStack(spacing: 0) {
                     
-                    customToolbar
+                    customToolbar 
                     
                     
                     ZStack {
@@ -65,11 +65,11 @@ struct LCTabView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .background(Color(UIColor.systemBackground).ignoresSafeArea()) // 列表模式背景色
+                .background(Color(UIColor.systemBackground).ignoresSafeArea())
                 .transition(.opacity)
             }
         }
-        
+        // 修飾符掛在最外層 ZStack
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
@@ -84,6 +84,7 @@ struct LCTabView: View {
         }
         .onOpenURL { url in dispatchURL(url: url) }
     }
+
 
     
     var customToolbar: some View {

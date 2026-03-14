@@ -164,8 +164,8 @@
             NSMutableDictionary *infoDict = [NSMutableDictionary dictionaryWithContentsOfURL:fileURL];
             if (infoDict && infoDict[@"CFBundleIdentifier"]) {
                 NSString *bundleId = infoDict[@"CFBundleIdentifier"];
-                if (teamIdSuffix && [bundleId hasSuffix:teamIdSuffix]) {
-                    infoDict[@"CFBundleIdentifier"] = [bundleId substringToIndex:bundleId.length - teamIdSuffix.length];
+                if (teamIdSuffix && [bundleId containsString:teamIdSuffix]) {
+                    infoDict[@"CFBundleIdentifier"] = [bundleId stringByReplacingOccurrencesOfString:teamIdSuffix withString:@""];
                 }
                 
                 // If this is the main app Info.plist, inject the custom schemes

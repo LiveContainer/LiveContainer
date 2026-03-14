@@ -11,10 +11,14 @@ import UniformTypeIdentifiers
 import UIKit
 
 protocol LCAppBannerDelegate {
+    protocol LCAppBannerDelegate {
     func removeApp(app: LCAppModel)
     func installMdm(data: Data)
     func openNavigationView(view: AnyView)
     func promptForGeneratedIconStyle() async -> GeneratedIconStyle?
+    
+    func requestLaunchApp(bundleId: String, container: String?)
+
 }
 
 struct LCAppBanner : View {
@@ -126,6 +130,8 @@ struct LCAppBanner : View {
             Spacer()
             Button {
                 if #available(iOS 16.0, *), sharedModel.multiLCStatus != 2 && launchInMultitaskMode {
+                      let containerName = model.uiSelectedContainer?.folderName
+                      let bundleId = appInfo.relativeBundlePath ?? ""
                      if let currentDataFolder = model.uiSelectedContainer?.folderName,
                         MultitaskManager.isUsing(container: currentDataFolder) {
                          var found = false
@@ -142,7 +148,7 @@ struct LCAppBanner : View {
                      
                     Task{ await runApp(multitask: true) }
                 } else {
-                    Task{ await runApp(multitask: false) }
+                   delegate.requestLaunchApp(bundleId: bundleId, container: containerName) //Task{ await runApp(multitask: false) }
                 }
             } label: {
                 if !model.isSigningInProgress {
@@ -221,8 +227,10 @@ struct LCAppBanner : View {
                 }
                 if #available(iOS 16.0, *) {
                     Button {
+                        let containerName = model.uiSelectedContainer?.folderName
+                        let bundleId = appInfo.relativeBundlePath ?? ""
                         if launchInMultitaskMode {
-                            Task{ await runApp(multitask: false) }
+                           delegate.requestLaunchApp(bundleId: appInfo.relativeBundlePath ?? "", container: model.uiSelectedContainer?.folderName) //Task{ await runApp(multitask: false) }
                         } else {
                             Task{ await runApp(multitask: true) }
                         }

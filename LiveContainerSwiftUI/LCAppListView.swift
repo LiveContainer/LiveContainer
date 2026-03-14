@@ -120,7 +120,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
         
-    
+     @Environment(\.openWindow) private var openWindow  
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()

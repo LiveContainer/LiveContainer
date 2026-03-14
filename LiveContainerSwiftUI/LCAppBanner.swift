@@ -130,11 +130,15 @@ struct LCAppBanner : View {
             Spacer()
             Button {
     
-    let bundleId = appInfo.relativeBundlePath ?? ""
-    let containerName = model.uiSelectedContainer?.folderName
-    
-    
-    delegate.requestLaunchApp(bundleId: bundleId, container: containerName)
+    if launchInMultitaskMode {
+        Task {
+            await runApp(multitask: true)
+        }
+    } else {
+        let bundleId = appInfo.relativeBundlePath ?? ""
+        let containerName = model.uiSelectedContainer?.folderName
+        delegate.requestLaunchApp(bundleId: bundleId, container: containerName)
+    }
 } label: {
     if !model.isSigningInProgress {
         Text("lc.appBanner.run".loc).bold().foregroundColor(.white)
@@ -145,6 +149,7 @@ struct LCAppBanner : View {
         ProgressView().progressViewStyle(.circular)
     }
 }
+
 
             .buttonStyle(BasicButtonStyle())
             .padding()
@@ -213,11 +218,15 @@ struct LCAppBanner : View {
                 if #available(iOS 16.0, *) {
                     Button {
     
-    let bundleId = appInfo.relativeBundlePath ?? ""
-    let containerName = model.uiSelectedContainer?.folderName
-    
-    
-    delegate.requestLaunchApp(bundleId: bundleId, container: containerName)
+    if launchInMultitaskMode {
+        Task {
+            await runApp(multitask: true)
+        }
+    } else {
+        let bundleId = appInfo.relativeBundlePath ?? ""
+        let containerName = model.uiSelectedContainer?.folderName
+        delegate.requestLaunchApp(bundleId: bundleId, container: containerName)
+    }
 } label: {
     if !model.isSigningInProgress {
         Text("lc.appBanner.run".loc).bold().foregroundColor(.white)
@@ -228,6 +237,7 @@ struct LCAppBanner : View {
         ProgressView().progressViewStyle(.circular)
     }
 }
+
 
                 }
                 Menu {

@@ -35,6 +35,8 @@ struct LCTabView: View {
                     if #available(iOS 16.1, *), let appInfo = sharedModel.pendingIPhoneApp {
                         IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
                             .ignoresSafeArea()
+                           floatingBackButton
+                    .zIndex(99) 
                     }
                 } else {
                 
@@ -56,9 +58,9 @@ struct LCTabView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                          
-                if sharedModel.pendingIPhoneApp != nil {  
+              
                            customToolbar
-                       }
+                       
                     }
                 }
             }

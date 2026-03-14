@@ -1046,12 +1046,17 @@ NavigationLink(
             return
         }
         if isiPhoneMode {
-            
-            DispatchQueue.main.async {
-                self.navigateTo = AnyView(IPhoneModeHostView(app: appFound))
-                self.isNavigationActive = true
+            if #available(iOS 16.1, *) {
+                
+                DispatchQueue.main.async {
+                    self.navigateTo = AnyView(IPhoneModeHostView(app: appFound))
+                    self.isNavigationActive = true
+                }
+                return 
+            } else {
+                
+                print("iPhone Mode requires iOS 16.1+")
             }
-            return
         }
    
         

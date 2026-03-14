@@ -1047,43 +1047,27 @@ NavigationLink(
             errorShow = true
             return
         }
-    
-if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-    
-    LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
-    
-    
-    LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
-    
-    // 3. 立即同步寫入
-    LCUtils.appGroupUserDefault.synchronize()
-    try? await Task.sleep(nanoseconds: 100_000_000)
-    if #available(iOS 16.1, *) {
-        do {
             
-            
-            try await appFound.runApp(
-                multitask: true, 
-                containerFolderName: container, 
-                forceJIT: forceJIT
-            )
-            return 
-        } catch {
-            errorInfo = error.localizedDescription
-            errorShow = true
-            return 
-        }
-    }
-}
-
-
-    
-    
-    LCUtils.appGroupUserDefault.set(0, forKey: "LCTempAspectRatio")
-
-   
+        do {   
+            let finalMultitask: Bool
         
-        do {            
+        if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
+            
+            LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
+            LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
+            LCUtils.appGroupUserDefault.synchronize()
+            
+            
+            finalMultitask = true
+            
+            
+            print("DEBUG: iPhone Mode Intercepted! Ratio set to 0.5625")
+        } else {
+            
+            finalMultitask = launchInMultitaskMode
+            
+            LCUtils.appGroupUserDefault.set(0, forKey: "LCTempAspectRatio")
+        }
             if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
             } else {

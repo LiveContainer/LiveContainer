@@ -47,6 +47,7 @@ struct AppRunnerOverlay: View {
         .navigationBarTitleDisplayMode(.inline)
         
         .navigationBarHidden(true) 
+            .toolbar(.hidden, for: .navigationBar)  
         .onDisappear {
             isAppActive = false 
         }
@@ -604,7 +605,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     private var iPhoneDestination: some View {
         if #available(iOS 16.1, *) { 
             if let info = pendingIPhoneApp {
-                IPhoneRunnerView(appInfo: info)
+                IPhoneRunnerView(appInfo: info,isiPhoneMode: self.isiPhoneMode)
             } else {
                 Text("App Data Error")
             }
@@ -1156,22 +1157,17 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             
          let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
 
-    if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-        
-        self.pendingIPhoneApp = SimpleAppInfo(
-            displayName: appFound.appInfo.displayName(),
-            dataUUID: targetDataUUID,
-            bundleId: appFound.appInfo.relativeBundlePath
-        )
-        
-        await MainActor.run {
-            self.triggerNavigation = true
-        }
-        return 
+    
+    
+    self.pendingIPhoneApp = SimpleAppInfo(
+        displayName: appFound.appInfo.displayName(),
+        dataUUID: targetDataUUID,
+        bundleId: appFound.appInfo.relativeBundlePath
+    )
+    
+    await MainActor.run {
+        self.triggerNavigation = true
     }
-
-
-
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {

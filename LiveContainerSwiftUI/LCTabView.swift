@@ -25,8 +25,7 @@ struct LCTabView: View {
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
-    @State private var dragOffset = CGSize.zero
-    @State private var position = CGSize(width: 60, height: 60)
+ 
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,18 +47,19 @@ struct LCTabView: View {
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         
         .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-            ZStack {
-                Color.black.ignoresSafeArea()
-                
-                if #available(iOS 16.1, *) {
-                    IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
-                        .ignoresSafeArea()
-                }
-                
-                floatingBackButton
-                .zIndex(99)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if #available(iOS 16.1, *) {
+                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
+                    
             }
-        } 
+            
+            
+            FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
+                .zIndex(99)
+        }
+    }
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
@@ -115,35 +115,7 @@ struct LCTabView: View {
         }
     }
 
-    var floatingBackButton: some View {
-        GeometryReader { geo in
-            Button(action: {
-                withAnimation {
-                    self.sharedModel.pendingIPhoneApp = nil
-                }
-            }) {
-                Image(systemName: "chevron.left")
-                    .font(.title2.bold())
-                    .foregroundColor(.white)
-                    .frame(width: 50, height: 50)
-                    .background(Circle().fill(Color.black.opacity(0.6)))
-                    .shadow(radius: 5)
-            }
-            .position(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
-            .gesture(
-                DragGesture()
-                    .onChanged { dragOffset = $0.translation }
-                    .onEnded { value in
-                        position.width += value.translation.width
-                        position.height += value.translation.height
-                        dragOffset = .zero
-                        
-                        position.width = max(50, min(position.width, geo.size.width - 50))
-                        position.height = max(50, min(position.height, geo.size.height - 50))
-                    }
-            )
-        }
-    }
+    
 
     func dispatchURL(url: URL) {
         repeat {

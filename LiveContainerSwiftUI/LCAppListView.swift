@@ -1057,7 +1057,7 @@ if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
     
     // 3. 立即同步寫入
     LCUtils.appGroupUserDefault.synchronize()
-
+    try? await Task.sleep(nanoseconds: 100_000_000)
     if #available(iOS 16.1, *) {
         do {
             

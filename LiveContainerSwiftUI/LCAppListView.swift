@@ -119,6 +119,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
+    @Environment(\.openWindow) var openWindow
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
@@ -1045,19 +1046,16 @@ NavigationLink(
             errorShow = true
             return
         }
-        if isiPhoneMode {
-            if #available(iOS 16.1, *) {
-                
-                DispatchQueue.main.async {
-                    self.navigateTo = AnyView(IPhoneModeHostView(app: appFound))
-                    self.isNavigationActive = true
-                }
-                return 
-            } else {
-                
-                print("iPhone Mode requires iOS 16.1+")
-            }
-        }
+    
+if isiPhoneMode {
+    if #available(iOS 16.1, *) {
+   
+        
+        openWindow(id: "IPhoneModeWindow", value: appFound.appInfo.dataUUID)
+        return 
+    }
+}
+
    
         
         do {            

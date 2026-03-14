@@ -108,7 +108,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                 }
             }
 
-        }
+        
         
 if @available(iOS 16.1, *){
 WindowGroup(id: "IPhoneModeWindow", for: String.self) { $dataUUID in

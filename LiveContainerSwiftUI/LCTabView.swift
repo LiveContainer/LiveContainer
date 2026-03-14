@@ -40,7 +40,7 @@ struct LCTabView: View {
                 
                     VStack(spacing: 0) {
                         
-                        customToolbar
+                        
                         
                         
                         ZStack {
@@ -55,6 +55,10 @@ struct LCTabView: View {
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                         
+                if sharedModel.pendingIPhoneApp != nil {  
+                           customToolbar
+                       }
                     }
                 }
             }
@@ -139,7 +143,7 @@ Button(action: {
                         position.height = max(20, min(position.height, geo.size.height - 60))
                     }
             )
-        }
+        }.zIndex(99)
     }
     
     func dispatchURL(url: URL) {

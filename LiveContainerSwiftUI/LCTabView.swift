@@ -112,7 +112,13 @@ struct LCTabView: View {
     
     var floatingBackButton: some View {
         GeometryReader { geo in
-            Button(action: { sharedModel.pendingIPhoneApp = nil }) {
+            
+Button(action: {
+    
+    withAnimation {
+        self.sharedModel.pendingIPhoneApp = nil
+    }
+}) {
                 Image(systemName: "chevron.left")
                     .font(.title2.bold())
                     .foregroundColor(.white)
@@ -128,9 +134,9 @@ struct LCTabView: View {
                         position.height += value.translation.height
                         dragOffset = .zero
                         
-                        // 邊界檢查：防止按鈕消失
-                        position.width = max(10, min(position.width, geo.size.width - 60))
-                        position.height = max(40, min(position.height, geo.size.height - 60))
+                        
+                        position.width = max(20, min(position.width, geo.size.width - 60))
+                        position.height = max(20, min(position.height, geo.size.height - 60))
                     }
             )
         }

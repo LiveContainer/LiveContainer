@@ -75,7 +75,10 @@ class SharedModel: ObservableObject {
     @Published var hiddenApps : [LCAppModel] = []
     
     @Published var pidCallback : ((NSNumber, Error?) -> Void)? = nil
+    @Published var pendingIPhoneApp: SimpleAppInfo? = nil
     
+    
+    @Published var isiPhoneMode: Bool = true
     static let isPhone: Bool = {
         UIDevice.current.userInterfaceIdiom == .phone
     }()

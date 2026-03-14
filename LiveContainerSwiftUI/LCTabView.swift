@@ -27,49 +27,49 @@ struct LCTabView: View {
     @State private var position = CGSize(width: 20, height: 60)
 
     var body: some View {
-        ZStack(alignment: .top) {
+            var body: some View {
+        ZStack {
+       
+            Color.black.ignoresSafeArea()
             
-            Group {
-                if sharedModel.pendingIPhoneApp != nil {
-                    
-                    if #available(iOS 16.1, *), let appInfo = sharedModel.pendingIPhoneApp {
+            if let appInfo = sharedModel.pendingIPhoneApp {
+                
+                ZStack {
+                    if #available(iOS 16.1, *) {
                         IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
                             .ignoresSafeArea()
-                           floatingBackButton
-                    .zIndex(99) 
                     }
-                } else {
-                
-                    VStack(spacing: 0) {
-                        
-                        
-                        
-                        
-                        ZStack {
-                            if sharedModel.selectedTab == .sources {
-                                LCSourcesView()
-                            } else if sharedModel.selectedTab == .apps {
-                                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                            } else if sharedModel.selectedTab == .tweaks {
-                                LCTweaksView(tweakFolders: $tweakFolderNames)
-                            } else if sharedModel.selectedTab == .settings {
-                                LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                         
-              
-                           customToolbar
-                       
-                    }
+                    
+                    
+                    floatingBackButton
                 }
-            }
-
-            
-            if sharedModel.pendingIPhoneApp != nil {
-                floatingBackButton
+                .transition(.opacity) 
+                
+            } else {
+                
+                ZStack {
+                    VStack{
+                           Spacer()
+                    customToolbar
+                    }.zIndex(99)
+                   ZStack{ 
+                        if sharedModel.selectedTab == .sources {
+                            LCSourcesView()
+                        } else if sharedModel.selectedTab == .apps {
+                            LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                        } else if sharedModel.selectedTab == .tweaks {
+                            LCTweaksView(tweakFolders: $tweakFolderNames)
+                        } else if sharedModel.selectedTab == .settings {
+                            LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .background(Color(UIColor.systemBackground)) 
             }
         }
+        
+
         
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {})

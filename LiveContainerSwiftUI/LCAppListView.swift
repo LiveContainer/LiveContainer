@@ -119,6 +119,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
+        
+    private var _openWindow: Any? {
+        if #available(iOS 16.0, *) {
+            return openWindow
+        }
+        return nil
+    }
+    
+    
+
     @Environment(\.openWindow) var openWindow
  var aspectRatioToggleButton: some View {
     Button {

@@ -132,23 +132,34 @@ struct LCTabView: View {
                 break
             }
             
-            guard let host = url.host?.lowercased() else {
-                // If there's no host, check if it's a known custom scheme
-                if let scheme = url.scheme?.lowercased(),
-                   !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+            // Check if it's a known custom scheme (with or without host)
+            if let scheme = url.scheme?.lowercased(),
+               !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+                
+                let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
+                if let app = allApps.first(where: { ($0.appInfo.customUrlSchemes as? [String] ?? []).contains(scheme) }) {
+                    // Save for the guest app to consume
+                    UserDefaults.standard.set(url.absoluteString, forKey: "incomingCustomSchemeURL")
                     
-                    let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
-                    let hasCustomScheme = allApps.contains { app in
-                        guard let schemes = app.appInfo.customUrlSchemes else { return false }
-                        return schemes.contains(scheme)
-                    }
-                    if hasCustomScheme {
+                    // Rewrite URL to trigger a native launch
+                    var components = URLComponents()
+                    components.scheme = "livecontainer"
+                    components.host = "livecontainer-launch"
+                    components.queryItems = [
+                        URLQueryItem(name: "bundle-name", value: app.appInfo.relativeBundlePath)
+                    ]
+                    if let newURL = components.url {
                         sharedModel.selectedTab = .apps
-                        break
+                        sharedModel.deepLink = newURL
                     }
+                    return
                 }
+            }
+            
+            guard let host = url.host?.lowercased() else {
                 return
             }
+
             
             switch host {
             case "livecontainer-launch", "install", "open-web-page", "open-url":

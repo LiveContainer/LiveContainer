@@ -781,6 +781,21 @@ int LiveContainerMain(int argc, char *argv[]) {
                 [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
             });
         }
+        
+        NSString* incomingScheme = [lcUserDefaults stringForKey:@"incomingCustomSchemeURL"];
+        if (incomingScheme && incomingScheme.length > 0) {
+            NSLog(@"[LC] Detected incoming custom scheme at startup: %@", incomingScheme);
+            [lcUserDefaults removeObjectForKey:@"incomingCustomSchemeURL"];
+            
+            // Wait a bit for the guest app to set up its app delegate, then manually send openURL
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                NSURL *url = [NSURL URLWithString:incomingScheme];
+                if (url) {
+                    [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
+                }
+            });
+        }
+
         NSSetUncaughtExceptionHandler(&exceptionHandler);
         NSString *appError = invokeAppMain(selectedApp, selectedContainer, argc, argv);
         if (appError) {

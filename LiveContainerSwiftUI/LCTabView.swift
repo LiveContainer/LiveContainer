@@ -22,6 +22,7 @@ struct LCTabView: View {
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+    let pubCustomScheme = NotificationCenter.default.publisher(for: Notification.Name("LCHandleCustomScheme"))
 
     
     var body: some View {
@@ -118,6 +119,13 @@ struct LCTabView: View {
         }
         .onOpenURL { url in
             dispatchURL(url: url)
+        }
+        .onReceive(pubCustomScheme) { out in
+            if let customUrlStr = out.object as? String, let customUrl = URL(string: customUrlStr) {
+                dispatchURL(url: customUrl)
+            } else if let customUrl = out.object as? URL {
+                dispatchURL(url: customUrl)
+            }
         }
     }
     

@@ -439,6 +439,7 @@ BOOL canAppOpenItself(NSURL* url) {
         NSURLComponents* lcUrl = [NSURLComponents componentsWithString:url];
         NSString* realUrlEncoded = lcUrl.queryItems[0].value;
         if(!realUrlEncoded) return;
+        realUrlEncoded = [realUrlEncoded stringByReplacingOccurrencesOfString:@" " withString:@"+"];
         // Convert the base64 encoded url into String
         NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
         NSString *decodedUrl = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
@@ -446,11 +447,23 @@ BOOL canAppOpenItself(NSURL* url) {
         if([decodedUrl hasPrefix:@"https"]) {
             openUniversalLink(decodedUrl);
         } else {
+            NSURL *decodedUrlObj = [NSURL URLWithString:decodedUrl];
             NSMutableDictionary* newPayload = [payload mutableCopy];
-            newPayload[UIApplicationLaunchOptionsURLKey] = decodedUrl;
+            newPayload[UIApplicationLaunchOptionsURLKey] = decodedUrlObj ? [decodedUrlObj absoluteString] : decodedUrl;
             [self hook__applicationOpenURLAction:action payload:newPayload origin:origin];
         }
         
+        return;
+    } else if ([url hasPrefix:[NSString stringWithFormat: @"%@://route-custom-scheme", NSUserDefaults.lcAppUrlScheme]]) {
+        NSURLComponents* lcUrl = [NSURLComponents componentsWithString:url];
+        NSString* realUrlEncoded = lcUrl.queryItems[0].value;
+        if(!realUrlEncoded) return;
+        realUrlEncoded = [realUrlEncoded stringByReplacingOccurrencesOfString:@" " withString:@"+"];
+        NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
+        NSString *decodedUrl = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
+        if (decodedUrl) {
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"LCHandleCustomScheme" object:decodedUrl];
+        }
         return;
     } else if ([url hasPrefix:[NSString stringWithFormat: @"%@://livecontainer-launch?bundle-name=", NSUserDefaults.lcAppUrlScheme]]) {
         handleLiveContainerLaunch([NSURL URLWithString:url]);
@@ -460,6 +473,27 @@ BOOL canAppOpenItself(NSURL* url) {
         LCShowAlert(@"lc.guestTweak.restartToInstall".loc);
         return;
     }
+    
+    // Intercept URLs belonging to other guest apps running in LiveContainer
+    NSURL *parsedUrl = [NSURL URLWithString:url];
+    if (parsedUrl) {
+        NSString *scheme = parsedUrl.scheme.lowercaseString;
+        BOOL isStandardLC = [scheme hasPrefix:@"livecontainer"] || [scheme isEqualToString:@"sidestore"] || [scheme isEqualToString:@"file"] || [scheme hasPrefix:@"http"];
+        BOOL isMyScheme = [[NSUserDefaults.lcSharedDefaults arrayForKey:@"LCGuestURLSchemes"] containsObject:scheme];
+        if (!isStandardLC && !isMyScheme && canAppOpenItself(parsedUrl)) {
+            // It belongs to another app! Bounce to LiveContainer UI to handle it.
+            if (NSUserDefaults.isLiveProcess) {
+                NSData *data = [url dataUsingEncoding:NSUTF8StringEncoding];
+                NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
+                NSString *bounceUrlStr = [NSString stringWithFormat:@"livecontainer://route-custom-scheme?url=%@", encodedUrl];
+                [[NSClassFromString(@"UIApplication") sharedApplication] hook_openURL:[NSURL URLWithString:bounceUrlStr] options:@{} completionHandler:nil];
+            } else {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"LCHandleCustomScheme" object:url];
+            }
+            return;
+        }
+    }
+    
     [self hook__applicationOpenURLAction:action payload:payload origin:origin];
     return;
 }
@@ -474,6 +508,7 @@ BOOL canAppOpenItself(NSURL* url) {
                 NSURLComponents* lcUrl = [NSURLComponents componentsWithString:urlStr];
                 NSString* realUrlEncoded = lcUrl.queryItems[0].value;
                 if(!realUrlEncoded) break;
+                realUrlEncoded = [realUrlEncoded stringByReplacingOccurrencesOfString:@" " withString:@"+"];
                 // Convert the base64 encoded url into String
                 NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
                 NSString *decodedUrlStr = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
@@ -582,6 +617,11 @@ BOOL canAppOpenItself(NSURL* url) {
     } else {
         return [self hook_statusBarFrame];
     }
+}
+
+- (BOOL)hook_openURL:(NSURL*)url {
+    [self hook_openURL:url options:@{} completionHandler:nil];
+    return YES;
 }
 
 @end

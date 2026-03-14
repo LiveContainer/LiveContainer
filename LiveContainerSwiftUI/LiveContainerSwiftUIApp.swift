@@ -108,13 +108,16 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                 }
             }
         }
- WindowGroup(id: "IPhoneModeWindow", for: String.self) { $dataUUID in
-                if let dataUUID = dataUUID {
-                    IPhoneModeHostView(dataUUID: dataUUID)
-                        .environmentObject(DataManager.shared.model)
-                        .environmentObject(LCAppSortManager.shared)
-                }
-            }
+ if UIDevice.current.userInterfaceIdiom == .pad, #available(iOS 16.1, *) {
+    WindowGroup(id: "IPhoneModeWindow", for: String.self) { $dataUUID in
+        if let dataUUID = dataUUID {
+            IPhoneModeHostView(dataUUID: dataUUID)
+                .environmentObject(DataManager.shared.model)
+                .environmentObject(LCAppSortManager.shared)
+        }
+    }
+}
+
     }
     
 }

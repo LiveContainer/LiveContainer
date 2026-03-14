@@ -48,3 +48,22 @@ struct IPhoneModeHostView: View {
         return CGSize(width: targetWidth, height: targetHeight)
     }
 }
+@available(iOS 16.1, *)
+struct IPhoneModeWrapperView: View {
+    @State private var dataUUID: String? = nil
+
+    var body: some View {
+        Group {
+            if let uuid = dataUUID {
+                IPhoneModeHostView(dataUUID: uuid)
+            } else {
+                Color.black 
+            }
+        }
+        .onContinueUserActivity("com.livecontainer.iphonemode") { activity in
+            if let uuid = activity.userInfo?["dataUUID"] as? String {
+                self.dataUUID = uuid
+            }
+        }
+    }
+}

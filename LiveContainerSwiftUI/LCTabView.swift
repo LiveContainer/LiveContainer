@@ -24,12 +24,11 @@ struct LCTabView: View {
     
     
     @State private var dragOffset = CGSize.zero
-    @State private var position = CGSize(width: 20, height: 60)
+    @State private var position = CGSize(width: 60, height: 60)
 
-    var body: some View {
-            
+   var body: some View {
         ZStack {
-       
+            
             Color.black.ignoresSafeArea()
             
             if let appInfo = sharedModel.pendingIPhoneApp {
@@ -42,17 +41,18 @@ struct LCTabView: View {
                     
                     
                     floatingBackButton
+                        .zIndex(99)
                 }
-                .transition(.opacity) 
+                .transition(.opacity)
                 
             } else {
                 
-                ZStack {
-                    VStack{
-                           Spacer()
+                VStack(spacing: 0) {
+                    
                     customToolbar
-                    }.zIndex(99)
-                   
+                    
+                    
+                    ZStack {
                         if sharedModel.selectedTab == .sources {
                             LCSourcesView()
                         } else if sharedModel.selectedTab == .apps {
@@ -64,14 +64,13 @@ struct LCTabView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                .background(Color(UIColor.systemBackground)) 
+                }
+                .background(Color(UIColor.systemBackground).ignoresSafeArea()) // 列表模式背景色
+                .transition(.opacity)
             }
         }
         
-
-        
-        .alert("lc.common.error".loc, isPresented: $errorShow){
+        .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
         } message: { Text(errorInfo) }
@@ -100,12 +99,12 @@ struct LCTabView: View {
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)
-        .background(Color(UIColor.systemBackground).shadow(radius: 1))
+        .background(Color(UIColor.systemBackground).shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1))
     }
 
     func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
         Button(action: { sharedModel.selectedTab = id }) {
-            VStack {
+            VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                 Text(title)
@@ -118,20 +117,20 @@ struct LCTabView: View {
     
     var floatingBackButton: some View {
         GeometryReader { geo in
-            
-Button(action: {
-    
-    withAnimation {
-        self.sharedModel.pendingIPhoneApp = nil
-    }
-}) {
+            Button(action: {
+                withAnimation {
+                    self.sharedModel.pendingIPhoneApp = nil
+                }
+            }) {
                 Image(systemName: "chevron.left")
                     .font(.title2.bold())
                     .foregroundColor(.white)
                     .frame(width: 50, height: 50)
                     .background(Circle().fill(Color.black.opacity(0.6)))
+                    .shadow(radius: 5)
             }
-            .offset(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
+            // 使用 position 定位
+            .position(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
             .gesture(
                 DragGesture()
                     .onChanged { dragOffset = $0.translation }
@@ -140,13 +139,14 @@ Button(action: {
                         position.height += value.translation.height
                         dragOffset = .zero
                         
-                        
-                        position.width = max(20, min(position.width, geo.size.width - 60))
-                        position.height = max(20, min(position.height, geo.size.height - 60))
+                        // 邊界檢查
+                        position.width = max(30, min(position.width, geo.size.width - 30))
+                        position.height = max(50, min(position.height, geo.size.height - 50))
                     }
             )
-        }.zIndex(99)
+        }
     }
+
     
     func dispatchURL(url: URL) {
         repeat {

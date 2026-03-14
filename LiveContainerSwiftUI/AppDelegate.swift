@@ -46,18 +46,20 @@ import Intents
                                let customSchemes = appInfoDict["LCCustomUrlSchemes"] as? [String] {
                                 
                                 if customSchemes.contains(scheme) {
-                                    // Set data for LCLaunchExtension instant boot pathway
-                                    LCUtils.appGroupUserDefault.set(appFolder, forKey: "LCLaunchExtensionBundleID")
-                                    LCUtils.appGroupUserDefault.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
+                                    // Write launch target
+                                    UserDefaults.standard.set(appFolder, forKey: "selected")
                                     
                                     if let containers = appInfoDict["LCContainers"] as? [[String:Any]],
                                        let defaultUUID = appInfoDict["LCDataUUID"] as? String,
                                        containers.contains(where: { ($0["folderName"] as? String) == defaultUUID }) {
-                                        LCUtils.appGroupUserDefault.set(defaultUUID, forKey: "LCLaunchExtensionContainerName")
+                                        UserDefaults.standard.set(defaultUUID, forKey: "selectedContainer")
                                     }
                                     
-                                    // Save URL so LCBootstrap can pass it to guest app later
+                                    // Save full URL so LCBootstrap can pass it via base64 later
                                     UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
+                                    
+                                    // Instantly boot the guest app!
+                                    LCSharedUtils.launchToGuestApp()
                                     break
                                 }
                             }

@@ -403,14 +403,17 @@ void handleCustomSchemeLaunch(NSURL* url) {
     }
     
     if (targetBundleName) {
-        // Save the URL to be passed after guest app starts
-        [NSUserDefaults.lcUserDefaults setObject:url.absoluteString forKey:@"launchAppUrlScheme"];
+        // Construct livecontainer-launch URL required by launchToGuestAppWithURL
+        NSData *data = [url.absoluteString dataUsingEncoding:NSUTF8StringEncoding];
+        NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
+        NSString *lcUrlStr = [NSString stringWithFormat:@"%@://livecontainer-launch?bundle-name=%@&open-url=%@",
+                              NSUserDefaults.lcAppUrlScheme, targetBundleName, encodedUrl];
+        NSURL *lcUrl = [NSURL URLWithString:lcUrlStr];
         
-        // Use existing prompt logic
         bool isSharedApp = false;
         NSBundle* bundle = [NSClassFromString(@"LCSharedUtils") findBundleWithBundleId:targetBundleName isSharedAppOut:&isSharedApp];
         if (bundle) {
-            LCShowSwitchAppConfirmation(url, targetBundleName, isSharedApp);
+            LCShowSwitchAppConfirmation(lcUrl, targetBundleName, isSharedApp);
         } else {
             LCShowAppNotFoundAlert(targetBundleName);
         }
@@ -487,17 +490,6 @@ BOOL canAppOpenItself(NSURL* url) {
         }
         
         return;
-    } else if ([url hasPrefix:[NSString stringWithFormat: @"%@://route-custom-scheme", NSUserDefaults.lcAppUrlScheme]]) {
-        NSURLComponents* lcUrl = [NSURLComponents componentsWithString:url];
-        NSString* realUrlEncoded = lcUrl.queryItems[0].value;
-        if(!realUrlEncoded) return;
-        realUrlEncoded = [realUrlEncoded stringByReplacingOccurrencesOfString:@" " withString:@"+"];
-        NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
-        NSString *decodedUrl = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
-        if (decodedUrl) {
-            handleCustomSchemeLaunch([NSURL URLWithString:decodedUrl]);
-        }
-        return;
     } else if ([url hasPrefix:[NSString stringWithFormat: @"%@://livecontainer-launch?bundle-name=", NSUserDefaults.lcAppUrlScheme]]) {
         handleLiveContainerLaunch([NSURL URLWithString:url]);
         // Not what we're looking for, pass it
@@ -509,20 +501,13 @@ BOOL canAppOpenItself(NSURL* url) {
     
     // Intercept URLs belonging to other guest apps running in LiveContainer
     NSURL *parsedUrl = [NSURL URLWithString:url];
-    if (parsedUrl) {
+    if (parsedUrl && ![NSBundle.mainBundle.bundlePath.lastPathComponent isEqualToString:@"LiveContainer"]) {
         NSString *scheme = parsedUrl.scheme.lowercaseString;
         BOOL isStandardLC = [scheme hasPrefix:@"livecontainer"] || [scheme isEqualToString:@"sidestore"] || [scheme isEqualToString:@"file"] || [scheme hasPrefix:@"http"];
-        BOOL isMyScheme = [[NSUserDefaults.lcSharedDefaults arrayForKey:@"LCGuestURLSchemes"] containsObject:scheme];
-        if (!isStandardLC && !isMyScheme && canAppOpenItself(parsedUrl)) {
-            // It belongs to another app! Bounce to LiveContainer UI to handle it.
-            if (NSUserDefaults.isLiveProcess) {
-                NSData *data = [url dataUsingEncoding:NSUTF8StringEncoding];
-                NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
-                NSString *bounceUrlStr = [NSString stringWithFormat:@"livecontainer://route-custom-scheme?url=%@", encodedUrl];
-                [[NSClassFromString(@"UIApplication") sharedApplication] hook_openURL:[NSURL URLWithString:bounceUrlStr] options:@{} completionHandler:nil];
-            } else {
-                handleCustomSchemeLaunch(parsedUrl);
-            }
+        
+        if (!isStandardLC && !canAppOpenItself(parsedUrl)) {
+            // It's not standard LC, and it doesn't belong to the current guest app
+            handleCustomSchemeLaunch(parsedUrl);
             return;
         }
     }

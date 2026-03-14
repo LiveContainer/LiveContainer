@@ -138,20 +138,12 @@ struct LCTabView: View {
                 
                 let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
                 if let app = allApps.first(where: { ($0.appInfo.customUrlSchemes as? [String] ?? []).contains(scheme) }) {
-                    // Save for the guest app to consume after boot
                     UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
-                    
-                    // Rewrite URL to trigger a native launch
-                    var components = URLComponents()
-                    components.scheme = "livecontainer"
-                    components.host = "livecontainer-launch"
-                    components.queryItems = [
-                        URLQueryItem(name: "bundle-name", value: app.appInfo.relativeBundlePath)
-                    ]
-                    if let newURL = components.url {
-                        sharedModel.selectedTab = .apps
-                        sharedModel.deepLink = newURL
+                    UserDefaults.standard.set(app.appInfo.relativeBundlePath, forKey: "selected")
+                    if let container = app.appInfo.dataUUID {
+                        UserDefaults.standard.set(container, forKey: "selectedContainer")
                     }
+                    LCSharedUtils.launchToGuestApp()
                     return
                 }
             }

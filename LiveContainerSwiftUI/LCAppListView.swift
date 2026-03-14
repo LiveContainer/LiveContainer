@@ -9,6 +9,12 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+struct SimpleAppInfo {
+    let displayName: String
+    let dataUUID: String
+    let bundleId: String
+}
+
 class SearchContext: ObservableObject {
     @Published var query: String = ""
     @Published var debouncedQuery: String = ""
@@ -38,8 +44,10 @@ struct AppReplaceOption : Hashable {
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
-@State private var pendingIPhoneApp: MultitaskAppInfo? = nil
+
+@State private var pendingIPhoneApp: SimpleAppInfo? = nil
 @State private var triggerNavigation = false
+
 
     @State private var isiPhoneMode = false
     @Binding var appDataFolderNames: [String]
@@ -147,17 +155,20 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             ScrollView {
                 
 
-         NavigationLink(
+         // 在 ScrollView 內部的 NavigationLink 改成這樣，比較容易編譯成功
+NavigationLink(
     destination: Group {
         if let info = pendingIPhoneApp {
             IPhoneRunnerView(appInfo: info)
+        } else {
+            EmptyView()
         }
     },
     isActive: $triggerNavigation
 ) {
     EmptyView()
 }
-                .hidden
+.hidden()
 
                 
                 LazyVStack {
@@ -1057,20 +1068,23 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
             
-      if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
+         if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
         
         
-        self.pendingIPhoneApp = MultitaskAppInfo(
+        self.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),
             dataUUID: targetDataUUID,
             bundleId: appFound.appInfo.relativeBundlePath
         )
         
         
-        self.triggerNavigation = true
+        await MainActor.run {
+            self.triggerNavigation = true
+        }
         return 
     }
+
 
 
         

@@ -15,12 +15,12 @@ struct AppRunnerOverlay: View {
     let useIPhoneMode: Bool
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
-
+    
     var body: some View {
         ZStack {
-        
+            
             Color(useIPhoneMode ? .black : .systemBackground).ignoresSafeArea()
-
+            
             GeometryReader { geometry in
                 let h = geometry.size.height * (useIPhoneMode ? 0.9 : 1.0)
                 let w = useIPhoneMode ? (h * 0.5625) : geometry.size.width
@@ -47,7 +47,7 @@ struct AppRunnerOverlay: View {
         .navigationBarTitleDisplayMode(.inline)
         
         .navigationBarHidden(true) 
-            .toolbar(.hidden, for: .navigationBar)  
+        .toolbar(.hidden, for: .navigationBar)  
         .onDisappear {
             isAppActive = false 
         }
@@ -61,11 +61,11 @@ struct IPhoneRunnerView: View {
     let isiPhoneMode: Bool 
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
-
+    
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
+            
             GeometryReader { geometry in
                 let h = geometry.size.height
                 
@@ -84,7 +84,7 @@ struct IPhoneRunnerView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-          .navigationTitle("")
+        .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar) 
         .onDisappear {
             isAppActive = false
@@ -92,7 +92,7 @@ struct IPhoneRunnerView: View {
     }
 }
 
-      
+
 
 
 struct SimpleAppInfo: Identifiable {
@@ -107,9 +107,9 @@ class SearchContext: ObservableObject {
     @Published var query: String = ""
     @Published var debouncedQuery: String = ""
     @Published var isTyping: Bool = false
-
+    
     private var cancellables = Set<AnyCancellable>()
-
+    
     init() {
         $query
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
@@ -132,11 +132,11 @@ struct AppReplaceOption : Hashable {
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
-
-@State private var pendingIPhoneApp: SimpleAppInfo? = nil
-@State private var triggerNavigation = false
-
-
+    
+    @State private var pendingIPhoneApp: SimpleAppInfo? = nil
+    @State private var triggerNavigation = false
+    
+    
     @State private var isiPhoneMode = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
@@ -219,19 +219,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-        
-     
- var aspectRatioToggleButton: some View {
-    Button {
-        isiPhoneMode.toggle()
-       
-        
-    } label: {
-        Image(systemName: isiPhoneMode ? "iphone" : "ipad")
-            .foregroundColor(isiPhoneMode ? .orange : .primary)
+    
+    
+    var aspectRatioToggleButton: some View {
+        Button {
+            isiPhoneMode.toggle()
+            
+            
+        } label: {
+            Image(systemName: isiPhoneMode ? "iphone" : "ipad")
+                .foregroundColor(isiPhoneMode ? .orange : .primary)
+        }
     }
-}
-
+    
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _installOptions = State(initialValue: [])
         _appDataFolderNames = appDataFolderNames
@@ -249,7 +249,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
                 .padding()
                 .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
-
+                
                 VStack {
                     if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                         if sharedModel.isHiddenAppUnlocked {
@@ -297,7 +297,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         .padding()
                         .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
                     }
-
+                    
                     let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
                     Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
                         .padding(.horizontal)
@@ -307,11 +307,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             Task { await authenticateUser() }
                         }
                 }.animation(searchContext.isTyping ? nil : .easeInOut, value: LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding"))
-
+                
                 if sharedModel.multiLCStatus == 2 {
                     Text("lc.appList.manageInPrimaryTip".loc).foregroundStyle(.gray).padding()
                 }
-
+                
             }
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
             .coordinateSpace(name: "scroll")
@@ -359,7 +359,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                                     }
                                 }())
                                 .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
-
+                            
                         }
                     } else {
                         Button("Help", systemImage: "questionmark") {
@@ -367,14 +367,14 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         }
                     }
                     
-
+                    
                 }
-
-
+                
+                
                 ToolbarItem(placement: .topBarLeading) {
-        aspectRatioToggleButton 
-    }
-
+                    aspectRatioToggleButton 
+                }
+                
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
@@ -411,19 +411,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-            .fullScreenCover(item: $pendingIPhoneApp) { appInfo in
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            if #available(iOS 16.1, *) {
-                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: self.isiPhoneMode)
-                    .ignoresSafeArea()
-            } else {
-                Text("iPhone Mode requires iOS 16.1+")
-                    .foregroundColor(.white)
+        .fullScreenCover(item: $pendingIPhoneApp) { appInfo in
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                if #available(iOS 16.1, *) {
+                    IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: self.isiPhoneMode)
+                        .ignoresSafeArea()
+                } else {
+                    Text("iPhone Mode requires iOS 16.1+")
+                        .foregroundColor(.white)
+                }
+                
             }
-            
-          }
         }
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
@@ -446,7 +446,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }, label: {
                     Text(installOption.isReplace ? installOption.nameOfFolderToInstall : "lc.appList.installAsNew".loc)
                 })
-            
+                
             }
             Button(role: .cancel, action: {
                 installReplaceAlert.close(result: nil)
@@ -565,7 +565,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 $0.searchable(text: $searchContext.query)
             }
         }
-
+        
     }
     
     var JITEnablingModal : some View {
@@ -609,7 +609,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-        @ViewBuilder
+    @ViewBuilder
     private var iPhoneDestination: some View {
         if #available(iOS 16.1, *) { 
             if let info = pendingIPhoneApp {
@@ -660,7 +660,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if sharedModel.isHiddenAppUnlocked || !LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                 appListsToConsider.append(sharedModel.hiddenApps)
             }
-            appLoop:
+        appLoop:
             for appList in appListsToConsider {
                 for app in appList {
                     if let schemes = app.appInfo.urlSchemes() {
@@ -673,8 +673,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     }
                 }
             }
-
-
+            
+            
             guard let appToLaunch = appToLaunch else {
                 errorInfo = "lc.appList.schemeCannotOpenError %@".localizeWithFormat(urlToOpen.scheme!)
                 errorShow = true
@@ -713,8 +713,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             webViewOpened = true
         }
     }
-
-
+    
+    
     
     func startInstallApp(_ fileUrl:URL) async {
         do {
@@ -753,7 +753,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard await decompress(url.path, fm.temporaryDirectory.path, decompressProgress) == 0 else {
             throw "lc.appList.urlFileIsNotIpaError".loc
         }
-
+        
         let payloadContents = try fm.contentsOfDirectory(atPath: payloadPath.path)
         var appBundleName : String? = nil
         for fileName in payloadContents {
@@ -765,13 +765,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard let appBundleName = appBundleName else {
             throw "lc.appList.bundleNotFondError".loc
         }
-
+        
         let appFolderPath = payloadPath.appendingPathComponent(appBundleName)
         
         guard let newAppInfo = LCAppInfo(bundlePath: appFolderPath.path) else {
             throw "lc.appList.infoPlistCannotReadError".loc
         }
-
+        
         var appRelativePath = "\(newAppInfo.bundleIdentifier()!.sanitizeNonACSII()).app"
         var outputFolder = LCPath.bundlePath.appendingPathComponent(appRelativePath)
         var appToReplace : LCAppModel? = nil
@@ -809,7 +809,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             for app in sameBundleIdApp {
                 self.installOptions.append(AppReplaceOption(isReplace: true, nameOfFolderToInstall: app.appInfo.relativeBundlePath, appToReplace: app))
             }
-
+            
             guard let installOptionChosen = await installReplaceAlert.open() else {
                 // user cancelled
                 self.installprogressVisible = false
@@ -906,7 +906,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     sharedModel.apps.removeAll { $0 == appToReplace }
                     sharedModel.apps.append(newAppModel)
                 }
-
+                
             } else {
                 let newAppModel = LCAppModel(appInfo: finalNewApp, delegate: self)
                 sharedModel.apps.append(newAppModel)
@@ -917,7 +917,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         .addObjects(from: urlSchemes as! [Any])
                 }
             }
-
+            
             self.installprogressVisible = false
         }
     }
@@ -1162,24 +1162,24 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorShow = true
             return
         }
-            
-         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
-
-    
-    
-    self.pendingIPhoneApp = SimpleAppInfo(
-        displayName: appFound.appInfo.displayName(),
-        dataUUID: targetDataUUID,
-        bundleId: appFound.appInfo.relativeBundlePath
-    )
-    
-
+        
+        let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
+        
+        
+        
+        self.pendingIPhoneApp = SimpleAppInfo(
+            displayName: appFound.appInfo.displayName(),
+            dataUUID: targetDataUUID,
+            bundleId: appFound.appInfo.relativeBundlePath
+        )
+        
+        
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
             } else {
-               return //try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
+                return //try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
             }
         } catch {
             errorInfo = error.localizedDescription
@@ -1203,7 +1203,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     func jitLaunch() async {
         await jitLaunch(withScript: "")
     }
-
+    
     func jitLaunch(withScript script: String) async {
         await MainActor.run {
             jitLog = ""
@@ -1224,7 +1224,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
         LCSharedUtils.launchToGuestApp()
-
+        
     }
     
     func jitLaunch(withPID pid: Int, withScript script: String? = nil) async {
@@ -1249,7 +1249,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-
+    
     func showRunWhenMultitaskAlert() async -> Bool? {
         return await runWhenMultitaskAlert.open()
     }
@@ -1281,13 +1281,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     func copyError() {
         UIPasteboard.general.string = errorInfo
     }
-
-func requestLaunchApp(bundleId: String, container: String?) {
-    Task {
-        await launchAppWithBundleId(bundleId: bundleId, container: container)
+    
+    func requestLaunchApp(bundleId: String, container: String?) {
+        Task {
+            await launchAppWithBundleId(bundleId: bundleId, container: container)
+        }
     }
-}
-
+    
     func handleURL(url : URL) {
         if url.isFileURL {
             Task { await installFromUrl(urlStr: url.absoluteString) }

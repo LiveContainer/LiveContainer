@@ -10,35 +10,29 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 
+@available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
-    let appInfo: MultitaskAppInfo
+    let appInfo: SimpleAppInfo 
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ZStack {
-            
             Color.black.ignoresSafeArea()
 
             GeometryReader { geometry in
-              
-                let height = geometry.size.height 
-                let width = height * 0.5625
+                let h = geometry.size.height
+                let w = h * 0.5625
                 
                 VStack {
-                    // App 視窗本體
                     AppSceneViewSwiftUI(
                         show: $isAppActive,
                         bundleId: appInfo.bundleId,
                         dataUUID: appInfo.dataUUID,
-                        initSize: CGSize(width: width, height: height),
-                        onAppInitialize: { pid, error in
-                            print("iPhone Mode App Started: \(pid)")
-                        }
+                        initSize: CGSize(width: w, height: h),
+                        onAppInitialize: { pid, error in }
                     )
-                    .frame(width: width, height: height)
-                    
-                    
+                    .frame(width: w, height: h)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -46,10 +40,11 @@ struct IPhoneRunnerView: View {
         .navigationTitle(appInfo.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear {
-            isAppActive = false 
+            isAppActive = false
         }
     }
 }
+
 
 struct SimpleAppInfo {
     let displayName: String
@@ -561,7 +556,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     }
-    
+        @ViewBuilder
+    private var iPhoneDestination: some View {
+        if #available(iOS 16.1, *) { // 這裡必須加，因為 AppSceneViewSwiftUI 需要
+            if let info = pendingIPhoneApp {
+                IPhoneRunnerView(appInfo: info)
+            } else {
+                Text("App Data Error")
+            }
+        } else {
+            Text("iPhone Mode requires iOS 16.1+")
+        }
+    }
     func onOpenWebViewTapped() async {
         guard let urlToOpen = await webViewUrlInput.open(), urlToOpen != "" else {
             return

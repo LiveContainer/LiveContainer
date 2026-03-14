@@ -21,26 +21,33 @@ struct MultitaskAppInfo {
 
 @available(iOS 16.1, *)
 @objc class MultitaskWindowManager: NSObject {
-    @Environment(\.openWindow) static var openWindow
+    
     static var appDict: [String: MultitaskAppInfo] = [:]
     
     @objc class func openAppWindow(displayName: String, dataUUID: String, bundleId: String, pidCallback: ((NSNumber, Error?) -> Void)?) {
         DataManager.shared.model.enableMultipleWindow = true
         DataManager.shared.model.pidCallback = pidCallback
         appDict[dataUUID] = MultitaskAppInfo(displayName: displayName, dataUUID: dataUUID, bundleId: bundleId)
-        openWindow(id: "appView", value: dataUUID)
+        
+        
+        let activity = NSUserActivity(activityType: "com.livecontainer.openApp")
+        activity.userInfo = ["dataUUID": dataUUID]
+        UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
     }
     
     @objc class func openExistingAppWindow(dataUUID: String) -> Bool {
         for a in appDict {
             if a.value.dataUUID == dataUUID {
-                openWindow(id: "appView", value: a.key)
+                let activity = NSUserActivity(activityType: "com.livecontainer.openApp")
+                activity.userInfo = ["dataUUID": a.key]
+                UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
                 return true
             }
         }
         return false
     }
 }
+
 
 @available(iOS 16.1, *)
 struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
@@ -111,7 +118,7 @@ struct MultitaskAppWindow: View {
     }
     
     var body: some View {
-        
+        ZStack{
         let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
@@ -223,7 +230,7 @@ struct MultitaskAppWindow: View {
                     }
                 }
             }
-        }
+        
         .onContinueUserActivity("com.livecontainer.openApp") { activity in
                 if let dataUUID = activity.userInfo?["dataUUID"] as? String {
                     self.id = dataUUID
@@ -232,7 +239,7 @@ struct MultitaskAppWindow: View {
                     }
                 }
             }
-    }
+        }
     
     private func requestSceneDestruction(isManual: Bool = false) {
         if isManual {

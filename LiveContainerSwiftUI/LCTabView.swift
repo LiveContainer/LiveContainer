@@ -8,8 +8,11 @@
 import Foundation
 import SwiftUI
 
+import Foundation
+import SwiftUI
+
 struct LCTabView: View {
-       @Binding var appDataFolderNames: [String]
+    @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
     @State var errorShow = false
@@ -22,65 +25,67 @@ struct LCTabView: View {
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
-    
     @State private var dragOffset = CGSize.zero
     @State private var position = CGSize(width: 60, height: 60)
 
-       var body: some View {
+    var body: some View {
         VStack(spacing: 0) {
-        
-        
-        ZStack {
-            if sharedModel.selectedTab == .sources {
-                LCSourcesView()
-            } else if sharedModel.selectedTab == .apps {
-                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-            } else if sharedModel.selectedTab == .tweaks {
-                LCTweaksView(tweakFolders: $tweakFolderNames)
-            } else if sharedModel.selectedTab == .settings {
-                LCSettingsView(appDataFolderNames: $appDataFolderNames)
+            ZStack {
+                if sharedModel.selectedTab == .sources {
+                    LCSourcesView()
+                } else if sharedModel.selectedTab == .apps {
+                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                } else if sharedModel.selectedTab == .tweaks {
+                    LCTweaksView(tweakFolders: $tweakFolderNames)
+                } else if sharedModel.selectedTab == .settings {
+                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-               customToolbar 
-    }
-    .background(Color(UIColor.systemBackground).ignoresSafeArea())
-    
-    
-    
-    .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-        ZStack {
-            Color.black.ignoresSafeArea()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            if #available(iOS 16.1, *) {
-                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
-                    .ignoresSafeArea()
-            }
-            
-           
-            floatingBackButton
+            customToolbar 
         }
+        .background(Color(UIColor.systemBackground).ignoresSafeArea())
         
-            
-
-   
+        .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                if #available(iOS 16.1, *) {
+                    IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
+                        .ignoresSafeArea()
+                }
+                
+                floatingBackButton
+            }
+        } 
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
-        } message: { Text(errorInfo) }
+        } message: { 
+            Text(errorInfo) 
+        }
         .task {
-            closeDuplicatedWindow(); checkLastLaunchError(); checkTeamId(); checkBundleId(); checkGetTaskAllow(); checkPrivateContainerBookmark()
+            closeDuplicatedWindow()
+            checkLastLaunchError()
+            checkTeamId()
+            checkBundleId()
+            checkGetTaskAllow()
+            checkPrivateContainerBookmark()
         }
         .onReceive(pub) { out in
-            if let scene1 = sceneDelegate.window?.windowScene, let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
-                if shouldToggleMainWindowOpen { DataManager.shared.model.mainWindowOpened = false }
+            if let scene1 = sceneDelegate.window?.windowScene, 
+               let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
+                if shouldToggleMainWindowOpen { 
+                    DataManager.shared.model.mainWindowOpened = false 
+                }
             }
         }
-        .onOpenURL { url in dispatchURL(url: url) }
+        .onOpenURL { url in 
+            dispatchURL(url: url) 
+        }
     }
 
-
-    
     var customToolbar: some View {
         HStack(spacing: 30) {
             if DataManager.shared.model.multiLCStatus != 2 {
@@ -109,7 +114,6 @@ struct LCTabView: View {
         }
     }
 
-    
     var floatingBackButton: some View {
         GeometryReader { geo in
             Button(action: {
@@ -124,7 +128,6 @@ struct LCTabView: View {
                     .background(Circle().fill(Color.black.opacity(0.6)))
                     .shadow(radius: 5)
             }
-            // 使用 position 定位
             .position(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
             .gesture(
                 DragGesture()
@@ -134,7 +137,6 @@ struct LCTabView: View {
                         position.height += value.translation.height
                         dragOffset = .zero
                         
-                        // 邊界檢查
                         position.width = max(30, min(position.width, geo.size.width - 30))
                         position.height = max(50, min(position.height, geo.size.height - 50))
                     }
@@ -142,7 +144,6 @@ struct LCTabView: View {
         }
     }
 
-    
     func dispatchURL(url: URL) {
         repeat {
             if url.isFileURL {
@@ -154,9 +155,7 @@ struct LCTabView: View {
                 break
             }
             
-            guard let host = url.host?.lowercased() else {
-                return
-            }
+            guard let host = url.host?.lowercased() else { return }
             
             switch host {
             case "livecontainer-launch", "install", "open-web-page", "open-url":
@@ -168,7 +167,6 @@ struct LCTabView: View {
             default:
                 return
             }
-            
         } while(false)
 
         sharedModel.deepLink = url
@@ -187,15 +185,11 @@ struct LCTabView: View {
     
     func checkLastLaunchError() {
         var errorStr = UserDefaults.standard.string(forKey: "error")
-        
         if errorStr == nil && UserDefaults.standard.bool(forKey: "SigningInProgress") {
             errorStr = "lc.signer.crashDuringSignErr".loc
             UserDefaults.standard.removeObject(forKey: "SigningInProgress")
         }
-        
-        guard let errorStr else {
-            return
-        }
+        guard let errorStr else { return }
         UserDefaults.standard.removeObject(forKey: "error")
         errorInfo = errorStr
         errorShow = true
@@ -207,63 +201,40 @@ struct LCTabView: View {
     
     func checkTeamId() {
         if let certificateTeamId = UserDefaults.standard.string(forKey: "LCCertificateTeamId") {
-            if DataManager.shared.model.multiLCStatus != 2 {
-                return
-            }
-            
-            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else {
-                print("Unable to find PrimaryLiveContainerTeamId")
-                return
-            }
+            if DataManager.shared.model.multiLCStatus != 2 { return }
+            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else { return }
             if certificateTeamId != primaryLCTeamId {
                 errorInfo = "lc.settings.multiLC.teamIdMismatch".loc
                 errorShow = true
-                return
             }
             return
         }
-        
-        guard let currentTeamId = LCSharedUtils.teamIdentifier() else {
-            print("Failed to determine team id.")
-            return
-        }
-        
+        guard let currentTeamId = LCSharedUtils.teamIdentifier() else { return }
         if DataManager.shared.model.multiLCStatus == 2 {
-            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else {
-                print("Unable to find PrimaryLiveContainerTeamId")
-                return
-            }
+            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else { return }
             if currentTeamId != primaryLCTeamId {
                 errorInfo = "lc.settings.multiLC.teamIdMismatch".loc
                 errorShow = true
-                return
             }
         }
         UserDefaults.standard.set(currentTeamId, forKey: "LCCertificateTeamId")
     }
     
     func checkBundleId() {
-        if UserDefaults.standard.bool(forKey: "LCBundleIdChecked") {
-            return
-        }
-        
+        if UserDefaults.standard.bool(forKey: "LCBundleIdChecked") { return }
         let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "application-identifier" as CFString, nil), let appIdentifier = value.takeRetainedValue() as? String else {
+        guard let value = SecTaskCopyValueForEntitlement(task, "application-identifier" as CFString, nil), 
+              let appIdentifier = value.takeRetainedValue() as? String else {
             errorInfo = "Unable to determine application-identifier"
             errorShow = true
             return
         }
-        
-        guard let bundleId = Bundle.main.bundleIdentifier else {
-            return
-        }
-        
+        guard let bundleId = Bundle.main.bundleIdentifier else { return }
         var correctBundleId = ""
         if appIdentifier.count > 11 {
             let startIndex = appIdentifier.index(appIdentifier.startIndex, offsetBy: 11)
             correctBundleId = String(appIdentifier[startIndex...])
         }
-        
         if(bundleId != correctBundleId) {
             errorInfo = "lc.settings.bundleIdMismatch %@ %@".localizeWithFormat(bundleId, correctBundleId)
             errorShow = true
@@ -273,7 +244,8 @@ struct LCTabView: View {
     
     func checkGetTaskAllow() {
         let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "get-task-allow" as CFString, nil), (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false else {
+        guard let value = SecTaskCopyValueForEntitlement(task, "get-task-allow" as CFString, nil), 
+              (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false else {
             errorInfo = "lc.settings.notDevCert".loc
             errorShow = true
             return
@@ -281,13 +253,8 @@ struct LCTabView: View {
     }
     
     func checkPrivateContainerBookmark() {
-        if sharedModel.multiLCStatus == 2 {
-            return
-        }
-        if LCUtils.appGroupUserDefault.object(forKey: "LCLaunchExtensionPrivateDocBookmark") != nil {
-            return
-        }
-        
+        if sharedModel.multiLCStatus == 2 { return }
+        if LCUtils.appGroupUserDefault.object(forKey: "LCLaunchExtensionPrivateDocBookmark") != nil { return }
         guard let bookmark = LCUtils.bookmark(for: LCPath.docPath) else {
             errorInfo = "Failed to create bookmark for Documents folder?"
             errorShow = true

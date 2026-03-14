@@ -111,6 +111,7 @@ struct MultitaskAppWindow: View {
     }
     
     var body: some View {
+        
         let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
@@ -223,6 +224,14 @@ struct MultitaskAppWindow: View {
                 }
             }
         }
+        .onContinueUserActivity("com.livecontainer.openApp") { activity in
+                if let dataUUID = activity.userInfo?["dataUUID"] as? String {
+                    self.id = dataUUID
+                    if let info = MultitaskWindowManager.appDict[dataUUID] {
+                        self.appInfo = info
+                    }
+                }
+            }
     }
     
     private func requestSceneDestruction(isManual: Bool = false) {

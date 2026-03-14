@@ -123,11 +123,11 @@ struct MultitaskAppWindow: View {
         if show, let appInfo {
             GeometryReader { geometry in
                 
-                let tempRatio = CGFloat(LCUtils.appGroupUserDefault.float(forKey: "LCTempAspectRatio"))
+                let tempRatio = 0.5625 //CGFloat(LCUtils.appGroupUserDefault.float(forKey: "LCTempAspectRatio"))
                 
                 
                 
-                let useIPhoneMode = tempRatio > 0.1 && tempRatio < 0.9
+                let useIPhoneMode : Bool = true //= tempRatio > 0.1 && tempRatio < 0.9
                 
                 let targetSize: CGSize = {
                     if useIPhoneMode {

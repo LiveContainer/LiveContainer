@@ -1048,16 +1048,17 @@ NavigationLink(
             return
         }
     
-if isiPhoneMode, UIDevice.current.userInterfaceIdiom == .pad {
+if isiPhoneMode {
+        
+        let ratio: Float = 0.5625
+        UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
+        UserDefaults.lcShared().synchronize()
+
+        
         if #available(iOS 16.1, *) {
             
-            let activity = NSUserActivity(activityType: "com.livecontainer.iphonemode")
-            activity.userInfo = ["dataUUID": appFound.appInfo.dataUUID ?? ""]
-            
-            DispatchQueue.main.async {
-                UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
-            }
-            return 
+            openWindow(id: "appView", value: appFound.appInfo.dataUUID)
+            return
         }
     }
 

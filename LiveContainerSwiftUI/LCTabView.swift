@@ -27,7 +27,7 @@ struct LCTabView: View {
     @State private var position = CGSize(width: 20, height: 60)
 
     var body: some View {
-            var body: some View {
+            
         ZStack {
        
             Color.black.ignoresSafeArea()

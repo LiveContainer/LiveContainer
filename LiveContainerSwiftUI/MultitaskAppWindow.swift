@@ -102,6 +102,7 @@ struct MultitaskAppWindow: View {
     @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
     @AppStorage("LCSkipTerminatedScreen", store: LCUtils.appGroupUserDefault) var skipTerminatedScreen = false
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+    
     init(id: String) {
         guard let appInfo = MultitaskWindowManager.appDict[id] else {
             return
@@ -113,19 +114,53 @@ struct MultitaskAppWindow: View {
         let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
-                AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
-                                    onAppInitialize: { pid, error in
-                    DispatchQueue.main.async {
-                        if error == nil {
-                            self.pid = Int(pid)
-                        } else {
-                            self.errorMessage = error?.localizedDescription
-                        }
-                        DataManager.shared.model.pidCallback?(NSNumber(value: pid), error)
-                        DataManager.shared.model.pidCallback = nil
+                
+                let tempRatio = CGFloat(LCUtils.appGroupUserDefault.float(forKey: "LCTempAspectRatio"))
+                
+                
+                
+                let useIPhoneMode = tempRatio > 0.1 && tempRatio < 0.9
+                
+                let targetSize: CGSize = {
+                    if useIPhoneMode {
+                        let h = geometry.size.height
+                        let w = h * tempRatio
+                        return CGSize(width: w, height: h)
+                    } else {
+                        
+                        return geometry.size
                     }
-                })
-                .background(.black)
+                }()
+                
+                
+                ZStack {
+                    if useIPhoneMode {
+                        Color.black.ignoresSafeArea() 
+                    }
+
+                    AppSceneViewSwiftUI(
+                        show: $show, 
+                        bundleId: appInfo.bundleId, 
+                        dataUUID: appInfo.dataUUID, 
+                        initSize: targetSize, 
+                        onAppInitialize: { pid, error in
+                            DispatchQueue.main.async {
+                                if error == nil {
+                                    self.pid = Int(pid)
+                                } else {
+                                    self.errorMessage = error?.localizedDescription
+                                }
+                                DataManager.shared.model.pidCallback?(NSNumber(value: pid), error)
+                                DataManager.shared.model.pidCallback = nil
+                            }
+                        }
+                    )
+                    
+                    .frame(
+                        width: useIPhoneMode ? targetSize.width : geometry.size.width,
+                        height: useIPhoneMode ? targetSize.height : geometry.size.height
+                    )
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .ignoresSafeArea(.all, edges: .all)
@@ -136,7 +171,7 @@ struct MultitaskAppWindow: View {
                 }
             }
             
-        } else if skipTerminatedScreen && isVirtualWindowMode, appInfo != nil {
+        }  else if skipTerminatedScreen && isVirtualWindowMode, appInfo != nil {
             Color.clear
                 .ignoresSafeArea(.all, edges: .all)
                 .onAppear {

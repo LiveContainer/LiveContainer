@@ -107,17 +107,14 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                     MultitaskAppWindow(id: id)
                 }
             }
-
-        
-        
-if @available(iOS 16.1, *){
-WindowGroup(id: "IPhoneModeWindow", for: String.self) { $dataUUID in
-    
-    if let dataUUID = dataUUID {
-        IPhoneModeHostView(dataUUID: dataUUID)
-    }
-  }
-}
+        }
+ WindowGroup(id: "IPhoneModeWindow", for: String.self) { $dataUUID in
+                if let dataUUID = dataUUID {
+                    IPhoneModeHostView(dataUUID: dataUUID)
+                        .environmentObject(DataManager.shared.model)
+                        .environmentObject(LCAppSortManager.shared)
+                }
+            }
     }
     
 }

@@ -1,0 +1,41 @@
+import SwiftUI
+struct IPhoneRunnerView: View {
+    let appInfo: MultitaskAppInfo
+    @State private var isAppActive = true
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack {
+            
+            Color.black.ignoresSafeArea()
+
+            GeometryReader { geometry in
+              
+                let height = geometry.size.height 
+                let width = height * 0.5625
+                
+                VStack {
+                    // App 視窗本體
+                    AppSceneViewSwiftUI(
+                        show: $isAppActive,
+                        bundleId: appInfo.bundleId,
+                        dataUUID: appInfo.dataUUID,
+                        initSize: CGSize(width: width, height: height),
+                        onAppInitialize: { pid, error in
+                            print("iPhone Mode App Started: \(pid)")
+                        }
+                    )
+                    .frame(width: width, height: height)
+                    
+                    
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle(appInfo.displayName)
+        .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            isAppActive = false 
+        }
+    }
+}

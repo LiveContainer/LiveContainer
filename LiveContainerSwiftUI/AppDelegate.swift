@@ -31,10 +31,39 @@ import Intents
             LCUtils.appGroupUserDefault.setValue(UIDevice.current.buildVersion, forKey: "LCLastIOSBuildVersion")
         }
         
-        // Capture incoming custom scheme URL
+        // Capture incoming custom scheme URL and set up instant-boot
         if let url = launchOptions?[.url] as? URL, let scheme = url.scheme?.lowercased() {
             if !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
-                UserDefaults.standard.set(url.absoluteString, forKey: "incomingCustomSchemeURL")
+                // Find which app handles this custom scheme
+                if let docPath = ProcessInfo.processInfo.environment["HOME"] {
+                    let appsPath = "\(docPath)/Documents/Applications"
+                    let fm = FileManager.default
+                    
+                    if let apps = try? fm.contentsOfDirectory(atPath: appsPath) {
+                        for appFolder in apps {
+                            let infoPath = "\(appsPath)/\(appFolder)/LCAppInfo.plist"
+                            if let appInfoDict = NSDictionary(contentsOfFile: infoPath),
+                               let customSchemes = appInfoDict["LCCustomUrlSchemes"] as? [String] {
+                                
+                                if customSchemes.contains(scheme) {
+                                    // Set data for LCLaunchExtension instant boot pathway
+                                    LCUtils.appGroupUserDefault.set(appFolder, forKey: "LCLaunchExtensionBundleID")
+                                    LCUtils.appGroupUserDefault.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
+                                    
+                                    if let containers = appInfoDict["LCContainers"] as? [[String:Any]],
+                                       let defaultUUID = appInfoDict["LCDataUUID"] as? String,
+                                       containers.contains(where: { ($0["folderName"] as? String) == defaultUUID }) {
+                                        LCUtils.appGroupUserDefault.set(defaultUUID, forKey: "LCLaunchExtensionContainerName")
+                                    }
+                                    
+                                    // Save URL so LCBootstrap can pass it to guest app later
+                                    UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         

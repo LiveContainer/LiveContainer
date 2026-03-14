@@ -22,7 +22,6 @@ struct LCTabView: View {
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-    let pubCustomScheme = NotificationCenter.default.publisher(for: Notification.Name("LCHandleCustomScheme"))
 
     
     var body: some View {
@@ -120,13 +119,6 @@ struct LCTabView: View {
         .onOpenURL { url in
             dispatchURL(url: url)
         }
-        .onReceive(pubCustomScheme) { out in
-            if let customUrlStr = out.object as? String, let customUrl = URL(string: customUrlStr) {
-                dispatchURL(url: customUrl)
-            } else if let customUrl = out.object as? URL {
-                dispatchURL(url: customUrl)
-            }
-        }
     }
     
     func dispatchURL(url: URL) {
@@ -146,8 +138,8 @@ struct LCTabView: View {
                 
                 let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
                 if let app = allApps.first(where: { ($0.appInfo.customUrlSchemes as? [String] ?? []).contains(scheme) }) {
-                    // Save for the guest app to consume
-                    UserDefaults.standard.set(url.absoluteString, forKey: "incomingCustomSchemeURL")
+                    // Save for the guest app to consume after boot
+                    UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
                     
                     // Rewrite URL to trigger a native launch
                     var components = URLComponents()

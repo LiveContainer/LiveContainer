@@ -384,6 +384,39 @@ void handleLiveContainerLaunch(NSURL* url) {
     }
 }
 
+void handleCustomSchemeLaunch(NSURL* url) {
+    NSString *scheme = url.scheme.lowercaseString;
+    NSString *docPath = [NSString stringWithFormat:@"%s/Documents", getenv("LC_HOME_PATH")];
+    NSString *appsPath = [docPath stringByAppendingPathComponent:@"Applications"];
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSArray *apps = [fm contentsOfDirectoryAtPath:appsPath error:nil];
+    
+    NSString* targetBundleName = nil;
+    for (NSString *appFolder in apps) {
+        NSString *infoPath = [NSString stringWithFormat:@"%@/%@/LCAppInfo.plist", appsPath, appFolder];
+        NSDictionary *appInfo = [NSDictionary dictionaryWithContentsOfFile:infoPath];
+        NSArray *customSchemes = appInfo[@"LCCustomUrlSchemes"];
+        if (customSchemes && [customSchemes containsObject:scheme]) {
+            targetBundleName = appFolder;
+            break;
+        }
+    }
+    
+    if (targetBundleName) {
+        // Save the URL to be passed after guest app starts
+        [NSUserDefaults.lcUserDefaults setObject:url.absoluteString forKey:@"launchAppUrlScheme"];
+        
+        // Use existing prompt logic
+        bool isSharedApp = false;
+        NSBundle* bundle = [NSClassFromString(@"LCSharedUtils") findBundleWithBundleId:targetBundleName isSharedAppOut:&isSharedApp];
+        if (bundle) {
+            LCShowSwitchAppConfirmation(url, targetBundleName, isSharedApp);
+        } else {
+            LCShowAppNotFoundAlert(targetBundleName);
+        }
+    }
+}
+
 BOOL shouldRedirectOpenURLToHost(NSURL* url) {
     NSUserDefaults *ud = NSUserDefaults.lcSharedDefaults;
     return NSUserDefaults.isLiveProcess &&
@@ -462,7 +495,7 @@ BOOL canAppOpenItself(NSURL* url) {
         NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
         NSString *decodedUrl = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
         if (decodedUrl) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"LCHandleCustomScheme" object:decodedUrl];
+            handleCustomSchemeLaunch([NSURL URLWithString:decodedUrl]);
         }
         return;
     } else if ([url hasPrefix:[NSString stringWithFormat: @"%@://livecontainer-launch?bundle-name=", NSUserDefaults.lcAppUrlScheme]]) {
@@ -488,7 +521,7 @@ BOOL canAppOpenItself(NSURL* url) {
                 NSString *bounceUrlStr = [NSString stringWithFormat:@"livecontainer://route-custom-scheme?url=%@", encodedUrl];
                 [[NSClassFromString(@"UIApplication") sharedApplication] hook_openURL:[NSURL URLWithString:bounceUrlStr] options:@{} completionHandler:nil];
             } else {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"LCHandleCustomScheme" object:url];
+                handleCustomSchemeLaunch(parsedUrl);
             }
             return;
         }

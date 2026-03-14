@@ -1051,11 +1051,16 @@ NavigationLink(
 if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
     
     LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
+    
+    
+    LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
+    
+    // 3. 立即同步寫入
     LCUtils.appGroupUserDefault.synchronize()
 
-    
     if #available(iOS 16.1, *) {
         do {
+            
             
             try await appFound.runApp(
                 multitask: true, 
@@ -1066,9 +1071,11 @@ if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
+            return 
         }
     }
 }
+
 
     
     

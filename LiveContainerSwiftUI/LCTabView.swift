@@ -44,12 +44,13 @@ struct LCTabView: View {
               
                 }
                 .transition(.opacity)
+                .statusBar(hidden: true)
                 
             } else {
                 
                 VStack(spacing: 0) {
                     
-                    customToolbar 
+                    
                     
                     
                     ZStack {
@@ -64,12 +65,17 @@ struct LCTabView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                          if sharedModel.pendingIPhoneApp == nil {
+                    customToolbar
+                   }
                 }
                 .background(Color(UIColor.systemBackground).ignoresSafeArea())
                 .transition(.opacity)
             }
         }
-        // 修飾符掛在最外層 ZStack
+            .navigationTitle("")
+    .navigationBarHidden(true) 
+    .toolbar(sharedModel.pendingIPhoneApp != nil ? .hidden : .visible, for: .navigationBar)
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })

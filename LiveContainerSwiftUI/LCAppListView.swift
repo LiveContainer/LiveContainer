@@ -1049,33 +1049,20 @@ NavigationLink(
         }
             
       if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
-            
-            LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
-            LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
-            LCUtils.appGroupUserDefault.synchronize()
+       
+        LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
+        LCUtils.appGroupUserDefault.set(MultitaskMode.virtualWindow.rawValue, forKey: "LCMultitaskMode")
+        LCUtils.appGroupUserDefault.synchronize()
 
-            let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
-
-            
-            if #available(iOS 16.1, *) {
-                MultitaskWindowManager.appDict[targetDataUUID] = MultitaskAppInfo(
-                    displayName: appFound.appInfo.displayName(),
-                    dataUUID: targetDataUUID,
-                    bundleId: appFound.appInfo.relativeBundlePath
-                )
-                
-                MultitaskWindowManager.openAppWindow(
-                    displayName: appFound.appInfo.displayName(),
-                    dataUUID: targetDataUUID,
-                    bundleId: appFound.appInfo.relativeBundlePath,
-                    pidCallback: nil
-                )
-                return 
-            }
-        } else {
-            
-            LCUtils.appGroupUserDefault.set(0, forKey: "LCTempAspectRatio")
+        
+        do {
+            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
+            return 
+        } catch {
+            errorShow = true
+            errorInfo = error.localizedDescription
         }
+    }
 
         
         do {            

@@ -120,16 +120,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
         
-    private var _openWindow: Any? {
-        if #available(iOS 16.0, *) {
-            return openWindow
-        }
-        return nil
-    }
     
-    
-
-    @Environment(\.openWindow) var openWindow
  var aspectRatioToggleButton: some View {
     Button {
         isiPhoneMode.toggle()
@@ -1057,14 +1048,18 @@ NavigationLink(
             return
         }
     
-if isiPhoneMode {
-    if #available(iOS 16.1, *) {
-   
-        
-        openWindow(id: "IPhoneModeWindow", value: appFound.appInfo.dataUUID)
-        return 
+if isiPhoneMode, UIDevice.current.userInterfaceIdiom == .pad {
+        if #available(iOS 16.1, *) {
+            
+            let activity = NSUserActivity(activityType: "com.livecontainer.iphonemode")
+            activity.userInfo = ["dataUUID": appFound.appInfo.dataUUID ?? ""]
+            
+            DispatchQueue.main.async {
+                UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
+            }
+            return 
+        }
     }
-}
 
    
         

@@ -57,9 +57,8 @@ struct AppRunnerOverlay: View {
 
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
-       
     let appInfo: SimpleAppInfo 
-    let isiPhoneMode: Bool
+    let isiPhoneMode: Bool 
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
 
@@ -69,7 +68,8 @@ struct IPhoneRunnerView: View {
 
             GeometryReader { geometry in
                 let h = geometry.size.height
-                let w = h * 0.5625
+                
+                let w = isiPhoneMode ? (h * 0.5625) : geometry.size.width
                 
                 VStack {
                     AppSceneViewSwiftUI(
@@ -84,13 +84,15 @@ struct IPhoneRunnerView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationTitle(appInfo.displayName)
-        .navigationBarTitleDisplayMode(.inline)
+          .navigationTitle(")
+        .toolbar(.hidden, for: .navigationBar) 
         .onDisappear {
             isAppActive = false
         }
     }
 }
+
+      
 
 
 struct SimpleAppInfo {

@@ -95,11 +95,13 @@ struct IPhoneRunnerView: View {
       
 
 
-struct SimpleAppInfo {
+struct SimpleAppInfo: Identifiable {
+    let id = UUID() 
     let displayName: String
     let dataUUID: String
     let bundleId: String
 }
+
 
 class SearchContext: ObservableObject {
     @Published var query: String = ""
@@ -241,14 +243,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             ScrollView {
                 
 
-         // 在 ScrollView 內部的 NavigationLink 改成這樣，比較容易編譯成功
-          NavigationLink(
-                    destination: iPhoneDestination,
-                    isActive: $triggerNavigation
-                ) {
-                    EmptyView()
-                }
-                .hidden()
+         
+          
 
                 
                 LazyVStack {
@@ -421,6 +417,20 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+            .fullScreenCover(item: $pendingIPhoneApp) { appInfo in
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if #available(iOS 16.1, *) {
+                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: self.isiPhoneMode)
+                    .ignoresSafeArea()
+            } else {
+                Text("iPhone Mode requires iOS 16.1+")
+                    .foregroundColor(.white)
+            }
+            
+            
+        }
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
             })
@@ -1169,9 +1179,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         bundleId: appFound.appInfo.relativeBundlePath
     )
     
-    await MainActor.run {
-        self.triggerNavigation = true
-    }
+
         
         do {            
             if #available(iOS 16.0, *), launchInMultitaskMode {

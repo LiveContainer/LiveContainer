@@ -1165,27 +1165,25 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
         
         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
+
+    if launchInMultitaskMode {
         
+        
+        do {
+            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+        }
+    } else {
         
         
         self.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),
             dataUUID: targetDataUUID,
             bundleId: appFound.appInfo.relativeBundlePath
-        )
-        
-        
-        
-        do {            
-            if #available(iOS 16.0, *), launchInMultitaskMode {
-                try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-            } else {
-                return //try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
-            }
-        } catch {
-            errorInfo = error.localizedDescription
-            errorShow = true
-        }
+        )        
+    }
         
     }
     

@@ -75,7 +75,7 @@ struct LCTabView: View {
         }
             .navigationTitle("")
     .navigationBarHidden(true) 
-    .toolbar(sharedModel.pendingIPhoneApp != nil ? .hidden : .visible, for: .navigationBar)
+   
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })

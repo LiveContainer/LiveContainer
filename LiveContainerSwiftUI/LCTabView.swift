@@ -9,12 +9,11 @@ import Foundation
 import SwiftUI
 
 struct LCTabView: View {
-    @Binding var appDataFolderNames: [String]
+       @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
     @State var errorShow = false
     @State var errorInfo = ""
-    
     @State var previousSelectedTab : LCTabIdentifier = .apps
     
     @EnvironmentObject var sharedModel : SharedModel
@@ -22,102 +21,118 @@ struct LCTabView: View {
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-
     
-    var body: some View {
-        Group {
-            let appListView = LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-            let sourcesView = LCSourcesView()
-            if #available(iOS 19.0, *), SharedModel.isLiquidGlassSearchEnabled {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.sources".loc, systemImage: "books.vertical", value: LCTabIdentifier.sources) {
-                            sourcesView
-                        }
-                    }
-                    Tab("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill", value: LCTabIdentifier.apps) {
-                        appListView
-                    }
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver", value: LCTabIdentifier.tweaks) {
-                            LCTweaksView(tweakFolders: $tweakFolderNames)
-                        }
-                    }
-                    Tab("lc.tabView.settings".loc, systemImage: "gearshape.fill", value: LCTabIdentifier.settings) {
-                        LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                    }
-                    Tab("Search".loc, systemImage: "magnifyingglass", value: LCTabIdentifier.search, role: .search) {
-                        if previousSelectedTab == .sources {
-                            sourcesView
-                                .searchable(text: sourcesView.$searchContext.query)
-                        } else {
-                            appListView
-                                .searchable(text: appListView.$searchContext.query)
-                        }
+    
+    @State private var dragOffset = CGSize.zero
+    @State private var position = CGSize(width: 20, height: 60)
 
-                    }
-                }
-            } else {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        sourcesView
-                            .tabItem {
-                                Label("lc.tabView.sources".loc, systemImage: "books.vertical")
-                            }
-                            .tag(LCTabIdentifier.sources)
-                    }
-                    appListView
-                        .tabItem {
-                            Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
-                        }
-                        .tag(LCTabIdentifier.apps)
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        LCTweaksView(tweakFolders: $tweakFolderNames)
-                            .tabItem{
-                                Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
-                            }
-                            .tag(LCTabIdentifier.tweaks)
-                    }
+    var body: some View {
+        ZStack(alignment: .top) {
+            
+            Group {
+                if sharedModel.pendingIPhoneApp != nil {
                     
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                        .tabItem {
-                            Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
+                    if #available(iOS 16.1, *), let appInfo = sharedModel.pendingIPhoneApp {
+                        IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
+                            .ignoresSafeArea()
+                    }
+                } else {
+                
+                    VStack(spacing: 0) {
+                        
+                        customToolbar
+                        
+                        
+                        ZStack {
+                            if sharedModel.selectedTab == .sources {
+                                LCSourcesView()
+                            } else if sharedModel.selectedTab == .apps {
+                                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                            } else if sharedModel.selectedTab == .tweaks {
+                                LCTweaksView(tweakFolders: $tweakFolderNames)
+                            } else if sharedModel.selectedTab == .settings {
+                                LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                            }
                         }
-                        .tag(LCTabIdentifier.settings)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
             }
+
+            
+            if sharedModel.pendingIPhoneApp != nil {
+                floatingBackButton
+            }
         }
+        
         .alert("lc.common.error".loc, isPresented: $errorShow){
-            Button("lc.common.ok".loc, action: {
-            })
-            Button("lc.common.copy".loc, action: {
-                copyError()
-            })
-        } message: {
-            Text(errorInfo)
-        }
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: { copyError() })
+        } message: { Text(errorInfo) }
         .task {
-            closeDuplicatedWindow()
-            checkLastLaunchError()
-            checkTeamId()
-            checkBundleId()
-            checkGetTaskAllow()
-            checkPrivateContainerBookmark()
+            closeDuplicatedWindow(); checkLastLaunchError(); checkTeamId(); checkBundleId(); checkGetTaskAllow(); checkPrivateContainerBookmark()
         }
         .onReceive(pub) { out in
             if let scene1 = sceneDelegate.window?.windowScene, let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
-                if shouldToggleMainWindowOpen {
-                    DataManager.shared.model.mainWindowOpened = false
-                }
+                if shouldToggleMainWindowOpen { DataManager.shared.model.mainWindowOpened = false }
             }
         }
-        .onChange(of: sharedModel.selectedTab) { newValue in
-            if newValue != LCTabIdentifier.search {
-                previousSelectedTab = newValue
+        .onOpenURL { url in dispatchURL(url: url) }
+    }
+
+    
+    var customToolbar: some View {
+        HStack(spacing: 30) {
+            if DataManager.shared.model.multiLCStatus != 2 {
+                tabItem(title: "lc.tabView.sources".loc, icon: "books.vertical", id: .sources)
             }
+            tabItem(title: "lc.tabView.apps".loc, icon: "square.stack.3d.up.fill", id: .apps)
+            if DataManager.shared.model.multiLCStatus != 2 {
+                tabItem(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
+            }
+            tabItem(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
         }
-        .onOpenURL { url in
-            dispatchURL(url: url)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color(UIColor.systemBackground).shadow(radius: 1))
+    }
+
+    func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
+        Button(action: { sharedModel.selectedTab = id }) {
+            VStack {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                Text(title)
+                    .font(.caption2)
+            }
+            .foregroundColor(sharedModel.selectedTab == id ? .blue : .gray)
+        }
+    }
+
+    
+    var floatingBackButton: some View {
+        GeometryReader { geo in
+            Button(action: { sharedModel.pendingIPhoneApp = nil }) {
+                Image(systemName: "chevron.left")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                    .frame(width: 50, height: 50)
+                    .background(Circle().fill(Color.black.opacity(0.6)))
+            }
+            .offset(x: position.width + dragOffset.width, y: position.height + dragOffset.height)
+            .gesture(
+                DragGesture()
+                    .onChanged { dragOffset = $0.translation }
+                    .onEnded { value in
+                        position.width += value.translation.width
+                        position.height += value.translation.height
+                        dragOffset = .zero
+                        
+                        // 邊界檢查：防止按鈕消失
+                        position.width = max(10, min(position.width, geo.size.width - 60))
+                        position.height = max(40, min(position.height, geo.size.height - 60))
+                    }
+            )
         }
     }
     

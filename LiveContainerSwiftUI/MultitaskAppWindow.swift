@@ -230,6 +230,7 @@ struct MultitaskAppWindow: View {
                     }
                 }
             }
+        }
         
         .onContinueUserActivity("com.livecontainer.openApp") { activity in
                 if let dataUUID = activity.userInfo?["dataUUID"] as? String {

@@ -1048,23 +1048,25 @@ NavigationLink(
             return
         }
     
-if isiPhoneMode {
-            let ratio: Float = 0.5625
-            UserDefaults.lcShared().set(ratio, forKey: "LCTempAspectRatio")
-            UserDefaults.lcShared().synchronize()
+if isiPhoneMode && UIDevice.current.userInterfaceIdiom == .pad {
+        // 1. 設定比例
+        LCUtils.appGroupUserDefault.set(0.5625, forKey: "LCTempAspectRatio")
+        LCUtils.appGroupUserDefault.synchronize()
 
-        
-            if #available(iOS 16.1, *) {
-                let activity = NSUserActivity(activityType: "com.livecontainer.openApp")
-                
-                activity.userInfo = ["dataUUID": appFound.appInfo.dataUUID ?? ""]
-                
-                DispatchQueue.main.async {
-                    UIApplication.shared.requestSceneSessionActivation(nil, userActivity: activity, options: nil, errorHandler: nil)
-                }
-                return
-            }
+        // 2. 呼叫多工模式的管理器
+        if #available(iOS 16.1, *) {
+            MultitaskWindowManager.openAppWindow(
+                displayName: appFound.appInfo.displayName(),
+                dataUUID: appFound.appInfo.dataUUID ?? "",
+                bundleId: appFound.appInfo.relativeBundlePath,
+                pidCallback: nil
+            )
+            return
         }
+    }
+    
+    // 如果不是 iPhone 模式，則清除比例並走原本流程
+    LCUtils.appGroupUserDefault.set(0, forKey: "LCTempAspectRatio")
 
    
         

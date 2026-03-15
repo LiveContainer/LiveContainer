@@ -8,9 +8,6 @@
 import Foundation
 import SwiftUI
 
-import Foundation
-import SwiftUI
-
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
@@ -51,7 +48,7 @@ struct LCTabView: View {
             Color.black.ignoresSafeArea()
             
             if #available(iOS 16.1, *) {
-                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
+                IPhoneRunnerView(appInfo: appInfo, mode: sharedModel.isiPhoneMode ? .iPhone : .iPad)
                     
             }
             

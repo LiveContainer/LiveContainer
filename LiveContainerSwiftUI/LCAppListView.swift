@@ -189,7 +189,7 @@ struct AppReplaceOption : Hashable {
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     
-    @State private var pendingIPhoneApp: SimpleAppInfo? = nil
+    
     @State private var triggerNavigation = false
     
     
@@ -1273,7 +1273,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     } else {
         
-        self.pendingIPhoneApp = SimpleAppInfo(
+        sharedModel.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),
             dataUUID: targetDataUUID,
             bundleId: appFound.appInfo.relativeBundlePath

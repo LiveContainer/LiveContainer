@@ -276,16 +276,43 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
-    
-    var aspectRatioToggleButton: some View {
+var currentModeIcon: String {
+    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+        return "arrow.up.left.and.arrow.down.right"
+    } else {
+        return isiPhoneMode ? "iphone" : "ipad"
+    }
+}
+
+  var launchModeSelector: some View { 
+    Menu {
+        
         Button {
-            isiPhoneMode.toggle()
-            
-            
+            isiPhoneMode = true
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
         } label: {
-            Image(systemName: isiPhoneMode ? "iphone" : "ipad")
-                .foregroundColor(isiPhoneMode ? .orange : .primary)
+            Label("iPhone Mode", systemImage: "iphone")
         }
+
+        
+        Button {
+            isiPhoneMode = false
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+        } label: {
+            Label("iPad Mode", systemImage: "ipad")
+        }
+
+        
+        Button {
+            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+        } label: {
+            Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
+        }
+    } label: {
+        
+        Image(systemName: currentModeIcon)
+            .imageScale(.large)
+            .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
     }
     
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
@@ -428,7 +455,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 
                 
                 ToolbarItem(placement: .topBarLeading) {
-                    aspectRatioToggleButton 
+                     launchModeSelector
                 }
                 
                 
@@ -1221,8 +1248,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         
         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
 
+   
     if launchInMultitaskMode {
-        
         
         do {
             try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
@@ -1230,8 +1257,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-    } else {
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         
+        do {
+            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+        }
+    } else {
         
         self.pendingIPhoneApp = SimpleAppInfo(
             displayName: appFound.appInfo.displayName(),

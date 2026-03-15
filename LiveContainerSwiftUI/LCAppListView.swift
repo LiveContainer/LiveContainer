@@ -10,6 +10,12 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum LCLaunchMode: Int {
+    case iPad = 0
+    case iPhone = 1
+    case liveContainer = 2
+}
+
 struct FloatingBackButton: View {
     @Binding var isPresented: SimpleAppInfo? // 用於關閉 fullScreenCover
     
@@ -253,36 +259,68 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
 
     
-    var launchModeSelector: some View { 
+    
+var currentLaunchMode: AppLaunchMode {
+    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+        return .native
+    }
+    return isiPhoneMode ? .iPhone : .iPad
+}
+
+
+var launchModeSelector: some View { 
     Menu {
         Button {
-            sharedModel.isiPhoneMode = true 
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            
-            isiPhoneMode = true 
-        } label: {
-            Label("iPhone Mode", systemImage: "iphone")
-        }
+            setMode(.iPhone)
+        } label: { Label("iPhone Mode", systemImage: "iphone") }
 
         Button {
-            sharedModel.isiPhoneMode = false
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            isiPhoneMode = false
-        } label: {
-            Label("iPad Mode", systemImage: "ipad")
-        }
+            setMode(.iPad)
+        } label: { Label("iPad Mode", systemImage: "ipad") }
 
         Button {
-            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
-            
-            isiPhoneMode.toggle(); isiPhoneMode.toggle() 
-        } label: {
-            Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
-        }
+            setMode(.native)
+        } label: { Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right") }
     } label: {
         Image(systemName: currentModeIcon)
-            .imageScale(.large)
-            .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
+            .foregroundColor(currentLaunchMode == .native ? .green : .orange)
+    }
+}
+
+
+private func setMode(_ mode: AppLaunchMode) {
+    switch mode {
+    case .iPhone:
+        isiPhoneMode = true
+        sharedModel.isiPhoneMode = true
+        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+    case .iPad:
+        isiPhoneMode = false
+        sharedModel.isiPhoneMode = false
+        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+    case .native:
+        UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+    }
+}
+
+
+
+
+func updateLaunchMode(_ mode: LCLaunchMode) {
+    switch mode {
+    case .iPhone:
+        sharedModel.isiPhoneMode = true
+        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+        isiPhoneMode = true
+    case .iPad:
+        sharedModel.isiPhoneMode = false
+        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+        isiPhoneMode = false
+    case .liveContainer:
+        UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+        
+        sharedModel.isiPhoneMode = false 
+        isiPhoneMode = false
     }
 }
 
@@ -500,20 +538,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            if #available(iOS 16.1, *) {
-                IPhoneRunnerView(appInfo: appInfo, isiPhoneMode: sharedModel.isiPhoneMode)
-                    
-            }
-            
-            
-            FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
-                .zIndex(99)
-        }
+       .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
+    ZStack {
+        
+        IPhoneRunnerView(appInfo: appInfo, mode: self.currentLaunchMode)
+        
+        FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
+            .zIndex(99)
     }
+}
+
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
             })

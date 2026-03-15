@@ -701,7 +701,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @ViewBuilder
     private var iPhoneDestination: some View {
         if #available(iOS 16.1, *) { 
-            if let info = pendingIPhoneApp {
+            if let info = sharedModel.pendingIPhoneApp {
                 IPhoneRunnerView(appInfo: info,isiPhoneMode: self.isiPhoneMode)
             } else {
                 Text("App Data Error")

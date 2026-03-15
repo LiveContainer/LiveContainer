@@ -77,8 +77,8 @@ struct FloatingBackButton: View {
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
     let appInfo: SimpleAppInfo
-    let mode: AppLaunchMode 
     @State private var isAppActive = true
+    @EnvironmentObject private var sharedModel: SharedModel
     
     var body: some View {
         GeometryReader { geometry in

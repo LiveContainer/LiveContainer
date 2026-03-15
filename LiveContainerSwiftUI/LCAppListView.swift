@@ -109,16 +109,18 @@ struct IPhoneRunnerView: View {
             terminateAppProcess()
         }
     }
-    private func terminateAppProcess() {
+   private func terminateAppProcess() {
         
+        LCUtils.killApp(bundleId: appInfo.bundleId)
+        
+    
         let allApps = sharedModel.apps + sharedModel.hiddenApps
-        
         if let appModel = allApps.first(where: { $0.appInfo.relativeBundlePath == appInfo.bundleId }) {
             
-            appModel.killApp()
+            appModel.appInfo.isJITNeeded = false 
             
             
-            appModel.isJITNeeded = false 
+            appModel.uiIsSelected = false
         }
     }
     

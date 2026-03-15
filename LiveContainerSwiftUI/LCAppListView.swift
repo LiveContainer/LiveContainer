@@ -124,7 +124,7 @@ struct IPhoneRunnerView: View {
             let w = containerH * (9.0 / 16.0)
             return CGSize(width: min(w, containerW), height: containerH)
         //}
-    //}
+    }
 }
 
 

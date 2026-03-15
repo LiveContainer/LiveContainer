@@ -269,24 +269,48 @@ var currentLaunchMode: AppLaunchMode {
 
 
 
-var launchModeSelector: some View { 
+var launchModeSelector: some View {
     Menu {
-        Button {
-            setMode(.iPhone)
-        } label: { Label("iPhone Mode", systemImage: "iphone") }
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            
+            Button {
+                setMode(.iPhone)
+            } label: { 
+                Label("iPhone mode (9:16)", systemImage: "iphone") 
+            }
 
-        Button {
-            setMode(.iPad)
-        } label: { Label("iPad Mode", systemImage: "ipad") }
+            Button {
+                setMode(.iPad)
+            } label: { 
+                Label("Native iPad modee", systemImage: "ipad") 
+            }
 
-        Button {
-            setMode(.native)
-        } label: { Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right") }
+            Button {
+                setMode(.native)
+            } label: { 
+                Label("LiveContainer mode", systemImage: "arrow.up.left.and.arrow.down.right") 
+            }
+        } else {
+            
+            Button {
+                setMode(.iPad) 
+            } label: { 
+                Label("Native iPhone mode", systemImage: "iphone") 
+            }
+
+            Button {
+                setMode(.native)
+            } label: { 
+                Label("LiveContainer mode", systemImage: "arrow.up.left.and.arrow.down.right") 
+            }
+        }
     } label: {
+    
         Image(systemName: currentModeIcon)
             .foregroundColor(currentLaunchMode == .native ? .green : .orange)
     }
 }
+
 
 
 private func setMode(_ mode: AppLaunchMode) {

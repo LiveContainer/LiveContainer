@@ -12,6 +12,8 @@ NSUUID* idForVendorUUID = nil;
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
+    swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
+    swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -750,4 +752,13 @@ BOOL canAppOpenItself(NSURL* url) {
     return idForVendorUUID;
 }
 
+
+- (UIUserInterfaceIdiom)hook_userInterfaceIdiom {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        return UIUserInterfaceIdiomPhone; 
+    }
+    
+    return [self hook_userInterfaceIdiom]; 
+}
 @end
+

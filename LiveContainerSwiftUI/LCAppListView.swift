@@ -76,83 +76,79 @@ struct FloatingBackButton: View {
 
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
-    let appInfo: SimpleAppInfo 
+    let appInfo: SimpleAppInfo
     let mode: AppLaunchMode 
     @State private var isAppActive = true
-    @Environment(\.dismiss) var dismiss
-        @EnvironmentObject private var sharedModel: SharedModel
     
     var body: some View {
-       ZStack {
-            Color.black.ignoresSafeArea()
-            GeometryReader { geometry in
-                let size = calculateSize(w: geometry.size.width, h: geometry.size.height, landscape: geometry.size.width > geometry.size.height)
+        GeometryReader { geometry in
+            
+            let size = calculateIPhoneSize(w: geometry.size.width, h: geometry.size.height)
+            
+            ZStack {
+                AppSceneViewSwiftUI(
+                    show: $isAppActive,
+                    bundleId: appInfo.bundleId,
+                    dataUUID: appInfo.dataUUID,
+                    initSize: size,
+                    onAppInitialize: { pid, error in }
+                )
+                .frame(width: size.width, height: size.height)
+                .background(Color.black)
+            
                 
-                VStack {
-                    AppSceneViewSwiftUI(
-                        show: $isAppActive,
-                        bundleId: appInfo.bundleId,
-                        dataUUID: appInfo.dataUUID,
-                        initSize: size,
-                        onAppInitialize: { pid, error in }
-                    )
-                    .frame(width: size.width, height: size.height)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .background(Color.black.ignoresSafeArea())
+    }
+
+    private func calculateIPhoneSize(w: CGFloat, h: CGFloat) -> CGSize {
+        let landscape = w > h
+        var targetW: CGFloat
+        var targetH: CGFloat
+        
+        if landscape {
+            targetW = h * (16.0 / 9.0)
+            targetH = h
+            if targetW > w {
+                targetW = w
+                targetH = w * (9.0 / 16.0)
+            }
+        } else {
+            targetW = h * (9.0 / 16.0)
+            targetH = h
+            if targetW > w {
+                targetW = w
+                targetH = w * (16.0 / 9.0)
             }
         }
-        .navigationTitle("")
-        .toolbar(.hidden, for: .navigationBar) 
-        .onDisappear {
-            isAppActive = false 
-            
-            terminateAppProcess()
-        }
+        return CGSize(width: targetW, height: targetH)
     }
-  private func terminateAppProcess() {
-        
-        MultitaskDockManager.shared.removeRunningApp(appInfo.dataUUID)
-        
-        
-        if let appModel = sharedModel.apps.first(where: { $0.appInfo.relativeBundlePath == appInfo.bundleId }) {
-            
-            
-            // appModel.isAppRunning = false 
-        }
-        
-    
-        NotificationCenter.default.post(name: NSNotification.Name("LCAppDidTerminateNotification"), object: nil, userInfo: ["bundleId": appInfo.bundleId])
-    }
-    
-    
-    private func calculateSize(w: CGFloat, h: CGFloat, landscape: Bool) -> CGSize {
-    
-    if mode == .iPad || mode == .native {
-        return CGSize(width: w, height: h)
-    }
-    
-
-    var targetW: CGFloat
-    var targetH: CGFloat
-    
-    if landscape {
-        targetW = h * (16.0 / 9.0)
-        targetH = h
-        if targetW > w {
-            targetW = w
-            targetH = w * (9.0 / 16.0)
-        }
-    } else {
-        targetW = h * (9.0 / 16.0)
-        targetH = h
-        if targetW > w {
-            targetW = w
-            targetH = w * (16.0 / 9.0)
-        }
-    }
-    return CGSize(width: targetW, height: targetH)
 }
 
+@available(iOS 16.1, *)
+struct IPadRunnerView: View {
+    let appInfo: SimpleAppInfo
+    @State private var isAppActive = true
+    @EnvironmentObject private var sharedModel: SharedModel
+
+    var body: some View {
+        GeometryReader { geometry in
+            AppSceneViewSwiftUI(
+                show: $isAppActive,
+                bundleId: appInfo.bundleId,
+                dataUUID: appInfo.dataUUID,
+                initSize: geometry.size,
+                onAppInitialize: { pid, error in }
+            )
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .onDisappear {
+            isAppActive = false
+            
+        }
+    }
 }
 
 
@@ -316,16 +312,30 @@ private func setMode(_ mode: AppLaunchMode) {
     UserDefaults.standard.synchronize()
 }
 
+
 @ViewBuilder
 private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
     ZStack {
         Color.black.ignoresSafeArea()
-        if #available(iOS 16.1, *) {
-           
-            IPhoneRunnerView(appInfo: appInfo, mode: self.currentLaunchMode)
-                .id("\(appInfo.bundleId)_\(self.currentLaunchMode.rawValue)")
+        
+        if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+            
+            AppSceneViewSwiftUI(
+                show: .constant(true),
+                bundleId: appInfo.bundleId,
+                dataUUID: appInfo.dataUUID,
+                initSize: UIScreen.main.bounds.size,
+                onAppInitialize: { pid, error in }
+            )
+            .ignoresSafeArea()
+        } else if isiPhoneMode {
+            
+            IPhoneRunnerView(appInfo: appInfo, mode: .iPhone)
+                .id("iPhone_\(appInfo.bundleId)") 
         } else {
-            Text("iOS 16.1+ Required")
+            
+            IPadRunnerView(appInfo: appInfo)
+                .id("iPad_\(appInfo.bundleId)")
         }
         
         FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)

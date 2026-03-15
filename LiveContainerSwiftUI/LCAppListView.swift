@@ -101,7 +101,7 @@ struct IPhoneRunnerView: View {
                         onAppInitialize: { pid, error in }
                     )
                     .frame(width: calcSize.width, height: calcSize.height)
-                    .id("\(appInfo.bundleId)_\(containerW > containerH)")
+                    //.id("\(appInfo.bundleId)_\(containerW > containerH)")
                     .position(x: containerW / 2, y: containerH / 2)
                 }
             }
@@ -114,17 +114,17 @@ struct IPhoneRunnerView: View {
         
         
         
-        let isLandscape = containerW > containerH
-        if isLandscape {
+        //let isLandscape = containerW > containerH
+        //if isLandscape {
             
-            let w = containerH * (16.0 / 9.0)
-            return CGSize(width: min(w, containerW), height: containerH)
-        } else {
+            //let w = containerH * (16.0 / 9.0)
+            //return CGSize(width: min(w, containerW), height: containerH)
+        //} else {
             
             let w = containerH * (9.0 / 16.0)
             return CGSize(width: min(w, containerW), height: containerH)
-        }
-    }
+        //}
+    //}
 }
 
 

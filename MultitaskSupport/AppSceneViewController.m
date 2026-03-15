@@ -215,7 +215,17 @@
     self.contentView.backgroundColor = [UIColor blackColor];
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
+        UITraitCollection *phone = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        UITraitCollection *compact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
+        UITraitCollection *regular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
+        UITraitCollection *customTraits = [UITraitCollection traitCollectionWithTraitsFromCollections:@[phone, compact, regular]];
+        
     
+        
+        [self setOverrideTraitCollection:customTraits forChildViewController:nil];
+    }
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
 - (void)terminate {
@@ -359,32 +369,5 @@
     }];
 }
 
-@end
-
-static UITraitCollection* LC_HookedTraitCollection(AppSceneViewController* self, SEL _cmd) {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        UITraitCollection *phone = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
-        UITraitCollection *compact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
-        UITraitCollection *regular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[phone, compact, regular]];
-    }
-    
-    
-    Method originalMethod = class_getInstanceMethod([UIViewController class], @selector(traitCollection));
-    IMP originalImp = method_getImplementation(originalMethod);
-    UITraitCollection* (*func)(id, SEL) = (void *)originalImp;
-    return func(self, _cmd);
-}
-
-@implementation AppSceneViewController (RealIPhone)
-+ (void)load {
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        Class class = [AppSceneViewController class];
-        SEL selector = @selector(traitCollection);
-        Method method = class_getInstanceMethod(class, selector);
-        method_setImplementation(method, (IMP)LC_HookedTraitCollection);
-    });
-}
 @end
 

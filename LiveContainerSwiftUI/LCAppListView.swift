@@ -111,19 +111,17 @@ struct IPhoneRunnerView: View {
     }
   private func terminateAppProcess() {
         
-        let allApps = sharedModel.apps + sharedModel.hiddenApps
+        MultitaskDockManager.shared.removeRunningApp(appInfo.dataUUID)
         
         
-        if let appModel = allApps.first(where: { $0.appInfo.relativeBundlePath == appInfo.bundleId }) {
-            
-            appModel.terminate() 
+        if let appModel = sharedModel.apps.first(where: { $0.appInfo.relativeBundlePath == appInfo.bundleId }) {
             
             
-            appModel.appInfo.isJITNeeded = false 
-        } else {
-            
-            LCUtils.terminateApp(bundleId: appInfo.bundleId)
+            // appModel.isAppRunning = false 
         }
+        
+    
+        NotificationCenter.default.post(name: NSNotification.Name("LCAppDidTerminateNotification"), object: nil, userInfo: ["bundleId": appInfo.bundleId])
     }
     
     

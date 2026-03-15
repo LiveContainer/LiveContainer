@@ -76,64 +76,59 @@ struct FloatingBackButton: View {
 
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
-    let appInfo: SimpleAppInfo
+    let appInfo: SimpleAppInfo 
+    
     @State private var isAppActive = true
-    @EnvironmentObject private var sharedModel: SharedModel
     
     var body: some View {
-        
         ZStack {
             Color.black.ignoresSafeArea()
-
+            
             GeometryReader { geometry in
                 
-                let size = calculateIPhoneSize(w: geometry.size.width, h: geometry.size.height)
+                let containerH = geometry.size.height
+                let containerW = geometry.size.width
                 
-                ZStack {
+                
+                if containerH > 0 && containerW > 0 {
+                    let calcSize = calculateTargetSize(containerW: containerW, containerH: containerH)
+                    
                     AppSceneViewSwiftUI(
                         show: $isAppActive,
                         bundleId: appInfo.bundleId,
                         dataUUID: appInfo.dataUUID,
-                        initSize: size, 
+                        initSize: calcSize,
                         onAppInitialize: { pid, error in }
                     )
-                    
-                    .frame(width: size.width, height: size.height)
-                    .clipped() 
-                    .background(Color.black)
+                    .frame(width: calcSize.width, height: calcSize.height)
+                    .id("\(appInfo.bundleId)_\(mode.rawValue)_\(containerW > containerH)")
+                    .position(x: containerW / 2, y: containerH / 2)
                 }
-                
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
             }
         }
+        .onDisappear { isAppActive = false }
     }
-
-    private func calculateIPhoneSize(w: CGFloat, h: CGFloat) -> CGSize {
-        let landscape = w > h
-        let ratio: CGFloat = 9.0 / 16.0
-        var targetW: CGFloat
-        var targetH: CGFloat
+    
+    
+    private func calculateTargetSize(containerW: CGFloat, containerH: CGFloat) -> CGSize {
+        if mode == .native || mode == .iPad {
+            return CGSize(width: containerW, height: containerH)
+        }
         
-        if landscape {
+        
+        let isLandscape = containerW > containerH
+        if isLandscape {
             
-            targetH = h
-            targetW = h * (16.0 / 9.0)
-            if targetW > w {
-                targetW = w
-                targetH = w * (9.0 / 16.0)
-            }
+            let w = containerH * (16.0 / 9.0)
+            return CGSize(width: min(w, containerW), height: containerH)
         } else {
             
-            targetW = w
-            targetH = w / ratio
-            if targetH > h {
-                targetH = h
-                targetW = h * ratio
-            }
+            let w = containerH * (9.0 / 16.0)
+            return CGSize(width: min(w, containerW), height: containerH)
         }
-        return CGSize(width: targetW, height: targetH)
     }
 }
+
 
 
 @available(iOS 16.1, *)

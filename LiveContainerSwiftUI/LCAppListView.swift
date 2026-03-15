@@ -72,50 +72,6 @@ struct FloatingBackButton: View {
     }
 }
 
-@available(iOS 16.1, *)
-struct AppRunnerOverlay: View {
-    let appInfo: SimpleAppInfo
-    let useIPhoneMode: Bool
-    @State private var isAppActive = true
-    @Environment(\.dismiss) var dismiss
-    
-    var body: some View {
-        ZStack {
-            
-            Color(useIPhoneMode ? .black : .systemBackground).ignoresSafeArea()
-            
-            GeometryReader { geometry in
-                let h = geometry.size.height * (useIPhoneMode ? 0.9 : 1.0)
-                let w = useIPhoneMode ? (h * 0.5625) : geometry.size.width
-                
-                VStack {
-                    
-                    AppSceneViewSwiftUI(
-                        show: $isAppActive,
-                        bundleId: appInfo.bundleId,
-                        dataUUID: appInfo.dataUUID,
-                        initSize: CGSize(width: w, height: h),
-                        onAppInitialize: { pid, error in
-                            print("App Rendered inside SwiftUI - PID: \(pid)")
-                        }
-                    )
-                    .frame(width: w, height: h)
-                    .cornerRadius(useIPhoneMode ? 15 : 0)
-                    .shadow(radius: useIPhoneMode ? 20 : 0)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .navigationTitle(useIPhoneMode ? appInfo.displayName : "")
-        .navigationBarTitleDisplayMode(.inline)
-        
-        .navigationBarHidden(true) 
-        .toolbar(.hidden, for: .navigationBar)  
-        .onDisappear {
-            isAppActive = false 
-        }
-    }
-}
 
 
 @available(iOS 16.1, *)
@@ -124,18 +80,13 @@ struct IPhoneRunnerView: View {
     let mode: AppLaunchMode 
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
+        @EnvironmentObject private var sharedModel: SharedModel
     
     var body: some View {
-        ZStack {
+       ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geometry in
-                
-                let screenW = geometry.size.width
-                let screenH = geometry.size.height
-                let isLandscape = screenW > screenH
-                
-            
-                let size = calculateSize(w: screenW, h: screenH, landscape: isLandscape)
+                let size = calculateSize(w: geometry.size.width, h: geometry.size.height, landscape: geometry.size.width > geometry.size.height)
                 
                 VStack {
                     AppSceneViewSwiftUI(
@@ -146,19 +97,34 @@ struct IPhoneRunnerView: View {
                         onAppInitialize: { pid, error in }
                     )
                     .frame(width: size.width, height: size.height)
-                    .cornerRadius(mode == .iPhone ? 15 : 0)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar) 
-        .onDisappear { isAppActive = false }
+        .onDisappear {
+            isAppActive = false 
+            
+            terminateAppProcess()
+        }
+    }
+    private func terminateAppProcess() {
+        
+        let allApps = sharedModel.apps + sharedModel.hiddenApps
+        
+        if let appModel = allApps.first(where: { $0.appInfo.relativeBundlePath == appInfo.bundleId }) {
+            
+            appModel.killApp()
+            
+            
+            appModel.isJITNeeded = false 
+        }
     }
     
     
     private func calculateSize(w: CGFloat, h: CGFloat, landscape: Bool) -> CGSize {
-        if mode != .iPhone {
+        if mode == .iPad || mode == .native {
             return CGSize(width: w, height: h)
         }
         
@@ -166,7 +132,6 @@ struct IPhoneRunnerView: View {
         var targetH: CGFloat
         
         if landscape {
-            
             targetW = h * (16.0 / 9.0)
             targetH = h
             if targetW > w {
@@ -174,7 +139,6 @@ struct IPhoneRunnerView: View {
                 targetH = w * (9.0 / 16.0)
             }
         } else {
-            
             targetW = h * (9.0 / 16.0)
             targetH = h
             if targetW > w {
@@ -182,7 +146,6 @@ struct IPhoneRunnerView: View {
                 targetH = w * (16.0 / 9.0)
             }
         }
-        
         return CGSize(width: targetW, height: targetH)
     }
 }

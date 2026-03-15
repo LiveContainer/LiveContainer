@@ -37,7 +37,7 @@ struct FloatingBackButton: View {
                     .frame(width: 50, height: 50)
                     .background(
                         Circle()
-                            .fill(Color.black.opacity(0.6))
+                            .fill(Color.red)
                             .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
                     )
             }
@@ -294,7 +294,7 @@ private func setMode(_ mode: AppLaunchMode) {
             isiPhoneMode = true
             sharedModel.isiPhoneMode = true
             UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode") // 額外存入 UserDefault 確保持久化
+            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode") 
             
         case .iPad:
             isiPhoneMode = false
@@ -307,6 +307,7 @@ private func setMode(_ mode: AppLaunchMode) {
             isiPhoneMode = false
             sharedModel.isiPhoneMode = false
             UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
         }
     }
     UserDefaults.standard.synchronize()
@@ -318,31 +319,45 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
     ZStack {
         Color.black.ignoresSafeArea()
         
-        if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-            
-            AppSceneViewSwiftUI(
-                show: .constant(true),
-                bundleId: appInfo.bundleId,
-                dataUUID: appInfo.dataUUID,
-                initSize: UIScreen.main.bounds.size,
-                onAppInitialize: { pid, error in }
-            )
-            .ignoresSafeArea()
-        } else if isiPhoneMode {
-            
-            IPhoneRunnerView(appInfo: appInfo, mode: .iPhone)
-                .id("iPhone_\(appInfo.bundleId)") 
+        
+        if #available(iOS 16.1, *) {
+            if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+                
+                AppSceneViewSwiftUI(
+                    show: .constant(true),
+                    bundleId: appInfo.bundleId,
+                    dataUUID: appInfo.dataUUID,
+                    initSize: UIScreen.main.bounds.size,
+                    onAppInitialize: { pid, error in }
+                )
+                .ignoresSafeArea()
+                .id("native_\(appInfo.bundleId)") 
+                
+            } else if isiPhoneMode {
+                
+                IPhoneRunnerView(appInfo: appInfo)
+                    .id("iphone_\(appInfo.bundleId)")
+                    
+            } else {
+                
+                IPadRunnerView(appInfo: appInfo)
+                    .id("ipad_\(appInfo.bundleId)")
+            }
         } else {
             
-            IPadRunnerView(appInfo: appInfo)
-                .id("iPad_\(appInfo.bundleId)")
+            VStack {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.largeTitle)
+                    .padding()
+                Text("App Runner requires iOS 16.1 or newer.")
+            }
+            .foregroundColor(.white)
         }
         
         FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
             .zIndex(99)
     }
 }
-
 
 
 

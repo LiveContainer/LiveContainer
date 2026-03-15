@@ -12,6 +12,9 @@
 #include "mach_excServer.h"
 #import "../utils.h"
 #import "../dyld_bypass_validation.h"
+#import <UIKit/UIKit.h>
+#import <objc/runtime.h>
+
 @import Darwin;
 @import Foundation;
 @import MachO;
@@ -343,8 +346,13 @@ void DyldHookLoadableIntoProcess(void) {
 
 
 
+
 CGRect hook_UIScreen_bounds(UIScreen *self, SEL _cmd) {
-    CGRect originalBounds = orig_UIScreen_bounds(self, _cmd);
+    
+    CGRect originalBounds = orig_UIScreen_bounds ? orig_UIScreen_bounds(self, _cmd) : CGRectZero;
+    
+    
+    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         CGFloat screenH = originalBounds.size.height;
         return CGRectMake(0, 0, screenH * 9.0 / 16.0, screenH);
@@ -353,9 +361,11 @@ CGRect hook_UIScreen_bounds(UIScreen *self, SEL _cmd) {
 }
 
 CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
-    CGRect orig = orig_UIScreen_nativeBounds(self, _cmd);
+    CGRect orig = orig_UIScreen_nativeBounds ? orig_UIScreen_nativeBounds(self, _cmd) : CGRectZero;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
         CGFloat scale = [UIScreen mainScreen].scale;
+        if (scale == 0) scale = 3.0; 
         CGFloat targetW = (orig.size.height / scale) * (9.0 / 16.0) * scale;
         return CGRectMake(0, 0, targetW, orig.size.height);
     }
@@ -363,6 +373,7 @@ CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
 }
 
 void setupUIScreenHook() {
+    
     Method m1 = class_getInstanceMethod([UIScreen class], @selector(bounds));
     if (m1) {
         orig_UIScreen_bounds = (CGRect (*)(id, SEL))method_getImplementation(m1);
@@ -374,7 +385,10 @@ void setupUIScreenHook() {
         orig_UIScreen_nativeBounds = (CGRect (*)(id, SEL))method_getImplementation(m2);
         method_setImplementation(m2, (IMP)hook_UIScreen_nativeBounds);
     }
+    NSLog(@"[LC] UIScreen Real iPhone Mode hooks installed.");
 }
+
+
 
 
 

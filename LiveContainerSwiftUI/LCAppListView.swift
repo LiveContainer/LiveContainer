@@ -196,7 +196,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     
     @State private var triggerNavigation = false
-    
+    @State private var isSearchFieldVisible = false 
     @State private var isLiveContainerMode = true
     @State private var isiPhoneMode = false
     @Binding var appDataFolderNames: [String]
@@ -446,7 +446,29 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
     
     var body: some View {
         NavigationView {
-            ScrollView {               
+            ScrollView {  
+                
+if isSearchFieldVisible {
+    HStack {
+        Image(systemName: "magnifyingglass")
+            .foregroundColor(.gray)
+        TextField("lc.common.search".loc, text: $searchContext.query)
+            .textFieldStyle(.plain)
+            .submitLabel(.search)
+        if !searchContext.query.isEmpty {
+            Button(action: { searchContext.query = "" }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.gray)
+            }
+        }
+    }
+    .padding(10)
+    .background(Color(.secondarySystemBackground))
+    .cornerRadius(12)
+    .padding(.horizontal)
+    .transition(.move(edge: .top).combined(with: .opacity)) 
+}
+
                 LazyVStack {
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
@@ -580,7 +602,18 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
                 ToolbarItem(placement: .topBarLeading) {
                      launchModeSelector
                 }
-                
+                ToolbarItem(placement: .topBarTrailing){
+                     Button {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            isSearchFieldVisible.toggle()
+            if !isSearchFieldVisible {
+                searchContext.query = "" 
+            }
+        }
+    } label: {
+        Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass")
+    }
+                }
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
@@ -756,13 +789,7 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
                 Task { await installFromUrl(urlStr: installUrl.absoluteString) }
             }
         }
-        .apply {
-            if #available(iOS 19.0, *), SharedModel.isLiquidGlassSearchEnabled {
-                $0
-            } else {
-                $0.searchable(text: $searchContext.query)
-            }
-        }
+        
         
     }
     

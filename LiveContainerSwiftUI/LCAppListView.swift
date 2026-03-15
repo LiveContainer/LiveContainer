@@ -134,44 +134,19 @@ struct IPhoneRunnerView: View {
                 let screenH = geometry.size.height
                 let isLandscape = screenW > screenH
                 
-                
-                
-                var targetW: CGFloat = screenW
-                var targetH: CGFloat = screenH
-                
-                if mode == .iPhone {
-                    if isLandscape {
-                       
-                        targetW = screenH * (16.0 / 9.0)
-                        targetH = screenH
-                        
-                        if targetW > screenW {
-                            targetW = screenW
-                            targetH = screenW * (9.0 / 16.0)
-                        }
-                    } else {
-                        
-                        targetH = screenH
-                        targetW = screenH * (9.0 / 16.0)
-                        
-                        if targetW > screenW {
-                            targetW = screenW
-                            targetH = screenW * (16.0 / 9.0)
-                        }
-                    }
-                }
+            
+                let size = calculateSize(w: screenW, h: screenH, landscape: isLandscape)
                 
                 VStack {
                     AppSceneViewSwiftUI(
                         show: $isAppActive,
                         bundleId: appInfo.bundleId,
                         dataUUID: appInfo.dataUUID,
-                        initSize: CGSize(width: targetW, height: targetH),
+                        initSize: size,
                         onAppInitialize: { pid, error in }
                     )
-                    .frame(width: targetW, height: targetH)
-                    
-                    
+                    .frame(width: size.width, height: size.height)
+                    .cornerRadius(mode == .iPhone ? 15 : 0)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -179,6 +154,36 @@ struct IPhoneRunnerView: View {
         .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar) 
         .onDisappear { isAppActive = false }
+    }
+    
+    
+    private func calculateSize(w: CGFloat, h: CGFloat, landscape: Bool) -> CGSize {
+        if mode != .iPhone {
+            return CGSize(width: w, height: h)
+        }
+        
+        var targetW: CGFloat
+        var targetH: CGFloat
+        
+        if landscape {
+            
+            targetW = h * (16.0 / 9.0)
+            targetH = h
+            if targetW > w {
+                targetW = w
+                targetH = w * (9.0 / 16.0)
+            }
+        } else {
+            
+            targetW = h * (9.0 / 16.0)
+            targetH = h
+            if targetW > w {
+                targetW = w
+                targetH = w * (16.0 / 9.0)
+            }
+        }
+        
+        return CGSize(width: targetW, height: targetH)
     }
 }
 

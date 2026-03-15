@@ -253,36 +253,7 @@
 }
 
 
-- (UITraitCollection *)traitCollection {
-    
-    UITraitCollection *original = [super traitCollection];
-    
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        
-        UITraitCollection *phoneIdiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
-        
-        
-        UITraitCollection *hCompact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
-        
-        
-        UITraitCollection *vRegular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
-        
-        
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[original, phoneIdiom, hCompact, vRegular]];
-    }
-    
-    return original;
-}
 
-
-- (void)setOverrideTraitCollection:(UITraitCollection *)collection forChildViewController:(UIViewController *)childViewController {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        
-        [super setOverrideTraitCollection:[self traitCollection] forChildViewController:childViewController];
-    } else {
-        [super setOverrideTraitCollection:collection forChildViewController:childViewController];
-    }
-}
 
 
 - (void)viewWillLayoutSubviews {
@@ -395,4 +366,40 @@
 }
 
 @end
- 
+
+
+ #import <objc/runtime.h>
+
+static UITraitCollection* LC_HookedTraitCollection(id self, SEL _cmd) {
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        UITraitCollection *phone = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        UITraitCollection *compact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
+        UITraitCollection *regular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[phone, compact, regular]];
+    }
+    
+    
+    Method originalMethod = class_getInstanceMethod([UIViewController class], @selector(traitCollection));
+    IMP originalImp = method_getImplementation(originalMethod);
+    UITraitCollection* (*func)(id, SEL) = (void *)originalImp;
+    return func(self, _cmd);
+}
+
+
+@implementation AppSceneViewController (RealIPhone)
+
++ (void)load {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        Class class = [AppSceneViewController class];
+        SEL originalSelector = @selector(traitCollection);
+        Method originalMethod = class_getInstanceMethod(class, originalSelector);
+        
+        
+        method_setImplementation(originalMethod, (IMP)LC_HookedTraitCollection);
+    });
+}
+
+@end
+

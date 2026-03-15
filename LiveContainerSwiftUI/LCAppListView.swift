@@ -287,19 +287,32 @@ var launchModeSelector: some View {
 
 
 private func setMode(_ mode: AppLaunchMode) {
-    switch mode {
-    case .iPhone:
-        isiPhoneMode = true
-        sharedModel.isiPhoneMode = true
-        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-    case .iPad:
-        isiPhoneMode = false
-        sharedModel.isiPhoneMode = false
-        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-    case .native:
-        UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+    
+    withAnimation(.easeInOut(duration: 0.2)) {
+        switch mode {
+        case .iPhone:
+            isiPhoneMode = true
+            sharedModel.isiPhoneMode = true
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            
+        case .iPad:
+            isiPhoneMode = false
+            sharedModel.isiPhoneMode = false
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            
+        case .native:
+            
+            sharedModel.pendingIPhoneApp = nil 
+            isiPhoneMode = false
+            sharedModel.isiPhoneMode = false
+            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+        }
     }
+    
+    
+    UserDefaults.standard.synchronize()
 }
+
 
 
 

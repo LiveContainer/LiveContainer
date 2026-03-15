@@ -167,6 +167,9 @@
     }
     
     settings.statusBarDisabled = !self.isNativeWindow;
+    self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
+    self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
+
     //settings.previewMaximumSize =
     //settings.deviceOrientationEventsEnabled = YES;
     parameters.settings = settings;
@@ -198,14 +201,19 @@
     
     [self.contentView addSubview:self.presenter.presentationView];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-   
-        UITraitCollection *compactTrait = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
-        UITraitCollection *phoneTrait = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
-        UITraitCollection *combinedTrait = [UITraitCollection traitCollectionWithTraitsFromCollections:@[compactTrait, phoneTrait]];
-        
+    UIView *appView = self.presenter.presentationView;
+    CGFloat h = self.view.bounds.size.height;
+    CGFloat targetW = h * 9.0 / 16.0;
+    CGFloat xOffset = (self.view.bounds.size.width - targetW) / 2.0;
+
+    appView.translatesAutoresizingMaskIntoConstraints = YES; 
+    appView.autoresizingMask = UIViewAutoresizingNone;      
+    appView.frame = CGRectMake(xOffset, 0, targetW, h);      
     
-        [self setOverrideTraitCollection:combinedTrait forChildViewController:nil];
-    }
+    self.view.backgroundColor = [UIColor blackColor];
+    self.contentView.backgroundColor = [UIColor blackColor];
+}
+
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
     
@@ -238,6 +246,20 @@
     } else {
         [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
     }
+}
+
+- (UITraitCollection *)traitCollection {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
+        UITraitCollection *phoneIdiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        
+        UITraitCollection *horizontalCompact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
+        
+        UITraitCollection *verticalRegular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
+        
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[phoneIdiom, horizontalCompact, verticalRegular]];
+    }
+    return [super traitCollection];
 }
 
 - (void)viewWillLayoutSubviews {

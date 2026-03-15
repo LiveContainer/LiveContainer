@@ -14,7 +14,9 @@ enum AppLaunchMode: Int {
     case iPad = 0
     case iPhone = 1
     case native = 2 
+    case realIPhone = 3 
 }
+
 
 
 struct FloatingBackButton: View {
@@ -253,10 +255,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     var currentModeIcon: String {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return "arrow.up.left.and.arrow.down.right"
+    } else if UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+        return "arrow.down.left.and.arrow.up.right" 
     } else {
         return isiPhoneMode ? "iphone" : "ipad"
-       }
     }
+}
+
     
 var currentLaunchMode: AppLaunchMode {
 
@@ -286,7 +291,17 @@ var launchModeSelector: some View {
 
         
         if UIDevice.current.userInterfaceIdiom == .pad {
-            
+            Button {
+                setMode(.realIPhone)
+            } label: {
+                HStack {
+                    Text("Real iPhone Mode (9:16 Hook)")
+                    
+                    if !isLiveContainerMode && UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
             Button {
                 setMode(.iPhone)
             } label: {
@@ -317,8 +332,9 @@ var launchModeSelector: some View {
         }
     } label: {
         
-        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : currentModeIcon)
-            .foregroundColor(isLiveContainerMode ? .green : .orange)
+        let isReal = UserDefaults.standard.bool(forKey: "LCRealIPhoneMode")
+        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.rectangle.fill" : currentModeIcon))
+            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
     }
 }
 
@@ -326,29 +342,36 @@ var launchModeSelector: some View {
 
 private func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {
+        
+        isLiveContainerMode = false
+        isiPhoneMode = false
+        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+        UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+        UserDefaults.standard.set(false, forKey: "LCRealIPhoneMode") 
+
         switch mode {
         case .native: 
             isLiveContainerMode = true
-            isiPhoneMode = false
             UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
-            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+            
+        case .realIPhone:
+            
+            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
+            UserDefaults.standard.set(true, forKey: "LCRealIPhoneMode") 
             
         case .iPhone:
-            isLiveContainerMode = false
             isiPhoneMode = true
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
             
         case .iPad:
-            isLiveContainerMode = false
-            isiPhoneMode = false
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+            
+            break
         }
     }
     sharedModel.objectWillChange.send()
     UserDefaults.standard.synchronize()
 }
+
 
 
 @ViewBuilder

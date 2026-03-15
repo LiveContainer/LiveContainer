@@ -201,29 +201,23 @@
     
     [self.contentView addSubview:self.presenter.presentationView];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-    UIView *appView = self.presenter.presentationView;
-    appView.translatesAutoresizingMaskIntoConstraints = YES; 
-    appView.autoresizingMask = UIViewAutoresizingNone;      
-    
-    
-    CGFloat h = self.contentView.bounds.size.height;
-    CGFloat w = h * 9.0 / 16.0;
-    CGFloat x = (self.contentView.bounds.size.width - w) / 2.0;
-    
-    appView.frame = CGRectMake(x, 0, w, h);
-}
-
+        UIView *appView = self.presenter.presentationView;
+        appView.translatesAutoresizingMaskIntoConstraints = YES; 
+        appView.autoresizingMask = UIViewAutoresizingNone;      
+        
+        CGFloat h = self.contentView.bounds.size.height;
+        CGFloat w = h * 9.0 / 16.0;
+        CGFloat x = (self.contentView.bounds.size.width - w) / 2.0;
+        appView.frame = CGRectMake(x, 0, w, h);
+    }
     
     self.view.backgroundColor = [UIColor blackColor];
     self.contentView.backgroundColor = [UIColor blackColor];
-}
-
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
     
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
-
 - (void)terminate {
     if(self.isAppRunning) {
         [self.extension _kill:SIGTERM];
@@ -367,11 +361,7 @@
 
 @end
 
-
- #import <objc/runtime.h>
-
-static UITraitCollection* LC_HookedTraitCollection(id self, SEL _cmd) {
-    
+static UITraitCollection* LC_HookedTraitCollection(AppSceneViewController* self, SEL _cmd) {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         UITraitCollection *phone = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
         UITraitCollection *compact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
@@ -386,20 +376,15 @@ static UITraitCollection* LC_HookedTraitCollection(id self, SEL _cmd) {
     return func(self, _cmd);
 }
 
-
 @implementation AppSceneViewController (RealIPhone)
-
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         Class class = [AppSceneViewController class];
-        SEL originalSelector = @selector(traitCollection);
-        Method originalMethod = class_getInstanceMethod(class, originalSelector);
-        
-        
-        method_setImplementation(originalMethod, (IMP)LC_HookedTraitCollection);
+        SEL selector = @selector(traitCollection);
+        Method method = class_getInstanceMethod(class, selector);
+        method_setImplementation(method, (IMP)LC_HookedTraitCollection);
     });
 }
-
 @end
 

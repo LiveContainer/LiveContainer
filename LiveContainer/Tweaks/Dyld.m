@@ -40,7 +40,7 @@ const char* lcMainBundlePath = NULL;
 
 static CGRect (*orig_UIScreen_bounds)(id self, SEL _cmd);
 static CGRect (*orig_UIScreen_nativeBounds)(id self, SEL _cmd);
-
+static UIUserInterfaceIdiom (*orig_UIDevice_userInterfaceIdiom)(id self, SEL _cmd);
 
 
 
@@ -371,7 +371,12 @@ CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
     }
     return orig;
 }
-
+UIUserInterfaceIdiom hook_UIDevice_userInterfaceIdiom(id self, SEL _cmd) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        return UIUserInterfaceIdiomPhone; 
+    }
+    return orig_UIDevice_userInterfaceIdiom(self, _cmd);
+}
 void setupUIScreenHook() {
     
     Method m1 = class_getInstanceMethod([UIScreen class], @selector(bounds));
@@ -386,6 +391,11 @@ void setupUIScreenHook() {
         method_setImplementation(m2, (IMP)hook_UIScreen_nativeBounds);
     }
     NSLog(@"[LC] UIScreen Real iPhone Mode hooks installed.");
+    Method m3 = class_getInstanceMethod([UIDevice class], @selector(userInterfaceIdiom));
+    if (m3) {
+        orig_UIDevice_userInterfaceIdiom = (UIUserInterfaceIdiom (*)(id, SEL))method_getImplementation(m3);
+        method_setImplementation(m3, (IMP)hook_UIDevice_userInterfaceIdiom);
+    }
 }
 
 
@@ -435,7 +445,10 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
         }
     }
     
+    setupUIScreenHook();
+    
     hookedDlopen = hookDlopen;
+    
     if(hookDlopen) {
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, dlopen, jitless_hook_dlopen, nil);
     }
@@ -443,7 +456,7 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
 #if TARGET_OS_MACCATALYST || TARGET_OS_SIMULATOR
     DyldHookLoadableIntoProcess();
 #endif
-      setupUIScreenHook();
+      
 }
 
 void* getGuestAppHeader(void) {

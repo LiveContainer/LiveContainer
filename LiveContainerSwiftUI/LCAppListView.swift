@@ -244,6 +244,43 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
+    var currentModeIcon: String {
+        if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+            return "arrow.up.left.and.arrow.down.right"
+        } else {
+            return isiPhoneMode ? "iphone" : "ipad"
+        }
+    }
+
+    
+    var launchModeSelector: some View { 
+        Menu {
+            Button {
+                isiPhoneMode = true
+                UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            } label: {
+                Label("iPhone Mode", systemImage: "iphone")
+            }
+
+            Button {
+                isiPhoneMode = false
+                UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            } label: {
+                Label("iPad Mode", systemImage: "ipad")
+            }
+
+            Button {
+                UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+            } label: {
+                Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
+            }
+        } label: {
+            Image(systemName: currentModeIcon)
+                .imageScale(.large)
+                .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
+        }
+    }
+
     var sortedApps: [LCAppModel] {
         return sharedAppSortManager.sortedApps
     }
@@ -276,44 +313,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
-var currentModeIcon: String {
-    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-        return "arrow.up.left.and.arrow.down.right"
-    } else {
-        return isiPhoneMode ? "iphone" : "ipad"
-    }
-}
 
-  var launchModeSelector: some View { 
-    Menu {
-        
-        Button {
-            isiPhoneMode = true
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-        } label: {
-            Label("iPhone Mode", systemImage: "iphone")
-        }
-
-        
-        Button {
-            isiPhoneMode = false
-            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-        } label: {
-            Label("iPad Mode", systemImage: "ipad")
-        }
-
-        
-        Button {
-            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
-        } label: {
-            Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
-        }
-    } label: {
-        
-        Image(systemName: currentModeIcon)
-            .imageScale(.large)
-            .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
-    }
     
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _installOptions = State(initialValue: [])

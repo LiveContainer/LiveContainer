@@ -135,11 +135,17 @@
     
     settings.deviceOrientation = UIDevice.currentDevice.orientation;
     settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-    if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        CGFloat h = self.view.frame.size.height;
+        CGFloat w = self.view.frame.size.width;
+        CGFloat targetW = h * 9.0 / 16.0;
+        settings.frame = CGRectMake((w - targetW) / 2.0, 0, targetW, h);
+    } else if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.height, self.view.frame.size.width);
     } else {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     }
+
     //settings.interruptionPolicy = 2; // reconnect
     settings.level = 1;
     settings.persistenceIdentifier = self.dataUUID;
@@ -226,7 +232,22 @@
         if(currentDebounceToken != self.resizeDebounceToken) {
             return;
         }
-        CGRect frame = CGRectMake(self.view.frame.origin.x, self.view.frame.origin.y, self.view.frame.size.width / self.scaleRatio, self.view.frame.size.height / self.scaleRatio);
+        CGRect frame;
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+            CGFloat containerW = self.view.frame.size.width;
+            CGFloat containerH = self.view.frame.size.height;
+            
+            
+            CGFloat targetW = containerH * 9.0 / 16.0;
+            
+            CGFloat xOffset = (containerW - targetW) / 2.0;
+            
+            
+            frame = CGRectMake(xOffset, 0, targetW, containerH);
+        } else {
+            
+            frame = CGRectMake(0, 0, self.view.frame.size.width / self.scaleRatio, self.view.frame.size.height / self.scaleRatio);
+        }
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;
             settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;

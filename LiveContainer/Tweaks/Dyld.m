@@ -37,6 +37,9 @@ const char* lcMainBundlePath = NULL;
 
 
 
+static UIUserInterfaceIdiom hooked_userInterfaceIdiom(id self, SEL _cmd) {
+    return UIUserInterfaceIdiomPhone; 
+}
 
 static CGRect (*orig_UIScreen_bounds)(id self, SEL _cmd);
 static CGRect (*orig_UIScreen_nativeBounds)(id self, SEL _cmd);
@@ -81,6 +84,21 @@ static inline int translateImageIndex(int origin) {
     
     return origin;
 }
+
+
+void setupRealIPhoneHook() {
+    
+    
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) return;
+
+    Method m = class_getInstanceMethod(objc_getClass("UIDevice"), @selector(userInterfaceIdiom));
+    if (m) {
+        
+        method_setImplementation(m, (IMP)hooked_userInterfaceIdiom);
+    }
+}
+
+
 
 void* hook_dlsym(void * __handle, const char * __symbol) {
     if(__handle == (void*)RTLD_MAIN_ONLY) {

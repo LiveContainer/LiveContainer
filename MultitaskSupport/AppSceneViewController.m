@@ -202,13 +202,17 @@
     [self.contentView addSubview:self.presenter.presentationView];
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
     UIView *appView = self.presenter.presentationView;
-    CGFloat h = self.view.bounds.size.height;
-    CGFloat targetW = h * 9.0 / 16.0;
-    CGFloat xOffset = (self.view.bounds.size.width - targetW) / 2.0;
-
     appView.translatesAutoresizingMaskIntoConstraints = YES; 
     appView.autoresizingMask = UIViewAutoresizingNone;      
-    appView.frame = CGRectMake(xOffset, 0, targetW, h);      
+    
+    
+    CGFloat h = self.contentView.bounds.size.height;
+    CGFloat w = h * 9.0 / 16.0;
+    CGFloat x = (self.contentView.bounds.size.width - w) / 2.0;
+    
+    appView.frame = CGRectMake(x, 0, w, h);
+}
+
     
     self.view.backgroundColor = [UIColor blackColor];
     self.contentView.backgroundColor = [UIColor blackColor];
@@ -248,19 +252,32 @@
     }
 }
 
+
 - (UITraitCollection *)traitCollection {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
-        UITraitCollection *phoneIdiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        UITraitCollection *idiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
         
-        UITraitCollection *horizontalCompact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
+        UITraitCollection *hCompact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
         
-        UITraitCollection *verticalRegular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
+        UITraitCollection *vRegular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
         
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[phoneIdiom, horizontalCompact, verticalRegular]];
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[idiom, hCompact, vRegular]];
     }
     return [super traitCollection];
 }
+
+
+- (void)setOverrideTraitCollection:(UITraitCollection *)collection forChildViewController:(UIViewController *)childViewController {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
+        UITraitCollection *phoneTraits = [self traitCollection];
+        [super setOverrideTraitCollection:phoneTraits forChildViewController:childViewController];
+    } else {
+        [super setOverrideTraitCollection:collection forChildViewController:childViewController];
+    }
+}
+
 
 - (void)viewWillLayoutSubviews {
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];

@@ -129,19 +129,49 @@ struct IPhoneRunnerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             GeometryReader { geometry in
-            
-                let h = max(geometry.size.height, 1)
-                let w = (mode == .iPhone) ? (h * 0.5625) : max(geometry.size.width, 1)
+                
+                let screenW = geometry.size.width
+                let screenH = geometry.size.height
+                let isLandscape = screenW > screenH
+                
+                
+                
+                var targetW: CGFloat = screenW
+                var targetH: CGFloat = screenH
+                
+                if mode == .iPhone {
+                    if isLandscape {
+                       
+                        targetW = screenH * (16.0 / 9.0)
+                        targetH = screenH
+                        
+                        if targetW > screenW {
+                            targetW = screenW
+                            targetH = screenW * (9.0 / 16.0)
+                        }
+                    } else {
+                        
+                        targetH = screenH
+                        targetW = screenH * (9.0 / 16.0)
+                        
+                        if targetW > screenW {
+                            targetW = screenW
+                            targetH = screenW * (16.0 / 9.0)
+                        }
+                    }
+                }
                 
                 VStack {
                     AppSceneViewSwiftUI(
                         show: $isAppActive,
                         bundleId: appInfo.bundleId,
                         dataUUID: appInfo.dataUUID,
-                        initSize: CGSize(width: w, height: h),
+                        initSize: CGSize(width: targetW, height: targetH),
                         onAppInitialize: { pid, error in }
                     )
-                    .frame(width: w, height: h)
+                    .frame(width: targetW, height: targetH)
+                    
+                    
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

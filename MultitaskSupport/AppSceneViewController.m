@@ -135,12 +135,23 @@
     
     settings.deviceOrientation = UIDevice.currentDevice.orientation;
     settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+        
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat h = self.view.frame.size.height;
-        CGFloat w = self.view.frame.size.width;
+        CGFloat h = self.view.bounds.size.height;
+        CGFloat w = self.view.bounds.size.width;
         CGFloat targetW = h * 9.0 / 16.0;
-        settings.frame = CGRectMake((w - targetW) / 2.0, 0, targetW, h);
+        
+        
+        settings.frame = CGRectMake(0, 0, targetW, h); 
+        
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.presenter.presentationView.frame = CGRectMake((w - targetW) / 2.0, 0, targetW, h);
+            self.view.backgroundColor = [UIColor blackColor];
+        });
     } else if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
+        
+
         settings.frame = CGRectMake(0, 0, self.view.frame.size.height, self.view.frame.size.width);
     } else {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
@@ -186,6 +197,15 @@
     }];
     
     [self.contentView addSubview:self.presenter.presentationView];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+   
+        UITraitCollection *compactTrait = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
+        UITraitCollection *phoneTrait = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        UITraitCollection *combinedTrait = [UITraitCollection traitCollectionWithTraitsFromCollections:@[compactTrait, phoneTrait]];
+        
+    
+        [self setOverrideTraitCollection:combinedTrait forChildViewController:nil];
+    }
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
     

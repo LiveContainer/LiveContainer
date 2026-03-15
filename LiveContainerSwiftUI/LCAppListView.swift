@@ -10,14 +10,15 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum LCLaunchMode: Int {
+enum AppLaunchMode: Int {
     case iPad = 0
     case iPhone = 1
-    case liveContainer = 2
+    case native = 2 
 }
 
+
 struct FloatingBackButton: View {
-    @Binding var isPresented: SimpleAppInfo? // 用於關閉 fullScreenCover
+    @Binding var isPresented: SimpleAppInfo? 
     
     
     @State private var position = CGSize(width: 60, height: 60)
@@ -120,18 +121,17 @@ struct AppRunnerOverlay: View {
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
     let appInfo: SimpleAppInfo 
-    let isiPhoneMode: Bool 
+    let mode: AppLaunchMode 
     @State private var isAppActive = true
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
             GeometryReader { geometry in
-                let h = geometry.size.height
-                
-                let w = isiPhoneMode ? (h * 0.5625) : geometry.size.width
+            
+                let h = max(geometry.size.height, 1)
+                let w = (mode == .iPhone) ? (h * 0.5625) : max(geometry.size.width, 1)
                 
                 VStack {
                     AppSceneViewSwiftUI(
@@ -148,9 +148,7 @@ struct IPhoneRunnerView: View {
         }
         .navigationTitle("")
         .toolbar(.hidden, for: .navigationBar) 
-        .onDisappear {
-            isAppActive = false
-        }
+        .onDisappear { isAppActive = false }
     }
 }
 
@@ -305,24 +303,23 @@ private func setMode(_ mode: AppLaunchMode) {
 
 
 
-
-func updateLaunchMode(_ mode: LCLaunchMode) {
-    switch mode {
-    case .iPhone:
-        sharedModel.isiPhoneMode = true
-        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-        isiPhoneMode = true
-    case .iPad:
-        sharedModel.isiPhoneMode = false
-        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-        isiPhoneMode = false
-    case .liveContainer:
-        UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+@ViewBuilder
+private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
+    ZStack {
+        Color.black.ignoresSafeArea()
+        if #available(iOS 16.1, *) {
+            IPhoneRunnerView(appInfo: appInfo, mode: self.currentLaunchMode)
+        } else {
+            Text("iOS 16.1+ Required")
+        }
         
-        sharedModel.isiPhoneMode = false 
-        isiPhoneMode = false
+        FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
+            .zIndex(99)
     }
 }
+
+
+
 
 
     var sortedApps: [LCAppModel] {
@@ -538,15 +535,11 @@ func updateLaunchMode(_ mode: LCLaunchMode) {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-       .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-    ZStack {
-        
-        IPhoneRunnerView(appInfo: appInfo, mode: self.currentLaunchMode)
-        
-        FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
-            .zIndex(99)
-    }
+    
+.fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
+    renderAppRunner(appInfo: appInfo)
 }
+
 
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {

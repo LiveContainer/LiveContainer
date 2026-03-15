@@ -264,19 +264,22 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     
 var currentLaunchMode: AppLaunchMode {
-
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }
-    
+    if UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+        return .realIPhone
+    }
     return isiPhoneMode ? .iPhone : .iPad
 }
 
 
 
+
+
 var launchModeSelector: some View {
     Menu {
-       
+        
         Button {
             setMode(.native)
         } label: {
@@ -284,39 +287,45 @@ var launchModeSelector: some View {
                 Text("LiveContainer mode")
                 if isLiveContainerMode { Image(systemName: "checkmark") }
             }
-            .labelStyle(.titleAndIcon) 
         }
 
-        
-
-        
         if UIDevice.current.userInterfaceIdiom == .pad {
+            
             Button {
                 setMode(.realIPhone)
             } label: {
                 HStack {
                     Text("Real iPhone Mode (9:16 Hook)")
-                    
+                
                     if !isLiveContainerMode && UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
                         Image(systemName: "checkmark")
                     }
                 }
             }
+            
+            
             Button {
                 setMode(.iPhone)
             } label: {
                 HStack {
                     Text("iPhone mode (9:16)")
-                    if !isLiveContainerMode && isiPhoneMode { Image(systemName: "checkmark") }
+                    
+                    if !isLiveContainerMode && isiPhoneMode && !UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                        Image(systemName: "checkmark")
+                    }
                 }
             }
 
+        
             Button {
                 setMode(.iPad)
             } label: {
                 HStack {
                     Text("Native iPad mode")
-                    if !isLiveContainerMode && !isiPhoneMode { Image(systemName: "checkmark") }
+                    
+                    if !isLiveContainerMode && !isiPhoneMode && !UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                        Image(systemName: "checkmark")
+                    }
                 }
             }
         } else {
@@ -331,12 +340,12 @@ var launchModeSelector: some View {
             }
         }
     } label: {
-        
         let isReal = UserDefaults.standard.bool(forKey: "LCRealIPhoneMode")
-        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.rectangle.fill" : currentModeIcon))
+        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
             .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
     }
 }
+
 
 
 
@@ -379,45 +388,22 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
     ZStack {
         Color.black.ignoresSafeArea()
         
-        
         if #available(iOS 16.1, *) {
-            if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-                
-                AppSceneViewSwiftUI(
-                    show: .constant(true),
-                    bundleId: appInfo.bundleId,
-                    dataUUID: appInfo.dataUUID,
-                    initSize: UIScreen.main.bounds.size,
-                    onAppInitialize: { pid, error in }
-                )
-                .ignoresSafeArea()
-                .id("native_\(appInfo.bundleId)") 
-                
-            } else if isiPhoneMode {
-                
+       
+            if isiPhoneMode {
                 IPhoneRunnerView(appInfo: appInfo)
                     .id("iphone_\(appInfo.bundleId)")
-                    
             } else {
-                
                 IPadRunnerView(appInfo: appInfo)
                     .id("ipad_\(appInfo.bundleId)")
             }
-        } else {
-            
-            VStack {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.largeTitle)
-                    .padding()
-                Text("App Runner requires iOS 16.1 or newer.")
-            }
-            .foregroundColor(.white)
         }
         
         FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
             .zIndex(99)
     }
 }
+
 
 
 
@@ -1438,15 +1424,16 @@ private var iPhoneDestination: some View {
         let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
 
    
-    if launchInMultitaskMode {
         
+    if launchInMultitaskMode {
         do {
             try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") || UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+        
         
         do {
             try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
@@ -1462,8 +1449,8 @@ private var iPhoneDestination: some View {
             bundleId: appFound.appInfo.relativeBundlePath
         )        
     }
-        
-    }
+}
+
     
     func authenticateUser() async {
         do {

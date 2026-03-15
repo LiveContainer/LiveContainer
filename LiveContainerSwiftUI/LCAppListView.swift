@@ -254,32 +254,38 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     
     var launchModeSelector: some View { 
-        Menu {
-            Button {
-                isiPhoneMode = true
-                UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            } label: {
-                Label("iPhone Mode", systemImage: "iphone")
-            }
-
-            Button {
-                isiPhoneMode = false
-                UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-            } label: {
-                Label("iPad Mode", systemImage: "ipad")
-            }
-
-            Button {
-                UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
-            } label: {
-                Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
-            }
+    Menu {
+        Button {
+            sharedModel.isiPhoneMode = true 
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            
+            isiPhoneMode = true 
         } label: {
-            Image(systemName: currentModeIcon)
-                .imageScale(.large)
-                .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
+            Label("iPhone Mode", systemImage: "iphone")
         }
+
+        Button {
+            sharedModel.isiPhoneMode = false
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            isiPhoneMode = false
+        } label: {
+            Label("iPad Mode", systemImage: "ipad")
+        }
+
+        Button {
+            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+            
+            isiPhoneMode.toggle(); isiPhoneMode.toggle() 
+        } label: {
+            Label("LiveContainer Mode", systemImage: "arrow.up.left.and.arrow.down.right")
+        }
+    } label: {
+        Image(systemName: currentModeIcon)
+            .imageScale(.large)
+            .foregroundColor(UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ? .green : .orange)
     }
+}
+
 
     var sortedApps: [LCAppModel] {
         return sharedAppSortManager.sortedApps

@@ -101,7 +101,7 @@ struct IPhoneRunnerView: View {
                         onAppInitialize: { pid, error in }
                     )
                     .frame(width: calcSize.width, height: calcSize.height)
-                    .id("\(appInfo.bundleId)_\(mode.rawValue)_\(containerW > containerH)")
+                    .id("\(appInfo.bundleId)_\(containerW > containerH)")
                     .position(x: containerW / 2, y: containerH / 2)
                 }
             }

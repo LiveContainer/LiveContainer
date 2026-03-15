@@ -254,25 +254,31 @@
 
 
 - (UITraitCollection *)traitCollection {
+    
+    UITraitCollection *original = [super traitCollection];
+    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
-        UITraitCollection *idiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        UITraitCollection *phoneIdiom = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        
         
         UITraitCollection *hCompact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
         
+        
         UITraitCollection *vRegular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
         
-        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[idiom, hCompact, vRegular]];
+        
+        return [UITraitCollection traitCollectionWithTraitsFromCollections:@[original, phoneIdiom, hCompact, vRegular]];
     }
-    return [super traitCollection];
+    
+    return original;
 }
 
 
 - (void)setOverrideTraitCollection:(UITraitCollection *)collection forChildViewController:(UIViewController *)childViewController {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
-        UITraitCollection *phoneTraits = [self traitCollection];
-        [super setOverrideTraitCollection:phoneTraits forChildViewController:childViewController];
+        [super setOverrideTraitCollection:[self traitCollection] forChildViewController:childViewController];
     } else {
         [super setOverrideTraitCollection:collection forChildViewController:childViewController];
     }

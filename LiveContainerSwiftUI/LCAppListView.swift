@@ -126,30 +126,33 @@ struct IPhoneRunnerView: View {
     
     
     private func calculateSize(w: CGFloat, h: CGFloat, landscape: Bool) -> CGSize {
-        if mode == .iPad || mode == .native {
-            return CGSize(width: w, height: h)
-        }
-        
-        var targetW: CGFloat
-        var targetH: CGFloat
-        
-        if landscape {
-            targetW = h * (16.0 / 9.0)
-            targetH = h
-            if targetW > w {
-                targetW = w
-                targetH = w * (9.0 / 16.0)
-            }
-        } else {
-            targetW = h * (9.0 / 16.0)
-            targetH = h
-            if targetW > w {
-                targetW = w
-                targetH = w * (16.0 / 9.0)
-            }
-        }
-        return CGSize(width: targetW, height: targetH)
+    
+    if mode == .iPad || mode == .native {
+        return CGSize(width: w, height: h)
     }
+    
+
+    var targetW: CGFloat
+    var targetH: CGFloat
+    
+    if landscape {
+        targetW = h * (16.0 / 9.0)
+        targetH = h
+        if targetW > w {
+            targetW = w
+            targetH = w * (9.0 / 16.0)
+        }
+    } else {
+        targetW = h * (9.0 / 16.0)
+        targetH = h
+        if targetW > w {
+            targetW = w
+            targetH = w * (16.0 / 9.0)
+        }
+    }
+    return CGSize(width: targetW, height: targetH)
+}
+
 }
 
 
@@ -321,7 +324,9 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
     ZStack {
         Color.black.ignoresSafeArea()
         if #available(iOS 16.1, *) {
+           
             IPhoneRunnerView(appInfo: appInfo, mode: self.currentLaunchMode)
+                .id("\(appInfo.bundleId)_\(self.currentLaunchMode.rawValue)")
         } else {
             Text("iOS 16.1+ Required")
         }
@@ -330,6 +335,7 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
             .zIndex(99)
     }
 }
+
 
 
 

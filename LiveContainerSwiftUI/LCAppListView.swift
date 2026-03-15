@@ -77,7 +77,7 @@ struct FloatingBackButton: View {
 @available(iOS 16.1, *)
 struct IPhoneRunnerView: View {
     let appInfo: SimpleAppInfo 
-    
+    let mode: AppLaunchMode
     @State private var isAppActive = true
     
     var body: some View {

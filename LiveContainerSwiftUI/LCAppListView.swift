@@ -247,26 +247,28 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
     @AppStorage("LCLaunchInMultitaskMode") var launchInMultitaskMode = false
-    
+    @AppStorage("LCNativeFullscreen") var isNativeMode = true 
+
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
     var currentModeIcon: String {
-        if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-            return "arrow.up.left.and.arrow.down.right"
-        } else {
-            return isiPhoneMode ? "iphone" : "ipad"
-        }
+    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+        return "arrow.up.left.and.arrow.down.right"
+    } else {
+        return isiPhoneMode ? "iphone" : "ipad"
+       }
     }
-
-    
     
 var currentLaunchMode: AppLaunchMode {
+
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }
+    
     return isiPhoneMode ? .iPhone : .iPad
 }
+
 
 
 var launchModeSelector: some View { 
@@ -290,34 +292,29 @@ var launchModeSelector: some View {
 
 
 private func setMode(_ mode: AppLaunchMode) {
-    
     withAnimation(.easeInOut(duration: 0.2)) {
         switch mode {
         case .iPhone:
             isiPhoneMode = true
             sharedModel.isiPhoneMode = true
             UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode") // 額外存入 UserDefault 確保持久化
             
         case .iPad:
             isiPhoneMode = false
             sharedModel.isiPhoneMode = false
             UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
+            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
             
         case .native:
-            
             sharedModel.pendingIPhoneApp = nil 
             isiPhoneMode = false
             sharedModel.isiPhoneMode = false
             UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
         }
     }
-    
-    
     UserDefaults.standard.synchronize()
 }
-
-
-
 
 @ViewBuilder
 private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
@@ -379,6 +376,10 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
         _installOptions = State(initialValue: [])
         _appDataFolderNames = appDataFolderNames
         _tweakFolderNames = tweakFolderNames
+
+        if UserDefaults.standard.object(forKey: "LCNativeFullscreen") == nil {
+        UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+      }
     }
     
     var body: some View {

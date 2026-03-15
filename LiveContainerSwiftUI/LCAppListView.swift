@@ -725,11 +725,12 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
             }
         }
     }
-    @ViewBuilder
+      @ViewBuilder
     private var iPhoneDestination: some View {
         if #available(iOS 16.1, *) { 
             if let info = sharedModel.pendingIPhoneApp {
-                IPhoneRunnerView(appInfo: info,isiPhoneMode: self.isiPhoneMode)
+                
+                IPhoneRunnerView(appInfo: info, mode: self.currentLaunchMode)
             } else {
                 Text("App Data Error")
             }
@@ -737,6 +738,7 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
             Text("iPhone Mode requires iOS 16.1+")
         }
     }
+
     func onOpenWebViewTapped() async {
         guard let urlToOpen = await webViewUrlInput.open(), urlToOpen != "" else {
             return

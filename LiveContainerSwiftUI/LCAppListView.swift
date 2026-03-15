@@ -770,19 +770,41 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
             }
         }
     }
-      @ViewBuilder
-    private var iPhoneDestination: some View {
-        if #available(iOS 16.1, *) { 
-            if let info = sharedModel.pendingIPhoneApp {
+@ViewBuilder
+private var iPhoneDestination: some View {
+    if #available(iOS 16.1, *) { 
+        if let info = sharedModel.pendingIPhoneApp {
+            
+            if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
                 
-                IPhoneRunnerView(appInfo: info, mode: self.currentLaunchMode)
+                AppSceneViewSwiftUI(
+                    show: .constant(true),
+                    bundleId: info.bundleId,
+                    dataUUID: info.dataUUID,
+                    initSize: UIScreen.main.bounds.size,
+                    onAppInitialize: { _, _ in }
+                )
+                .ignoresSafeArea()
+                .id("dest_native_\(info.bundleId)")
+                
+            } else if isiPhoneMode {
+           
+                IPhoneRunnerView(appInfo: info)
+                    .id("dest_iphone_\(info.bundleId)")
+                    
             } else {
-                Text("App Data Error")
+                
+                IPadRunnerView(appInfo: info)
+                    .id("dest_ipad_\(info.bundleId)")
             }
         } else {
-            Text("iPhone Mode requires iOS 16.1+")
+            Text("App Data Error")
         }
+    } else {
+        Text("iPhone Mode requires iOS 16.1+")
     }
+}
+
 
     func onOpenWebViewTapped() async {
         guard let urlToOpen = await webViewUrlInput.open(), urlToOpen != "" else {

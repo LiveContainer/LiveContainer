@@ -81,51 +81,60 @@ struct IPhoneRunnerView: View {
     @EnvironmentObject private var sharedModel: SharedModel
     
     var body: some View {
-        GeometryReader { geometry in
-            
-            let size = calculateIPhoneSize(w: geometry.size.width, h: geometry.size.height)
-            
-            ZStack {
-                AppSceneViewSwiftUI(
-                    show: $isAppActive,
-                    bundleId: appInfo.bundleId,
-                    dataUUID: appInfo.dataUUID,
-                    initSize: size,
-                    onAppInitialize: { pid, error in }
-                )
-                .frame(width: size.width, height: size.height)
-                .background(Color.black)
-            
+        
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            GeometryReader { geometry in
                 
+                let size = calculateIPhoneSize(w: geometry.size.width, h: geometry.size.height)
+                
+                ZStack {
+                    AppSceneViewSwiftUI(
+                        show: $isAppActive,
+                        bundleId: appInfo.bundleId,
+                        dataUUID: appInfo.dataUUID,
+                        initSize: size, 
+                        onAppInitialize: { pid, error in }
+                    )
+                    
+                    .frame(width: size.width, height: size.height)
+                    .clipped() 
+                    .background(Color.black)
+                }
+                
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
-        .background(Color.black.ignoresSafeArea())
     }
 
     private func calculateIPhoneSize(w: CGFloat, h: CGFloat) -> CGSize {
         let landscape = w > h
+        let ratio: CGFloat = 9.0 / 16.0
         var targetW: CGFloat
         var targetH: CGFloat
         
         if landscape {
-            targetW = h * (16.0 / 9.0)
+            
             targetH = h
+            targetW = h * (16.0 / 9.0)
             if targetW > w {
                 targetW = w
                 targetH = w * (9.0 / 16.0)
             }
         } else {
-            targetW = h * (9.0 / 16.0)
-            targetH = h
-            if targetW > w {
-                targetW = w
-                targetH = w * (16.0 / 9.0)
+            
+            targetW = w
+            targetH = w / ratio
+            if targetH > h {
+                targetH = h
+                targetW = h * ratio
             }
         }
         return CGSize(width: targetW, height: targetH)
     }
 }
+
 
 @available(iOS 16.1, *)
 struct IPadRunnerView: View {

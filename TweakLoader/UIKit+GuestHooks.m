@@ -4,7 +4,9 @@
 #import "utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
 #import "Localization.h"
-
+@interface LCRealIPhoneModeHelper : NSObject
++ (void)repositionAllWindows;
+@end
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
@@ -737,9 +739,7 @@ BOOL canAppOpenItself(NSURL* url) {
     return [self hook_UIScreen_bounds];
 }
 @end
-@interface LCRealIPhoneModeHelper : NSObject
-+ (void)repositionAllWindows;
-@end
+
 
 @implementation LCRealIPhoneModeHelper
 

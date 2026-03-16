@@ -745,12 +745,22 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_setFrame:(CGRect)frame {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGRect screenBounds = [UIScreen mainScreen].bounds;
-        [self hook_setFrame:CGRectMake(frame.origin.x, frame.origin.y, screenBounds.size.width, screenBounds.size.height)];
+        
+        CGRect realScreen = [UIScreen mainScreen].nativeBounds;
+        CGFloat scale = [UIScreen mainScreen].scale;
+        CGFloat realH = realScreen.size.height / scale;
+        CGFloat realW = realScreen.size.width / scale;
+        
+        CGFloat targetH = realH;
+        CGFloat targetW = targetH * (9.0 / 16.0);
+        CGFloat offsetX = (realW - targetW) / 2.0;
+        
+        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, targetH)];
     } else {
         [self hook_setFrame:frame];
     }
 }
+
 
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];

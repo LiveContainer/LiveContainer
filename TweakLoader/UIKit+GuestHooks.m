@@ -714,6 +714,24 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 @end
+@implementation UIScreen (LiveContainerHook)
+- (CGRect)hook_UIScreen_bounds {
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        CGRect nativeBounds = [self hook_UIScreen_bounds];
+        CGFloat screenH = nativeBounds.size.height;
+        
+        
+        CGFloat targetW = screenH * (9.0 / 16.0);
+        
+        
+        return CGRectMake(0, 0, targetW, screenH);
+    }
+    
+    
+    return [self hook_UIScreen_bounds];
+}
+@end
 
 @implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
@@ -722,7 +740,28 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
+    
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+    
+        self.backgroundColor = [UIColor blackColor];
+    } else {
+        
+           [self hook_setFrame:frame];
+    }
+    
     [self hook_makeKeyAndVisible];
+}
+
+
+- (void)setFrame:(CGRect)frame {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
+        CGRect screenBounds = [UIScreen mainScreen].bounds;
+        [self hook_setFrame:CGRectMake(frame.origin.x, frame.origin.y, screenBounds.size.width, screenBounds.size.height)];
+    } else {
+        [self hook_setFrame:frame];
+    }
 }
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];

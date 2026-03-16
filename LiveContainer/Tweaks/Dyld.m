@@ -41,7 +41,7 @@ const char* lcMainBundlePath = NULL;
 
 static CGRect (*orig_UIScreen_bounds)(id self, SEL _cmd);
 static CGRect (*orig_UIScreen_nativeBounds)(id self, SEL _cmd);
-static UIUserInterfaceIdiom (*orig_UIDevice_userInterfaceIdiom)(id self, SEL _cmd);
+
 
 
 
@@ -364,12 +364,10 @@ void DyldHookLoadableIntoProcess(void) {
 
 
 CGRect hook_UIScreen_bounds(UIScreen *self, SEL _cmd) {
-    
     CGRect originalBounds = orig_UIScreen_bounds ? orig_UIScreen_bounds(self, _cmd) : CGRectZero;
     
-    
-    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+   
         CGFloat screenH = originalBounds.size.height;
         return CGRectMake(0, 0, screenH * 9.0 / 16.0, screenH);
     }
@@ -379,9 +377,8 @@ CGRect hook_UIScreen_bounds(UIScreen *self, SEL _cmd) {
 CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
     CGRect orig = orig_UIScreen_nativeBounds ? orig_UIScreen_nativeBounds(self, _cmd) : CGRectZero;
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        CGFloat scale = [UIScreen mainScreen].scale ?: 3.0; 
         
-        CGFloat scale = [UIScreen mainScreen].scale;
-        if (scale == 0) scale = 3.0; 
         CGFloat targetW = (orig.size.height / scale) * (9.0 / 16.0) * scale;
         return CGRectMake(0, 0, targetW, orig.size.height);
     }
@@ -402,11 +399,7 @@ void setupUIScreenHook() {
         method_setImplementation(m2, (IMP)hook_UIScreen_nativeBounds);
     }
     NSLog(@"[LC] UIScreen Real iPhone Mode hooks installed.");
-    Method m3 = class_getInstanceMethod([UIDevice class], @selector(userInterfaceIdiom));
-    if (m3) {
-        orig_UIDevice_userInterfaceIdiom = (UIUserInterfaceIdiom (*)(id, SEL))method_getImplementation(m3);
-        method_setImplementation(m3, (IMP)hook_UIDevice_userInterfaceIdiom);
-    }
+    
 }
 
 

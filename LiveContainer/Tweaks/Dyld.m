@@ -37,9 +37,7 @@ const char* lcMainBundlePath = NULL;
 
 
 
-static UIUserInterfaceIdiom hooked_userInterfaceIdiom(id self, SEL _cmd) {
-    return UIUserInterfaceIdiomPhone; 
-}
+
 
 static CGRect (*orig_UIScreen_bounds)(id self, SEL _cmd);
 static CGRect (*orig_UIScreen_nativeBounds)(id self, SEL _cmd);
@@ -389,12 +387,7 @@ CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
     }
     return orig;
 }
-UIUserInterfaceIdiom hook_UIDevice_userInterfaceIdiom(id self, SEL _cmd) {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        return UIUserInterfaceIdiomPhone; 
-    }
-    return orig_UIDevice_userInterfaceIdiom(self, _cmd);
-}
+
 void setupUIScreenHook() {
     
     Method m1 = class_getInstanceMethod([UIScreen class], @selector(bounds));

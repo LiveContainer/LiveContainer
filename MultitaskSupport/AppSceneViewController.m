@@ -261,9 +261,40 @@
 
 
 - (void)viewWillLayoutSubviews {
-    [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
+    [super viewWillLayoutSubviews];
+    
+    CGRect bounds = self.view.bounds;
+    
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        CGFloat screenH = bounds.size.height;
+        CGFloat screenW = bounds.size.width;
+        
+    
+        CGFloat targetW = screenH * (9.0 / 16.0);
+        
+        
+        if (targetW > screenW) {
+            targetW = screenW;
+        }
+        
+        CGFloat targetX = (screenW - targetW) / 2.0;
+        
+    
+        self.view.backgroundColor = [UIColor blackColor];
+        self.contentView.backgroundColor = [UIColor blackColor];
+        self.presenter.presentationView.frame = CGRectMake(targetX, 0, targetW, screenH);
+        
+    } else {
+        
+        self.presenter.presentationView.frame = bounds;
+        
+        self.view.backgroundColor = [UIColor clearColor]; 
+    }
+     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
+
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
     __block int currentDebounceToken = self.resizeDebounceToken + 1;
     _resizeDebounceToken = currentDebounceToken;

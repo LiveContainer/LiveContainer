@@ -244,10 +244,23 @@
     if(!diff) return;
     
     UIMutableApplicationSceneSettings *baseSettings = [diff settingsByApplyingToMutableCopyOfSettings:settings];
+    
+
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        
+        CGFloat h = baseSettings.frame.size.height;
+        CGFloat targetW = h * 9.0 / 16.0;
+        baseSettings.frame = CGRectMake(0, 0, targetW, h);
+    } else {
+        
+        baseSettings.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    }
+    
+
     UIApplicationSceneTransitionContext *newContext = [context copy];
     newContext.actions = nil;
+    
     if(self.isNativeWindow) {
-        // directly update the settings
         baseSettings.interruptionPolicy = 0;
         baseSettings.peripheryInsets = self.view.window.safeAreaInsets;
         [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
@@ -255,6 +268,7 @@
         [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
     }
 }
+
 
 
 

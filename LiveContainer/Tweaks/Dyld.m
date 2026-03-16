@@ -436,7 +436,9 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
         }
     }
     
-    setupUIScreenHook();
+    if (!NSUserDefaults.isLiveProcess) {
+        setupUIScreenHook();
+    }
     
     hookedDlopen = hookDlopen;
     

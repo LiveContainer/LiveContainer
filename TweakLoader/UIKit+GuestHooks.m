@@ -14,6 +14,9 @@ static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
     swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
+    swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+    swizzle(UITraitCollection.class, @selector(horizontalSizeClass), @selector(hook_horizontalSizeClass));
+    swizzle(UITraitCollection.class, @selector(userInterfaceIdiom), @selector(hook_trait_userInterfaceIdiom));
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -741,28 +744,27 @@ BOOL canAppOpenItself(NSURL* url) {
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
     
-
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-    
-        self.backgroundColor = [UIColor blackColor];
-    } else {
         
-           [self hook_setFrame:frame];
+        self.backgroundColor = [UIColor blackColor];
     }
+
     
     [self hook_makeKeyAndVisible];
 }
 
-
-- (void)setFrame:(CGRect)frame {
+- (void)hook_setFrame:(CGRect)frame {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
         CGRect screenBounds = [UIScreen mainScreen].bounds;
         [self hook_setFrame:CGRectMake(frame.origin.x, frame.origin.y, screenBounds.size.width, screenBounds.size.height)];
     } else {
+    
         [self hook_setFrame:frame];
     }
 }
+
+
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];
     [self hook_makeKeyWindow];
@@ -785,6 +787,7 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 @end
 
+
 @implementation UIDevice(hook)
 
 - (NSUUID*)hook_identifierForVendor {
@@ -792,12 +795,21 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 
+
+@end
+@implementation UITraitCollection (LiveContainerHook)
+- (UIUserInterfaceSizeClass)hook_horizontalSizeClass {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        return UIUserInterfaceSizeClassCompact; // 偽裝成手機寬度
+    }
+    return [self hook_horizontalSizeClass]; // LiveContainer Mode: 正常回傳
+}
+
 - (UIUserInterfaceIdiom)hook_userInterfaceIdiom {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        return UIUserInterfaceIdiomPhone; 
+        return UIUserInterfaceIdiomPhone;
     }
-    
-    return [self hook_userInterfaceIdiom]; 
+    return [self hook_trait_userInterfaceIdiom];
 }
 @end
 

@@ -233,7 +233,7 @@
 
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
-        CGFloat h = baseSettings.frame.size.height;
+        CGFloat h = self.view.bounds.size.height;
         CGFloat targetW = h * 9.0 / 16.0;
         baseSettings.frame = CGRectMake(0, 0, targetW, h);
     } else {

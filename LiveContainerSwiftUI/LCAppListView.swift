@@ -255,7 +255,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     var currentModeIcon: String {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return "arrow.up.left.and.arrow.down.right"
-    } else if UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+    } else if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ {
         return "arrow.down.left.and.arrow.up.right" 
     } else {
         return isiPhoneMode ? "iphone" : "ipad"
@@ -267,7 +268,9 @@ var currentLaunchMode: AppLaunchMode {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }
-    if UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+    if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+
+ {
         return .realIPhone
     }
     return isiPhoneMode ? .iPhone : .iPad
@@ -297,7 +300,8 @@ var launchModeSelector: some View {
                 HStack {
                     Text("Real iPhone Mode (9:16 Hook)")
                 
-                    if !isLiveContainerMode && UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                    if !isLiveContainerMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ {
                         Image(systemName: "checkmark")
                     }
                 }
@@ -310,7 +314,8 @@ var launchModeSelector: some View {
                 HStack {
                     Text("iPhone mode (9:16)")
                     
-                    if !isLiveContainerMode && isiPhoneMode && !UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                    if !isLiveContainerMode && isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ {
                         Image(systemName: "checkmark")
                     }
                 }
@@ -323,7 +328,8 @@ var launchModeSelector: some View {
                 HStack {
                     Text("Native iPad mode")
                     
-                    if !isLiveContainerMode && !isiPhoneMode && !UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+                    if !isLiveContainerMode && !isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ {
                         Image(systemName: "checkmark")
                     }
                 }
@@ -340,7 +346,8 @@ var launchModeSelector: some View {
             }
         }
     } label: {
-        let isReal = UserDefaults.standard.bool(forKey: "LCRealIPhoneMode")
+        let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+
         Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
             .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
     }
@@ -356,7 +363,8 @@ private func setMode(_ mode: AppLaunchMode) {
         isiPhoneMode = false
         UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
         UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
-        UserDefaults.standard.set(false, forKey: "LCRealIPhoneMode") 
+        LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+
 
         switch mode {
         case .native: 
@@ -366,7 +374,8 @@ private func setMode(_ mode: AppLaunchMode) {
         case .realIPhone:
             
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
-            UserDefaults.standard.set(true, forKey: "LCRealIPhoneMode") 
+            LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+
             
         case .iPhone:
             isiPhoneMode = true
@@ -1432,7 +1441,8 @@ private var iPhoneDestination: some View {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") || UserDefaults.standard.bool(forKey: "LCRealIPhoneMode") {
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") || LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ {
         
         
         do {

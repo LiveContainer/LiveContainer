@@ -457,7 +457,9 @@ private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
         _appDataFolderNames = appDataFolderNames
         _tweakFolderNames = tweakFolderNames
 
-        if UserDefaults.standard.object(forKey: "LCNativeFullscreen") == nil {
+        let hasAnyMode = UserDefaults.standard.object(forKey: "LCNativeFullscreen") != nil ||
+                     LCUtils.appGroupUserDefault.object(forKey: "LCRealIPhoneMode") != nil
+    if !hasAnyMode {
         UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
       }
     }
@@ -902,6 +904,23 @@ private var iPhoneDestination: some View {
         for app in sharedModel.hiddenApps {
             app.delegate = self
         }
+    let isNative = UserDefaults.standard.bool(forKey: "LCNativeFullscreen")
+    let isRealIPhone = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+    let isIPhone = UserDefaults.standard.bool(forKey: "LCIsIPhoneMode")
+    
+    if isNative {
+        isLiveContainerMode = true
+        isiPhoneMode = false
+    } else if isRealIPhone {
+        isLiveContainerMode = false
+        isiPhoneMode = false
+    } else if isIPhone {
+        isLiveContainerMode = false
+        isiPhoneMode = true
+    } else {
+        isLiveContainerMode = false
+        isiPhoneMode = false
+    }
         didAppear = true
     }
     

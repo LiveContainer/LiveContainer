@@ -35,16 +35,6 @@ bool appExecutableFileTypeOverwritten = false;
 const char* lcMainBundlePath = NULL;
 
 
-
-
-
-
-static CGRect (*orig_UIScreen_bounds)(id self, SEL _cmd);
-static CGRect (*orig_UIScreen_nativeBounds)(id self, SEL _cmd);
-
-
-
-
 void* (*orig_dlopen)(const char *path, int mode) = dlopen;
 void* (*orig_dlsym)(void * __handle, const char * __symbol) = dlsym;
 uint32_t (*orig_dyld_image_count)(void) = _dyld_image_count;
@@ -346,57 +336,6 @@ void DyldHookLoadableIntoProcess(void) {
 
 
 
-
-
-
-
-CGRect hook_UIScreen_bounds(UIScreen *self, SEL _cmd) {
-    CGRect originalBounds = orig_UIScreen_bounds ? orig_UIScreen_bounds(self, _cmd) : CGRectZero;
-    
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-   
-        CGFloat screenH = originalBounds.size.height;
-        return CGRectMake(0, 0, screenH * 9.0 / 16.0, screenH);
-    }
-    return originalBounds;
-}
-
-CGRect hook_UIScreen_nativeBounds(UIScreen *self, SEL _cmd) {
-    CGRect orig = orig_UIScreen_nativeBounds ? orig_UIScreen_nativeBounds(self, _cmd) : CGRectZero;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat scale = [UIScreen mainScreen].scale ?: 3.0; 
-        
-        CGFloat targetW = (orig.size.height / scale) * (9.0 / 16.0) * scale;
-        return CGRectMake(0, 0, targetW, orig.size.height);
-    }
-    return orig;
-}
-
-void setupUIScreenHook() {
-    
-    Method m1 = class_getInstanceMethod([UIScreen class], @selector(bounds));
-    if (m1) {
-        orig_UIScreen_bounds = (CGRect (*)(id, SEL))method_getImplementation(m1);
-        method_setImplementation(m1, (IMP)hook_UIScreen_bounds);
-    }
-
-    Method m2 = class_getInstanceMethod([UIScreen class], @selector(nativeBounds));
-    if (m2) {
-        orig_UIScreen_nativeBounds = (CGRect (*)(id, SEL))method_getImplementation(m2);
-        method_setImplementation(m2, (IMP)hook_UIScreen_nativeBounds);
-    }
-    NSLog(@"[LC] UIScreen Real iPhone Mode hooks installed.");
-    
-}
-
-
-
-
-
-
-
-
-
 void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVersion) {
     // iterate through loaded images and find LiveContainer it self
     int imageCount = _dyld_image_count();
@@ -436,9 +375,7 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
         }
     }
     
-    if (!NSUserDefaults.isLiveProcess) {
-        setupUIScreenHook();
-    }
+    
     
     hookedDlopen = hookDlopen;
     

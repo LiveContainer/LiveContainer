@@ -15,7 +15,14 @@ static void UIKitGuestHooksInit() {
     swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-    
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
+    }
     
     
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
@@ -730,6 +737,39 @@ BOOL canAppOpenItself(NSURL* url) {
     return [self hook_UIScreen_bounds];
 }
 @end
+@interface LCRealIPhoneModeHelper : NSObject
++ (void)repositionAllWindows;
+@end
+
+@implementation LCRealIPhoneModeHelper
+
++ (void)repositionAllWindows {
+    if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+    
+    
+    UIWindowScene *scene = nil;
+    for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
+        if ([s isKindOfClass:UIWindowScene.class]) {
+            scene = s;
+            break;
+        }
+    }
+    if (!scene) return;
+    
+    CGRect realBounds = scene.coordinateSpace.bounds;
+    CGFloat realH = realBounds.size.height;
+    CGFloat realW = realBounds.size.width;
+    CGFloat targetW = realH * (9.0 / 16.0);
+    CGFloat offsetX = (realW - targetW) / 2.0;
+    CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
+    
+    for (UIWindow *window in scene.windows) {
+        // 直接設 layer frame 避免觸發我們自己的 hook_setFrame: 造成遞迴
+        window.layer.frame = targetFrame;
+    }
+}
+
+@end
 
 @implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
@@ -753,6 +793,11 @@ BOOL canAppOpenItself(NSURL* url) {
         
         CGFloat realH = screenBounds.size.height;
         CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
+        
         CGFloat targetW = realH * (9.0 / 16.0);
         CGFloat offsetX = (realW - targetW) / 2.0;
         

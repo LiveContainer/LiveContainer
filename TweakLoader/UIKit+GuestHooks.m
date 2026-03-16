@@ -13,7 +13,7 @@ __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
     swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
-    
+    swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     
     
@@ -746,21 +746,19 @@ BOOL canAppOpenItself(NSURL* url) {
 - (void)hook_setFrame:(CGRect)frame {
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         
-        CGRect realScreen = [UIScreen mainScreen].nativeBounds;
-        CGFloat scale = [UIScreen mainScreen].scale;
-        CGFloat realH = realScreen.size.height / scale;
-        CGFloat realW = realScreen.size.width / scale;
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
         
-        CGFloat targetH = realH;
-        CGFloat targetW = targetH * (9.0 / 16.0);
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        CGFloat targetW = realH * (9.0 / 16.0);
         CGFloat offsetX = (realW - targetW) / 2.0;
         
-        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, targetH)];
+        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
         [self hook_setFrame:frame];
     }
 }
-
 
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];

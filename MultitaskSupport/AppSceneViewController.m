@@ -115,10 +115,8 @@
     RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(self.pid)];
     
     FBProcessManager *manager = [PrivClass(FBProcessManager) sharedInstance];
-    // At this point, the process is spawned and we're ready to create a scene to render in our app
     RBSProcessHandle* processHandle = [PrivClass(RBSProcessHandle) handleForPredicate:predicate error:nil];
     [manager registerProcessForAuditToken:processHandle.auditToken];
-    // NSString *identifier = [NSString stringWithFormat:@"sceneID:%@-%@", bundleID, @"default"];
     self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", self.dataUUID];
     
     FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
@@ -132,46 +130,28 @@
     settings.cornerRadiusConfiguration = [[PrivClass(BSCornerRadiusConfiguration) alloc] initWithTopLeft:self.view.layer.cornerRadius bottomLeft:self.view.layer.cornerRadius bottomRight:self.view.layer.cornerRadius topRight:self.view.layer.cornerRadius];
     settings.displayConfiguration = UIScreen.mainScreen.displayConfiguration;
     settings.foreground = YES;
-    
     settings.deviceOrientation = UIDevice.currentDevice.orientation;
     settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
-        
+
+    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         CGFloat h = self.view.bounds.size.height;
-        CGFloat w = self.view.bounds.size.width;
         CGFloat targetW = h * 9.0 / 16.0;
-        
-        
-        settings.frame = CGRectMake(0, 0, targetW, h); 
-        
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.presenter.presentationView.frame = CGRectMake((w - targetW) / 2.0, 0, targetW, h);
-            self.view.backgroundColor = [UIColor blackColor];
-        });
-    } else if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
-        
-
+        settings.frame = CGRectMake(0, 0, targetW, h);
+    } else if (UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.height, self.view.frame.size.width);
     } else {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
     }
 
-    //settings.interruptionPolicy = 2; // reconnect
     settings.level = 1;
     settings.persistenceIdentifier = self.dataUUID;
-    if(self.isNativeWindow) {
+    if (self.isNativeWindow) {
         UIEdgeInsets defaultInsets = self.view.window.safeAreaInsets;
         settings.peripheryInsets = defaultInsets;
         settings.safeAreaInsetsPortrait = defaultInsets;
     }
-    
     settings.statusBarDisabled = !self.isNativeWindow;
-    self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
-    self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
-
-    //settings.previewMaximumSize =
-    //settings.deviceOrientationEventsEnabled = YES;
     parameters.settings = settings;
     
     UIMutableApplicationSceneClientSettings *clientSettings = [UIMutableApplicationSceneClientSettings new];
@@ -181,15 +161,19 @@
     
     FBScene *scene = [[PrivClass(FBSceneManager) sharedInstance] createSceneWithDefinition:definition initialParameters:parameters];
     
+    
     self.presenter = [scene.uiPresentationManager createPresenterWithIdentifier:self.sceneID];
     [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
         context.appearanceStyle = 2;
     }];
     [self.presenter activate];
     
-    // If we have a staging URL scheme, pass it now
+    
+    self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
+    self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
+
     NSString *launchUrl = [NSUserDefaults.standardUserDefaults stringForKey:@"launchAppUrlScheme"];
-    if(launchUrl) {
+    if (launchUrl) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
         [self openURLScheme:launchUrl];
     }
@@ -199,35 +183,36 @@
         [weakSelf appTerminationCleanUp];
     }];
     
+   
     [self.contentView addSubview:self.presenter.presentationView];
+
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         UIView *appView = self.presenter.presentationView;
-        appView.translatesAutoresizingMaskIntoConstraints = YES; 
-        appView.autoresizingMask = UIViewAutoresizingNone;      
-        
         CGFloat h = self.contentView.bounds.size.height;
         CGFloat w = h * 9.0 / 16.0;
         CGFloat x = (self.contentView.bounds.size.width - w) / 2.0;
         appView.frame = CGRectMake(x, 0, w, h);
-    }
+        
     
-    self.view.backgroundColor = [UIColor blackColor];
-    self.contentView.backgroundColor = [UIColor blackColor];
+        self.view.backgroundColor = [UIColor blackColor];
+        self.contentView.backgroundColor = [UIColor blackColor];
+    }
+
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
+
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        
+    
         UITraitCollection *phone = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
         UITraitCollection *compact = [UITraitCollection traitCollectionWithHorizontalSizeClass:UIUserInterfaceSizeClassCompact];
         UITraitCollection *regular = [UITraitCollection traitCollectionWithVerticalSizeClass:UIUserInterfaceSizeClassRegular];
         UITraitCollection *customTraits = [UITraitCollection traitCollectionWithTraitsFromCollections:@[phone, compact, regular]];
-        
-    
-        
         [self setOverrideTraitCollection:customTraits forChildViewController:nil];
     }
+
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
+
 - (void)terminate {
     if(self.isAppRunning) {
         [self.extension _kill:SIGTERM];
@@ -276,38 +261,29 @@
 
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
+    if (!self.presenter.presentationView) return;
     
     CGRect bounds = self.view.bounds;
     
-    
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat screenH = bounds.size.height;
-        CGFloat screenW = bounds.size.width;
+        CGFloat h = bounds.size.height;
+        CGFloat w = bounds.size.width;
+        CGFloat targetW = h * (9.0 / 16.0);
+        if (targetW > w) targetW = w; 
+        CGFloat offsetX = (w - targetW) / 2.0;
         
-    
-        CGFloat targetW = screenH * (9.0 / 16.0);
-        
-        
-        if (targetW > screenW) {
-            targetW = screenW;
-        }
-        
-        CGFloat targetX = (screenW - targetW) / 2.0;
-        
-    
+        self.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, h);
         self.view.backgroundColor = [UIColor blackColor];
         self.contentView.backgroundColor = [UIColor blackColor];
-        self.presenter.presentationView.frame = CGRectMake(targetX, 0, targetW, screenH);
-        
     } else {
-        
         self.presenter.presentationView.frame = bounds;
-        
-        self.view.backgroundColor = [UIColor clearColor]; 
+        self.view.backgroundColor = [UIColor clearColor];
     }
-     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
+    
+    [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
+
 
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
     __block int currentDebounceToken = self.resizeDebounceToken + 1;

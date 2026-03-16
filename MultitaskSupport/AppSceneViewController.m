@@ -311,10 +311,10 @@
             
             CGFloat targetW = containerH * 9.0 / 16.0;
             
-            CGFloat xOffset = (containerW - targetW) / 2.0;
+        
             
             
-            frame = CGRectMake(xOffset, 0, targetW, containerH);
+            frame = CGRectMake(0, 0, targetW, containerH);
         } else {
             
             frame = CGRectMake(0, 0, self.view.frame.size.width / self.scaleRatio, self.view.frame.size.height / self.scaleRatio);

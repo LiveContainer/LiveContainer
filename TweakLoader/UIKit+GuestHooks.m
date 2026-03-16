@@ -720,7 +720,8 @@ BOOL canAppOpenItself(NSURL* url) {
 @end
 @implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
+) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
         CGFloat targetW = screenH * (9.0 / 16.0); 
@@ -737,14 +738,15 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
+) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
 }
 
 - (void)hook_setFrame:(CGRect)frame {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;

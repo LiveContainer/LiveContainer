@@ -39,6 +39,8 @@
 	</dict>
 	<key>NSBonjourServices</key>
 	<array>
+		<string>_googlezone._tcp</string>
+		<string>_wled._tcp.</string>
 		<string>_googlecast._tcp</string>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
@@ -57,12 +59,14 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>LiveProcessHandler</string>
 		<key>NSExtensionContextClass</key>
-        <string>NSExtensionContext</string>
-        <key>NSExtensionContextHostClass</key>
-        <string>NSExtensionContext</string>
+		<string>NSExtensionContext</string>
+		<key>NSExtensionContextHostClass</key>
+		<string>NSExtensionContext</string>
 	</dict>
 	<key>NSLocationDefaultAccuracyReduced</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>I just need it, K, Stop asking questions, But if you HAVE to know The guest app is requesting for this permission.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
 	<key>SBAppUsesLocalNotifications</key>
@@ -83,14 +87,14 @@
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
-    <key>XPCService</key>
-    <dict>
-        <key>ServiceType</key>
-        <string>Application</string>
-        <key>_MultipleInstances</key>
-        <true/>
-        <key>_ProcessType</key>
-        <string>App</string>
-    </dict>
+	<key>XPCService</key>
+	<dict>
+		<key>ServiceType</key>
+		<string>Application</string>
+		<key>_MultipleInstances</key>
+		<true/>
+		<key>_ProcessType</key>
+		<string>App</string>
+	</dict>
 </dict>
 </plist>

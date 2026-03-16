@@ -308,47 +308,47 @@ var launchModeSelector: some View {
             }
             
             
-            Button {
-                setMode(.iPhone)
-            } label: {
-                HStack {
-                    Text("iPhone mode (9:16)")
+            //Button {
+                //setMode(.iPhone)
+            //} label: {
+                //HStack {
+                    //Text("iPhone mode (9:16)")
                     
-                    if !isLiveContainerMode && isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
+                    //if !isLiveContainerMode && isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ //{
+                        //Image(systemName: "checkmark")
+                    //}
+                //}
+            //}
 
         
-            Button {
-                setMode(.iPad)
-            } label: {
-                HStack {
-                    Text("Native iPad mode")
+            //Button {
+                //setMode(.iPad)
+            //} label: {
+                //HStack {
+                    //Text("Native iPad mode")
                     
-                    if !isLiveContainerMode && !isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-        } else {
+                    //if !isLiveContainerMode && !isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+ //{
+                        //Image(systemName: "checkmark")
+                    //}
+                //}
+            //}
+        //} else {
             
-            Button {
-                setMode(.iPad)
-            } label: {
-                HStack {
-                    Text("Native iPhone mode")
-                    if !isLiveContainerMode { Image(systemName: "checkmark") }
-                }
-            }
+            //Button {
+                //setMode(.iPad)
+            //} label: {
+                //HStack {
+                    //Text("Native iPhone mode")
+                    //if !isLiveContainerMode { Image(systemName: "checkmark") }
+                //}
+            //}
         }
     } label: {
         let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
 
-        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
+        Image(systemName: isLiveContainerMode ? "bolt.circle" : (isReal ? "bolt.circle" : currentModeIcon))
             .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
     }
 }

@@ -363,7 +363,7 @@ private func setMode(_ mode: AppLaunchMode) {
         isiPhoneMode = false
         UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
         UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
-        LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+        LCUtils.appGroupUserDefault.set(false,forKey: "LCRealIPhoneMode")
 
 
         switch mode {
@@ -374,7 +374,7 @@ private func setMode(_ mode: AppLaunchMode) {
         case .realIPhone:
             
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
-            LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+            LCUtils.appGroupUserDefault.set(true,forKey: "LCRealIPhoneMode")
 
             
         case .iPhone:

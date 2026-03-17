@@ -18,18 +18,39 @@ static void UIKitGuestHooksInit() {
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     
-[[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
-                                                  object:nil
-                                                   queue:NSOperationQueue.mainQueue
-                                              usingBlock:^(NSNotification *note) {
-    [LCRealIPhoneModeHelper repositionAllWindows];
-}];
-[[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
-                                                  object:nil
-                                                   queue:NSOperationQueue.mainQueue
-                                              usingBlock:^(NSNotification *note) {
-    [LCRealIPhoneModeHelper repositionAllWindows];
-}];
+if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                      object:nil
+                                                       queue:NSOperationQueue.mainQueue
+                                                  usingBlock:^(NSNotification *note) {
+        [LCRealIPhoneModeHelper repositionAllWindows];
+    }];
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                      object:nil
+                                                       queue:NSOperationQueue.mainQueue
+                                                  usingBlock:^(NSNotification *note) {
+        [LCRealIPhoneModeHelper repositionAllWindows];
+    }];
+} else {
+    
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                      object:nil
+                                                       queue:NSOperationQueue.mainQueue
+                                                  usingBlock:^(NSNotification *note) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            for (UIWindowScene *scene in UIApplication.sharedApplication.connectedScenes) {
+                if (![scene isKindOfClass:UIWindowScene.class]) continue;
+                for (UIWindow *window in scene.windows) {
+                    if (!window.isHidden) {
+                        [window makeKeyAndVisible];
+                    }
+                }
+            }
+        });
+    }];
+}
+
 
 
     
@@ -777,15 +798,6 @@ BOOL canAppOpenItself(NSURL* url) {
         for (UIWindow *window in scene.windows) {
             window.layer.frame = targetFrame;
             window.backgroundColor = [UIColor blackColor];
-        }
-    } else {
-        
-        CGRect targetFrame = CGRectMake(0, 0, realW, realH);
-        for (UIWindow *window in scene.windows) {
-            window.layer.frame = targetFrame;
-            
-            
-            
         }
     }
     

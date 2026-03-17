@@ -746,7 +746,7 @@ BOOL canAppOpenItself(NSURL* url) {
         [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
-        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : 0.7;
+        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : (1/0.7);
         return CGRectMake(0, 0, screenH * ratio, screenH);
     }
     return [self hook_UIScreen_bounds];
@@ -773,7 +773,7 @@ BOOL canAppOpenItself(NSURL* url) {
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
-    CGFloat ratio = isReal ? (9.0/16.0) : 0.7;
+    CGFloat ratio = isReal ? (9.0/16.0) : (1/0.7);
     CGFloat targetW = realH * ratio;
     CGFloat offsetX = (realW - targetW) / 2.0;
     CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
@@ -806,7 +806,7 @@ BOOL canAppOpenItself(NSURL* url) {
             [self hook_setFrame:frame];
             return;
         }
-        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : 0.7;
+        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : (1/0.7);
         CGFloat targetW = realH * ratio;
         CGFloat offsetX = (realW - targetW) / 2.0;
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];

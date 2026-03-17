@@ -364,9 +364,9 @@ var launchModeSelector: some View {
         }
     } label: {
         let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-
-        Image(systemName: isLiveContainerMode ? "bolt.circle" : (isReal ? "bolt.circle" : currentModeIcon))
-            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
+        let isFake = LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
+        Image(systemName: isLiveContainerMode ? "bolt.circle" : (isReal ? "bolt.circle" : (isFake? "bolt.circle" : currentModeIcon))
+            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : (isFake? .orange : .blue))
     }
 }
 

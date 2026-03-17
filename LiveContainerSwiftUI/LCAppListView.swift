@@ -11,10 +11,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum AppLaunchMode: Int {
-    case iPad = 0
-    case iPhone = 1
-    case native = 2 
-    case realIPhone = 3 
+    case native = 0
+    case realIPhone = 1
     
     
 }
@@ -276,7 +274,7 @@ var currentLaunchMode: AppLaunchMode {
         return .realIPhone
     }
     
-    return isiPhoneMode ? .iPhone : .iPad
+    return 
 }
 
 
@@ -309,8 +307,8 @@ var launchModeSelector: some View {
     
     } label: {
         let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
-            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
+        Image(systemName: isLiveContainerMode ? "bolt.circle" : "bolt.circle"))
+            .foregroundColor(isLiveContainerMode ? .green : .purple ))
     }
 }
 
@@ -340,13 +338,7 @@ private func setMode(_ mode: AppLaunchMode) {
             LCUtils.appGroupUserDefault.set(true,forKey: "LCRealIPhoneMode")
              
        
-        case .iPhone:
-            isiPhoneMode = true
-            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
-            
-        case .iPad:
-            
-            break
+        
         }
     }
     sharedModel.objectWillChange.send()
@@ -877,14 +869,6 @@ private var iPhoneDestination: some View {
         isiPhoneMode = false
         
     } else if isRealIPhone {
-        isLiveContainerMode = false
-        isiPhoneMode = false
-        
-    
-    } else if isIPhone {
-        isLiveContainerMode = false
-        isiPhoneMode = true
-    } else {
         isLiveContainerMode = false
         isiPhoneMode = false
     }

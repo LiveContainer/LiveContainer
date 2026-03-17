@@ -15,7 +15,8 @@ enum AppLaunchMode: Int {
     case iPhone = 1
     case native = 2 
     case realIPhone = 3 
-    case fakeIPhone = 4
+    
+    
 }
 
 
@@ -274,11 +275,7 @@ var currentLaunchMode: AppLaunchMode {
  {
         return .realIPhone
     }
-    if LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
-
- {
-        return .fakeIPhone
-    }
+    
     return isiPhoneMode ? .iPhone : .iPad
 }
 
@@ -313,18 +310,7 @@ var launchModeSelector: some View {
                 }
             }
             
-            Button {
-                setMode(.fakeIPhone)
-            } label: {
-                HStack {
-                    Text("Fake iPhone Mode (iPad Fullscreen)")
-                
-                    if !isLiveContainerMode && LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
- {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
+            
             //Button {
                 //setMode(.iPhone)
             //} label: {
@@ -381,7 +367,7 @@ private func setMode(_ mode: AppLaunchMode) {
         UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
         UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
         LCUtils.appGroupUserDefault.set(false,forKey: "LCRealIPhoneMode")
-        LCUtils.appGroupUserDefault.set(false, forKey: "LCFakeIPhoneMode")
+    
 
         switch mode {
             
@@ -393,11 +379,8 @@ private func setMode(_ mode: AppLaunchMode) {
             
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
             LCUtils.appGroupUserDefault.set(true,forKey: "LCRealIPhoneMode")
-             LCUtils.appGroupUserDefault.set(false, forKey: "LCFakeIPhoneMode")
-       case .fakeIPhone:
-            
-            LCUtils.appGroupUserDefault.set(true, forKey: "LCFakeIPhoneMode")
-            LCUtils.appGroupUserDefault.set(false,forKey: "LCRealIPhoneMode")
+             
+       
         case .iPhone:
             isiPhoneMode = true
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
@@ -928,7 +911,7 @@ private var iPhoneDestination: some View {
     let isNative = UserDefaults.standard.bool(forKey: "LCNativeFullscreen")
     let isRealIPhone = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
     let isIPhone = UserDefaults.standard.bool(forKey: "LCIsIPhoneMode")
-    let isFakeIPhone = LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
+
         
     if isNative {
         isLiveContainerMode = true
@@ -938,9 +921,7 @@ private var iPhoneDestination: some View {
         isLiveContainerMode = false
         isiPhoneMode = false
         
-    } else if isFakeIPhone {
-        isLiveContainerMode = false
-        isiPhoneMode = false    
+    
     } else if isIPhone {
         isLiveContainerMode = false
         isiPhoneMode = true
@@ -1489,7 +1470,7 @@ private var iPhoneDestination: some View {
         }
     } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
           LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ||
-          LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode") {
+           {
         
         do {
             try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)

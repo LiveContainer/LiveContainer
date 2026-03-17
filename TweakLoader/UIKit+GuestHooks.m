@@ -18,7 +18,7 @@ static void UIKitGuestHooksInit() {
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     
-if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] || [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
+if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                           object:nil
                                                            queue:NSOperationQueue.mainQueue
@@ -741,17 +741,11 @@ BOOL canAppOpenItself(NSURL* url) {
 @end
 @implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-        
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
+) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
-        CGFloat targetW = screenH * (9.0 / 16.0);
-        return CGRectMake(0, 0, targetW, screenH);
-    } else if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
-        
-        CGRect nativeBounds = [self hook_UIScreen_bounds];
-        CGFloat screenH = nativeBounds.size.height;
-        CGFloat targetW = nativeBounds.size.width;
+        CGFloat targetW = screenH * (9.0 / 16.0); 
         return CGRectMake(0, 0, targetW, screenH);
     }
     return [self hook_UIScreen_bounds];
@@ -761,10 +755,11 @@ BOOL canAppOpenItself(NSURL* url) {
 
 
 
-
 @implementation LCRealIPhoneModeHelper
 
 + (void)repositionAllWindows {
+    if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+    
     UIWindowScene *scene = nil;
     for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
         if ([s isKindOfClass:UIWindowScene.class]) {
@@ -777,30 +772,17 @@ BOOL canAppOpenItself(NSURL* url) {
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
+    CGFloat targetW = realH * (9.0 / 16.0);
+    CGFloat offsetX = (realW - targetW) / 2.0;
+    CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
     
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
-    
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat targetW = realH * (9.0 / 16.0);
-        CGFloat offsetX = (realW - targetW) / 2.0;
-        CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
-        for (UIWindow *window in scene.windows) {
-            window.layer.frame = targetFrame;
-            window.backgroundColor = [UIColor blackColor];
-        }
-    } else if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
-        
-        CGRect targetFrame = CGRectMake(0, 0, realW, realH);
-        for (UIWindow *window in scene.windows) {
-            window.layer.frame = targetFrame;
-             window.backgroundColor = [UIColor blackColor];
-        }
+    for (UIWindow *window in scene.windows) {
+        window.layer.frame = targetFrame;
     }
-    
     [CATransaction commit];
 }
-
 
 @end
 
@@ -822,33 +804,25 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_setFrame:(CGRect)frame {
     if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
-        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
-        CGFloat realH = screenBounds.size.height;
-        CGFloat realW = screenBounds.size.width;
-        if (realH == 0 || realW == 0) {
-            [self hook_setFrame:frame];
-            return;
-        }
-        CGFloat targetW = realH * (9.0 / 16.0);
-        CGFloat offsetX = (realW - targetW) / 2.0;
-        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
-    } else if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
         
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
+        
         CGFloat realH = screenBounds.size.height;
         CGFloat realW = screenBounds.size.width;
         if (realH == 0 || realW == 0) {
             [self hook_setFrame:frame];
             return;
         }
-        [self hook_setFrame:CGRectMake(0, 0, realW, realH)];
+        
+        CGFloat targetW = realH * (9.0 / 16.0);
+        CGFloat offsetX = (realW - targetW) / 2.0;
+        
+        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
         [self hook_setFrame:frame];
     }
 }
-
 
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];
@@ -880,4 +854,3 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 @end
-

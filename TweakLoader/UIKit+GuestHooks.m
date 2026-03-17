@@ -18,7 +18,8 @@ static void UIKitGuestHooksInit() {
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     
-if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ||
+    [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                           object:nil
                                                            queue:NSOperationQueue.mainQueue
@@ -741,15 +742,16 @@ BOOL canAppOpenItself(NSURL* url) {
 @end
 @implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
-) {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ||
+        [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
-        CGFloat targetW = screenH * (9.0 / 16.0); 
-        return CGRectMake(0, 0, targetW, screenH);
+        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : 0.7;
+        return CGRectMake(0, 0, screenH * ratio, screenH);
     }
     return [self hook_UIScreen_bounds];
 }
+
 @end
 
 
@@ -758,21 +760,21 @@ BOOL canAppOpenItself(NSURL* url) {
 @implementation LCRealIPhoneModeHelper
 
 + (void)repositionAllWindows {
-    if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+    BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+    BOOL isFake = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"];
+    if (!isReal && !isFake) return;  
     
     UIWindowScene *scene = nil;
     for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
-        if ([s isKindOfClass:UIWindowScene.class]) {
-            scene = s;
-            break;
-        }
+        if ([s isKindOfClass:UIWindowScene.class]) { scene = s; break; }
     }
     if (!scene) return;
     
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
-    CGFloat targetW = realH * (9.0 / 16.0);
+    CGFloat ratio = isReal ? (9.0/16.0) : 0.7;
+    CGFloat targetW = realH * ratio;
     CGFloat offsetX = (realW - targetW) / 2.0;
     CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
     
@@ -783,7 +785,6 @@ BOOL canAppOpenItself(NSURL* url) {
     }
     [CATransaction commit];
 }
-
 @end
 
 
@@ -803,31 +804,35 @@ BOOL canAppOpenItself(NSURL* url) {
 
 
 - (void)hook_setFrame:(CGRect)frame {
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-        
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ||
+        [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
-        
         CGFloat realH = screenBounds.size.height;
         CGFloat realW = screenBounds.size.width;
         if (realH == 0 || realW == 0) {
             [self hook_setFrame:frame];
             return;
         }
-        
-        CGFloat targetW = realH * (9.0 / 16.0);
+        CGFloat ratio = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ? (9.0/16.0) : 0.7;
+        CGFloat targetW = realH * ratio;
         CGFloat offsetX = (realW - targetW) / 2.0;
-        
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
         [self hook_setFrame:frame];
     }
 }
 
-- (void)hook_makeKeyWindow {
+
+- (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-    [self hook_makeKeyWindow];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] ||
+        [NSUserDefaults.lcSharedDefaults boolForKey:@"LCFakeIPhoneMode"]) {
+        self.backgroundColor = [UIColor blackColor];
+    }
+    [self hook_makeKeyAndVisible];
 }
+
 - (void)hook_resignKeyWindow {
     [self updateWindowScene];
     [self hook_resignKeyWindow];

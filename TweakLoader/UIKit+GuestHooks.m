@@ -753,7 +753,7 @@ BOOL canAppOpenItself(NSURL* url) {
 @end
 
 
-@implementation LCRealIPhoneModeHelper
+
 
 @implementation LCRealIPhoneModeHelper
 
@@ -794,11 +794,12 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-   if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
-    self.backgroundColor = [UIColor blackColor];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
 }
+
 
 
 - (void)hook_setFrame:(CGRect)frame {

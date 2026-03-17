@@ -794,7 +794,7 @@ BOOL canAppOpenItself(NSURL* url) {
     
     [CATransaction commit];
 }
-
+@end
 
 @implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {

@@ -762,7 +762,7 @@ BOOL canAppOpenItself(NSURL* url) {
 @implementation LCRealIPhoneModeHelper
 
 + (void)repositionAllWindows {
-    if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+    //if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
     
     UIWindowScene *scene = nil;
     for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
@@ -837,6 +837,8 @@ if (isReal) {
         
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
         CGFloat realH = screenBounds.size.height;
         CGFloat realW = screenBounds.size.width;
         if (realH == 0 || realW == 0) {

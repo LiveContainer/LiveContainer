@@ -18,7 +18,7 @@ static void UIKitGuestHooksInit() {
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     
-if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+//if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                           object:nil
                                                            queue:NSOperationQueue.mainQueue
@@ -31,7 +31,7 @@ if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
                                                       usingBlock:^(NSNotification *note) {
             [LCRealIPhoneModeHelper repositionAllWindows];
         }];
-    }
+    //}
 
 
 
@@ -748,8 +748,11 @@ BOOL canAppOpenItself(NSURL* url) {
         CGFloat targetW = screenH * (9.0 / 16.0); 
         return CGRectMake(0, 0, targetW, screenH);
     }
-    return [self hook_UIScreen_bounds];  
-    
+    //return [self hook_UIScreen_bounds];  
+    CGRect nativeBounds = [self hook_UIScreen_bounds];
+        CGFloat screenH = nativeBounds.size.height;
+        CGFloat targetW = nativeBounds.size.width; 
+        return CGRectMake(0, 0, targetW, screenH);
 }
 @end
 
@@ -775,6 +778,15 @@ BOOL canAppOpenItself(NSURL* url) {
     CGFloat realW = realBounds.size.width;
     CGFloat targetW = realH * (9.0 / 16.0);
     CGFloat offsetX = (realW - targetW) / 2.0;
+    CGFloat targetW, offsetX;
+    if (isReal) {
+        targetW = MIN(realH * (9.0/16.0), realW);
+        offsetX = (realW - targetW) / 2.0;
+   
+    } else {
+        targetW = realW;
+        offsetX = 0;
+    }
     CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
     
     [CATransaction begin];
@@ -821,7 +833,8 @@ BOOL canAppOpenItself(NSURL* url) {
         
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
-        [self hook_setFrame:frame];
+        [self hook_setFrame:CGRectMake(0, 0, realW, realH)];
+        //frame];
     }
 }
 

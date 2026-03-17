@@ -806,12 +806,11 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
-) {
-        self.backgroundColor = [UIColor blackColor];
-    }
+   
+    self.backgroundColor = [UIColor blackColor];
     [self hook_makeKeyAndVisible];
 }
+
 
 - (void)hook_setFrame:(CGRect)frame {
     if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {

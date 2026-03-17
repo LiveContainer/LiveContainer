@@ -223,14 +223,13 @@
 }
 
 - (void)_performActionsForUIScene:(UIScene *)scene withUpdatedFBSScene:(id)fbsScene settingsDiff:(FBSSceneSettingsDiff *)diff fromSettings:(UIApplicationSceneSettings *)settings transitionContext:(id)context lifecycleActionType:(uint32_t)actionType {
-        if(!self.isAppRunning) {
-        
-        if(self.isNativeWindow) {
-            [self appTerminationCleanUp];
-        }
-        return;
-    }
-    if(!diff) return;
+        if(!self.isAppRunning && self.isNativeWindow) {
+    [self appTerminationCleanUp];
+    return;
+}
+if(!diff) return;
+
+
     
     UIMutableApplicationSceneSettings *baseSettings = [diff settingsByApplyingToMutableCopyOfSettings:settings];
     

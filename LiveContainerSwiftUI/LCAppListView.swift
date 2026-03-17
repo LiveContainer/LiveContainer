@@ -285,7 +285,6 @@ var currentLaunchMode: AppLaunchMode {
 
 var launchModeSelector: some View {
     Menu {
-        
         Button {
             setMode(.native)
         } label: {
@@ -296,63 +295,25 @@ var launchModeSelector: some View {
         }
 
         if UIDevice.current.userInterfaceIdiom == .pad {
-            
             Button {
                 setMode(.realIPhone)
             } label: {
                 HStack {
                     Text("Real iPhone Mode (9:16 Hook)")
-                
-                    if !isLiveContainerMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- {
+                    if !isLiveContainerMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
                         Image(systemName: "checkmark")
                     }
                 }
             }
-            
-            
-            //Button {
-                //setMode(.iPhone)
-            //} label: {
-                //HStack {
-                    //Text("iPhone mode (9:16)")
-                    
-                    //if !isLiveContainerMode && isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- //{
-                        //Image(systemName: "checkmark")
-                    //}
-                //}
-            //}
+        }
+    
+    } label: {
+        let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+        Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
+            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
+    }
+}
 
-        
-            //Button {
-                //setMode(.iPad)
-            //} label: {
-                //HStack {
-                    //Text("Native iPad mode")
-                    
-                    //if !isLiveContainerMode && !isiPhoneMode && !LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- //{
-                        //Image(systemName: "checkmark")
-                    //}
-                //}
-            //}
-        //} else {
-            
-            //Button {
-                //setMode(.iPad)
-            //} label: {
-                //HStack {
-                    //Text("Native iPhone mode")
-                    //if !isLiveContainerMode { Image(systemName: "checkmark") }
-                //}
-            //}
-        } label: {
-    let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-    Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
-        .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
-}
-}
 
 
 
@@ -1467,8 +1428,7 @@ private var iPhoneDestination: some View {
             errorShow = true
         }
     } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
-          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") 
-           {
+          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
         
         do {
             try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)

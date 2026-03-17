@@ -748,7 +748,8 @@ BOOL canAppOpenItself(NSURL* url) {
         CGFloat targetW = screenH * (9.0 / 16.0); 
         return CGRectMake(0, 0, targetW, screenH);
     }
-    return [self hook_UIScreen_bounds];
+    //return [self hook_UIScreen_bounds];  
+    return CGRectMake(0, 0, targetW, screenH);
 }
 @end
 

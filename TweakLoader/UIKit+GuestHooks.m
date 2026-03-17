@@ -776,10 +776,14 @@ BOOL canAppOpenItself(NSURL* url) {
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
-    CGFloat targetW = realH * (9.0 / 16.0);
-    CGFloat offsetX = (realW - targetW) / 2.0;
-    CGFloat targetW, offsetX;
-    if (isReal) {
+    //CGFloat targetW = realH * (9.0 / 16.0);
+    //CGFloat offsetX = (realW - targetW) / 2.0;
+    //CGFloat targetW, offsetX;
+    
+BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+CGFloat targetW, offsetX;
+if (isReal) {
+
         targetW = MIN(realH * (9.0/16.0), realW);
         offsetX = (realW - targetW) / 2.0;
    
@@ -833,6 +837,12 @@ BOOL canAppOpenItself(NSURL* url) {
         
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
     } else {
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
         [self hook_setFrame:CGRectMake(0, 0, realW, realH)];
         //frame];
     }

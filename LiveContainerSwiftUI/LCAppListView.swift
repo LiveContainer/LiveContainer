@@ -347,13 +347,11 @@ var launchModeSelector: some View {
                     //if !isLiveContainerMode { Image(systemName: "checkmark") }
                 //}
             //}
-        }
-    } label: {
-        let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-        let isFake = LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
-        Image(systemName: isLiveContainerMode ? "bolt.circle" : (isReal ? "bolt.circle" : (isFake ? "bolt.circle" : currentModeIcon)))
-            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : (isFake ? .orange : .blue)))
-    }
+        } label: {
+    let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+    Image(systemName: isLiveContainerMode ? "bolt.circle.fill" : (isReal ? "bolt.circle" : currentModeIcon))
+        .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : .orange))
+}
 }
 
 
@@ -1469,7 +1467,7 @@ private var iPhoneDestination: some View {
             errorShow = true
         }
     } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
-          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ||
+          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") 
            {
         
         do {

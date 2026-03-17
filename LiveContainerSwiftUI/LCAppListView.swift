@@ -307,8 +307,8 @@ var launchModeSelector: some View {
     
     } label: {
         let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-        Image(systemName: isLiveContainerMode ? "bolt.circle" : "bolt.circle"))
-            .foregroundColor(isLiveContainerMode ? .green : .purple ))
+        Image(systemName: isLiveContainerMode ? "bolt.circle" : "bolt.circle")
+            .foregroundColor(isLiveContainerMode ? .green : .purple )
     }
 }
 

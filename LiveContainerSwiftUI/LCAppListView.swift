@@ -1487,9 +1487,9 @@ private var iPhoneDestination: some View {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") || LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
- {
-        
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
+          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ||
+          LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode") {
         
         do {
             try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)

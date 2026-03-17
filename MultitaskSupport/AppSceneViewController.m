@@ -236,14 +236,21 @@
     
 
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        
-        CGFloat h = self.view.bounds.size.height;
-        CGFloat targetW = h * 9.0 / 16.0;
-        baseSettings.frame = CGRectMake(0, 0, targetW, h);
-    } else {
-        
-        baseSettings.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+    CGFloat h = self.view.bounds.size.height;
+    CGFloat targetW = h * 9.0 / 16.0;
+    baseSettings.frame = CGRectMake(0, 0, targetW, h);
+} else {
+    
+    CGRect windowBounds = self.view.window.bounds;
+    CGFloat w = windowBounds.size.width;
+    CGFloat h = windowBounds.size.height;
+    if (w == 0 || h == 0) {
+        w = self.view.frame.size.width;
+        h = self.view.frame.size.height;
     }
+    baseSettings.frame = CGRectMake(0, 0, w, h);
+}
+
     
 
     UIApplicationSceneTransitionContext *newContext = [context copy];
@@ -309,10 +316,14 @@
             
             
             frame = CGRectMake(0, 0, targetW, containerH);
-        } else {
-            
-            frame = CGRectMake(0, 0, self.view.frame.size.width / self.scaleRatio, self.view.frame.size.height / self.scaleRatio);
-        }
+       } else {
+    
+    CGRect windowBounds = self.view.window.bounds;
+    CGFloat w = windowBounds.size.width > 0 ? windowBounds.size.width : self.view.frame.size.width;
+    CGFloat h = windowBounds.size.height > 0 ? windowBounds.size.height : self.view.frame.size.height;
+    frame = CGRectMake(0, 0, w / self.scaleRatio, h / self.scaleRatio);
+}
+
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;
             settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;

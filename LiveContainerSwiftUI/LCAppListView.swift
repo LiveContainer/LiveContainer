@@ -268,11 +268,8 @@ var currentLaunchMode: AppLaunchMode {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }
-    if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
-        return .realIPhone
-    }
-    
-    
+
+        return .realIPhone    
 }
 
 

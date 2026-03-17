@@ -785,10 +785,7 @@ BOOL canAppOpenItself(NSURL* url) {
             window.layer.frame = targetFrame;
             window.backgroundColor = [UIColor blackColor];
             
-            if (window.isHidden) {
-                window.hidden = NO;
-            }
-            [window makeKeyAndVisible];
+            
         }
     }
     

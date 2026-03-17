@@ -223,8 +223,14 @@
 }
 
 - (void)_performActionsForUIScene:(UIScene *)scene withUpdatedFBSScene:(id)fbsScene settingsDiff:(FBSSceneSettingsDiff *)diff fromSettings:(UIApplicationSceneSettings *)settings transitionContext:(id)context lifecycleActionType:(uint32_t)actionType {
-    if(!self.isAppRunning) {
-        [self appTerminationCleanUp];
+        if(!self.isAppRunning) {
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if(!self.isAppRunning) {
+                [self appTerminationCleanUp];
+            }
+        });
+        return;
     }
     if(!diff) return;
     

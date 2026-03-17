@@ -225,8 +225,10 @@
 - (void)_performActionsForUIScene:(UIScene *)scene withUpdatedFBSScene:(id)fbsScene settingsDiff:(FBSSceneSettingsDiff *)diff fromSettings:(UIApplicationSceneSettings *)settings transitionContext:(id)context lifecycleActionType:(uint32_t)actionType {
         if(!self.isAppRunning) {
         
-      [self appTerminationCleanUp];
-       
+        if(self.isNativeWindow) {
+            [self appTerminationCleanUp];
+        }
+        return;
     }
     if(!diff) return;
     

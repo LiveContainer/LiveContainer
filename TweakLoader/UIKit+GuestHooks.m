@@ -17,20 +17,23 @@ static void UIKitGuestHooksInit() {
     swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
-                                                          object:nil
-                                                           queue:NSOperationQueue.mainQueue
-                                                      usingBlock:^(NSNotification *note) {
+                                                      object:nil
+                                                       queue:NSOperationQueue.mainQueue
+                                                  usingBlock:^(NSNotification *note) {
+        
+        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
             [LCRealIPhoneModeHelper repositionAllWindows];
-        }];
-        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
-                                                          object:nil
-                                                           queue:NSOperationQueue.mainQueue
-                                                      usingBlock:^(NSNotification *note) {
+        }
+    }];
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                      object:nil
+                                                       queue:NSOperationQueue.mainQueue
+                                                  usingBlock:^(NSNotification *note) {
+        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
             [LCRealIPhoneModeHelper repositionAllWindows];
-        }];
-    }
+        }
+    }];
     
     
     

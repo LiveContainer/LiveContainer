@@ -793,14 +793,6 @@ BOOL canAppOpenItself(NSURL* url) {
     [self hook_setAutorotates:YES forceUpdateInterfaceOrientation:YES];
 }
 
-- (void)hook_makeKeyAndVisible {
-    [self updateWindowScene];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-        self.backgroundColor = [UIColor blackColor];
-    }
-    [self hook_makeKeyAndVisible];
-}
-
 
 
 - (void)hook_setFrame:(CGRect)frame {
@@ -831,6 +823,10 @@ BOOL canAppOpenItself(NSURL* url) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
+}
+- (void)hook_makeKeyWindow {
+    [self updateWindowScene];
+    [self hook_makeKeyWindow];
 }
 
 - (void)hook_resignKeyWindow {

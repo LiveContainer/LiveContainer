@@ -18,6 +18,12 @@ static void UIKitGuestHooksInit() {
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
                                                           object:nil
                                                            queue:NSOperationQueue.mainQueue
@@ -25,6 +31,7 @@ static void UIKitGuestHooksInit() {
             [LCRealIPhoneModeHelper repositionAllWindows];
         }];
     }
+    
     
     
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
@@ -746,7 +753,6 @@ BOOL canAppOpenItself(NSURL* url) {
 + (void)repositionAllWindows {
     if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
     
-    
     UIWindowScene *scene = nil;
     for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
         if ([s isKindOfClass:UIWindowScene.class]) {
@@ -763,10 +769,12 @@ BOOL canAppOpenItself(NSURL* url) {
     CGFloat offsetX = (realW - targetW) / 2.0;
     CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
     
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
     for (UIWindow *window in scene.windows) {
-        // 直接設 layer frame 避免觸發我們自己的 hook_setFrame: 造成遞迴
         window.layer.frame = targetFrame;
     }
+    [CATransaction commit];
 }
 
 @end

@@ -783,7 +783,7 @@ BOOL canAppOpenItself(NSURL* url) {
         CGRect targetFrame = CGRectMake(0, 0, realW, realH);
         for (UIWindow *window in scene.windows) {
             window.layer.frame = targetFrame;
-            window.backgroundColor = [UIColor blackColor];
+            
             
             
         }

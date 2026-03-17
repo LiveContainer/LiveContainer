@@ -19,37 +19,19 @@ static void UIKitGuestHooksInit() {
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
     
 if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
-                                                      object:nil
-                                                       queue:NSOperationQueue.mainQueue
-                                                  usingBlock:^(NSNotification *note) {
-        [LCRealIPhoneModeHelper repositionAllWindows];
-    }];
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
-                                                      object:nil
-                                                       queue:NSOperationQueue.mainQueue
-                                                  usingBlock:^(NSNotification *note) {
-        [LCRealIPhoneModeHelper repositionAllWindows];
-    }];
-} else {
-    
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
-                                                      object:nil
-                                                       queue:NSOperationQueue.mainQueue
-                                                  usingBlock:^(NSNotification *note) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            for (UIWindowScene *scene in UIApplication.sharedApplication.connectedScenes) {
-                if (![scene isKindOfClass:UIWindowScene.class]) continue;
-                for (UIWindow *window in scene.windows) {
-                    if (!window.isHidden) {
-                        [window makeKeyAndVisible];
-                    }
-                }
-            }
-        });
-    }];
-}
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
+    }
 
 
 
@@ -773,7 +755,11 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @implementation LCRealIPhoneModeHelper
 
+@implementation LCRealIPhoneModeHelper
+
 + (void)repositionAllWindows {
+    if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+    
     UIWindowScene *scene = nil;
     for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
         if ([s isKindOfClass:UIWindowScene.class]) {
@@ -786,24 +772,20 @@ BOOL canAppOpenItself(NSURL* url) {
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
+    CGFloat targetW = realH * (9.0 / 16.0);
+    CGFloat offsetX = (realW - targetW) / 2.0;
+    CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
     
     [CATransaction begin];
     [CATransaction setDisableActions:YES];
-    
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-   
-        CGFloat targetW = realH * (9.0 / 16.0);
-        CGFloat offsetX = (realW - targetW) / 2.0;
-        CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
-        for (UIWindow *window in scene.windows) {
-            window.layer.frame = targetFrame;
-            window.backgroundColor = [UIColor blackColor];
-        }
+    for (UIWindow *window in scene.windows) {
+        window.layer.frame = targetFrame;
     }
-    
     [CATransaction commit];
 }
+
 @end
+
 
 @implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
@@ -812,8 +794,9 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-   
+   if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
     self.backgroundColor = [UIColor blackColor];
+    }
     [self hook_makeKeyAndVisible];
 }
 

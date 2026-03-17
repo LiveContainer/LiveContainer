@@ -15,9 +15,10 @@ __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
     swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
+     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
-        swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+       
         
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                           object:nil

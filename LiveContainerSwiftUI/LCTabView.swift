@@ -43,43 +43,7 @@ struct LCTabView: View {
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         
-      .fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-    ZStack {
-        Color.black.ignoresSafeArea()
-        
-        if #available(iOS 16.1, *) {
-            
-            if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-                
-                AppSceneViewSwiftUI(
-                    show: .constant(true),
-                    bundleId: appInfo.bundleId,
-                    dataUUID: appInfo.dataUUID,
-                    initSize: UIScreen.main.bounds.size,
-                    onAppInitialize: { _, _ in }
-                )
-                .ignoresSafeArea()
-                .id("tab_native_\(appInfo.bundleId)")
-                
-            } else if sharedModel.isiPhoneMode {
-                
-                IPhoneRunnerView(appInfo: appInfo)
-                    .id("tab_iphone_\(appInfo.bundleId)")
-                    
-            } else {
-                
-                IPadRunnerView(appInfo: appInfo)
-                    .id("tab_ipad_\(appInfo.bundleId)")
-            }
-        } else {
-            Text("iOS 16.1+ Required")
-                .foregroundColor(.white)
-        }
-        
-        FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
-            .zIndex(99)
-    }
-}
+      
 
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})

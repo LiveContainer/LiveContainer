@@ -473,9 +473,12 @@ struct LCAppBanner : View {
             return Color(uiColor: cachedColor)
         }
         let bundleId = appInfo.bundleIdentifier() ?? ""
-        let currentIcon = LCAppCustomizer.getCustomIcon(for: bundleId) ?? appInfo.iconIsDarkIcon(darkModeIcon)
-        
-        guard let cgImage = currentIcon.cgImage else { return Color.clear }
+    
+    let currentIcon = LCAppCustomizer.getCustomIcon(for: bundleId) 
+                      ?? appInfo.iconIsDarkIcon(darkModeIcon) 
+                      ?? UIImage(systemName: "app.dashed")!
+    
+    guard let cgImage = currentIcon.cgImage else { return Color.clear }
 
         //guard let cgImage = appInfo.iconIsDarkIcon(darkModeIcon).cgImage else { return Color.clear }
 

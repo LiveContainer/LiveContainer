@@ -58,66 +58,76 @@ struct LCEditAppView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var selectedImage: UIImage?
     
+       @State private var _selectedItem: Any? = nil 
+    @available(iOS 16.0, *)
+    var selectedItem: Binding<PhotosPickerItem?> {
+        Binding { _selectedItem as? PhotosPickerItem }
+        set { _selectedItem = $0 }
+    }
+    
     var onSave: () -> Void
 
     init(app: LCAppModel, onSave: @escaping () -> Void) {
         self.app = app
         self.onSave = onSave
-        _newName = State(initialValue: LCAppCustomizer.getCustomName(for: app.appInfo.bundleIdentifier() ?? "", defaultName: app.appInfo.displayName()))
-        _selectedImage = State(initialValue: LCAppCustomizer.getCustomIcon(for: app.appInfo.bundleIdentifier() ?? ""))
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        _newName = State(initialValue: LCAppCustomizer.getCustomName(for: bid, defaultName: app.appInfo.displayName()))
+        _selectedImage = State(initialValue: LCAppCustomizer.getCustomIcon(for: bid))
     }
 
+
     var body: some View {
-        NavigationView {
+             NavigationView {
             Form {
-                Section("lc.manager.edit.appearance".loc) {
+                Section("Appearance") {
                     HStack {
                         Spacer()
                         VStack {
-                            if let img = selectedImage {
-                                Image(uiImage: img)
-                                    .resizable().frame(width: 80, height: 80).cornerRadius(16)
-                            } else {
-                                
-                                Image(uiImage: app.appInfo.iconIsDarkIcon(false))
-                                    .resizable().frame(width: 80, height: 80).cornerRadius(16)
-                            }
+                            Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
+                                .resizable().frame(width: 80, height: 80).cornerRadius(16)
                             
-                            PhotosPicker(selection: $selectedItem, matching: .images) {
-                                Text("lc.manager.edit.changeIcon".loc).font(.caption)
+                            if #available(iOS 16.0, *) {
+                                PhotosPicker(selection: selectedItem, matching: .images) {
+                                    Text("Change Icon").font(.caption)
+                                }
+                            } else {
+                                Text("Icon change requires iOS 16").font(.caption).foregroundColor(.gray)
                             }
                         }
                         Spacer()
                     }.padding(.vertical)
 
-                    TextField("lc.manager.edit.namePlaceholder".loc, text: $newName)
+                    TextField("Display Name", text: $newName)
                 }
                 
                 Section {
-                    Button("lc.manager.edit.reset".loc, role: .destructive) {
-                        LCAppCustomizer.setCustomName(for: app.appInfo.bundleIdentifier() ?? "", name: nil)
-                        LCAppCustomizer.setCustomIcon(for: app.appInfo.bundleIdentifier() ?? "", image: nil)
-                        onSave()
+                    Button("Reset to Default", role: .destructive) {
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        LCAppCustomizer.setCustomName(for: bid, name: nil)
+                        LCAppCustomizer.setCustomIcon(for: bid, image: nil)
+                        onSave() 
                         dismiss()
                     }
                 }
             }
-            .navigationTitle("lc.manager.edit.title".loc)
-            .toolbar {
+              .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("lc.common.done".loc) {
-                        LCAppCustomizer.setCustomName(for: app.appInfo.bundleIdentifier() ?? "", name: newName)
+                    Button("Done") {
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        LCAppCustomizer.setCustomName(for: bid, name: newName)
                         if let img = selectedImage {
-                            LCAppCustomizer.setCustomIcon(for: app.appInfo.bundleIdentifier() ?? "", image: img)
+                            LCAppCustomizer.setCustomIcon(for: bid, image: img)
                         }
-                        onSave()
+                        onSave() 
                         dismiss()
                     }
                 }
             }
-            .onChange(of: selectedItem) { newItem in
+        }
+        .onChange(of: _selectedItem != nil) { _ in
+            if #available(iOS 16.0, *), let item = _selectedItem as? PhotosPickerItem {
                 Task {
-                    if let data = try? await newItem?.loadData() {
+                    if let data = try? await item.loadData() {
                         selectedImage = UIImage(data: data)
                     }
                 }

@@ -10,9 +10,9 @@ extension LCAppModel: Identifiable {
     }
 }
 
+
 struct LCCacheDiskTool {
     static let fileManager = FileManager.default
-    
     static var appDataRoot: URL {
         return LCPath.dataPath 
     }
@@ -23,7 +23,6 @@ struct LCCacheDiskTool {
             appPath.appendingPathComponent("Library/Caches"),
             appPath.appendingPathComponent("tmp")
         ]
-        
         var total: Int64 = 0
         for target in targets {
             total += getDirectorySize(url: target)
@@ -37,7 +36,6 @@ struct LCCacheDiskTool {
             appPath.appendingPathComponent("Library/Caches"),
             appPath.appendingPathComponent("tmp")
         ]
-        
         for target in targets {
             guard let contents = try? fileManager.contentsOfDirectory(at: target, includingPropertiesForKeys: nil) else { continue }
             for file in contents {
@@ -79,6 +77,7 @@ struct LCCacheManagementView: View {
     var body: some View {
         NavigationView {
             List {
+                
                 Section {
                     let total = cacheItems.reduce(0) { $0 + $1.size }
                     HStack {
@@ -97,6 +96,7 @@ struct LCCacheManagementView: View {
                     }
                 }
 
+                
                 Section("App List") {
                     if isScanning {
                         HStack {
@@ -108,75 +108,73 @@ struct LCCacheManagementView: View {
                         Text("No Cache Data").foregroundColor(.gray)
                     } else {
                         ForEach(cacheItems) { item in
-    HStack(spacing: 12) {
-        let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
-        let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
+                            HStack(spacing: 12) {
+                                let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+                                let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
 
-        Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
-            .resizable()
-            .frame(width: 36, height: 36)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
-        VStack(alignment: .leading, spacing: 2) {
-            Text(displayName).font(.subheadline).lineLimit(1)
-            Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-        }
-        Spacer()
-        Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
-        
-        
-        Button {
-            LCCacheDiskTool.clearCache(uuid: item.id)
-            refresh()
-        } label: {
-            Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
-        }
-        .buttonStyle(.plain)
-    }
-    .contentShape(Rectangle())
-    
-    .contextMenu {
-        Button {
-            let allApps = sharedModel.apps + sharedModel.hiddenApps
-            if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
-                self.editingApp = foundApp
-            }
-        } label: {
-            Label("Edit App Info", systemImage: "pencil")
-        }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(displayName).font(.subheadline).lineLimit(1)
+                                    Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
+                                }
+                                Spacer()
+                                Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+                                
+                                Button {
+                                    LCCacheDiskTool.clearCache(uuid: item.id)
+                                    refresh()
+                                } label: {
+                                    Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .contentShape(Rectangle())
+                            .contextMenu {
+                                Button {
+                                    let allApps = sharedModel.apps + sharedModel.hiddenApps
+                                    if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
+                                        self.editingApp = foundApp
+                                    }
+                                } label: {
+                                    Label("Edit App Info", systemImage: "pencil")
+                                }
 
-        Button {
-            openInFiles(uuid: item.id)
-        } label: {
-            Label("Open in Files", systemImage: "folder")
-        }
+                                Button {
+                                    openInFiles(uuid: item.id)
+                                } label: {
+                                    Label("Open in Files", systemImage: "folder")
+                                }
 
-        Divider() 
+                                Divider() 
 
-        Button(role: .destructive) {
-            LCCacheDiskTool.clearCache(uuid: item.id)
-            refresh()
-        } label: {
-            Label("Clear Cache", systemImage: "trash")
-        }
-    }
-
-
-                
-            }
-            .navigationTitle("Cache Manager")
+                                Button(role: .destructive) {
+                                    LCCacheDiskTool.clearCache(uuid: item.id)
+                                    refresh()
+                                } label: {
+                                    Label("Clear Cache", systemImage: "trash")
+                                }
+                            }
+                        } 
+                    }
+                } 
+            } 
+            .navigationTitle("App Manager")
+            .navigationViewStyle(.stack)
             .onAppear { refresh() }
             .refreshable { refresh() }
-            
             .sheet(item: $editingApp) { appModel in
                 LCEditAppView(app: appModel, onSave: {
                     refresh()
                 })
             }
-        }
-        .navigationViewStyle(.stack)
-    }
+        } 
+    } 
 
+    
     func refresh() {
         isScanning = true
         Task {
@@ -210,28 +208,22 @@ struct LCCacheManagementView: View {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
     }
+
     func openInFiles(uuid: String) {
-    let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
-    
+        let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
+        guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
 
-    guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
-
-    
-    let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
-    
-    
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let rootVC = windowScene.windows.first?.rootViewController {
+        let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
         
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = rootVC.view
-            popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-            popover.permittedArrowDirections = []
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = rootVC.view
+                popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+            rootVC.present(activityVC, animated: true)
         }
-        
-        rootVC.present(activityVC, animated: true)
     }
 }
-}
-
-

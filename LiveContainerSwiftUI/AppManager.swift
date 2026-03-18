@@ -175,72 +175,63 @@ struct LCCacheManagementView: View {
     }
 
     func exportAppAsIpa(app: LCAppModel) {
-        isExporting = true
-        exportProgressText = "Preparing \(app.appInfo.displayName())..."
-        
-        Task(priority: .userInitiated) {
-            let fm = FileManager.default
-            guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-                await MainActor.run { self.isExporting = false }
-                return
-            }
-            
-            let bundleURL = URL(fileURLWithPath: pathString)
-            let appName = app.appInfo.displayName().sanitizeNonACSII()
-            let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            let payloadURL = workDir.appendingPathComponent("Payload")
-            let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
-            
-            do {
-                try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
-                try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
-                
-                let currentDir = fm.currentDirectoryPath
-                fm.changeCurrentDirectoryPath(workDir.path)
-                let result = shell("zip -ry '\(exportIpaURL.path)' 'Payload'")
-                fm.changeCurrentDirectoryPath(currentDir)
-                
-                await MainActor.run {
-                    self.isExporting = false 
-                    if result == 0 {
-                        self.exportDoc = IPAFile(url: exportIpaURL) 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            self.isShowingExporter = true
-                        }
-                    } else {
-                        self.errorInfo = "Zip Failed (\(result))"
-                        self.errorShow = true
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorInfo = error.localizedDescription
-                    self.errorShow = true
-                    self.isExporting = false
-                }
-            }
-        }
-    }
+    isExporting = true
+    exportProgressText = "Preparing \(app.appInfo.displayName())..."
     
-
-    func refresh() {
-        isScanning = true
-        Task {
-            let allApps = sharedModel.apps + sharedModel.hiddenApps
-            var items: [CacheItem] = []
-            for app in allApps {
-                if let uuid = app.appInfo.dataUUID {
-                    let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
-                    let appIcon = app.appInfo.iconIsDarkIcon(darkModeIcon)
-                    items.append(CacheItem(id: uuid, name: app.appInfo.displayName(), bundleId: app.appInfo.bundleIdentifier() ?? "Unknown", size: size, icon: appIcon))
+    Task(priority: .userInitiated) {
+        let fm = FileManager.default
+        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+            await MainActor.run { self.isExporting = false }
+            return
+        }
+        
+        let bundleURL = URL(fileURLWithPath: pathString)
+        
+        let appName = app.appInfo.displayName().sanitizeNonACSII().replacingOccurrences(of: " ", with: "_")
+        
+        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let payloadURL = workDir.appendingPathComponent("Payload")
+        let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
+        
+        do {
+            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+            
+            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+            
+            let currentDir = fm.currentDirectoryPath
+            
+            
+            fm.changeCurrentDirectoryPath(workDir.path)
+            
+            
+            let cmd = "/usr/bin/zip -qyR '\(exportIpaURL.path)' 'Payload'"
+            let result = shell(cmd)
+            
+            fm.changeCurrentDirectoryPath(currentDir)
+            
+            await MainActor.run {
+                self.isExporting = false 
+                if result == 0 && fm.fileExists(atPath: exportIpaURL.path) {
+                    self.exportDoc = IPAFile(url: exportIpaURL) 
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.isShowingExporter = true
+                    }
+                } else {
+                    
+                    self.errorInfo = "Compress failed (Code: \(result))"
+                    self.errorShow = true
                 }
             }
+        } catch {
             await MainActor.run {
-                self.cacheItems = items.sorted { $0.size > $1.size }
-                self.isScanning = false
+                self.errorInfo = "錯誤: \(error.localizedDescription)"
+                self.errorShow = true
+                self.isExporting = false
             }
         }
     }
+}
+
 
     func formatSize(_ bytes: Int64) -> String {
         let formatter = ByteCountFormatter()

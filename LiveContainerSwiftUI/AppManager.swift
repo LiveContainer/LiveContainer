@@ -108,45 +108,61 @@ struct LCCacheManagementView: View {
                         Text("No Cache Data").foregroundColor(.gray)
                     } else {
                         ForEach(cacheItems) { item in
-                            HStack(spacing: 12) {
-                            
-                                let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
-                                let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
+    HStack(spacing: 12) {
+        let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+        let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
 
-                                Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
-                                    .resizable()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+        Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+            .resizable()
+            .frame(width: 36, height: 36)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(displayName).font(.subheadline).lineLimit(1)
-                                    Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-                                }
-                                Spacer()
-                                Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(displayName).font(.subheadline).lineLimit(1)
+            Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
+        }
+        Spacer()
+        Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+        
+        
+        Button {
+            LCCacheDiskTool.clearCache(uuid: item.id)
+            refresh()
+        } label: {
+            Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
+        }
+        .buttonStyle(.plain)
+    }
+    .contentShape(Rectangle())
+    
+    .contextMenu {
+        Button {
+            let allApps = sharedModel.apps + sharedModel.hiddenApps
+            if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
+                self.editingApp = foundApp
+            }
+        } label: {
+            Label("Edit App Info", systemImage: "pencil")
+        }
 
-                                Button {
-                                    LCCacheDiskTool.clearCache(uuid: item.id)
-                                    refresh()
-                                } label: {
-                                    Image(systemName: "trash").foregroundColor(.red)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .swipeActions(edge: .leading) {
-                                Button {
-                                    let allApps = sharedModel.apps + sharedModel.hiddenApps
-                                    if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
-                                        self.editingApp = foundApp
-                                    }
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
-                                }
-                                .tint(.orange)
-                            }
-                        }
-                    }
-                }
+        Button {
+            openInFiles(uuid: item.id)
+        } label: {
+            Label("Open in Files", systemImage: "folder")
+        }
+
+        Divider() 
+
+        Button(role: .destructive) {
+            LCCacheDiskTool.clearCache(uuid: item.id)
+            refresh()
+        } label: {
+            Label("Clear Cache", systemImage: "trash")
+        }
+    }
+
+
+                
             }
             .navigationTitle("Cache Manager")
             .onAppear { refresh() }

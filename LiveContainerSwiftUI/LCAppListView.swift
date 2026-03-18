@@ -19,151 +19,14 @@ enum AppLaunchMode: Int {
 
 
 
-struct FloatingBackButton: View {
-    @Binding var isPresented: SimpleAppInfo? 
-    
-    
-    @State private var position = CGSize(width: 60, height: 60)
-    @State private var dragOffset = CGSize.zero
-    
-    var body: some View {
-        GeometryReader { geo in
-            Button(action: {
-                withAnimation(.spring()) {
-                    isPresented = nil
-                }
-            }) {
-                Image(systemName: "chevron.left")
-                    .font(.title2.bold())
-                    .foregroundColor(.white)
-                    .frame(width: 50, height: 50)
-                    .background(
-                        Circle()
-                            .fill(Color.red)
-                            .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
-                    )
-            }
-            
-            .position(
-                x: position.width + dragOffset.width,
-                y: position.height + dragOffset.height
-            )
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        dragOffset = value.translation
-                    }
-                    .onEnded { value in
-                        
-                        position.width += value.translation.width
-                        position.height += value.translation.height
-                        dragOffset = .zero
-                        
-                        
-                        let edgePadding: CGFloat = 30
-                        let screenWidth = geo.size.width
-                        let screenHeight = geo.size.height
-                        
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                            position.width = max(edgePadding, min(position.width, screenWidth - edgePadding))
-                            position.height = max(edgePadding, min(position.height, screenHeight - edgePadding))
-                        }
-                    }
-            )
-        }
-    }
-}
-
-
-
-@available(iOS 16.1, *)
-struct IPhoneRunnerView: View {
-    let appInfo: SimpleAppInfo 
-    
-    @State private var isAppActive = true
-    
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            
-            GeometryReader { geometry in
-                
-                let containerH = geometry.size.height
-                let containerW = geometry.size.width
-                
-                
-                if containerH > 0 && containerW > 0 {
-                    let calcSize = calculateTargetSize(containerW: containerW, containerH: containerH)
-                    
-                    AppSceneViewSwiftUI(
-                        show: $isAppActive,
-                        bundleId: appInfo.bundleId,
-                        dataUUID: appInfo.dataUUID,
-                        initSize: calcSize,
-                        onAppInitialize: { pid, error in }
-                    )
-                    .frame(width: calcSize.width, height: calcSize.height)
-                    //.id("\(appInfo.bundleId)_\(containerW > containerH)")
-                    .position(x: containerW / 2, y: containerH / 2)
-                }
-            }
-        }
-        .onDisappear { isAppActive = false }
-    }
-    
-    
-    private func calculateTargetSize(containerW: CGFloat, containerH: CGFloat) -> CGSize {
-        
-        
-        
-        //let isLandscape = containerW > containerH
-        //if isLandscape {
-            
-            //let w = containerH * (16.0 / 9.0)
-            //return CGSize(width: min(w, containerW), height: containerH)
-        //} else {
-            
-            let w = containerH * (9.0 / 16.0)
-            return CGSize(width: min(w, containerW), height: containerH)
-        //}
-    }
-}
-
-
-
-@available(iOS 16.1, *)
-struct IPadRunnerView: View {
-    let appInfo: SimpleAppInfo
-    @State private var isAppActive = true
-    @EnvironmentObject private var sharedModel: SharedModel
-
-    var body: some View {
-        GeometryReader { geometry in
-            AppSceneViewSwiftUI(
-                show: $isAppActive,
-                bundleId: appInfo.bundleId,
-                dataUUID: appInfo.dataUUID,
-                initSize: geometry.size,
-                onAppInitialize: { pid, error in }
-            )
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-        .onDisappear {
-            isAppActive = false
-            
-        }
-    }
-}
 
 
 
 
-struct SimpleAppInfo: Identifiable {
-    let id = UUID() 
-    let displayName: String
-    let dataUUID: String
-    let bundleId: String
-}
+
+
+
+
 
 
 class SearchContext: ObservableObject {
@@ -624,9 +487,7 @@ if isSearchFieldVisible {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     
-.fullScreenCover(item: $sharedModel.pendingIPhoneApp) { appInfo in
-    renderAppRunner(appInfo: appInfo)
-}
+
 
 
         .alert("lc.common.error".loc, isPresented: $errorShow){
@@ -807,40 +668,7 @@ if isSearchFieldVisible {
             }
         }
     }
-@ViewBuilder
-private var iPhoneDestination: some View {
-    if #available(iOS 16.1, *) { 
-        if let info = sharedModel.pendingIPhoneApp {
-            
-            if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-                
-                AppSceneViewSwiftUI(
-                    show: .constant(true),
-                    bundleId: info.bundleId,
-                    dataUUID: info.dataUUID,
-                    initSize: UIScreen.main.bounds.size,
-                    onAppInitialize: { _, _ in }
-                )
-                .ignoresSafeArea()
-                .id("dest_native_\(info.bundleId)")
-                
-            } else if isiPhoneMode {
-           
-                IPhoneRunnerView(appInfo: info)
-                    .id("dest_iphone_\(info.bundleId)")
-                    
-            } else {
-                
-                IPadRunnerView(appInfo: info)
-                    .id("dest_ipad_\(info.bundleId)")
-            }
-        } else {
-            Text("App Data Error")
-        }
-    } else {
-        Text("iPhone Mode requires iOS 16.1+")
-    }
-}
+
 
 
     func onOpenWebViewTapped() async {
@@ -1421,13 +1249,7 @@ if isNative {
             errorInfo = error.localizedDescription
             errorShow = true
         }
-    } else {
         
-        sharedModel.pendingIPhoneApp = SimpleAppInfo(
-            displayName: appFound.appInfo.displayName(),
-            dataUUID: targetDataUUID,
-            bundleId: appFound.appInfo.relativeBundlePath
-        )        
     }
 }
 

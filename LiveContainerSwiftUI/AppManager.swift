@@ -98,7 +98,7 @@ struct LCCacheManagementView: View {
                 }
             }
             .disabled(isExporting)
-          
+              .navigationViewStyle(.stack)
 
             if isExporting {
                 ZStack {
@@ -112,7 +112,7 @@ struct LCCacheManagementView: View {
                     .cornerRadius(20)
                 }
             
-              .navigationViewStyle(.stack)
+            
             }
         } 
         .fileExporter(

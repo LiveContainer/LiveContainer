@@ -127,31 +127,33 @@ struct LCCacheManagementView: View {
 
         
         if isExporting {
-            ZStack {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 20) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
                     
-                    Text(exportProgressText)
-                        .foregroundColor(.white)
-                        .font(.headline)
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        
+                        Text(exportProgressText)
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .padding(40)
+                    .background(Color.secondary.opacity(0.5))
+                    .cornerRadius(20)
                 }
-                .padding(40)
-                .background(Color.secondary.opacity(0.5))
-                .cornerRadius(20)
             }
+        } 
+        .alert(isPresented: $errorShow) { 
+            Alert(
+                title: Text("Reminder"),
+                message: Text(errorInfo),
+                dismissButton: .default(Text("Confirm"))
+            )
         }
     }
-    
-    .alert(isPresented: $errorShow) {
-        Alert(title: Text("Reminder"), message: Text(errorInfo), dismissButton: .default(Text("Confirm")))
-    }
-}
-
 
 @ViewBuilder
 func appRow(item: CacheItem) -> some View {

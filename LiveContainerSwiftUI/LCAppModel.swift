@@ -259,6 +259,9 @@ class LCAppModel: ObservableObject, Hashable {
         if let forceJIT {
             jitNeeded = forceJIT
         }
+        UserDefaults.standard.set(self.appInfo.relativeBundlePath, forKey: "LC_Currently_Running_Path")
+UserDefaults.standard.synchronize()
+
         if jitNeeded || is32bit {
             if multitask, #available(iOS 17.4, *) {
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in

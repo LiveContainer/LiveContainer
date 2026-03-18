@@ -109,12 +109,12 @@ struct LCEditAppView: View {
                             set: { self.internalItemSelection = $0 }
                         ), matching: .images) {
                             Text("Change Icon") 
-                                .font(.subheadline.bold())
+                                .font(.headline)
                                 .foregroundColor(.accentColor)
                         }
                     } else {
                         Text("Icon change requires iOS 16")
-                            .font(.caption)
+                            .font(.headline)
                             .foregroundColor(.secondary)
                     }
                     

@@ -83,11 +83,15 @@
     
     __weak typeof(self) weakSelf = self;
     [_extension setRequestCancellationBlock:^(NSUUID *uuid, NSError *error) {
+        if(weakSelf.isNativeWindow) {
         [weakSelf appTerminationCleanUp];
+    }
         [weakSelf.delegate appSceneVC:weakSelf didInitializeWithError:error];
     }];
     [_extension setRequestInterruptionBlock:^(NSUUID *uuid) {
+       if(weakSelf.isNativeWindow) {
         [weakSelf appTerminationCleanUp];
+    }
     }];
     [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
         if(identifier) {
@@ -180,7 +184,9 @@
     
     __weak typeof(self) weakSelf = self;
     [self.extension setRequestInterruptionBlock:^(NSUUID *uuid) {
+        if(weakSelf.isNativeWindow) {
         [weakSelf appTerminationCleanUp];
+    }
     }];
     
    

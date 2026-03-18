@@ -12,9 +12,6 @@
 #include "mach_excServer.h"
 #import "../utils.h"
 #import "../dyld_bypass_validation.h"
-#import <UIKit/UIKit.h>
-#import <objc/runtime.h>
-
 @import Darwin;
 @import Foundation;
 @import MachO;
@@ -33,7 +30,6 @@ bool hookedDlopen = false;
 bool tweakLoaderLoaded = false;
 bool appExecutableFileTypeOverwritten = false;
 const char* lcMainBundlePath = NULL;
-
 
 void* (*orig_dlopen)(const char *path, int mode) = dlopen;
 void* (*orig_dlsym)(void * __handle, const char * __symbol) = dlsym;
@@ -72,8 +68,6 @@ static inline int translateImageIndex(int origin) {
     
     return origin;
 }
-
-
 
 void* hook_dlsym(void * __handle, const char * __symbol) {
     if(__handle == (void*)RTLD_MAIN_ONLY) {
@@ -334,8 +328,6 @@ void DyldHookLoadableIntoProcess(void) {
 }
 #endif
 
-
-
 void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVersion) {
     // iterate through loaded images and find LiveContainer it self
     int imageCount = _dyld_image_count();
@@ -375,10 +367,7 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
         }
     }
     
-    
-    
     hookedDlopen = hookDlopen;
-    
     if(hookDlopen) {
         litehook_rebind_symbol(LITEHOOK_REBIND_GLOBAL, dlopen, jitless_hook_dlopen, nil);
     }
@@ -386,7 +375,6 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
 #if TARGET_OS_MACCATALYST || TARGET_OS_SIMULATOR
     DyldHookLoadableIntoProcess();
 #endif
-      
 }
 
 void* getGuestAppHeader(void) {

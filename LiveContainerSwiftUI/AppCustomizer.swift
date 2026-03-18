@@ -58,9 +58,9 @@ struct LCEditAppView: View {
     @State private var newName: String
     @State private var selectedImage: UIImage?
     
-
-    @State private var imageSelection: PhotosPickerItem? = nil 
     
+    @State private var internalImageSelection: Any? = nil 
+
     var onSave: () -> Void
 
     init(app: LCAppModel, onSave: @escaping () -> Void) {
@@ -76,11 +76,13 @@ struct LCEditAppView: View {
             Form {
                 Section {
                     VStack(spacing: 16) {
-                        
                         if #available(iOS 16.0, *) {
-                            PhotosPicker(selection: $imageSelection, matching: .images) {
+                            
+                            PhotosPicker(selection: Binding(
+                                get: { self.internalImageSelection as? PhotosPickerItem },
+                                set: { self.internalImageSelection = $0 }
+                            ), matching: .images) {
                                 VStack(spacing: 12) {
-                                   
                                     ZStack(alignment: .bottomTrailing) {
                                         Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
                                             .resizable()
@@ -89,7 +91,6 @@ struct LCEditAppView: View {
                                             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                                             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                                         
-                                    
                                         Image(systemName: "camera.circle.fill")
                                             .symbolRenderingMode(.multicolor)
                                             .font(.system(size: 30))
@@ -97,18 +98,23 @@ struct LCEditAppView: View {
                                             .offset(x: 8, y: 8)
                                     }
                                     
-                                    
                                     Text("Change Icon")
-                                        .font(.subheadline)
+                                        .font(.headline)
                                         .foregroundColor(.accentColor)
                                 }
                             }
                             .buttonStyle(.plain)
+                        } else {
+                            
+                            Text("Icon editing requires iOS 16+")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
                         }
                         
                         VStack(spacing: 4) {
                             Text(app.appInfo.displayName())
                                 .font(.headline)
+                            
                             Text(app.appInfo.bundleIdentifier() ?? "")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
@@ -154,20 +160,22 @@ struct LCEditAppView: View {
                     }
                 }
             }
-            
-            .onChange(of: imageSelection) { _ in
-                handleImageSelection()
+        
+            .onChange(of: internalImageSelection != nil) { isSelected in
+                if isSelected { handleImageSelection() }
             }
         }
     }
 
     private func handleImageSelection() {
-        guard let imageSelection else { return }
-        Task {
-            if let data = try? await imageSelection.loadTransferable(type: Data.self),
-               let uiImage = UIImage(data: data) {
-                await MainActor.run {
-                    self.selectedImage = uiImage
+        if #available(iOS 16.0, *) {
+            guard let item = internalImageSelection as? PhotosPickerItem else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    await MainActor.run {
+                        self.selectedImage = uiImage
+                    }
                 }
             }
         }
@@ -184,11 +192,11 @@ struct LCEditAppView: View {
     private func saveChanges() {
         let bid = app.appInfo.bundleIdentifier() ?? ""
         LCAppCustomizer.setCustomName(for: bid, name: newName)
-        
         LCAppCustomizer.setCustomIcon(for: bid, image: selectedImage)
         onSave()
     }
 }
+
 
 
 

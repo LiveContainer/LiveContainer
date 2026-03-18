@@ -126,7 +126,7 @@ struct LCCacheManagementView: View {
                             Text(formatSize(total)).font(.headline).bold()
                         }
                         Spacer()
-                        Button(Clear All Caches) {
+                        Button("Clear All Cache") {
                             cacheItems.forEach { LCCacheDiskTool.clearCache(uuid: $0.id) }
                             refresh()
                         }

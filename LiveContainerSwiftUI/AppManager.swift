@@ -3,13 +3,13 @@ import Foundation
 struct LCCacheDiskTool {
     static let fileManager = FileManager.default
     
-    // 取得 LiveContainer 資料夾下的 Application 根目錄
+    
     static var appDataRoot: URL {
         let documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return documents.appendingPathComponent("Data/Application")
     }
 
-    // 計算特定 UUID 的快取大小
+    
     static func calculateCacheSize(uuid: String) -> Int64 {
         let appPath = appDataRoot.appendingPathComponent(uuid)
         let targets = [
@@ -24,7 +24,7 @@ struct LCCacheDiskTool {
         return total
     }
 
-    // 清除特定 UUID 的快取
+    
     static func clearCache(uuid: String) {
         let appPath = appDataRoot.appendingPathComponent(uuid)
         let targets = [
@@ -40,7 +40,7 @@ struct LCCacheDiskTool {
         }
     }
 
-    // 遞迴計算資料夾大小
+    
     private static func getDirectorySize(url: URL) -> Int64 {
         let resourceKeys: [URLResourceKey] = [.fileSizeKey]
         guard let enumerator = fileManager.enumerator(at: url, includingPropertiesForKeys: resourceKeys) else { return 0 }
@@ -59,7 +59,7 @@ class CacheViewModel: ObservableObject {
     @Published var isScanning = false
     
     struct CacheItem: Identifiable {
-        let id: String // 使用 UUID 作為 ID
+        let id: String
         let name: String
         let bundleId: String
         var size: Int64
@@ -71,7 +71,7 @@ class CacheViewModel: ObservableObject {
         isScanning = true
         var items: [CacheItem] = []
         
-        // 使用 TaskGroup 並行計算提高效率
+        
         await withTaskGroup(of: CacheItem?.self) { group in
             for app in apps {
                 group.addTask {
@@ -96,87 +96,102 @@ class CacheViewModel: ObservableObject {
         isScanning = false
     }
 }
+import SwiftUI
+
+// 確保這裡是 public 或內建權限，不要加 private
 struct LCCacheManagementView: View {
+    // 這裡使用 EnvironmentObject，所以初始化時不需要傳參
     @EnvironmentObject var sharedModel: SharedModel
-    @StateObject private var viewModel = CacheViewModel()
-    
-    var totalSize: Int64 {
-        viewModel.cacheItems.reduce(0) { $0 + $1.size }
+    @State private var cacheItems: [CacheItem] = []
+    @State private var isScanning = false
+
+    struct CacheItem: Identifiable {
+        let id: String
+        let name: String
+        let bundleId: String
+        var size: Int64
+        let icon: UIImage?
     }
 
     var body: some View {
-        List {
-            Section {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Total Caches").font(.caption).foregroundColor(.gray)
-                        Text(formatSize(totalSize)).font(.title3).bold()
-                    }
-                    Spacer()
-                    Button("Clear All Caches") {
-                        for item in viewModel.cacheItems {
-                            LCCacheDiskTool.clearCache(uuid: item.id)
+        NavigationView {
+            List {
+                Section {
+                    let total = cacheItems.reduce(0) { $0 + $1.size }
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("lc.cache.totalUsage".loc).font(.caption).foregroundColor(.gray)
+                            Text(formatSize(total)).font(.headline).bold()
                         }
-                        refreshData()
+                        Spacer()
+                        Button("lc.cache.clearAll".loc) {
+                            cacheItems.forEach { LCCacheDiskTool.clearCache(uuid: $0.id) }
+                            refresh()
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        .disabled(total == 0)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
-                    .disabled(totalSize == 0)
                 }
-                .padding(.vertical, 4)
-            }
 
-            Section("App List") {
-                if viewModel.isScanning {
-                    ProgressView("Scanning...")
-                } else {
-                    ForEach(viewModel.cacheItems) { item in
-                        HStack {
-                            Image(uiImage: item.icon ?? UIImage(systemName: "app")!)
-                                .resizable()
-                                .frame(width: 36, height: 36)
-                                .cornerRadius(8)
-                            
-                            VStack(alignment: .leading) {
-                                Text(item.name).font(.body)
-                                Text(item.bundleId).font(.caption2).foregroundColor(.gray)
+                Section("lc.cache.appList".loc) {
+                    if isScanning {
+                        ProgressView()
+                    } else {
+                        ForEach(cacheItems) { item in
+                            HStack {
+                                Image(uiImage: item.icon ?? UIImage(systemName: "app")!)
+                                    .resizable().frame(width: 32, height: 32).cornerRadius(6)
+                                VStack(alignment: .leading) {
+                                    Text(item.name).font(.subheadline)
+                                    Text(item.bundleId).font(.caption2).foregroundColor(.gray)
+                                }
+                                Spacer()
+                                Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+                                Button {
+                                    LCCacheDiskTool.clearCache(uuid: item.id)
+                                    refresh()
+                                } label: {
+                                    Image(systemName: "trash").foregroundColor(.red)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            
-                            Spacer()
-                            
-                            Text(formatSize(item.size))
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(.blue)
-                            
-                            Button {
-                                LCCacheDiskTool.clearCache(uuid: item.id)
-                                refreshData()
-                            } label: {
-                                Image(systemName: "trash").foregroundColor(.red)
-                            }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
             }
+            .navigationTitle("lc.tabView.cache".loc)
+            .onAppear { refresh() }
+            .refreshable { refresh() }
         }
-        .navigationTitle("App Manager")
-        .onAppear { refreshData() }
-        .refreshable { refreshData() }
+        .navigationViewStyle(.stack)
     }
 
-    private func refreshData() {
+    func refresh() {
+        isScanning = true
         Task {
-            
-            let allApps = sharedModel.apps + sharedModel.hiddenApps
-            await viewModel.reload(apps: allApps)
+            let apps = sharedModel.apps + sharedModel.hiddenApps
+            var items: [CacheItem] = []
+            for app in apps {
+                if let uuid = app.appInfo.dataUUID {
+                    let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
+                    items.append(CacheItem(id: uuid, name: app.appInfo.displayName(), bundleId: app.appInfo.bundleIdentifier() ?? "", size: size, icon: app.appInfo.icon()))
+                }
+            }
+            await MainActor.run {
+                self.cacheItems = items.sorted { $0.size > $1.size }
+                self.isScanning = false
+            }
         }
     }
 
-    private func formatSize(_ bytes: Int64) -> String {
+    func formatSize(_ bytes: Int64) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
     }
 }
+
+
+    
 

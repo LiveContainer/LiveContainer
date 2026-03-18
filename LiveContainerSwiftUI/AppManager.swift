@@ -104,22 +104,22 @@ struct LCCacheManagementView: View {
                         ForEach(cacheItems) { item in
                             HStack(spacing: 12) {
                             
-                                Image(uiImage: item.icon ?? UIImage(systemName: "app.dashed")!)
-                                    .resizable()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+                                let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.name).font(.subheadline).lineLimit(1)
-                                    Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-                                }
-                                
-                                Spacer()
-                                
-                                Text(formatSize(item.size))
-                                    .font(.caption.monospaced())
-                                    .foregroundColor(.blue)
-                                
+    Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+        .resizable()
+        .frame(width: 36, height: 36)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+    VStack(alignment: .leading, spacing: 2) {
+        Text(displayName).font(.subheadline).lineLimit(1)
+        Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
+    }
+    Spacer()
+    Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+
+
                                 Button {
                                     LCCacheDiskTool.clearCache(uuid: item.id)
                                     refresh()
@@ -132,6 +132,17 @@ struct LCCacheManagementView: View {
                     }
                 }
             }
+            .swipeActions(edge: .leading) {
+    Button {
+        
+        if let appModel = (sharedModel.apps + sharedModel.hiddenApps).first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
+            self.editingApp = appModel
+        }
+    } label: {
+        Label("Edit", systemImage: "pencil")
+    }
+    .tint(.orange)
+}
             .navigationTitle("Cache Manager")
             .onAppear { refresh() }
             .refreshable { refresh() }

@@ -117,14 +117,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @ObservedObject var searchContext = SearchContext()
        @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
 
-    // --- 新增：分組邏輯 (範例：按名稱首字母，可根據需求修改) ---
+
     var groupedApps: [String: [LCAppModel]] {
         Dictionary(grouping: filteredApps) { app in
-            // 這裡可以改為讀取 app 的標籤或自定義組名
-            let name = app.appInfo.displayName()
-            return String(name.prefix(1)).uppercased()
+            
+            let name = app.appInfo.displayName() ?? "Unknown"
+            
+           
+            let prefix = name.prefix(1).uppercased()
+            return prefix.isEmpty ? "#" : prefix
         }
     }
+
 
     var currentModeIcon: String {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {

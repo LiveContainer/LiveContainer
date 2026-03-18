@@ -58,8 +58,8 @@ struct LCEditAppView: View {
     @State private var newName: String
     @State private var selectedImage: UIImage?
     
-   
-    @State private var internalItemSelection: Any? = nil 
+
+    @State private var imageSelection: PhotosPickerItem? = nil 
     
     var onSave: () -> Void
 
@@ -72,45 +72,38 @@ struct LCEditAppView: View {
     }
 
     var body: some View {
-    NavigationView {
-        ZStack {
-            
-            Color(UIColor.systemGroupedBackground).ignoresSafeArea()
-            
+        NavigationView {
             Form {
-                
                 Section {
-                    VStack(spacing: 20) {
-                        Spacer(minLength: 5)
+                    VStack(spacing: 16) {
                         
-                        VStack{
-                        ZStack(alignment: .bottomTrailing) {
-                            Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 110, height: 110)
-                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous)) 
-                                .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 6)
-                                .overlay(
+                        if #available(iOS 16.0, *) {
+                            PhotosPicker(selection: $imageSelection, matching: .images) {
+                                VStack(spacing: 12) {
+                                   
+                                    ZStack(alignment: .bottomTrailing) {
+                                        Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                                        
                                     
-                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                                )
-                             }
-    
-                            
-                            if #available(iOS 16.0, *) {
-                                PhotosPicker(selection: Binding(
-                                    get: { self.internalItemSelection as? PhotosPickerItem },
-                                    set: { self.internalItemSelection = $0 }
-                                ), matching: .images) {
-                                    Image(systemName: "pencil.circle.fill")
-                                        .symbolRenderingMode(.multicolor)
-                                        .font(.system(size: 32))
-                                        .background(Circle().fill(Color(UIColor.secondarySystemGroupedBackground)))
-                                        .offset(x: 10, y: 10)
+                                        Image(systemName: "camera.circle.fill")
+                                            .symbolRenderingMode(.multicolor)
+                                            .font(.system(size: 30))
+                                            .background(Circle().fill(Color(UIColor.secondarySystemGroupedBackground)))
+                                            .offset(x: 8, y: 8)
+                                    }
+                                    
+                                    
+                                    Text("Change Icon")
+                                        .font(.subheadline)
+                                        .foregroundColor(.accentColor)
                                 }
                             }
+                            .buttonStyle(.plain)
                         }
                         
                         VStack(spacing: 4) {
@@ -120,30 +113,25 @@ struct LCEditAppView: View {
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Spacer(minLength: 5)
                     }
                     .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear) 
+                    .padding(.vertical, 10)
+                    .listRowBackground(Color.clear)
                 }
-                
                 
                 Section(header: Text("EDIT INFO")) {
                     HStack {
                         Label("Display Name", systemImage: "character.cursor.ibeam")
                             .font(.subheadline)
                         Spacer()
-                        TextField("Enter name", text: $newName)
+                        TextField("Enter Name", text: $newName)
                             .multilineTextAlignment(.trailing)
                             .foregroundColor(.accentColor)
                     }
                 }
                 
-                
                 Section {
-                    Button(role: .destructive) {
-                        resetToDefault()
-                    } label: {
+                    Button(role: .destructive, action: resetToDefault) {
                         HStack {
                             Spacer()
                             Text("Reset To Default")
@@ -153,59 +141,54 @@ struct LCEditAppView: View {
                     }
                 }
             }
-        }
-        .navigationTitle("Edit App Info")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel") { dismiss() }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Done") {
-                    saveChanges()
-                    dismiss()
+            .navigationTitle("Edit App Info")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
                 }
-                
-            }
-        }
-    }
-    .onChange(of: String(describing: internalItemSelection)) { _ in
-        handleImageSelection()
-    }
-}
-
-
-private func resetToDefault() {
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    LCAppCustomizer.setCustomName(for: bid, name: nil)
-    LCAppCustomizer.setCustomIcon(for: bid, image: nil)
-    onSave()
-    dismiss()
-}
-
-private func saveChanges() {
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    LCAppCustomizer.setCustomName(for: bid, name: newName)
-    if let img = selectedImage {
-        LCAppCustomizer.setCustomIcon(for: bid, image: img)
-    }
-    onSave()
-}
-
-
-
-    private func handleImageSelection() {
-        if #available(iOS 16.0, *), let item = internalItemSelection as? PhotosPickerItem {
-            Task {
-            
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    await MainActor.run {
-                        self.selectedImage = uiImage
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        saveChanges()
+                        dismiss()
                     }
                 }
             }
+            
+            .onChange(of: imageSelection) { _ in
+                handleImageSelection()
+            }
         }
     }
+
+    private func handleImageSelection() {
+        guard let imageSelection else { return }
+        Task {
+            if let data = try? await imageSelection.loadTransferable(type: Data.self),
+               let uiImage = UIImage(data: data) {
+                await MainActor.run {
+                    self.selectedImage = uiImage
+                }
+            }
+        }
+    }
+
+    private func resetToDefault() {
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        LCAppCustomizer.setCustomName(for: bid, name: nil)
+        LCAppCustomizer.setCustomIcon(for: bid, image: nil)
+        onSave()
+        dismiss()
+    }
+
+    private func saveChanges() {
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        LCAppCustomizer.setCustomName(for: bid, name: newName)
+        
+        LCAppCustomizer.setCustomIcon(for: bid, image: selectedImage)
+        onSave()
+    }
 }
+
+
 

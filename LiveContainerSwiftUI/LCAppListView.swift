@@ -208,26 +208,6 @@ private func setMode(_ mode: AppLaunchMode) {
 
 
 
-@ViewBuilder
-private func renderAppRunner(appInfo: SimpleAppInfo) -> some View {
-    ZStack {
-        Color.black.ignoresSafeArea()
-        
-        if #available(iOS 16.1, *) {
-       
-            if isiPhoneMode {
-                IPhoneRunnerView(appInfo: appInfo)
-                    .id("iphone_\(appInfo.bundleId)")
-            } else {
-                IPadRunnerView(appInfo: appInfo)
-                    .id("ipad_\(appInfo.bundleId)")
-            }
-        }
-        
-        FloatingBackButton(isPresented: $sharedModel.pendingIPhoneApp)
-            .zIndex(99)
-    }
-}
 
 
 

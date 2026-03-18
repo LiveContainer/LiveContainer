@@ -98,7 +98,7 @@ struct LCTabView: View {
                 tabItem(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
             }
             tabItem(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
-            tabItem(title: "lc.tabView.cache".loc, icon: "storage", id: .cache)
+            tabItem(title: "App Manager", icon: "storage", id: .cache)
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)

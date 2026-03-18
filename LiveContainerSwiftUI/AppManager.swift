@@ -105,110 +105,102 @@ struct LCCacheManagementView: View {
                 }
 
                 
-                Section("App List") {
+                                Section("App List") {
                     if isScanning {
-                        HStack {
-                            Spacer()
-                            ProgressView("Scanning...")
-                            Spacer()
-                        }.padding()
-                    } else if cacheItems.isEmpty {
-                        Text("No Cache Data").foregroundColor(.gray)
+                        ProgressView("Scanning...").frame(maxWidth: .infinity)
                     } else {
                         ForEach(cacheItems) { item in
-                            HStack(spacing: 12) {
-                                let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
-                                let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
-
-                                Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
-                                    .resizable()
-                                    .frame(width: 36, height: 36)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(displayName).font(.subheadline).lineLimit(1)
-                                    Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-                                }
-                                Spacer()
-                                Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
-                                
-                                Button {
-                                    LCCacheDiskTool.clearCache(uuid: item.id)
-                                    refresh()
-                                } label: {
-                                    Image(systemName: "trash").foregroundColor(.red.opacity(0.8))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .contentShape(Rectangle())
-                           .contextMenu {
-    let allApps = sharedModel.apps + sharedModel.hiddenApps
-    let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId })
-
-    Button {
-        if let app = foundApp {
-            self.editingApp = app
-        }
-    } label: {
-        Label("Edit App Info", systemImage: "pencil")
-    }
-
-    Button {
-        if let app = foundApp {
-            exportAppAsIpa(app: app)
-        }
-    } label: {
-        Label("Export As ipa", systemImage: "square.and.arrow.up")
-    }
-    .disabled(foundApp == nil) 
-
-                                Divider() 
-
-                                Button(role: .destructive) {
-                                    LCCacheDiskTool.clearCache(uuid: item.id)
-                                    refresh()
-                                } label: {
-                                    Label("Clear Cache", systemImage: "trash")
-                                }
-                            }
-                        } 
+                            appRow(item: item) 
+                        }
                     }
-                } 
-            } 
-            .navigationViewStyle(.stack) 
+                }
+            }
             .navigationTitle("App Manager")
-        
+            .navigationViewStyle(.stack)
             .onAppear { refresh() }
             .refreshable { refresh() }
             .sheet(item: $editingApp) { appModel in
-                LCEditAppView(app: appModel, onSave: {
-                    refresh()
-                })
+                LCEditAppView(app: appModel, onSave: { refresh() })
             }
-        } 
-            .navigationViewStyle(.stack) 
-             .disabled(isExporting) 
+        }
+        .disabled(isExporting) 
 
         
         if isExporting {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 15) {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+            ZStack {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
                 
-                Text(exportProgressText)
-                    .foregroundColor(.white)
-                    .font(.subheadline)
-                    .bold()
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    
+                    Text(exportProgressText)
+                        .foregroundColor(.white)
+                        .font(.headline)
+                }
+                .padding(40)
+                .background(Color.secondary.opacity(0.5))
+                .cornerRadius(20)
             }
-            .padding(30)
-             
-            .cornerRadius(15)
         }
-    } 
+    }
+    
+    .alert(isPresented: $errorShow) {
+        Alert(title: Text("Reminder"), message: Text(errorInfo), dismissButton: .default(Text("Confirm")))
+    }
+}
+
+
+@ViewBuilder
+func appRow(item: CacheItem) -> some View {
+    HStack(spacing: 12) {
+        let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+        let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
+
+        Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+            .resizable()
+            .frame(width: 36, height: 36)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+        VStack(alignment: .leading, spacing: 2) {
+            Text(displayName).font(.subheadline).lineLimit(1)
+            Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
+        }
+        Spacer()
+        Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+    }
+    .contentShape(Rectangle())
+    .contextMenu {
+        let allApps = sharedModel.apps + sharedModel.hiddenApps
+        let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId })
+
+        Button {
+            if let app = foundApp { self.editingApp = app }
+        } label: {
+            Label("Edit App Info", systemImage: "pencil")
+        }
+
+        Button {
+            if let app = foundApp {
+                exportAppAsIpa(app: app) 
+            }
+        } label: {
+            Label("Export As ipa", systemImage: "square.and.arrow.up")
+        }
+        .disabled(foundApp == nil)
+
+        
+
+        Button(role: .destructive) {
+            LCCacheDiskTool.clearCache(uuid: item.id)
+            refresh()
+        } label: {
+            Label("Clear Cache", systemImage: "trash")
+        }
+    }
+}
 
     
     func refresh() {
@@ -246,68 +238,68 @@ struct LCCacheManagementView: View {
     }
 
     func exportAppAsIpa(app: LCAppModel) {
-    let fm = FileManager.default
     
-    // 取得 .app 的路徑 (注意：LiveContainer 中通常是 app.appInfo.bundlePath())
-    guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-        self.errorInfo = "找不到 App 路徑"
-        self.errorShow = true
-        return
-    }
+    isExporting = true
+    exportProgressText = "正在導出 \(app.appInfo.displayName())..."
     
-    let bundleURL = URL(fileURLWithPath: pathString)
-    let appName = app.appInfo.displayName().sanitizeNonACSII()
-    let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
-
-    // 1. 建立一個乾淨的臨時工作目錄
-    let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-    let payloadURL = workDir.appendingPathComponent("Payload")
-    
-    try? fm.removeItem(at: exportIpaURL)
-    try? fm.removeItem(at: workDir)
-
-    do {
-        // 建立 Payload 資料夾
-        try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+    Task(priority: .userInitiated) {
+        let fm = FileManager.default
         
-        // 2. 把 .app 拷貝進去
-        let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
-        try fm.copyItem(at: bundleURL, to: targetAppURL)
-
-        // 3. 核心步驟：切換目錄並壓縮
-        let currentDir = fm.currentDirectoryPath
-        fm.changeCurrentDirectoryPath(workDir.path) // 切換到包含 Payload 的那一層
         
-        // 執行指令：將 Payload 壓縮到 temp 目錄下的 ipa 檔案
-        // -r 是遞迴壓縮，-y 是保留符號連結 (這對 iOS App 很重要)
-        let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
-        let result = shell(command)
-        
-        fm.changeCurrentDirectoryPath(currentDir) // 換回來
-
-        if result != 0 {
-            throw NSError(domain: "ZipError", code: Int(result), userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"])
-        }
-
-        // 4. 跳出 iPad 分享選單
-        let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
-        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-            activityVC.popoverPresentationController?.sourceView = rootVC.view
-            // 設定在螢幕中間彈出，避免 iPad 閃退
-            activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-            rootVC.present(activityVC, animated: true)
+        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+            await MainActor.run {
+                self.errorInfo = "找不到路徑"
+                self.errorShow = true
+                self.isExporting = false
+            }
+            return
         }
         
-        // 清理 Payload 暫存
+        let bundleURL = URL(fileURLWithPath: pathString)
+        let appName = app.appInfo.displayName().sanitizeNonACSII()
+        let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
+        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let payloadURL = workDir.appendingPathComponent("Payload")
+        
+        try? fm.removeItem(at: exportIpaURL)
         try? fm.removeItem(at: workDir)
         
-    } catch {
-        self.errorInfo = "導出失敗: \(error.localizedDescription)"
-        self.errorShow = true
+        do {
+            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+            
+            let currentDir = fm.currentDirectoryPath
+            fm.changeCurrentDirectoryPath(workDir.path)
+            
+            
+            let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
+            let result = shell(command)
+            
+            fm.changeCurrentDirectoryPath(currentDir)
+            
+            await MainActor.run {
+                self.isExporting = false
+                if result == 0 {
+                    let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
+                    if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                        activityVC.popoverPresentationController?.sourceView = rootVC.view
+                        activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+                        rootVC.present(activityVC, animated: true)
+                    }
+                } else {
+                    self.errorInfo = "壓縮失敗 (\(result))"
+                    self.errorShow = true
+                }
+                try? fm.removeItem(at: workDir)
+            }
+        } catch {
+            await MainActor.run {
+                self.errorInfo = error.localizedDescription
+                self.errorShow = true
+                self.isExporting = false
+            }
+        }
     }
-}
-
-
 }
 
 

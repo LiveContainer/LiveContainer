@@ -13,6 +13,24 @@ extension LCAppModel: Identifiable {
         return self.appInfo.bundleIdentifier() ?? UUID().uuidString
     }
 }
+import UniformTypeIdentifiers
+
+struct IPAFile: FileDocument {
+    static var readableContentTypes: [UTType] { [UTType(filenameExtension: "ipa")!] }
+    let url: URL
+
+    init(url: URL) {
+        self.url = url
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        throw NSError(domain: "NotSupported", code: -1)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        return try FileWrapper(url: url, options: .immediate)
+    }
+}
 
 
 struct LCCacheDiskTool {
@@ -65,6 +83,8 @@ struct LCCacheDiskTool {
 struct LCCacheManagementView: View {
     @State private var isExporting = false
     @State private var exportProgressText = "" 
+    @State private var exportDoc: IPAFile? = nil 
+@State private var isShowingExporter = false 
 
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
@@ -230,63 +250,52 @@ struct LCCacheManagementView: View {
     }
 
     func exportAppAsIpa(app: LCAppModel) {
-        isExporting = true
-        exportProgressText = "Exporting \(app.appInfo.displayName())..."
+    isExporting = true
+    exportProgressText = "Preparing \(app.appInfo.displayName())..."
+    
+    Task(priority: .userInitiated) {
+        let fm = FileManager.default
+        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+            await MainActor.run { isExporting = false }
+            return
+        }
         
-        Task(priority: .userInitiated) {
-            let fm = FileManager.default
-            guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-                await MainActor.run {
-                    self.errorInfo = "Path not found"
+        let bundleURL = URL(fileURLWithPath: pathString)
+        let appName = app.appInfo.displayName().sanitizeNonACSII()
+        
+        
+        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let payloadURL = workDir.appendingPathComponent("Payload")
+        let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
+        
+        do {
+            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+            
+            let currentDir = fm.currentDirectoryPath
+            fm.changeCurrentDirectoryPath(workDir.path)
+            let result = shell("zip -ry '\(exportIpaURL.path)' 'Payload'")
+            fm.changeCurrentDirectoryPath(currentDir)
+            
+            await MainActor.run {
+                self.isExporting = false
+                if result == 0 {
+                    
+                    self.exportDoc = IPAFile(url: exportIpaURL)
+                    self.isShowingExporter = true
+                } else {
+                    self.errorInfo = "Zip Failed (\(result))"
                     self.errorShow = true
-                    self.isExporting = false
                 }
-                return
             }
-            
-            let bundleURL = URL(fileURLWithPath: pathString)
-            let appName = app.appInfo.displayName().sanitizeNonACSII()
-            let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
-            let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            let payloadURL = workDir.appendingPathComponent("Payload")
-            
-            try? fm.removeItem(at: exportIpaURL)
-            try? fm.removeItem(at: workDir)
-            
-            do {
-                try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
-                try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
-                
-                let currentDir = fm.currentDirectoryPath
-                fm.changeCurrentDirectoryPath(workDir.path)
-                
-                let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
-                let result = shell(command)
-                
-                fm.changeCurrentDirectoryPath(currentDir)
-                
-                await MainActor.run {
-                    self.isExporting = false
-                    if result == 0 {
-                        let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
-                        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                            activityVC.popoverPresentationController?.sourceView = rootVC.view
-                            activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-                            rootVC.present(activityVC, animated: true)
-                        }
-                    } else {
-                        self.errorInfo = "Zip Failed (\(result))"
-                        self.errorShow = true
-                    }
-                    try? fm.removeItem(at: workDir)
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorInfo = error.localizedDescription
-                    self.errorShow = true
-                    self.isExporting = false
-                }
+        } catch {
+            await MainActor.run {
+                self.errorInfo = error.localizedDescription
+                self.errorShow = true
+                self.isExporting = false
             }
         }
     }
+}
+
 }

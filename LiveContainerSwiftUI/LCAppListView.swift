@@ -17,7 +17,7 @@ enum AppLaunchMode: Int {
 }
 extension LCAppListView {
     
-    // 1. 搜尋欄位拆解
+    
     @ViewBuilder
     private var searchSection: some View {
         if isSearchFieldVisible {
@@ -40,7 +40,7 @@ extension LCAppListView {
         }
     }
 
-    // 2. 應用程式分群列表拆解
+
     @ViewBuilder
     private var appGroupsList: some View {
         let keys = groupedApps.keys.sorted { k1, k2 in
@@ -78,7 +78,7 @@ extension LCAppListView {
         }
     }
 
-    // 3. 隱藏應用程式區塊
+    
     @ViewBuilder
     private var hiddenAppsSection: some View {
         if (LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.isHiddenAppUnlocked) || 
@@ -98,7 +98,7 @@ extension LCAppListView {
         }
     }
 
-    // 4. 底部計數與提示
+    
     @ViewBuilder
     private var footerSection: some View {
         Section {
@@ -110,7 +110,7 @@ extension LCAppListView {
         .listRowBackground(Color.clear)
     }
 
-    // 5. 輔助 View：移動群組的 Menu
+    
     private func moveGroupMenu(for app: LCAppModel) -> some View {
         Menu {
             ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
@@ -135,7 +135,7 @@ extension LCAppListView {
         .tint(.accentColor)
     }
 
-    // 6. 輔助 View：群組 Header
+    
     private func groupHeader(name: String, count: Int) -> some View {
         HStack {
             Text(name == "Other" ? "lc.appList.otherGroup".loc : name)
@@ -161,9 +161,9 @@ extension LCAppListView {
                 }
 
                 Button(role: .destructive) {
-                    withAnimation {
+                    
                         sharedAppSortManager.customGroups.removeValue(forKey: name)
-                    }
+                    
                 } label: {
                     Label("lc.common.delete".loc, systemImage: "trash")
                 }

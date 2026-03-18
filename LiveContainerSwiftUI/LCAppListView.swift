@@ -115,6 +115,17 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
+       @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
+
+    // --- 新增：分組邏輯 (範例：按名稱首字母，可根據需求修改) ---
+    var groupedApps: [String: [LCAppModel]] {
+        Dictionary(grouping: filteredApps) { app in
+            // 這裡可以改為讀取 app 的標籤或自定義組名
+            let name = app.appInfo.displayName()
+            return String(name.prefix(1)).uppercased()
+        }
+    }
+
     var currentModeIcon: String {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return "arrow.up.left.and.arrow.down.right"
@@ -261,127 +272,109 @@ private func setMode(_ mode: AppLaunchMode) {
     }
     
     var body: some View {
-        NavigationView {
-            ScrollView {  
-                
-if isSearchFieldVisible {
-    HStack {
-        Image(systemName: "magnifyingglass")
-            .foregroundColor(.gray)
-        TextField("lc.common.search".loc, text: $searchContext.query)
-            .textFieldStyle(.plain)
-            .submitLabel(.search)
-        if !searchContext.query.isEmpty {
-            Button(action: { searchContext.query = "" }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.gray)
-            }
-        }
-    }
-    .padding(10)
-    .background(Color(.secondarySystemBackground))
-    .cornerRadius(12)
-    .padding(.horizontal)
-    .transition(.move(edge: .top).combined(with: .opacity)) 
-}
-
-                LazyVStack {
-                    ForEach(filteredApps, id: \.self) { app in
-                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+       NavigationView {
+            List {
+               
+                if isSearchFieldVisible {
+                    Section {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.gray)
+                            TextField("lc.common.search".loc, text: $searchContext.query)
+                                .textFieldStyle(.plain)
+                                .submitLabel(.search)
+                            if !searchContext.query.isEmpty {
+                                Button(action: { searchContext.query = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                        }
                     }
-                    .transition(.scale)
+                    .listRowBackground(Color(.secondarySystemBackground))
                 }
-                .padding()
-                .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
+
                 
-                VStack {
-                    if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
-                        if sharedModel.isHiddenAppUnlocked {
-                            LazyVStack {
-                                HStack {
-                                    Text("lc.appList.hiddenApps".loc)
-                                        .font(.system(.title2).bold())
-                                    Spacer()
-                                }
-                                
-                                ForEach(filteredHiddenApps, id: \.self) { app in
-                                    LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                                }
-                                .transition(.scale)
-                                
+                ForEach(groupedApps.keys.sorted(), id: \.self) { groupName in
+                    let appsInGroup = groupedApps[groupName] ?? []
+                    
+                    DisclosureGroup(
+                        isExpanded: Binding(
+                            get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
+                            set: { isExpanding in
+                                if isExpanding { expandedGroups.insert(groupName) }
+                                else { expandedGroups.remove(groupName) }
                             }
-                            .padding()
-                            .transition(.opacity)
-                            .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
-                            
-                            if sharedModel.hiddenApps.count == 0 {
-                                Text("lc.appList.hideAppTip".loc)
-                                    .foregroundStyle(.gray)
+                        ),
+                        content: {
+                            ForEach(appsInGroup, id: \.self) { app in
+                                LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                                    .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                                    .listRowSeparator(.hidden)
                             }
-                        }
-                    } else if sharedModel.hiddenApps.count > 0 {
-                        LazyVStack {
+                        },
+                        label: {
                             HStack {
-                                Text("lc.appList.hiddenApps".loc)
-                                    .font(.system(.title2).bold())
+                                Text(groupName)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
                                 Spacer()
-                            }
-                            ForEach(filteredHiddenApps, id: \.self) { app in
-                                if sharedModel.isHiddenAppUnlocked {
-                                    LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                                } else {
-                                    LCAppSkeletonBanner()
-                                }
-                            }
-                            .animation(.easeInOut, value: sharedModel.isHiddenAppUnlocked)
-                            .onTapGesture {
-                                Task { await authenticateUser() }
+                                Text("\(appsInGroup.count)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
                             }
                         }
-                        .padding()
-                        .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
+                    )
+                    .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
+                }
+
+            
+                if (LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.isHiddenAppUnlocked) || 
+                   (!LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.hiddenApps.count > 0) {
+                    
+                    DisclosureGroup("lc.appList.hiddenApps".loc) {
+                        ForEach(filteredHiddenApps, id: \.self) { app in
+                            if sharedModel.isHiddenAppUnlocked {
+                                LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                            } else {
+                                LCAppSkeletonBanner()
+                                    .onTapGesture { Task { await authenticateUser() } }
+                            }
+                        }
+                        .listRowSeparator(.hidden)
                     }
+                }
+
                 
+                Section {
                     let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
                     Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
-                        .padding(.horizontal)
-                        .foregroundStyle(.gray)
-                        .animation(searchContext.isTyping ? nil : .easeInOut, value: appCount)
-                        .onTapGesture(count: 3) {
-                            Task { await authenticateUser() }
-                        }
-                }.animation(searchContext.isTyping ? nil : .easeInOut, value: LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding"))
-                
-                if sharedModel.multiLCStatus == 2 {
-                    Text("lc.appList.manageInPrimaryTip".loc).foregroundStyle(.gray).padding()
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .onTapGesture(count: 3) { Task { await authenticateUser() } }
+                    
+                    if sharedModel.multiLCStatus == 2 {
+                        Text("lc.appList.manageInPrimaryTip".loc)
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
-                
+                .listRowBackground(Color.clear)
             }
+            .listStyle(.insetGrouped)
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
-            .coordinateSpace(name: "scroll")
-            .onAppear {
-                if !didAppear {
-                    onAppear()
-                }
-            }
-            
             .navigationTitle("lc.appList.myApps".loc)
             .toolbar {
+                // ... Toolbar 內容保持不變 ...
                 ToolbarItem(placement: .topBarLeading) {
                     if sharedModel.multiLCStatus != 2 {
                         if !installprogressVisible {
                             Menu {
-                                
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
-                                    choosingIPA = true
-                                })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
-                                    Task{ await startInstallFromUrl() }
-                                })
-                            } label: {
-                                Label("add", systemImage: "plus")
-                            }
-                            
+                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: { choosingIPA = true })
+                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: { Task{ await startInstallFromUrl() } })
+                            } label: { Label("add", systemImage: "plus") }
                         } else {
                             ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)
                         }
@@ -389,83 +382,41 @@ if isSearchFieldVisible {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if(UserDefaults.sideStoreExist()) {
-                        Button {
-                            LCUtils.openSideStore(delegate: self)
-                        } label: {
-                            Image("SideStoreBadge")
-                                .resizable()
-                                .renderingMode(.template)
-                                .foregroundColor({
-                                    if SharedModel.isLiquidGlassEnabled {
-                                        return Color.primary
-                                    } else {
-                                        return Color.accentColor
-                                    }
-                                }())
-                                .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
-                            
+                        Button { LCUtils.openSideStore(delegate: self) } label: {
+                            Image("SideStoreBadge").resizable().renderingMode(.template)
+                                .foregroundColor(SharedModel.isLiquidGlassEnabled ? .primary : .accentColor)
+                                .frame(width: 20, height: 20)
                         }
                     } else {
-                        Button("Help", systemImage: "questionmark") {
-                            helpPresent = true
-                        }
+                        Button("Help", systemImage: "questionmark") { helpPresent = true }
                     }
-                    
-                    
                 }
-                
-                
-                ToolbarItem(placement: .topBarLeading) {
-                     launchModeSelector
-                }
+                ToolbarItem(placement: .topBarLeading) { launchModeSelector }
                 ToolbarItem(placement: .topBarTrailing){
-                     Button {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            isSearchFieldVisible.toggle()
-            if !isSearchFieldVisible {
-                searchContext.query = "" 
-            }
-        }
-    } label: {
-        Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass")
-    }
+                    Button {
+                        withAnimation(.spring()) {
+                            isSearchFieldVisible.toggle()
+                            if !isSearchFieldVisible { searchContext.query = "" }
+                        }
+                    } label: { Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass") }
                 }
-                
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("lc.appList.openLink".loc, systemImage: "link", action: {
-                        Task { await onOpenWebViewTapped() }
-                    })
+                    Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
                 }
-                
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
                             ForEach(AppSortType.allCases, id: \.self) { sortType in
-                                Label(sortType.displayName, systemImage: sortType.systemImage)
-                                    .tag(sortType)
+                                Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
                             }
                         }
-                        .onChange(of: sharedAppSortManager.appSortType) { newValue in
-                            if sharedAppSortManager.appSortType == .custom {
-                                customSortViewPresent = true
-                            }
+                        .onChange(of: sharedAppSortManager.appSortType) { _ in
+                            if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
                         }
-                        if sharedAppSortManager.appSortType == .custom {
-                            Divider()
-                            
-                            Button {
-                                customSortViewPresent = true
-                            } label: {
-                                Label("lc.appList.sort.customManage".loc, systemImage: "slider.horizontal.3")
-                            }
-                        }
-                    } label: {
-                        Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle")
-                    }
+                    } label: { Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") }
                 }
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     
 
 

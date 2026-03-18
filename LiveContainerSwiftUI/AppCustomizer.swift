@@ -171,7 +171,7 @@ struct LCEditAppView: View {
                     onSave()
                     dismiss()
                 }
-                .bold()
+                
             }
         }
     }

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import PhotosUI
-
+import ZIPFoundation
 
 extension LCAppModel: Identifiable {
     public var id: String {
@@ -219,45 +219,41 @@ struct LCCacheManagementView: View {
 
     func exportAppAsIpa(app: LCAppModel) {
     let fm = FileManager.default
-    let appDisplayName = app.appInfo.displayName().sanitizeNonACSII()
     
+    guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+        self.errorInfo = "無法取得 Bundle 路徑"
+        self.errorShow = true
+        return
+    }
+    
+    let bundleURL = URL(fileURLWithPath: pathString)
+    let appDisplayName = app.appInfo.displayName().sanitizeNonACSII()
+    let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
 
+    
     let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     let payloadURL = tempDir.appendingPathComponent("Payload")
-    let exportZipURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
     
-    
+    try? fm.removeItem(at: exportIpaURL)
     try? fm.removeItem(at: tempDir)
-    try? fm.removeItem(at: exportZipURL)
-    
+
     do {
-        
         try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
         
         
-        let bundlePath = URL(fileURLWithPath: app.appInfo.bundlePath)
-        let targetAppURL = payloadURL.appendingPathComponent(bundlePath.lastPathComponent)
-        try fm.copyItem(at: bundlePath, to: targetAppURL)
+        let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
+        try fm.copyItem(at: bundleURL, to: targetAppURL)
+
+      
+        try fm.zipItem(at: tempDir, to: exportIpaURL, shouldKeepParent: false)
+
         
-        
-        try fm.zipItem(at: tempDir, to: exportZipURL, shouldKeepParent: false)
-        
-        
-        let activityVC = UIActivityViewController(activityItems: [exportZipURL], applicationActivities: nil)
-        
-        
+        let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
         if let rootVC = UIApplication.shared.windows.first?.rootViewController {
             activityVC.popoverPresentationController?.sourceView = rootVC.view
-            
             activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-            activityVC.popoverPresentationController?.permittedArrowDirections = []
-            
             rootVC.present(activityVC, animated: true)
         }
-        
-    
-        try? fm.removeItem(at: tempDir)
-        
     } catch {
         self.errorInfo = "導出失敗: \(error.localizedDescription)"
         self.errorShow = true

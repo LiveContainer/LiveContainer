@@ -64,16 +64,7 @@ struct LCTabView: View {
             checkBundleId()
             checkGetTaskAllow()
             checkPrivateContainerBookmark()
-            if let runningApp = sharedModel.apps.first(where: { $0.isAppRunning }) {
-        print("[LC] 檢測到運行中狀態，正在嘗試接回視圖...")
-        Task {
-            do {
-                try await runningApp.runApp() 
-            } catch {
-                print("[LC] 自動恢復失敗: \(error)")
-            }
-        }
-    }
+            
         }
         .onReceive(pub) { out in
             if let scene1 = sceneDelegate.window?.windowScene, 
@@ -98,7 +89,7 @@ struct LCTabView: View {
                 tabItem(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
             }
             tabItem(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
-            tabItem(title: "App Manager", icon: "storage", id: .cache)
+            tabItem(title: "Manager", icon: "disk", id: .cache)
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)

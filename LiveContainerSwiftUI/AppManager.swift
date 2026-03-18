@@ -82,7 +82,8 @@ class CacheViewModel: ObservableObject {
                         name: app.appInfo.displayName(),
                         bundleId: app.appInfo.bundleIdentifier() ?? "Unknown",
                         size: size,
-                        icon: app.appInfo.icon()
+                        icon: UIImage(systemName: "app.dashed")
+
                     )
                 }
             }
@@ -175,7 +176,8 @@ struct LCCacheManagementView: View {
             for app in apps {
                 if let uuid = app.appInfo.dataUUID {
                     let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
-                    items.append(CacheItem(id: uuid, name: app.appInfo.displayName(), bundleId: app.appInfo.bundleIdentifier() ?? "", size: size, icon: app.appInfo.icon()))
+                    items.append(CacheItem(id: uuid, name: app.appInfo.displayName(), bundleId: app.appInfo.bundleIdentifier() ?? "", size: size,icon: UIImage(systemName: "app.dashed")
+ ))
                 }
             }
             await MainActor.run {

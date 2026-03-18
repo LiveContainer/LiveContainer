@@ -77,7 +77,7 @@ struct LCEditAppView: View {
     NavigationView {
         Form {
             
-            Section (header: Text("Edit DisplayIcon)){
+            Section (header: Text("Edit DisplayIcon")){
                 VStack(spacing: 16) {
                     Spacer(minLength: 0)
                     
@@ -125,7 +125,7 @@ struct LCEditAppView: View {
             }
             
             
-            Section(header: Text("Edit DisplayName)) {
+            Section(header: Text("Edit DisplayName")) {
                 HStack {
                     Text("Display Name")
                         .foregroundColor(.primary)

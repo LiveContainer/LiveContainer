@@ -98,6 +98,7 @@ struct LCEditAppView: View {
                         Image(systemName: "pencil.circle.fill")
                             .symbolRenderingMode(.multicolor)
                             .font(.system(size: 30))
+                            .foregroundColor(Color.purple)
                             .background(Circle().fill(.white))
                             .offset(x: 8, y: 8)
                     }

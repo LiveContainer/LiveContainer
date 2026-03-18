@@ -7,11 +7,7 @@ import PhotosUI
 @_silgen_name("system")
 @discardableResult
 func shell(_ command: String) -> Int32
-extension UTType {
-    static var ipa: UTType {
-        UTType(filenameExtension: "ipa") ?? .data
-    }
-}
+
 
 extension LCAppModel: Identifiable {
     public var id: String {

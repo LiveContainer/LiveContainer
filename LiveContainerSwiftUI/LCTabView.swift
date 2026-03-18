@@ -35,7 +35,7 @@ struct LCTabView: View {
                     LCTweaksView(tweakFolders: $tweakFolderNames)
                 } else if sharedModel.selectedTab == .settings {
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                } } else if sharedModel.selectedTab == .cache {
+                } else if sharedModel.selectedTab == .cache {
                     
                     
                         LCCacheManagementView()

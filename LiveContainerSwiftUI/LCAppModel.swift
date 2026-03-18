@@ -13,7 +13,18 @@ class LCAppModel: ObservableObject, Hashable {
     
     @Published var appInfo : LCAppInfo
     
-    @Published var isAppRunning = false
+    //@Published var isAppRunning = false
+    @Published var isAppRunning: Bool = false {
+    didSet {
+        
+        if isAppRunning {
+            UserDefaults.standard.set(self.appInfo.relativeBundlePath, forKey: "LC_Currently_Running_Path")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "LC_Currently_Running_Path")
+        }
+    }
+}
+
     @Published var isSigningInProgress = false
     @Published var signProgress = 0.0
     private var observer : NSKeyValueObservation?

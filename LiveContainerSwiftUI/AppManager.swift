@@ -144,9 +144,9 @@ struct LCCacheManagementView: View {
                                 }
 
                                 Button {
-                                    openInFiles(uuid: item.id)
+                                    exportAppAsIpa(app: app)
                                 } label: {
-                                    Label("Open in Files", systemImage: "folder")
+                                    Label("Export As ipa", systemImage: "square.and.arrow.up")
                                 }
 
                                 Divider() 

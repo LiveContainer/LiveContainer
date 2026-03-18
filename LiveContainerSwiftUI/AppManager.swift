@@ -63,7 +63,8 @@ struct LCCacheManagementView: View {
     @State private var cacheItems: [CacheItem] = []
     @State private var isScanning = false
     @State private var editingApp: LCAppModel? = nil
-
+    @State private var errorInfo = ""
+    @State private var errorShow = false
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
 
     struct CacheItem: Identifiable {
@@ -133,21 +134,26 @@ struct LCCacheManagementView: View {
                                 .buttonStyle(.plain)
                             }
                             .contentShape(Rectangle())
-                            .contextMenu {
-                                Button {
-                                    let allApps = sharedModel.apps + sharedModel.hiddenApps
-                                    if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
-                                        self.editingApp = foundApp
-                                    }
-                                } label: {
-                                    Label("Edit App Info", systemImage: "pencil")
-                                }
+                           .contextMenu {
+    let allApps = sharedModel.apps + sharedModel.hiddenApps
+    let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId })
 
-                                Button {
-                                    exportAppAsIpa(app: app)
-                                } label: {
-                                    Label("Export As ipa", systemImage: "square.and.arrow.up")
-                                }
+    Button {
+        if let app = foundApp {
+            self.editingApp = app
+        }
+    } label: {
+        Label("Edit App Info", systemImage: "pencil")
+    }
+
+    Button {
+        if let app = foundApp {
+            exportAppAsIpa(app: app)
+        }
+    } label: {
+        Label("Export As ipa", systemImage: "square.and.arrow.up")
+    }
+    .disabled(foundApp == nil) 
 
                                 Divider() 
 

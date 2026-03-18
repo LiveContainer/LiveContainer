@@ -1,14 +1,20 @@
 import Foundation
 import SwiftUI
 import UIKit
+import PhotosUI
 
+
+extension LCAppModel: Identifiable {
+    public var id: String {
+        return self.appInfo.bundleIdentifier() ?? UUID().uuidString
+    }
+}
 
 struct LCCacheDiskTool {
     static let fileManager = FileManager.default
     
     static var appDataRoot: URL {
-        
-        return LCPath.docPath.appendingPathComponent("Data/Application")
+        return LCPath.dataPath 
     }
 
     static func calculateCacheSize(uuid: String) -> Int64 {
@@ -63,7 +69,7 @@ struct LCCacheManagementView: View {
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
 
     struct CacheItem: Identifiable {
-        let id: String
+        let id: String 
         let name: String
         let bundleId: String
         var size: Int64
@@ -103,6 +109,7 @@ struct LCCacheManagementView: View {
                     } else {
                         ForEach(cacheItems) { item in
                             HStack(spacing: 12) {
+                            
                                 let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
                                 let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
 
@@ -126,7 +133,6 @@ struct LCCacheManagementView: View {
                                 }
                                 .buttonStyle(.plain)
                             }
-                            
                             .swipeActions(edge: .leading) {
                                 Button {
                                     let allApps = sharedModel.apps + sharedModel.hiddenApps
@@ -190,57 +196,89 @@ struct LCCacheManagementView: View {
     }
 }
 
+struct LCEditAppView: View {
+    let app: LCAppModel
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var newName: String
+    @State private var selectedImage: UIImage?
+    
+    
+    @State private var itemSelection: Any? = nil 
+    
+    var onSave: () -> Void
 
-class CacheViewModel: ObservableObject {
-    @Published var cacheItems: [CacheItem] = []
-    @Published var isScanning = false
-    
-    
-    private var darkModeIcon: Bool {
-        return LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")
-    }
-    
-    struct CacheItem: Identifiable {
-        let id: String
-        let name: String
-        let bundleId: String
-        var size: Int64
-        let icon: UIImage?
+    init(app: LCAppModel, onSave: @escaping () -> Void) {
+        self.app = app
+        self.onSave = onSave
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        _newName = State(initialValue: LCAppCustomizer.getCustomName(for: bid, defaultName: app.appInfo.displayName()))
+        _selectedImage = State(initialValue: LCAppCustomizer.getCustomIcon(for: bid))
     }
 
-    @MainActor
-    func reload(apps: [LCAppModel]) async {
-        isScanning = true
-        var items: [CacheItem] = []
-        
-        
-        let isDark = self.darkModeIcon
-        
-        await withTaskGroup(of: CacheItem?.self) { group in
-            for app in apps {
-                group.addTask {
-                    guard let uuid = app.appInfo.dataUUID else { return nil }
-                    let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
-                    
-                    
-                    let appIcon = app.appInfo.iconIsDarkIcon(isDark)
-                    
-                    return CacheItem(
-                        id: uuid,
-                        name: app.appInfo.displayName(),
-                        bundleId: app.appInfo.bundleIdentifier() ?? "Unknown",
-                        size: size,
-                        icon: appIcon
-                    )
+    var body: some View {
+        NavigationView {
+            Form {
+                Section("lc.manager.edit.appearance".loc) {
+                    HStack {
+                        Spacer()
+                        VStack {
+                            Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
+                                .resizable().frame(width: 80, height: 80).cornerRadius(16)
+                            
+                            if #available(iOS 16.0, *) {
+                                PhotosPicker(selection: Binding(
+                                    get: { self.itemSelection as? PhotosPickerItem },
+                                    set: { self.itemSelection = $0 }
+                                ), matching: .images) {
+                                    Text("lc.manager.edit.changeIcon".loc).font(.caption)
+                                }
+                            } else {
+                                Text("iOS 16+ required for icon change").font(.caption).foregroundColor(.gray)
+                            }
+                        }
+                        Spacer()
+                    }.padding(.vertical)
+
+                    TextField("lc.manager.edit.namePlaceholder".loc, text: $newName)
+                }
+                
+                Section {
+                    Button("lc.manager.edit.reset".loc, role: .destructive) {
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        LCAppCustomizer.setCustomName(for: bid, name: nil)
+                        LCAppCustomizer.setCustomIcon(for: bid, image: nil)
+                        onSave()
+                        dismiss()
+                    }
                 }
             }
-            
-            for await item in group {
-                if let item = item { items.append(item) }
+            .navigationTitle("lc.manager.edit.title".loc)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("lc.common.done".loc) {
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        LCAppCustomizer.setCustomName(for: bid, name: newName)
+                        if let img = selectedImage {
+                            LCAppCustomizer.setCustomIcon(for: bid, image: img)
+                        }
+                        onSave()
+                        dismiss()
+                    }
+                }
             }
         }
-        
-        self.cacheItems = items.sorted { $0.size > $1.size }
-        isScanning = false
+        .onChange(of: String(describing: itemSelection)) { _ in
+            if #available(iOS 16.0, *), let item = itemSelection as? PhotosPickerItem {
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        await MainActor.run {
+                            self.selectedImage = uiImage
+                        }
+                    }
+                }
+            }
+        }
     }
 }

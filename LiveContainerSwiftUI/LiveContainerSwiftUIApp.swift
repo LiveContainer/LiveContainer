@@ -50,34 +50,33 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     }
 }
 
-            if LCPath.lcGroupDocPath != LCPath.docPath {
-                try fm.createDirectory(at: LCPath.lcGroupBundlePath, withIntermediateDirectories: true)
-                let appDirsShared = try fm.contentsOfDirectory(atPath: LCPath.lcGroupBundlePath.path)
-                for appDir in appDirs {
-    if !appDir.hasSuffix(".app") { continue }
-    let newApp = LCAppInfo(bundlePath: "\(LCPath.bundlePath.path)/\(appDir)")!
-    newApp.relativeBundlePath = appDir
-    newApp.isShared = true
-
+         if LCPath.lcGroupDocPath != LCPath.docPath {
+    try fm.createDirectory(at: LCPath.lcGroupBundlePath, withIntermediateDirectories: true)
+    let appDirsShared = try fm.contentsOfDirectory(atPath: LCPath.lcGroupBundlePath.path)
     
-    let newAppModel = LCAppModel(appInfo: newApp)
-
-
-    if let runningPath = UserDefaults.standard.string(forKey: "LC_Currently_Running_Path"),
-       appDir == runningPath {
-        newAppModel.isAppRunning = true 
-    }
-
     
-    if newApp.isHidden {
-        tempHiddenApps.append(newAppModel)
-    } else {
-        tempApps.append(newAppModel)
-        tempURLSchemes?.formUnion(newApp.urlSchemes() as! [String])
+    for appDir in appDirsShared { 
+        if !appDir.hasSuffix(".app") { continue }
+        let newApp = LCAppInfo(bundlePath: "\(LCPath.lcGroupBundlePath.path)/\(appDir)")!
+        newApp.relativeBundlePath = appDir
+        newApp.isShared = true
+
+        let newAppModel = LCAppModel(appInfo: newApp)
+
+        if let runningPath = UserDefaults.standard.string(forKey: "LC_Currently_Running_Path"),
+           appDir == runningPath {
+            newAppModel.isAppRunning = true 
+        }
+
+        if newApp.isHidden {
+            tempHiddenApps.append(newAppModel)
+        } else {
+            tempApps.append(newAppModel)
+            tempURLSchemes?.formUnion(newApp.urlSchemes() as! [String])
+        }
     }
 }
 
-            }
             // load document folders
             try fm.createDirectory(at: LCPath.dataPath, withIntermediateDirectories: true)
             let dataDirs = try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)

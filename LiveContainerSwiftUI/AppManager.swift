@@ -194,5 +194,28 @@ struct LCCacheManagementView: View {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
     }
+    func openInFiles(uuid: String) {
+    let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
+    
+
+    guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
+
+    
+    let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
+    
+    
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let rootVC = windowScene.windows.first?.rootViewController {
+        
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = rootVC.view
+            popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        
+        rootVC.present(activityVC, animated: true)
+    }
 }
+}
+
 

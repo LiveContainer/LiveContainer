@@ -94,6 +94,16 @@ struct LCTabView: View {
             checkBundleId()
             checkGetTaskAllow()
             checkPrivateContainerBookmark()
+            if let runningApp = sharedModel.apps.first(where: { $0.isAppRunning }) {
+        print("[LC] 檢測到運行中狀態，正在嘗試接回視圖...")
+        Task {
+            do {
+                try await runningApp.runApp() 
+            } catch {
+                print("[LC] 自動恢復失敗: \(error)")
+            }
+        }
+    }
         }
         .onReceive(pub) { out in
             if let scene1 = sceneDelegate.window?.windowScene, 

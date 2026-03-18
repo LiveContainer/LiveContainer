@@ -114,15 +114,15 @@ extension LCAppListView {
     private func moveGroupMenu(for app: LCAppModel) -> some View {
         Menu {
             ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-                Button(name) {
+                Button("Move To" name) {
                     sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
                 }
             }
             Divider()
-            Button("lc.appList.groupOther".loc) {
+            Button("Move to Other") {
                 sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
             }
-            Button("lc.appList.newGroup".loc, systemImage: "plus") {
+            Button("New Group", systemImage: "plus") {
                 Task {
                     if let newName = await groupNameInput.open() {
                         sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: newName)
@@ -130,7 +130,7 @@ extension LCAppListView {
                 }
             }
         } label: {
-            Label("lc.appList.moveToGroup".loc, systemImage: "folder.badge.plus")
+            Label("Group", systemImage: "folder.badge.plus")
         }
         .tint(.accentColor)
     }
@@ -138,7 +138,7 @@ extension LCAppListView {
     
     private func groupHeader(name: String, count: Int) -> some View {
         HStack {
-            Text(name == "Other" ? "lc.appList.otherGroup".loc : name)
+            Text(name == "Other" ? "Other" : name)
                 .font(.headline)
             Spacer()
             Text("\(count)")
@@ -157,7 +157,7 @@ extension LCAppListView {
                         }
                     }
                 } label: {
-                    Label("lc.common.rename".loc, systemImage: "pencil")
+                    Label("Rename Group", systemImage: "pencil")
                 }
 
                 Button(role: .destructive) {
@@ -165,7 +165,7 @@ extension LCAppListView {
                         sharedAppSortManager.customGroups.removeValue(forKey: name)
                     
                 } label: {
-                    Label("lc.common.delete".loc, systemImage: "trash")
+                    Label("Delete Group", systemImage: "trash")
                 }
             }
         }

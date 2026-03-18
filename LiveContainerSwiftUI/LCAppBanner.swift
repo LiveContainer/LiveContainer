@@ -22,6 +22,9 @@ import UIKit
 }
 
 struct LCAppBanner : View {
+
+@State private var displayName: String = ""
+    
     @State var appInfo: LCAppInfo
     var delegate: LCAppBannerDelegate
     
@@ -58,6 +61,14 @@ struct LCAppBanner : View {
         _mainColor = State(initialValue: Color.clear)
         _icon = State(initialValue: appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")))
         _mainColor = State(initialValue: extractMainHueColor())
+        let bundleId = appModel.appInfo.bundleIdentifier() ?? ""
+        let initialIcon = LCAppCustomizer.getCustomIcon(for: bundleId) ?? appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon"))
+        _icon = State(initialValue: initialIcon)
+        
+    
+        _displayName = State(initialValue: LCAppCustomizer.getCustomName(for: bundleId, defaultName: appModel.appInfo.displayName()))
+        
+        _mainColor = State(initialValue: extractMainHueColor())
 
     }
     @State private var mainHueColor: CGFloat? = nil
@@ -75,7 +86,7 @@ struct LCAppBanner : View {
                     // note: keep this so the color updates when toggling dark mode
                     let textColor = colorScheme == .dark ? color.readableTextColor() : color.readableTextColor()
                     HStack {
-                        Text(appInfo.displayName()).font(.system(size: 16)).bold()
+                        Text(displayName).font(.system(size: 16)).bold()
                         if model.uiIsShared {
                             Image(systemName: "arrowshape.turn.up.left.fill")
                                 .font(.system(size: 8))
@@ -316,8 +327,37 @@ struct LCAppBanner : View {
             icon = appInfo.iconIsDarkIcon(newVal)
             mainColor = extractMainHueColor()
         }
+
+
+
+        
+         .onAppear {
+            updateCustomAppearance()
+        }
+        .onChange(of: darkModeIcon) { newVal in
+            updateCustomAppearance()
+        }
+
+
+
+        
     }
-    
+    private func updateCustomAppearance() {
+        let bundleId = appInfo.bundleIdentifier() ?? ""
+        
+        
+        self.displayName = LCAppCustomizer.getCustomName(for: bundleId, defaultName: appInfo.displayName())
+        
+        
+        if let customIcon = LCAppCustomizer.getCustomIcon(for: bundleId) {
+            self.icon = customIcon
+        } else {
+            self.icon = appInfo.iconIsDarkIcon(darkModeIcon)
+        }
+        
+        
+        mainColor = extractMainHueColor()
+    }
     func runApp(multitask: Bool) async {
         if appInfo.isLocked && !sharedModel.isHiddenAppUnlocked {
             do {
@@ -432,8 +472,12 @@ struct LCAppBanner : View {
         } else if darkModeIcon, let cachedColor = appInfo.cachedColorDark {
             return Color(uiColor: cachedColor)
         }
+        let bundleId = appInfo.bundleIdentifier() ?? ""
+        let currentIcon = LCAppCustomizer.getCustomIcon(for: bundleId) ?? appInfo.iconIsDarkIcon(darkModeIcon)
         
-        guard let cgImage = appInfo.iconIsDarkIcon(darkModeIcon).cgImage else { return Color.clear }
+        guard let cgImage = currentIcon.cgImage else { return Color.clear }
+
+        //guard let cgImage = appInfo.iconIsDarkIcon(darkModeIcon).cgImage else { return Color.clear }
 
         let width = 1
         let height = 1

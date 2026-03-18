@@ -63,6 +63,9 @@ struct LCCacheDiskTool {
 
 
 struct LCCacheManagementView: View {
+    @State private var isExporting = false
+@State private var exportProgressText = "" 
+
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
     @State private var isScanning = false
@@ -184,6 +187,27 @@ struct LCCacheManagementView: View {
             }
         } 
             .navigationViewStyle(.stack) 
+             .disabled(isExporting) 
+
+        
+        if isExporting {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 15) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                
+                Text(exportProgressText)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .bold()
+            }
+            .padding(30)
+             
+            .cornerRadius(15)
+        }
     } 
 
     

@@ -211,22 +211,40 @@ struct LCCacheManagementView: View {
         return formatter.string(fromByteCount: bytes)
     }
 
-    func openInFiles(uuid: String) {
-        let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
+    func exportAppAsIpa(app: LCAppModel) {
+    let fm = FileManager.default
+    let bundlePath = URL(fileURLWithPath: app.appInfo.bundlePath)
+    let tempZipURL = fm.temporaryDirectory.appendingPathComponent("\(app.appInfo.displayName()).ipa")
+    
+    
+    try? fm.removeItem(at: tempZipURL)
+    
+    
+    let payloadURL = fm.temporaryDirectory.appendingPathComponent("Payload")
+    try? fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+    
+    do {
         
-        guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
-
+        let targetAppURL = payloadURL.appendingPathComponent(bundlePath.lastPathComponent)
+        try fm.copyItem(at: bundlePath, to: targetAppURL)
         
-        let interactionController = UIDocumentInteractionController(url: folderURL)
-        interactionController.uti = "public.folder"
         
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            
         
-            interactionController.presentOpenInMenu(from: rootVC.view.bounds, in: rootVC.view, animated: true)
+        let activityVC = UIActivityViewController(activityItems: [tempZipURL], applicationActivities: nil)
+        
+        
+        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = rootVC.view
+            }
+            rootVC.present(activityVC, animated: true)
         }
+    } catch {
+        self.errorInfo = "導出失敗: \(error.localizedDescription)"
+        self.errorShow = true
     }
+}
+
 }
 
 

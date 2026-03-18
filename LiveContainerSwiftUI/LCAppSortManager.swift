@@ -80,9 +80,35 @@ class LCAppSortManager: ObservableObject {
     @Published var sortedHiddenApps : [LCAppModel] = []
     
     private var cancellables = Set<AnyCancellable>()
-    // MARK: - Initialization
+
+@Published var customGroups: [String: [String]] {
+    didSet {
+        
+        UserDefaults.standard.set(customGroups, forKey: "LCCustomGroups")
+    }
+}
+
+
+
+
+func moveApp(_ bundleId: String, to group: String?) {
     
+    for (name, var ids) in customGroups {
+        ids.removeAll { $0 == bundleId }
+        customGroups[name] = ids
+    }
+    
+    
+    if let targetGroup = group, targetGroup != "Other" {
+        customGroups[targetGroup, default: []].append(bundleId)
+    }
+    
+    
+    customGroups = customGroups.filter { !$0.value.isEmpty || $0.key != "" }
+}
+
     init() {
+        self.customGroups = UserDefaults.standard.dictionary(forKey: "LCCustomGroups") as? [String: [String]] ?? [:]
         self.customSortOrder = LCUtils.appGroupUserDefault.array(forKey: "LCCustomSortOrder") as? [String] ?? []
         
         DataManager.shared.model.$apps

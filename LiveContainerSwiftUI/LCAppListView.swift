@@ -123,10 +123,11 @@ extension LCAppListView {
 
 
             }
-            Divider()
+            
             Button("Other",systemImage:"folder") {
                 sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
             }
+            Divider()
             Button("New Group", systemImage: "plus") {
                 Task {
                     if let newName = await groupNameInput.open() {

@@ -166,6 +166,27 @@ struct LCCacheManagementView: View {
             }
         } 
         
+    .fileExporter(
+        isPresented: $isShowingExporter,
+        document: exportDoc,
+        contentType: .ipa,
+        defaultFilename: exportDoc?.url.lastPathComponent ?? "App.ipa"
+    ) { result in
+        
+        if let doc = exportDoc {
+            let workDir = doc.url.deletingLastPathComponent()
+            try? FileManager.default.removeItem(at: workDir)
+        }
+        
+        switch result {
+        case .success(let url):
+            print("Saved to: \(url.path)")
+        case .failure(let error):
+            print("Save error: \(error.localizedDescription)")
+        }
+    }
+  
+
     }
     
     @ViewBuilder

@@ -304,8 +304,7 @@ if(!diff) return;
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
     __block int currentDebounceToken = self.resizeDebounceToken + 1;
     _resizeDebounceToken = currentDebounceToken;
-    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC));
-    dispatch_after(delay, dispatch_get_main_queue(), ^{
+   
         if(currentDebounceToken != self.resizeDebounceToken) {
             return;
         }
@@ -342,7 +341,7 @@ if(!diff) return;
                 block(settings);
             }
         }];
-    });
+    
 }
 
 - (BOOL)isAppRunning {

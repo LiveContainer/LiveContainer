@@ -97,7 +97,8 @@ struct LCCacheManagementView: View {
                     LCEditAppView(app: appModel, onSave: { refresh() })
                 }
             }
-            .disabled(isExporting) 
+            .disabled(isExporting)
+          
 
             if isExporting {
                 ZStack {
@@ -111,6 +112,7 @@ struct LCCacheManagementView: View {
                     .cornerRadius(20)
                 }
             }
+              .navigationViewStyle(.stack)
         } 
         .fileExporter(
             isPresented: $isShowingExporter,

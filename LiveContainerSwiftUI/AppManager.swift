@@ -58,7 +58,8 @@ struct LCCacheManagementView: View {
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
     @State private var isScanning = false
-    
+    @State private var editingApp: LCAppModel? = nil
+
 
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
 
@@ -102,46 +103,49 @@ struct LCCacheManagementView: View {
                         Text("No Cache Data").foregroundColor(.gray)
                     } else {
                         ForEach(cacheItems) { item in
-                            HStack(spacing: 12) {
-                            
-                                let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
-                                let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
+    HStack(spacing: 12) {
+        let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+        let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
 
-    Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
-        .resizable()
-        .frame(width: 36, height: 36)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+            .resizable()
+            .frame(width: 36, height: 36)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
 
-    VStack(alignment: .leading, spacing: 2) {
-        Text(displayName).font(.subheadline).lineLimit(1)
-        Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-    }
-    Spacer()
-    Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
-
-
-                                Button {
-                                    LCCacheDiskTool.clearCache(uuid: item.id)
-                                    refresh()
-                                } label: {
-                                    Image(systemName: "trash").foregroundColor(.red)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                }
-            }
-            .swipeActions(edge: .leading) {
-    Button {
-        
-        if let appModel = (sharedModel.apps + sharedModel.hiddenApps).first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
-            self.editingApp = appModel
+        VStack(alignment: .leading, spacing: 2) {
+            Text(displayName).font(.subheadline).lineLimit(1)
+            Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
         }
-    } label: {
-        Label("Edit", systemImage: "pencil")
+        Spacer()
+        Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+
+        Button {
+            LCCacheDiskTool.clearCache(uuid: item.id)
+            refresh()
+        } label: {
+            Image(systemName: "trash").foregroundColor(.red)
+        }
+        .buttonStyle(.plain)
     }
-    .tint(.orange)
+    
+    .swipeActions(edge: .leading) {
+        Button {
+            
+            let allApps = sharedModel.apps + sharedModel.hiddenApps
+            if let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId }) {
+                self.editingApp = foundApp
+            }
+        } label: {
+            Label("Edit", systemImage: "pencil")
+        }
+        .tint(.orange)
+    }
+}
+
+.sheet(item: $editingApp) { appModel in
+    LCEditAppView(app: appModel, onSave: {
+        refresh()
+    })
 }
             .navigationTitle("Cache Manager")
             .onAppear { refresh() }

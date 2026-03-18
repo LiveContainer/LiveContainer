@@ -230,25 +230,31 @@ struct LCCacheManagementView: View {
     let appDisplayName = app.appInfo.displayName().sanitizeNonACSII()
     let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
 
-    
+   
     let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+  
     let payloadURL = tempDir.appendingPathComponent("Payload")
     
+   
     try? fm.removeItem(at: exportIpaURL)
+    
     try? fm.removeItem(at: tempDir)
 
     do {
+      
         try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
         
-        
+       
         let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
         try fm.copyItem(at: bundleURL, to: targetAppURL)
 
-        
+     
         let coordinator = NSFileCoordinator()
         var zipError: NSError?
         var success = false
         
+       
+
         coordinator.coordinate(readingItemAt: tempDir, options: .forUploading, error: &zipError) { zipURL in
             do {
                 
@@ -258,6 +264,7 @@ struct LCCacheManagementView: View {
                 print("壓縮檔案移動失敗: \(error)")
             }
         }
+        
 
         if let error = zipError { throw error }
         guard success else { throw NSError(domain: "ExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"]) }
@@ -278,6 +285,7 @@ struct LCCacheManagementView: View {
         self.errorShow = true
     }
 }
+
 
 }
 

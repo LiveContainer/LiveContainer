@@ -89,7 +89,7 @@ struct LCEditAppView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 110, height: 110)
-                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous)) // 使用 .continuous 更接近原生
+                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous)) 
                                 .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 6)
                                 .overlay(
                                     
@@ -123,7 +123,7 @@ struct LCEditAppView: View {
                         Spacer(minLength: 5)
                     }
                     .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear) // 讓頂部預覽區背景透明
+                    .listRowBackground(Color.clear) 
                 }
                 
                 
@@ -164,7 +164,7 @@ struct LCEditAppView: View {
                     saveChanges()
                     dismiss()
                 }
-                .bold()
+                
             }
         }
     }

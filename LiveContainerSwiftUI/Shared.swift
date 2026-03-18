@@ -76,9 +76,6 @@ class SharedModel: ObservableObject {
     
     @Published var pidCallback : ((NSNumber, Error?) -> Void)? = nil
     
-    
-    
-    @Published var isiPhoneMode: Bool = true
     static let isPhone: Bool = {
         UIDevice.current.userInterfaceIdiom == .phone
     }()

@@ -162,8 +162,9 @@ struct LCCacheManagementView: View {
                     }
                 } 
             } 
+            .navigationViewStyle(.stack) 
             .navigationTitle("App Manager")
-            .navigationViewStyle(.stack)
+        
             .onAppear { refresh() }
             .refreshable { refresh() }
             .sheet(item: $editingApp) { appModel in
@@ -172,6 +173,7 @@ struct LCCacheManagementView: View {
                 })
             }
         } 
+            .navigationViewStyle(.stack) 
     } 
 
     
@@ -210,20 +212,28 @@ struct LCCacheManagementView: View {
     }
 
     func openInFiles(uuid: String) {
-        let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
-        guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
+    let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
+    
+    
+    guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
 
-        let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
+    
+    let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
+    
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let rootVC = windowScene.windows.first?.rootViewController {
         
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
+        
+        if let popover = activityVC.popoverPresentationController {
             
-            if let popover = activityVC.popoverPresentationController {
-                popover.sourceView = rootVC.view
-                popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-                popover.permittedArrowDirections = []
-            }
-            rootVC.present(activityVC, animated: true)
+            popover.sourceView = rootVC.view
+            popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
         }
+        
+        rootVC.present(activityVC, animated: true)
     }
 }
+
+
+

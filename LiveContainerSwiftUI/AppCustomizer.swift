@@ -50,20 +50,18 @@ struct LCAppCustomizer {
 import SwiftUI
 import PhotosUI
 
+import SwiftUI
+import PhotosUI
+
 struct LCEditAppView: View {
     let app: LCAppModel
     @Environment(\.dismiss) var dismiss
     
     @State private var newName: String
-    @State private var selectedItem: PhotosPickerItem? = nil
     @State private var selectedImage: UIImage?
     
-       @State private var _selectedItem: Any? = nil 
-    @available(iOS 16.0, *)
-    var selectedItem: Binding<PhotosPickerItem?> {
-        Binding { _selectedItem as? PhotosPickerItem }
-        set { _selectedItem = $0 }
-    }
+   
+    @State private var internalItemSelection: Any? = nil 
     
     var onSave: () -> Void
 
@@ -75,19 +73,25 @@ struct LCEditAppView: View {
         _selectedImage = State(initialValue: LCAppCustomizer.getCustomIcon(for: bid))
     }
 
-
     var body: some View {
-             NavigationView {
+        NavigationView {
             Form {
                 Section("Appearance") {
                     HStack {
                         Spacer()
                         VStack {
+                            
                             Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
-                                .resizable().frame(width: 80, height: 80).cornerRadius(16)
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .cornerRadius(16)
                             
                             if #available(iOS 16.0, *) {
-                                PhotosPicker(selection: selectedItem, matching: .images) {
+                            
+                                PhotosPicker(selection: Binding(
+                                    get: { self.internalItemSelection as? PhotosPickerItem },
+                                    set: { self.internalItemSelection = $0 }
+                                ), matching: .images) {
                                     Text("Change Icon").font(.caption)
                                 }
                             } else {
@@ -110,7 +114,8 @@ struct LCEditAppView: View {
                     }
                 }
             }
-              .toolbar {
+            .navigationTitle("Edit App") 
+            .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         let bid = app.appInfo.bundleIdentifier() ?? ""
@@ -124,11 +129,20 @@ struct LCEditAppView: View {
                 }
             }
         }
-        .onChange(of: _selectedItem != nil) { _ in
-            if #available(iOS 16.0, *), let item = _selectedItem as? PhotosPickerItem {
-                Task {
-                    if let data = try? await item.loadData() {
-                        selectedImage = UIImage(data: data)
+        
+        .onChange(of: internalItemSelection == nil) { _ in
+            handleImageSelection()
+        }
+    }
+
+    private func handleImageSelection() {
+        if #available(iOS 16.0, *), let item = internalItemSelection as? PhotosPickerItem {
+            Task {
+            
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    await MainActor.run {
+                        self.selectedImage = uiImage
                     }
                 }
             }

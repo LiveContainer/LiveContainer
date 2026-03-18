@@ -83,7 +83,7 @@ struct LCEditAppView: View {
                     VStack(spacing: 20) {
                         Spacer(minLength: 5)
                         
-                        
+                        VStack{
                         ZStack(alignment: .bottomTrailing) {
                             Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
                                 .resizable()
@@ -96,7 +96,8 @@ struct LCEditAppView: View {
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                                         .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
                                 )
-                            
+                             }
+    
                             
                             if #available(iOS 16.0, *) {
                                 PhotosPicker(selection: Binding(

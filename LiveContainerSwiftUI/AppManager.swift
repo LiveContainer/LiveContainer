@@ -2,12 +2,12 @@ import Foundation
 import SwiftUI
 import UIKit
 
-// --- 1. 快取工具類 ---
+
 struct LCCacheDiskTool {
     static let fileManager = FileManager.default
     
     static var appDataRoot: URL {
-        // 使用 LCPath.docPath 確保路徑正確
+        
         return LCPath.docPath.appendingPathComponent("Data/Application")
     }
 
@@ -53,13 +53,13 @@ struct LCCacheDiskTool {
     }
 }
 
-// --- 2. 快取管理視圖 ---
+
 struct LCCacheManagementView: View {
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
     @State private var isScanning = false
     
-    // 取得與系統一致的深色模式設定
+
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
 
     struct CacheItem: Identifiable {
@@ -183,6 +183,11 @@ class CacheViewModel: ObservableObject {
     @Published var cacheItems: [CacheItem] = []
     @Published var isScanning = false
     
+    
+    private var darkModeIcon: Bool {
+        return LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")
+    }
+    
     struct CacheItem: Identifiable {
         let id: String
         let name: String
@@ -197,19 +202,23 @@ class CacheViewModel: ObservableObject {
         var items: [CacheItem] = []
         
         
+        let isDark = self.darkModeIcon
+        
         await withTaskGroup(of: CacheItem?.self) { group in
             for app in apps {
                 group.addTask {
                     guard let uuid = app.appInfo.dataUUID else { return nil }
                     let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
-                    let icon = LCUtils.icon(forBundleIdentifier: app.appInfo.bundleIdentifier()) ?? UIImage(systemName: "app.dashed")
+                    
+                    
+                    let appIcon = app.appInfo.iconIsDarkIcon(isDark)
+                    
                     return CacheItem(
                         id: uuid,
                         name: app.appInfo.displayName(),
                         bundleId: app.appInfo.bundleIdentifier() ?? "Unknown",
                         size: size,
-                        icon: icon
-
+                        icon: appIcon
                     )
                 }
             }

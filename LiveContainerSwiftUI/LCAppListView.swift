@@ -15,6 +15,162 @@ enum AppLaunchMode: Int {
     case realIPhone = 1
 
 }
+extension LCAppListView {
+    
+    // 1. 搜尋欄位拆解
+    @ViewBuilder
+    private var searchSection: some View {
+        if isSearchFieldVisible {
+            Section {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    TextField("lc.common.search".loc, text: $searchContext.query)
+                        .textFieldStyle(.plain)
+                        .submitLabel(.search)
+                    if !searchContext.query.isEmpty {
+                        Button(action: { searchContext.query = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+            }
+            .listRowBackground(Color(.secondarySystemBackground))
+        }
+    }
+
+    // 2. 應用程式分群列表拆解
+    @ViewBuilder
+    private var appGroupsList: some View {
+        let keys = groupedApps.keys.sorted { k1, k2 in
+            if k1 == "Other" { return false }
+            if k2 == "Other" { return true }
+            return k1 < k2
+        }
+
+        ForEach(keys, id: \.self) { groupName in
+            let appsInGroup = groupedApps[groupName] ?? []
+            
+            DisclosureGroup(
+                isExpanded: Binding(
+                    get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
+                    set: { isExpanding in
+                        if isExpanding { expandedGroups.insert(groupName) }
+                        else { expandedGroups.remove(groupName) }
+                    }
+                ),
+                content: {
+                    ForEach(appsInGroup, id: \.self) { app in
+                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                            .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                            .listRowSeparator(.hidden)
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                moveGroupMenu(for: app)
+                            }
+                    }
+                },
+                label: {
+                    groupHeader(name: groupName, count: appsInGroup.count)
+                }
+            )
+            .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
+        }
+    }
+
+    // 3. 隱藏應用程式區塊
+    @ViewBuilder
+    private var hiddenAppsSection: some View {
+        if (LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.isHiddenAppUnlocked) || 
+           (!LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.hiddenApps.count > 0) {
+            
+            DisclosureGroup("lc.appList.hiddenApps".loc) {
+                ForEach(filteredHiddenApps, id: \.self) { app in
+                    if sharedModel.isHiddenAppUnlocked {
+                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                    } else {
+                        LCAppSkeletonBanner()
+                            .onTapGesture { Task { await authenticateUser() } }
+                    }
+                }
+                .listRowSeparator(.hidden)
+            }
+        }
+    }
+
+    // 4. 底部計數與提示
+    @ViewBuilder
+    private var footerSection: some View {
+        Section {
+            let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
+            Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
+                .font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity, alignment: .center)
+                .onTapGesture(count: 3) { Task { await authenticateUser() } }
+        }
+        .listRowBackground(Color.clear)
+    }
+
+    // 5. 輔助 View：移動群組的 Menu
+    private func moveGroupMenu(for app: LCAppModel) -> some View {
+        Menu {
+            ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
+                Button(name) {
+                    sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
+                }
+            }
+            Divider()
+            Button("lc.appList.groupOther".loc) {
+                sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
+            }
+            Button("lc.appList.newGroup".loc, systemImage: "plus") {
+                Task {
+                    if let newName = await groupNameInput.open() {
+                        sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: newName)
+                    }
+                }
+            }
+        } label: {
+            Label("lc.appList.moveToGroup".loc, systemImage: "folder.badge.plus")
+        }
+        .tint(.accentColor)
+    }
+
+    // 6. 輔助 View：群組 Header
+    private func groupHeader(name: String, count: Int) -> some View {
+        HStack {
+            Text(name == "Other" ? "lc.appList.otherGroup".loc : name)
+                .font(.headline)
+            Spacer()
+            Text("\(count)")
+                .font(.subheadline).foregroundColor(.secondary)
+        }
+        .contentShape(Rectangle())
+        .contextMenu {
+            if name != "Other" {
+                Button {
+                    Task {
+                        groupNameInput.initVal = name
+                        if let newName = await groupNameInput.open() {
+                            let ids = sharedAppSortManager.customGroups[name] ?? []
+                            sharedAppSortManager.customGroups.removeValue(forKey: name)
+                            sharedAppSortManager.customGroups[newName] = ids
+                        }
+                    }
+                } label: {
+                    Label("lc.common.rename".loc, systemImage: "pencil")
+                }
+
+                Button(role: .destructive) {
+                    withAnimation {
+                        sharedAppSortManager.customGroups.removeValue(forKey: name)
+                    }
+                } label: {
+                    Label("lc.common.delete".loc, systemImage: "trash")
+                }
+            }
+        }
+    }
+}
 
 
 
@@ -283,143 +439,15 @@ private func setMode(_ mode: AppLaunchMode) {
     
     var body: some View {
        NavigationView {
-            List {
-               
-                if isSearchFieldVisible {
-                    Section {
-                        HStack {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.gray)
-                            TextField("lc.common.search".loc, text: $searchContext.query)
-                                .textFieldStyle(.plain)
-                                .submitLabel(.search)
-                            if !searchContext.query.isEmpty {
-                                Button(action: { searchContext.query = "" }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                        }
-                    }
-                    .listRowBackground(Color(.secondarySystemBackground))
-                }
-
-                
-                let keys = groupedApps.keys.sorted { k1, k2 in
-                    if k1 == "Other" { return false }
-                    if k2 == "Other" { return true }
-                    return k1 < k2
-                }
-
-                ForEach(keys, id: \.self) { groupName in
-                    let appsInGroup = groupedApps[groupName] ?? []
-                    
-                    DisclosureGroup(
-                        isExpanded: Binding(
-                            get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
-                            set: { isExpanding in
-                                if isExpanding { expandedGroups.insert(groupName) }
-                                else { expandedGroups.remove(groupName) }
-                            }
-                        ),
-                        content: {
-                            ForEach(appsInGroup, id: \.self) { app in
-                                LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                                    .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
-                                    .listRowSeparator(.hidden)
-                                    
-                                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                        Menu {
-                                            ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-                                                Button(name) {
-                                                    sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
-                                                }
-                                            }
-                                            Divider()
-                                            Button("lc.appList.groupOther".loc) {
-                                                sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
-                                            }
-                                            Button("lc.appList.newGroup".loc, systemImage: "plus") {
-                                                Task {
-                                                    if let newName = await groupNameInput.open() {
-                                                        sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: newName)
-                                                    }
-                                                }
-                                            }
-                                        } label: {
-                                            Label("lc.appList.moveToGroup".loc, systemImage: "folder.badge.plus")
-                                        }
-                                        .tint(.accentColor)
-                                    }
-                            }
-                        },
-                        label: {
-                            HStack {
-                                Text(groupName == "Other" ? "lc.appList.otherGroup".loc : groupName)
-                                    .font(.headline)
-                                Spacer()
-                                Text("\(appsInGroup.count)")
-                                    .font(.subheadline).foregroundColor(.secondary)
-                            }
-                            .contentShape(Rectangle())
-                            
-                            .contextMenu {
-                                if groupName != "Other" {
-                                    Button {
-                                        Task {
-                                            groupNameInput.initVal = groupName
-                                            if let newName = await groupNameInput.open() {
-                                                let ids = sharedAppSortManager.customGroups[groupName] ?? []
-                                                sharedAppSortManager.customGroups.removeValue(forKey: groupName)
-                                                sharedAppSortManager.customGroups[newName] = ids
-                                            }
-                                        }
-                                    } label: {
-                                        Label("lc.common.rename".loc, systemImage: "pencil")
-                                    }
-
-                                    Button(role: .destructive) {
-                                        withAnimation {
-                                            sharedAppSortManager.customGroups.removeValue(forKey: groupName)
-                                        }
-                                    } label: {
-                                        Label("lc.common.delete".loc, systemImage: "trash")
-                                    }
-                                }
-                            }
-                        }
-                    )
-                    .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
-                }
-
-                
-                if (LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.isHiddenAppUnlocked) || 
-                   (!LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.hiddenApps.count > 0) {
-                    
-                    DisclosureGroup("lc.appList.hiddenApps".loc) {
-                        ForEach(filteredHiddenApps, id: \.self) { app in
-                            if sharedModel.isHiddenAppUnlocked {
-                                LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                            } else {
-                                LCAppSkeletonBanner()
-                                    .onTapGesture { Task { await authenticateUser() } }
-                            }
-                        }
-                        .listRowSeparator(.hidden)
-                    }
-                }
-
-                Section {
-                    let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
-                    Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
-                        .font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity, alignment: .center)
-                        .onTapGesture(count: 3) { Task { await authenticateUser() } }
-                }
-                .listRowBackground(Color.clear)
-            }
-            .listStyle(.insetGrouped)
-            .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
-            .navigationTitle("lc.appList.myApps".loc)
+        List {
+            searchSection
+            appGroupsList
+            hiddenAppsSection
+            footerSection
+        }
+        .listStyle(.insetGrouped)
+        .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
+        .navigationTitle("lc.appList.myApps".loc)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     if sharedModel.multiLCStatus != 2 {

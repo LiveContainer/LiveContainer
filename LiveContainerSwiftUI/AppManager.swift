@@ -83,7 +83,7 @@ struct LCCacheManagementView: View {
     }
 
     var body: some View {
-        ZStack 
+        ZStack {
             NavigationView {
                 List {
                     Section {

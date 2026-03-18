@@ -33,6 +33,21 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                 let newApp = LCAppInfo(bundlePath: "\(LCPath.bundlePath.path)/\(appDir)")!
                 newApp.relativeBundlePath = appDir
                 newApp.isShared = false
+
+
+
+               
+let newAppModel = LCAppModel(appInfo: newApp)
+
+if let runningPath = UserDefaults.standard.string(forKey: "LC_Currently_Running_Path"),
+   appDir == runningPath {
+    newAppModel.isAppRunning = true 
+}
+tempApps.append(newAppModel)
+
+
+
+                
                 if newApp.isHidden {
                     tempHiddenApps.append(LCAppModel(appInfo: newApp))
                 } else {
@@ -50,6 +65,24 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                     let newApp = LCAppInfo(bundlePath: "\(LCPath.lcGroupBundlePath.path)/\(appDir)")!
                     newApp.relativeBundlePath = appDir
                     newApp.isShared = true
+
+
+
+
+                
+let newAppModel = LCAppModel(appInfo: newApp)
+
+if let runningPath = UserDefaults.standard.string(forKey: "LC_Currently_Running_Path"),
+   appDir == runningPath {
+    newAppModel.isAppRunning = true 
+}
+tempApps.append(newAppModel)
+
+
+
+
+
+                    
                     if newApp.isHidden {
                         tempHiddenApps.append(LCAppModel(appInfo: newApp))
                     } else {

@@ -3,6 +3,11 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+
+@_silgen_name("system")
+@discardableResult
+func shell(_ command: String) -> Int32
+
 extension LCAppModel: Identifiable {
     public var id: String {
         return self.appInfo.bundleIdentifier() ?? UUID().uuidString
@@ -219,60 +224,58 @@ struct LCCacheManagementView: View {
     func exportAppAsIpa(app: LCAppModel) {
     let fm = FileManager.default
     
+    // 取得 .app 的路徑 (注意：LiveContainer 中通常是 app.appInfo.bundlePath())
     guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-        self.errorInfo = "無法取得 Bundle 路徑"
+        self.errorInfo = "找不到 App 路徑"
         self.errorShow = true
         return
     }
     
     let bundleURL = URL(fileURLWithPath: pathString)
-    let appDisplayName = app.appInfo.displayName().sanitizeNonACSII()
-    let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
+    let appName = app.appInfo.displayName().sanitizeNonACSII()
+    let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
 
-   
-    let containerDir = fm.temporaryDirectory.appendingPathComponent("ArchiveContainer_\(UUID().uuidString)")
-    let payloadURL = containerDir.appendingPathComponent("Payload")
+    // 1. 建立一個乾淨的臨時工作目錄
+    let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    let payloadURL = workDir.appendingPathComponent("Payload")
     
     try? fm.removeItem(at: exportIpaURL)
-    try? fm.removeItem(at: containerDir)
+    try? fm.removeItem(at: workDir)
 
     do {
-        
+        // 建立 Payload 資料夾
         try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
         
-        
+        // 2. 把 .app 拷貝進去
         let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
         try fm.copyItem(at: bundleURL, to: targetAppURL)
 
+        // 3. 核心步驟：切換目錄並壓縮
+        let currentDir = fm.currentDirectoryPath
+        fm.changeCurrentDirectoryPath(workDir.path) // 切換到包含 Payload 的那一層
         
-        let coordinator = NSFileCoordinator()
-        var zipError: NSError?
-        var success = false
+        // 執行指令：將 Payload 壓縮到 temp 目錄下的 ipa 檔案
+        // -r 是遞迴壓縮，-y 是保留符號連結 (這對 iOS App 很重要)
+        let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
+        let result = shell(command)
         
-     
-        coordinator.coordinate(readingItemAt: containerDir, options: .forUploading, error: &zipError) { zipURL in
-            do {
-                
-                try fm.moveItem(at: zipURL, to: exportIpaURL)
-                success = true
-            } catch {
-                print("Export Move Failed: \(error)")
-            }
+        fm.changeCurrentDirectoryPath(currentDir) // 換回來
+
+        if result != 0 {
+            throw NSError(domain: "ZipError", code: Int(result), userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"])
         }
 
-        if let error = zipError { throw error }
-        if !success { throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"])}
-
-        
+        // 4. 跳出 iPad 分享選單
         let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
         if let rootVC = UIApplication.shared.windows.first?.rootViewController {
             activityVC.popoverPresentationController?.sourceView = rootVC.view
+            // 設定在螢幕中間彈出，避免 iPad 閃退
             activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
             rootVC.present(activityVC, animated: true)
         }
         
-        
-        try? fm.removeItem(at: containerDir)
+        // 清理 Payload 暫存
+        try? fm.removeItem(at: workDir)
         
     } catch {
         self.errorInfo = "導出失敗: \(error.localizedDescription)"

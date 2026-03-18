@@ -287,10 +287,12 @@ var groupedApps: [String: [LCAppModel]] {
         result[groupName] = appsInThisGroup 
         
         if !appsInThisGroup.isEmpty {
-            assignedBundleIds.formUnion(appsInThisGroup.map { $0.bundleIdentifier() ?? "" })
+            
+            assignedBundleIds.formUnion(appsInThisGroup.compactMap { $0.appInfo.bundleIdentifier() })
         }
     }
 }
+
 
 
 

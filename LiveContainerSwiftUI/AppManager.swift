@@ -145,13 +145,7 @@ struct LCCacheManagementView: View {
                 }
             }
         } 
-        .alert(isPresented: $errorShow) { 
-            Alert(
-                title: Text("Reminder"),
-                message: Text(errorInfo),
-                dismissButton: .default(Text("Confirm"))
-            )
-        }
+        
     }
     
     @ViewBuilder

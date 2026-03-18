@@ -213,32 +213,45 @@ struct LCCacheManagementView: View {
 
     func exportAppAsIpa(app: LCAppModel) {
     let fm = FileManager.default
-    let bundlePath = URL(fileURLWithPath: app.appInfo.bundlePath)
-    let tempZipURL = fm.temporaryDirectory.appendingPathComponent("\(app.appInfo.displayName()).ipa")
+    let appDisplayName = app.appInfo.displayName().sanitizeNonACSII()
+    
+
+    let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    let payloadURL = tempDir.appendingPathComponent("Payload")
+    let exportZipURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
     
     
-    try? fm.removeItem(at: tempZipURL)
-    
-    
-    let payloadURL = fm.temporaryDirectory.appendingPathComponent("Payload")
-    try? fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+    try? fm.removeItem(at: tempDir)
+    try? fm.removeItem(at: exportZipURL)
     
     do {
         
+        try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+        
+        
+        let bundlePath = URL(fileURLWithPath: app.appInfo.bundlePath)
         let targetAppURL = payloadURL.appendingPathComponent(bundlePath.lastPathComponent)
         try fm.copyItem(at: bundlePath, to: targetAppURL)
         
         
+        try fm.zipItem(at: tempDir, to: exportZipURL, shouldKeepParent: false)
         
-        let activityVC = UIActivityViewController(activityItems: [tempZipURL], applicationActivities: nil)
+        
+        let activityVC = UIActivityViewController(activityItems: [exportZipURL], applicationActivities: nil)
         
         
         if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-            if let popover = activityVC.popoverPresentationController {
-                popover.sourceView = rootVC.view
-            }
+            activityVC.popoverPresentationController?.sourceView = rootVC.view
+            
+            activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+            activityVC.popoverPresentationController?.permittedArrowDirections = []
+            
             rootVC.present(activityVC, animated: true)
         }
+        
+    
+        try? fm.removeItem(at: tempDir)
+        
     } catch {
         self.errorInfo = "導出失敗: \(error.localizedDescription)"
         self.errorShow = true

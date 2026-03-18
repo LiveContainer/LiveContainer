@@ -52,25 +52,26 @@ struct LCAppBanner : View {
     @EnvironmentObject private var sharedModel : SharedModel
     
     init(appModel: LCAppModel, delegate: LCAppBannerDelegate, appDataFolders: Binding<[String]>, tweakFolders: Binding<[String]>) {
-        _appInfo = State(initialValue: appModel.appInfo)
-        _appDataFolders = appDataFolders
-        _tweakFolders = tweakFolders
-        self.delegate = delegate
-        
-        _model = ObservedObject(wrappedValue: appModel)
-        _mainColor = State(initialValue: Color.clear)
-        _icon = State(initialValue: appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")))
-        _mainColor = State(initialValue: extractMainHueColor())
-        let bundleId = appModel.appInfo.bundleIdentifier() ?? ""
-        let initialIcon = LCAppCustomizer.getCustomIcon(for: bundleId) ?? appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon"))
-        _icon = State(initialValue: initialIcon)
-        
+    _appInfo = State(initialValue: appModel.appInfo)
+    _appDataFolders = appDataFolders
+    _tweakFolders = tweakFolders
+    self.delegate = delegate
+    _model = ObservedObject(wrappedValue: appModel)
     
-        _displayName = State(initialValue: LCAppCustomizer.getCustomName(for: bundleId, defaultName: appModel.appInfo.displayName()))
-        
-        _mainColor = State(initialValue: extractMainHueColor())
+    let bundleId = appModel.appInfo.bundleIdentifier() ?? ""
+    
+    
+    let fallbackIcon = appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")) ?? UIImage(systemName: "app.dashed")!
+    let initialIcon = LCAppCustomizer.getCustomIcon(for: bundleId) ?? fallbackIcon
+    
+    _icon = State(initialValue: initialIcon)
+    _displayName = State(initialValue: LCAppCustomizer.getCustomName(for: bundleId, defaultName: appModel.appInfo.displayName()))
+    
+    
+    _mainColor = State(initialValue: Color.clear)
+    _mainColor = State(initialValue: extractMainHueColor())
+}
 
-    }
     @State private var mainHueColor: CGFloat? = nil
     
     var body: some View {

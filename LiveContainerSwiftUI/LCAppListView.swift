@@ -278,16 +278,21 @@ var groupedApps: [String: [LCAppModel]] {
         
         let sortedGroupNames = sharedAppSortManager.customGroups.keys.sorted()
         for groupName in sortedGroupNames {
-            if let bundleIds = sharedAppSortManager.customGroups[groupName] {
-                let appsInThisGroup = allApps.filter { app in
-                    bundleIds.contains(app.appInfo.bundleIdentifier() ?? "")
-                }
-                if !appsInThisGroup.isEmpty {
-                    result[groupName] = appsInThisGroup
-                    assignedBundleIds.formUnion(appsInThisGroup.map { $0.appInfo.bundleIdentifier() ?? "" })
-                }
-            }
+    if let bundleIds = sharedAppSortManager.customGroups[groupName] {
+        let appsInThisGroup = allApps.filter { app in
+            bundleIds.contains(app.appInfo.bundleIdentifier() ?? "")
         }
+        
+        
+        result[groupName] = appsInThisGroup 
+        
+        if !appsInThisGroup.isEmpty {
+            assignedBundleIds.formUnion(appsInThisGroup.map { $0.bundleIdentifier() ?? "" })
+        }
+    }
+}
+
+
 
         
         let otherApps = allApps.filter { !assignedBundleIds.contains($0.appInfo.bundleIdentifier() ?? "") }

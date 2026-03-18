@@ -418,7 +418,7 @@ private func setMode(_ mode: AppLaunchMode) {
             }
         }
     
-
+          .navigationViewStyle(.stack)
 
 
         .alert("lc.common.error".loc, isPresented: $errorShow){

@@ -18,17 +18,6 @@ enum AppLaunchMode: Int {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class SearchContext: ObservableObject {
     @Published var query: String = ""
     @Published var debouncedQuery: String = ""
@@ -118,16 +107,29 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
        @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
 
 
-    var groupedApps: [String: [LCAppModel]] {
-        Dictionary(grouping: filteredApps) { app in
-            
-            let name = app.appInfo.displayName() ?? "Unknown"
-            
-           
-            let prefix = name.prefix(1).uppercased()
-            return prefix.isEmpty ? "#" : prefix
+    // LCAppListView.swift 內的計算屬性
+var groupedApps: [String: [LCAppModel]] {
+    var result: [String: [LCAppModel]] = [:]
+    let allApps = filteredApps
+    var assignedBundleIds = Set<String>()
+
+
+    for (groupName, bundleIds) in sharedAppSortManager.customGroups {
+        let appsInThisGroup = allApps.filter { bundleIds.contains($0.appInfo.bundleIdentifier() ?? "") }
+        if !appsInGroup.isEmpty {
+            result[groupName] = appsInThisGroup
+            assignedBundleIds.formUnion(appsInThisGroup.map { $0.appInfo.bundleIdentifier() ?? "" })
         }
     }
+
+    
+    let otherApps = allApps.filter { !assignedBundleIds.contains($0.appInfo.bundleIdentifier() ?? "") }
+    if !otherApps.isEmpty {
+        result["Other"] = otherApps
+    }
+
+    return result
+}
 
 
     var currentModeIcon: String {

@@ -91,11 +91,7 @@ struct LCEditAppView: View {
                                             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                                             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                                         
-                                        Image(systemName: "camera.circle.fill")
-                                            .symbolRenderingMode(.multicolor)
-                                            .font(.system(size: 30))
-                                            .background(Circle().fill(Color(UIColor.secondarySystemGroupedBackground)))
-                                            .offset(x: 8, y: 8)
+                                        
                                     }
                                     
                                     Text("Change Icon")

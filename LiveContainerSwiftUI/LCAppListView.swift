@@ -124,7 +124,7 @@ extension LCAppListView {
 
             }
             Divider()
-            Button("Other",SystemImage:"folder") {
+            Button("Other",systemImage:"folder") {
                 sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
             }
             Button("New Group", systemImage: "plus") {

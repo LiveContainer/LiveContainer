@@ -47,8 +47,6 @@ struct LCAppCustomizer {
         }
     }
 }
-import SwiftUI
-import PhotosUI
 
 import SwiftUI
 import PhotosUI
@@ -75,81 +73,82 @@ struct LCEditAppView: View {
 
     var body: some View {
     NavigationView {
-        Form {
+        ZStack {
             
-            Section (header: Text("Edit DisplayIcon")){
-                VStack(spacing: 16) {
-                    Spacer(minLength: 0)
-                    
-                   
-                    ZStack(alignment: .bottomTrailing) {
-                        Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 100, height: 100)
-                            .cornerRadius(22) 
-                            .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 22)
-                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 0.5)
-                            )
+            Color(UIColor.systemGroupedBackground).ignoresSafeArea()
+            
+            Form {
+                
+                Section {
+                    VStack(spacing: 20) {
+                        Spacer(minLength: 5)
                         
                         
-                        Image(systemName: "pencil.circle.fill")
-                            .symbolRenderingMode(.multicolor)
-                            .font(.system(size: 30))
-                            .foregroundColor(Color.purple)
-                            .background(Circle().fill(.white))
-                            .offset(x: 8, y: 8)
-                    }
-                    
-                    
-                    if #available(iOS 16.0, *) {
-                        PhotosPicker(selection: Binding(
-                            get: { self.internalItemSelection as? PhotosPickerItem },
-                            set: { self.internalItemSelection = $0 }
-                        ), matching: .images) {
-                            Text("Change Icon") 
-                                .font(.headline)
-                                .foregroundColor(.accentColor)
+                        ZStack(alignment: .bottomTrailing) {
+                            Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 110, height: 110)
+                                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous)) // 使用 .continuous 更接近原生
+                                .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 6)
+                                .overlay(
+                                    
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                                )
+                            
+                            
+                            if #available(iOS 16.0, *) {
+                                PhotosPicker(selection: Binding(
+                                    get: { self.internalItemSelection as? PhotosPickerItem },
+                                    set: { self.internalItemSelection = $0 }
+                                ), matching: .images) {
+                                    Image(systemName: "pencil.circle.fill")
+                                        .symbolRenderingMode(.multicolor)
+                                        .font(.system(size: 32))
+                                        .background(Circle().fill(Color(UIColor.secondarySystemGroupedBackground)))
+                                        .offset(x: 10, y: 10)
+                                }
+                            }
                         }
-                    } else {
-                        Text("Icon change requires iOS 16")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                        
+                        VStack(spacing: 4) {
+                            Text(app.appInfo.displayName())
+                                .font(.headline)
+                            Text(app.appInfo.bundleIdentifier() ?? "")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer(minLength: 5)
                     }
-                    
-                    Spacer(minLength: 0)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear) // 讓頂部預覽區背景透明
                 }
-                .frame(maxWidth: .infinity)
-                .listRowBackground(Color.clear) 
-            }
-            
-            
-            Section(header: Text("Edit DisplayName")) {
-                HStack {
-                    Text("Display Name")
-                        .foregroundColor(.primary)
-                    Spacer()
-                    TextField("App Name", text: $newName)
-                        .multilineTextAlignment(.trailing)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            
-            Section {
-                Button(role: .destructive) {
-                    let bid = app.appInfo.bundleIdentifier() ?? ""
-                    LCAppCustomizer.setCustomName(for: bid, name: nil)
-                    LCAppCustomizer.setCustomIcon(for: bid, image: nil)
-                    onSave()
-                    dismiss()
-                } label: {
+                
+                
+                Section(header: Text("EDIT INFO")) {
                     HStack {
+                        Label("Display Name", systemImage: "character.cursor.ibeam")
+                            .font(.subheadline)
                         Spacer()
-                        Text("Reset To Default")
-                        Spacer()
+                        TextField("Enter name", text: $newName)
+                            .multilineTextAlignment(.trailing)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+                
+                
+                Section {
+                    Button(role: .destructive) {
+                        resetToDefault()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Reset To Default")
+                                .fontWeight(.medium)
+                            Spacer()
+                        }
                     }
                 }
             }
@@ -157,22 +156,15 @@ struct LCEditAppView: View {
         .navigationTitle("Edit App Info")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") { dismiss() }
             }
-            ToolbarItem(placement: .confirmationAction) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Done") {
-                    let bid = app.appInfo.bundleIdentifier() ?? ""
-                    LCAppCustomizer.setCustomName(for: bid, name: newName)
-                    if let img = selectedImage {
-                        LCAppCustomizer.setCustomIcon(for: bid, image: img)
-                    }
-                    onSave()
+                    saveChanges()
                     dismiss()
                 }
-                
+                .bold()
             }
         }
     }
@@ -180,6 +172,25 @@ struct LCEditAppView: View {
         handleImageSelection()
     }
 }
+
+
+private func resetToDefault() {
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    LCAppCustomizer.setCustomName(for: bid, name: nil)
+    LCAppCustomizer.setCustomIcon(for: bid, image: nil)
+    onSave()
+    dismiss()
+}
+
+private func saveChanges() {
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    LCAppCustomizer.setCustomName(for: bid, name: newName)
+    if let img = selectedImage {
+        LCAppCustomizer.setCustomIcon(for: bid, image: img)
+    }
+    onSave()
+}
+
 
 
     private func handleImageSelection() {

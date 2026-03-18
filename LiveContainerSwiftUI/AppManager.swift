@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import UIKit
 import PhotosUI
-import ZIPFoundation
 
 extension LCAppModel: Identifiable {
     public var id: String {
@@ -220,6 +219,7 @@ struct LCCacheManagementView: View {
     func exportAppAsIpa(app: LCAppModel) {
     let fm = FileManager.default
     
+    
     guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
         self.errorInfo = "無法取得 Bundle 路徑"
         self.errorShow = true
@@ -244,8 +244,23 @@ struct LCCacheManagementView: View {
         let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
         try fm.copyItem(at: bundleURL, to: targetAppURL)
 
-      
-        try fm.zipItem(at: tempDir, to: exportIpaURL, shouldKeepParent: false)
+        
+        let coordinator = NSFileCoordinator()
+        var zipError: NSError?
+        var success = false
+        
+        coordinator.coordinate(readingItemAt: tempDir, options: .forUploading, error: &zipError) { zipURL in
+            do {
+                
+                try fm.moveItem(at: zipURL, to: exportIpaURL)
+                success = true
+            } catch {
+                print("壓縮檔案移動失敗: \(error)")
+            }
+        }
+
+        if let error = zipError { throw error }
+        guard success else { throw NSError(domain: "ExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"]) }
 
         
         let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
@@ -254,6 +269,10 @@ struct LCCacheManagementView: View {
             activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
             rootVC.present(activityVC, animated: true)
         }
+        
+        
+        try? fm.removeItem(at: tempDir)
+        
     } catch {
         self.errorInfo = "導出失敗: \(error.localizedDescription)"
         self.errorShow = true

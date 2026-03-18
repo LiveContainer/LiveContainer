@@ -234,6 +234,6 @@ struct LCCacheManagementView: View {
         rootVC.present(activityVC, animated: true)
     }
 }
-
+}
 
 

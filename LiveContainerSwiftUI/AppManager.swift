@@ -64,7 +64,7 @@ struct LCCacheDiskTool {
 
 struct LCCacheManagementView: View {
     @State private var isExporting = false
-@State private var exportProgressText = "" 
+    @State private var exportProgressText = "" 
 
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
@@ -83,50 +83,49 @@ struct LCCacheManagementView: View {
     }
 
     var body: some View {
-        NavigationView {
-            List {
-                
-                Section {
-                    let total = cacheItems.reduce(0) { $0 + $1.size }
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Total Cache Size").font(.caption).foregroundColor(.gray)
-                            Text(formatSize(total)).font(.headline).bold()
-                        }
-                        Spacer()
-                        Button("Clear All Cache") {
-                            cacheItems.forEach { LCCacheDiskTool.clearCache(uuid: $0.id) }
-                            refresh()
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                        .disabled(total == 0)
-                    }
-                }
-
-                
-                                Section("App List") {
-                    if isScanning {
-                        ProgressView("Scanning...").frame(maxWidth: .infinity)
-                    } else {
-                        ForEach(cacheItems) { item in
-                            appRow(item: item) 
+        ZStack 
+            NavigationView {
+                List {
+                    Section {
+                        let total = cacheItems.reduce(0) { $0 + $1.size }
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Total Cache Size").font(.caption).foregroundColor(.gray)
+                                Text(formatSize(total)).font(.headline).bold()
+                            }
+                            Spacer()
+                            Button("Clear All Cache") {
+                                cacheItems.forEach { LCCacheDiskTool.clearCache(uuid: $0.id) }
+                                refresh()
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            .disabled(total == 0)
                         }
                     }
+
+                    Section("App List") {
+                        if isScanning {
+                            ProgressView("Scanning...").frame(maxWidth: .infinity)
+                        } else {
+                            ForEach(cacheItems) { item in
+                                appRow(item: item) 
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("App Manager")
+                .navigationViewStyle(.stack)
+                .onAppear { refresh() }
+                .refreshable { refresh() }
+                .sheet(item: $editingApp) { appModel in
+                    LCEditAppView(app: appModel, onSave: { refresh() })
                 }
             }
-            .navigationTitle("App Manager")
-            .navigationViewStyle(.stack)
-            .onAppear { refresh() }
-            .refreshable { refresh() }
-            .sheet(item: $editingApp) { appModel in
-                LCEditAppView(app: appModel, onSave: { refresh() })
-            }
-        }
-        .disabled(isExporting) 
+            .disabled(isExporting) 
 
-        
-        if isExporting {
+       
+            if isExporting {
                 ZStack {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
@@ -154,57 +153,54 @@ struct LCCacheManagementView: View {
             )
         }
     }
-
-@ViewBuilder
-func appRow(item: CacheItem) -> some View {
-    HStack(spacing: 12) {
-        let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
-        let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
-
-        Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
-            .resizable()
-            .frame(width: 36, height: 36)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        VStack(alignment: .leading, spacing: 2) {
-            Text(displayName).font(.subheadline).lineLimit(1)
-            Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
-        }
-        Spacer()
-        Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
-    }
-    .contentShape(Rectangle())
-    .contextMenu {
-        let allApps = sharedModel.apps + sharedModel.hiddenApps
-        let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId })
-
-        Button {
-            if let app = foundApp { self.editingApp = app }
-        } label: {
-            Label("Edit App Info", systemImage: "pencil")
-        }
-
-        Button {
-            if let app = foundApp {
-                exportAppAsIpa(app: app) 
-            }
-        } label: {
-            Label("Export As ipa", systemImage: "square.and.arrow.up")
-        }
-        .disabled(foundApp == nil)
-
-        
-
-        Button(role: .destructive) {
-            LCCacheDiskTool.clearCache(uuid: item.id)
-            refresh()
-        } label: {
-            Label("Clear Cache", systemImage: "trash")
-        }
-    }
-}
-
     
+    @ViewBuilder
+    func appRow(item: CacheItem) -> some View {
+        HStack(spacing: 12) {
+            let displayIcon = LCAppCustomizer.getCustomIcon(for: item.bundleId) ?? item.icon
+            let displayName = LCAppCustomizer.getCustomName(for: item.bundleId, defaultName: item.name)
+
+            Image(uiImage: displayIcon ?? UIImage(systemName: "app.dashed")!)
+                .resizable()
+                .frame(width: 36, height: 36)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(displayName).font(.subheadline).lineLimit(1)
+                Text(item.bundleId).font(.caption2).foregroundColor(.gray).lineLimit(1)
+            }
+            Spacer()
+            Text(formatSize(item.size)).font(.caption.monospaced()).foregroundColor(.blue)
+        }
+        .contentShape(Rectangle())
+        .contextMenu {
+            let allApps = sharedModel.apps + sharedModel.hiddenApps
+            let foundApp = allApps.first(where: { $0.appInfo.bundleIdentifier() == item.bundleId })
+
+            Button {
+                if let app = foundApp { self.editingApp = app }
+            } label: {
+                Label("Edit App Info", systemImage: "pencil")
+            }
+
+            Button {
+                if let app = foundApp {
+                    exportAppAsIpa(app: app) 
+                }
+            } label: {
+                Label("Export As ipa", systemImage: "square.and.arrow.up")
+            }
+            .disabled(foundApp == nil)
+
+            Button(role: .destructive) {
+                LCCacheDiskTool.clearCache(uuid: item.id)
+                refresh()
+            } label: {
+                Label("Clear Cache", systemImage: "trash")
+            }
+        }
+    }
+
     func refresh() {
         isScanning = true
         Task {
@@ -240,68 +236,63 @@ func appRow(item: CacheItem) -> some View {
     }
 
     func exportAppAsIpa(app: LCAppModel) {
-    
-    isExporting = true
-    exportProgressText = "正在導出 \(app.appInfo.displayName())..."
-    
-    Task(priority: .userInitiated) {
-        let fm = FileManager.default
+        isExporting = true
+        exportProgressText = "Exporting \(app.appInfo.displayName())..."
         
-        
-        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-            await MainActor.run {
-                self.errorInfo = "找不到路徑"
-                self.errorShow = true
-                self.isExporting = false
-            }
-            return
-        }
-        
-        let bundleURL = URL(fileURLWithPath: pathString)
-        let appName = app.appInfo.displayName().sanitizeNonACSII()
-        let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
-        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        let payloadURL = workDir.appendingPathComponent("Payload")
-        
-        try? fm.removeItem(at: exportIpaURL)
-        try? fm.removeItem(at: workDir)
-        
-        do {
-            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
-            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
-            
-            let currentDir = fm.currentDirectoryPath
-            fm.changeCurrentDirectoryPath(workDir.path)
-            
-            
-            let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
-            let result = shell(command)
-            
-            fm.changeCurrentDirectoryPath(currentDir)
-            
-            await MainActor.run {
-                self.isExporting = false
-                if result == 0 {
-                    let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
-                    if let rootVC = UIApplication.shared.windows.first?.rootViewController {
-                        activityVC.popoverPresentationController?.sourceView = rootVC.view
-                        activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-                        rootVC.present(activityVC, animated: true)
-                    }
-                } else {
-                    self.errorInfo = "壓縮失敗 (\(result))"
+        Task(priority: .userInitiated) {
+            let fm = FileManager.default
+            guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+                await MainActor.run {
+                    self.errorInfo = "Path not found"
                     self.errorShow = true
+                    self.isExporting = false
                 }
-                try? fm.removeItem(at: workDir)
+                return
             }
-        } catch {
-            await MainActor.run {
-                self.errorInfo = error.localizedDescription
-                self.errorShow = true
-                self.isExporting = false
+            
+            let bundleURL = URL(fileURLWithPath: pathString)
+            let appName = app.appInfo.displayName().sanitizeNonACSII()
+            let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appName).ipa")
+            let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            let payloadURL = workDir.appendingPathComponent("Payload")
+            
+            try? fm.removeItem(at: exportIpaURL)
+            try? fm.removeItem(at: workDir)
+            
+            do {
+                try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+                try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+                
+                let currentDir = fm.currentDirectoryPath
+                fm.changeCurrentDirectoryPath(workDir.path)
+                
+                let command = "zip -ry '\(exportIpaURL.path)' 'Payload'"
+                let result = shell(command)
+                
+                fm.changeCurrentDirectoryPath(currentDir)
+                
+                await MainActor.run {
+                    self.isExporting = false
+                    if result == 0 {
+                        let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
+                        if let rootVC = UIApplication.shared.windows.first?.rootViewController {
+                            activityVC.popoverPresentationController?.sourceView = rootVC.view
+                            activityVC.popoverPresentationController?.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+                            rootVC.present(activityVC, animated: true)
+                        }
+                    } else {
+                        self.errorInfo = "Zip Failed (\(result))"
+                        self.errorShow = true
+                    }
+                    try? fm.removeItem(at: workDir)
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorInfo = error.localizedDescription
+                    self.errorShow = true
+                    self.isExporting = false
+                }
             }
         }
     }
 }
-
-

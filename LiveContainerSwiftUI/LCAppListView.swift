@@ -114,12 +114,17 @@ extension LCAppListView {
     private func moveGroupMenu(for app: LCAppModel) -> some View {
         Menu {
             ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-                Button("Move To" name) {
-                    sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
-                }
+                Button {
+    sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
+} label: {
+   
+    Label("\(name)", systemImage: "folder")
+}
+
+
             }
             Divider()
-            Button("Move to Other") {
+            Button("Other",SystemImage:"folder") {
                 sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
             }
             Button("New Group", systemImage: "plus") {

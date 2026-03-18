@@ -212,28 +212,21 @@ struct LCCacheManagementView: View {
     }
 
     func openInFiles(uuid: String) {
-    let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
-    
-    
-    guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
+        let folderURL = LCCacheDiskTool.appDataRoot.appendingPathComponent(uuid)
+        
+        guard FileManager.default.fileExists(atPath: folderURL.path) else { return }
 
-    
-    let activityVC = UIActivityViewController(activityItems: [folderURL], applicationActivities: nil)
-    
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let rootVC = windowScene.windows.first?.rootViewController {
         
+        let interactionController = UIDocumentInteractionController(url: folderURL)
+        interactionController.uti = "public.folder"
         
-        if let popover = activityVC.popoverPresentationController {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
             
-            popover.sourceView = rootVC.view
-            popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
-            popover.permittedArrowDirections = []
-        }
         
-        rootVC.present(activityVC, animated: true)
+            interactionController.presentOpenInMenu(from: rootVC.view.bounds, in: rootVC.view, animated: true)
+        }
     }
-}
 }
 
 

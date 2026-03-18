@@ -77,10 +77,12 @@ struct LCEditAppView: View {
         NavigationView {
             Form {
                 Section("Appearance") {
-                    HStack {
-                        Spacer()
-                        VStack {
-                            
+                 HStack{
+                     
+                    VStack{
+                      
+                            Text("Display Icon")
+                        
                             Image(uiImage: selectedImage ?? app.appInfo.iconIsDarkIcon(false) ?? UIImage(systemName: "app.dashed")!)
                                 .resizable()
                                 .frame(width: 80, height: 80)
@@ -94,16 +96,21 @@ struct LCEditAppView: View {
                                 ), matching: .images) {
                                     Text("Change Icon").font(.caption)
                                 }
+                            
                             } else {
                                 Text("Icon change requires iOS 16").font(.caption).foregroundColor(.gray)
                             }
-                        }
-                        Spacer()
-                    }.padding(.vertical)
-
+                        
+                        
+                        
+                    
+                 
+                     Text("Display Name")
                     TextField("Display Name", text: $newName)
+                    }.padding()
                 }
-                
+                    Spacer()
+                } 
                 Section {
                     Button("Reset to Default", role: .destructive) {
                         let bid = app.appInfo.bundleIdentifier() ?? ""

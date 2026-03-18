@@ -35,6 +35,12 @@ struct LCTabView: View {
                     LCTweaksView(tweakFolders: $tweakFolderNames)
                 } else if sharedModel.selectedTab == .settings {
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                } } else if sharedModel.selectedTab == .cache {
+                    
+                    
+                        LCCacheManagementView()
+                    
+                    
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -92,6 +98,7 @@ struct LCTabView: View {
                 tabItem(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
             }
             tabItem(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
+            tabItem(title: "lc.tabView.cache".loc, icon: "storage", id: .cache)
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)

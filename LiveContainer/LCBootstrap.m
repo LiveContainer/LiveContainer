@@ -652,8 +652,18 @@ int LiveContainerMain(int argc, char *argv[]) {
     
     if([selectedApp isEqualToString:@"ui"]) {
         selectedApp = nil;
-        [lcUserDefaults removeObjectForKey:@"selected"];
-        [lcUserDefaults removeObjectForKey:@"selectedContainer"];
+
+
+
+
+        
+        //[lcUserDefaults removeObjectForKey:@"selected"];
+        //[lcUserDefaults removeObjectForKey:@"selectedContainer"];
+
+
+
+
+        
     }
     
     if(isLiveProcess) {

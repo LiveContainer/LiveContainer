@@ -514,7 +514,7 @@ private func setMode(_ mode: AppLaunchMode) {
         }, onDismiss: { choosingIPA = false })
         .textFieldAlert(
             isPresented: $groupNameInput.show,
-            title: "lc.appList.newGroup".loc,
+            title: "New Group",
             text: $groupNameInput.initVal,
             placeholder: "Group Name",
             action: { name in groupNameInput.close(result: name) },

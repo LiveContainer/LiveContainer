@@ -2,19 +2,17 @@ import Foundation
 import SwiftUI
 import UIKit
 import PhotosUI
-
+import UniformTypeIdentifiers
 
 @_silgen_name("system")
 @discardableResult
 func shell(_ command: String) -> Int32
-
 
 extension LCAppModel: Identifiable {
     public var id: String {
         return self.appInfo.bundleIdentifier() ?? UUID().uuidString
     }
 }
-import UniformTypeIdentifiers
 
 
 extension UTType {
@@ -31,65 +29,15 @@ struct IPAFile: FileDocument {
     init(configuration: ReadConfiguration) throws { throw NSError(domain: "NS", code: -1) }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        
         return try FileWrapper(url: url, options: .immediate)
     }
 }
-
-
-
-struct LCCacheDiskTool {
-    static let fileManager = FileManager.default
-    static var appDataRoot: URL {
-        return LCPath.dataPath 
-    }
-
-    static func calculateCacheSize(uuid: String) -> Int64 {
-        let appPath = appDataRoot.appendingPathComponent(uuid)
-        let targets = [
-            appPath.appendingPathComponent("Library/Caches"),
-            appPath.appendingPathComponent("tmp")
-        ]
-        var total: Int64 = 0
-        for target in targets {
-            total += getDirectorySize(url: target)
-        }
-        return total
-    }
-
-    static func clearCache(uuid: String) {
-        let appPath = appDataRoot.appendingPathComponent(uuid)
-        let targets = [
-            appPath.appendingPathComponent("Library/Caches"),
-            appPath.appendingPathComponent("tmp")
-        ]
-        for target in targets {
-            guard let contents = try? fileManager.contentsOfDirectory(at: target, includingPropertiesForKeys: nil) else { continue }
-            for file in contents {
-                try? fileManager.removeItem(at: file)
-            }
-        }
-    }
-
-    private static func getDirectorySize(url: URL) -> Int64 {
-        guard let enumerator = fileManager.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey], options: .skipsHiddenFiles) else { return 0 }
-        var size: Int64 = 0
-        for case let fileURL as URL in enumerator {
-            if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
-               let fileSize = resourceValues.fileSize {
-                size += Int64(fileSize)
-            }
-        }
-        return size
-    }
-}
-
 
 struct LCCacheManagementView: View {
     @State private var isExporting = false
     @State private var exportProgressText = "" 
     @State private var exportDoc: IPAFile? = nil 
-@State private var isShowingExporter = false 
+    @State private var isShowingExporter = false 
 
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
@@ -149,43 +97,36 @@ struct LCCacheManagementView: View {
             }
             .disabled(isExporting) 
 
-       
             if isExporting {
                 ZStack {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                    
+                    Color.black.opacity(0.4).ignoresSafeArea()
                     VStack(spacing: 20) {
-                        ProgressView()
-                            .scaleEffect(1.5)
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        
-                        Text(exportProgressText)
-                            .foregroundColor(.white)
-                            .font(.headline)
+                        ProgressView().scaleEffect(1.5).progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        Text(exportProgressText).foregroundColor(.white).font(.headline)
                     }
                     .padding(40)
                     .background(Color.secondary.opacity(0.5))
                     .cornerRadius(20)
                 }
             }
-        
-        
-         .fileExporter(
+        } // ZStack 結束
+        .fileExporter(
             isPresented: $isShowingExporter,
             document: exportDoc,
             contentType: .ipa,
             defaultFilename: exportDoc?.url.lastPathComponent ?? "App.ipa"
         ) { result in
-            
             if let doc = exportDoc {
                 let workDir = doc.url.deletingLastPathComponent()
                 try? FileManager.default.removeItem(at: workDir)
             }
             self.exportDoc = nil
         }
-     }
-    
+        .alert(isPresented: $errorShow) {
+            Alert(title: Text("Reminder"), message: Text(errorInfo), dismissButton: .default(Text("Confirm")))
+        }
+    } 
+
     @ViewBuilder
     func appRow(item: CacheItem) -> some View {
         HStack(spacing: 12) {
@@ -233,27 +174,67 @@ struct LCCacheManagementView: View {
         }
     }
 
+    func exportAppAsIpa(app: LCAppModel) {
+        isExporting = true
+        exportProgressText = "Preparing \(app.appInfo.displayName())..."
+        
+        Task(priority: .userInitiated) {
+            let fm = FileManager.default
+            guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+                await MainActor.run { self.isExporting = false }
+                return
+            }
+            
+            let bundleURL = URL(fileURLWithPath: pathString)
+            let appName = app.appInfo.displayName().sanitizeNonACSII()
+            let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            let payloadURL = workDir.appendingPathComponent("Payload")
+            let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
+            
+            do {
+                try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+                try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+                
+                let currentDir = fm.currentDirectoryPath
+                fm.changeCurrentDirectoryPath(workDir.path)
+                let result = shell("zip -ry '\(exportIpaURL.path)' 'Payload'")
+                fm.changeCurrentDirectoryPath(currentDir)
+                
+                await MainActor.run {
+                    self.isExporting = false 
+                    if result == 0 {
+                        self.exportDoc = IPAFile(url: exportIpaURL) 
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            self.isShowingExporter = true
+                        }
+                    } else {
+                        self.errorInfo = "Zip Failed (\(result))"
+                        self.errorShow = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorInfo = error.localizedDescription
+                    self.errorShow = true
+                    self.isExporting = false
+                }
+            }
+        }
+    }
+    
+
     func refresh() {
         isScanning = true
         Task {
             let allApps = sharedModel.apps + sharedModel.hiddenApps
             var items: [CacheItem] = []
-            
             for app in allApps {
                 if let uuid = app.appInfo.dataUUID {
                     let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
                     let appIcon = app.appInfo.iconIsDarkIcon(darkModeIcon)
-                    
-                    items.append(CacheItem(
-                        id: uuid, 
-                        name: app.appInfo.displayName(), 
-                        bundleId: app.appInfo.bundleIdentifier() ?? "Unknown", 
-                        size: size,
-                        icon: appIcon
-                    ))
+                    items.append(CacheItem(id: uuid, name: app.appInfo.displayName(), bundleId: app.appInfo.bundleIdentifier() ?? "Unknown", size: size, icon: appIcon))
                 }
             }
-            
             await MainActor.run {
                 self.cacheItems = items.sorted { $0.size > $1.size }
                 self.isScanning = false
@@ -266,59 +247,53 @@ struct LCCacheManagementView: View {
         formatter.countStyle = .file
         return formatter.string(fromByteCount: bytes)
     }
+}
 
-    func exportAppAsIpa(app: LCAppModel) {
-    isExporting = true
-    exportProgressText = "Preparing \(app.appInfo.displayName())..."
-    
-    Task(priority: .userInitiated) {
-        let fm = FileManager.default
-        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-            await MainActor.run { isExporting = false }
-            return
+
+struct LCCacheDiskTool {
+    static let fileManager = FileManager.default
+    static var appDataRoot: URL {
+        return LCPath.dataPath 
+    }
+
+    static func calculateCacheSize(uuid: String) -> Int64 {
+        let appPath = appDataRoot.appendingPathComponent(uuid)
+        let targets = [
+            appPath.appendingPathComponent("Library/Caches"),
+            appPath.appendingPathComponent("tmp")
+        ]
+        var total: Int64 = 0
+        for target in targets {
+            total += getDirectorySize(url: target)
         }
-        
-        let bundleURL = URL(fileURLWithPath: pathString)
-        let appName = app.appInfo.displayName().sanitizeNonACSII()
-        
-        
-        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        let payloadURL = workDir.appendingPathComponent("Payload")
-        let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
-        
-        do {
-            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
-            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
-            
-            let currentDir = fm.currentDirectoryPath
-            fm.changeCurrentDirectoryPath(workDir.path)
-            let result = shell("zip -ry '\(exportIpaURL.path)' 'Payload'")
-            fm.changeCurrentDirectoryPath(currentDir)
-            
-                        await MainActor.run {
-                self.isExporting = false 
-                
-                if result == 0 {
-                    self.exportDoc = IPAFile(url: exportIpaURL) 
-                    
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        self.isShowingExporter = true
-                        print("觸發存檔選單")
-                    }
-                } else {
-                    self.errorInfo = "Zip Failed (\(result))"
-                    self.errorShow = true
-                }
-            }
- catch {
-            await MainActor.run {
-                self.errorInfo = error.localizedDescription
-                self.errorShow = true
-                self.isExporting = false
+        return total
+    }
+
+    static func clearCache(uuid: String) {
+        let appPath = appDataRoot.appendingPathComponent(uuid)
+        let targets = [
+            appPath.appendingPathComponent("Library/Caches"),
+            appPath.appendingPathComponent("tmp")
+        ]
+        for target in targets {
+            guard let contents = try? fileManager.contentsOfDirectory(at: target, includingPropertiesForKeys: nil) else { continue }
+            for file in contents {
+                try? fileManager.removeItem(at: file)
             }
         }
     }
+
+    private static func getDirectorySize(url: URL) -> Int64 {
+        guard let enumerator = fileManager.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey], options: .skipsHiddenFiles) else { return 0 }
+        var size: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            if let resourceValues = try? fileURL.resourceValues(forKeys: [.fileSizeKey]),
+               let fileSize = resourceValues.fileSize {
+                size += Int64(fileSize)
+            }
+        }
+        return size
+    }
 }
 
-}
+

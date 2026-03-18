@@ -77,12 +77,13 @@ class CacheViewModel: ObservableObject {
                 group.addTask {
                     guard let uuid = app.appInfo.dataUUID else { return nil }
                     let size = LCCacheDiskTool.calculateCacheSize(uuid: uuid)
+                    let icon = LCUtils.icon(forBundleIdentifier: app.appInfo.bundleIdentifier()) ?? UIImage(systemName: "app.dashed")
                     return CacheItem(
                         id: uuid,
                         name: app.appInfo.displayName(),
                         bundleId: app.appInfo.bundleIdentifier() ?? "Unknown",
                         size: size,
-                        icon: UIImage(systemName: "app.dashed")
+                        icon: icon
 
                     )
                 }
@@ -99,9 +100,9 @@ class CacheViewModel: ObservableObject {
 }
 import SwiftUI
 
-// 確保這裡是 public 或內建權限，不要加 private
+
 struct LCCacheManagementView: View {
-    // 這裡使用 EnvironmentObject，所以初始化時不需要傳參
+    
     @EnvironmentObject var sharedModel: SharedModel
     @State private var cacheItems: [CacheItem] = []
     @State private var isScanning = false
@@ -121,11 +122,11 @@ struct LCCacheManagementView: View {
                     let total = cacheItems.reduce(0) { $0 + $1.size }
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("lc.cache.totalUsage".loc).font(.caption).foregroundColor(.gray)
+                            Text("Total Cache Size").font(.caption).foregroundColor(.green)
                             Text(formatSize(total)).font(.headline).bold()
                         }
                         Spacer()
-                        Button("lc.cache.clearAll".loc) {
+                        Button(Clear All Caches) {
                             cacheItems.forEach { LCCacheDiskTool.clearCache(uuid: $0.id) }
                             refresh()
                         }
@@ -161,7 +162,7 @@ struct LCCacheManagementView: View {
                     }
                 }
             }
-            .navigationTitle("lc.tabView.cache".loc)
+            .navigationTitle("App Manager")
             .onAppear { refresh() }
             .refreshable { refresh() }
         }

@@ -158,56 +158,63 @@ struct LCCacheManagementView: View {
     }
 
     func exportAppAsIpa(app: LCAppModel) {
-        isExporting = true
-        exportProgressText = "Preparing \(app.appInfo.displayName())..."
+    isExporting = true
+    exportProgressText = "Compress \(app.appInfo.displayName())..."
+    
+    Task(priority: .userInitiated) {
+        let fm = FileManager.default
+        guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
+            await MainActor.run { self.isExporting = false }
+            return
+        }
         
-        Task(priority: .userInitiated) {
-            let fm = FileManager.default
-            guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
-                await MainActor.run { self.isExporting = false }
-                return
+        let bundleURL = URL(fileURLWithPath: pathString)
+        let appName = app.appInfo.displayName().sanitizeNonACSII().replacingOccurrences(of: " ", with: "_")
+        
+        
+        let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let payloadURL = workDir.appendingPathComponent("Payload")
+        
+        do {
+            try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
+            
+            try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
+            
+            
+            let coordinator = NSFileCoordinator()
+            var zipError: NSError?
+            var systemZipURL: URL?
+            
+            
+            coordinator.coordinate(readingItemAt: payloadURL, options: .forUploading, error: &zipError) { zippedURL in
+                
+                let finalIpaURL = workDir.appendingPathComponent("\(appName).ipa")
+                try? fm.moveItem(at: zippedURL, to: finalIpaURL)
+                systemZipURL = finalIpaURL
             }
             
-            let bundleURL = URL(fileURLWithPath: pathString)
-            let appName = app.appInfo.displayName().sanitizeNonACSII().replacingOccurrences(of: " ", with: "_")
-            let workDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            let payloadURL = workDir.appendingPathComponent("Payload")
-            let exportIpaURL = workDir.appendingPathComponent("\(appName).ipa")
-            
-            do {
-                try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
-                try fm.copyItem(at: bundleURL, to: payloadURL.appendingPathComponent(bundleURL.lastPathComponent))
-                
-                let currentDir = fm.currentDirectoryPath
-                fm.changeCurrentDirectoryPath(workDir.path)
-                
-                // 執行壓縮指令
-                let cmd = "zip -ry '\(exportIpaURL.path)' 'Payload'"
-                let result = shell(cmd)
-                
-                fm.changeCurrentDirectoryPath(currentDir)
-                
-                await MainActor.run {
-                    self.isExporting = false 
-                    if result == 0 && fm.fileExists(atPath: exportIpaURL.path) {
-                        self.exportDoc = IPAFile(url: exportIpaURL) 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            self.isShowingExporter = true
-                        }
-                    } else {
-                        self.errorInfo = "Compress failed (Code: \(result))"
-                        self.errorShow = true
+            await MainActor.run {
+                self.isExporting = false
+                if let finalURL = systemZipURL, fm.fileExists(atPath: finalURL.path) {
+                    self.exportDoc = IPAFile(url: finalURL)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.isShowingExporter = true
                     }
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorInfo = "Error: \(error.localizedDescription)"
+                } else {
+                    self.errorInfo = "Failed : \(zipError?.localizedDescription ?? "Unknown Error")"
                     self.errorShow = true
-                    self.isExporting = false
                 }
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.errorInfo = "Error: \(error.localizedDescription)"
+                self.errorShow = true
+                self.isExporting = false
             }
         }
     }
+}
 
     func formatSize(_ bytes: Int64) -> String {
         let formatter = ByteCountFormatter()

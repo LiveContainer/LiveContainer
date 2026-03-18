@@ -16,7 +16,7 @@ extension LCAppModel: Identifiable {
 
 
 extension UTType {
-    static var ipa: UTType {
+    static var ipafile: UTType {
         UTType(filenameExtension: "ipa") ?? .data
     }
 }

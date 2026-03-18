@@ -219,7 +219,6 @@ struct LCCacheManagementView: View {
     func exportAppAsIpa(app: LCAppModel) {
     let fm = FileManager.default
     
-    
     guard let pathString = app.appInfo.bundlePath(), !pathString.isEmpty else {
         self.errorInfo = "無法取得 Bundle 路徑"
         self.errorShow = true
@@ -231,43 +230,38 @@ struct LCCacheManagementView: View {
     let exportIpaURL = fm.temporaryDirectory.appendingPathComponent("\(appDisplayName).ipa")
 
    
-    let tempDir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-  
-    let payloadURL = tempDir.appendingPathComponent("Payload")
+    let containerDir = fm.temporaryDirectory.appendingPathComponent("ArchiveContainer_\(UUID().uuidString)")
+    let payloadURL = containerDir.appendingPathComponent("Payload")
     
-   
     try? fm.removeItem(at: exportIpaURL)
-    
-    try? fm.removeItem(at: tempDir)
+    try? fm.removeItem(at: containerDir)
 
     do {
-      
+        
         try fm.createDirectory(at: payloadURL, withIntermediateDirectories: true)
         
-       
+        
         let targetAppURL = payloadURL.appendingPathComponent(bundleURL.lastPathComponent)
         try fm.copyItem(at: bundleURL, to: targetAppURL)
 
-     
+        
         let coordinator = NSFileCoordinator()
         var zipError: NSError?
         var success = false
         
-       
-
-        coordinator.coordinate(readingItemAt: tempDir, options: .forUploading, error: &zipError) { zipURL in
+     
+        coordinator.coordinate(readingItemAt: containerDir, options: .forUploading, error: &zipError) { zipURL in
             do {
                 
                 try fm.moveItem(at: zipURL, to: exportIpaURL)
                 success = true
             } catch {
-                print("壓縮檔案移動失敗: \(error)")
+                print("Export Move Failed: \(error)")
             }
         }
-        
 
         if let error = zipError { throw error }
-        guard success else { throw NSError(domain: "ExportError", code: -1, userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"]) }
+        if !success { throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "壓縮失敗"])}
 
         
         let activityVC = UIActivityViewController(activityItems: [exportIpaURL], applicationActivities: nil)
@@ -278,7 +272,7 @@ struct LCCacheManagementView: View {
         }
         
         
-        try? fm.removeItem(at: tempDir)
+        try? fm.removeItem(at: containerDir)
         
     } catch {
         self.errorInfo = "導出失敗: \(error.localizedDescription)"

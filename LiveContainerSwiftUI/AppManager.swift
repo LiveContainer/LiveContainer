@@ -16,22 +16,26 @@ extension LCAppModel: Identifiable {
 }
 import UniformTypeIdentifiers
 
+
+extension UTType {
+    static var ipa: UTType {
+        UTType(filenameExtension: "ipa") ?? .data
+    }
+}
+
 struct IPAFile: FileDocument {
-    static var readableContentTypes: [UTType] { [UTType(filenameExtension: "ipa")!] }
+    static var readableContentTypes: [UTType] { [.ipa] } 
     let url: URL
 
-    init(url: URL) {
-        self.url = url
-    }
-
-    init(configuration: ReadConfiguration) throws {
-        throw NSError(domain: "NotSupported", code: -1)
-    }
+    init(url: URL) { self.url = url }
+    init(configuration: ReadConfiguration) throws { throw NSError(domain: "NS", code: -1) }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        
         return try FileWrapper(url: url, options: .immediate)
     }
 }
+
 
 
 struct LCCacheDiskTool {
@@ -165,7 +169,7 @@ struct LCCacheManagementView: View {
                     .cornerRadius(20)
                 }
             }
-        } 
+        
         
     .fileExporter(
         isPresented: $isShowingExporter,
@@ -185,10 +189,8 @@ struct LCCacheManagementView: View {
         case .failure(let error):
             print("Save error: \(error.localizedDescription)")
         }
-    }
-  
-
-    }
+      }
+     }
     
     @ViewBuilder
     func appRow(item: CacheItem) -> some View {
@@ -299,18 +301,23 @@ struct LCCacheManagementView: View {
             let result = shell("zip -ry '\(exportIpaURL.path)' 'Payload'")
             fm.changeCurrentDirectoryPath(currentDir)
             
-            await MainActor.run {
-                self.isExporting = false
+                        await MainActor.run {
+                self.isExporting = false 
+                
                 if result == 0 {
+                    self.exportDoc = IPAFile(url: exportIpaURL) 
                     
-                    self.exportDoc = IPAFile(url: exportIpaURL)
-                    self.isShowingExporter = true
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.isShowingExporter = true
+                        print("觸發存檔選單")
+                    }
                 } else {
                     self.errorInfo = "Zip Failed (\(result))"
                     self.errorShow = true
                 }
             }
-        } catch {
+ catch {
             await MainActor.run {
                 self.errorInfo = error.localizedDescription
                 self.errorShow = true

@@ -111,8 +111,9 @@ struct LCCacheManagementView: View {
                     .background(Color.secondary.opacity(0.5))
                     .cornerRadius(20)
                 }
-            }
+            
               .navigationViewStyle(.stack)
+            }
         } 
         .fileExporter(
             isPresented: $isShowingExporter,

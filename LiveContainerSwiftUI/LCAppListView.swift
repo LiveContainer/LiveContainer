@@ -191,7 +191,7 @@ var appGroupsList: some View {
 
     
     @ViewBuilder
-    private var footerSection: some View {
+    var footerSection: some View {
         Section {
             let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
             Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
@@ -204,7 +204,7 @@ var appGroupsList: some View {
     
     
     
-    private func groupHeader(name: String, count: Int) -> some View {
+    func groupHeader(name: String, count: Int) -> some View {
         HStack {
             Text(name == "Other" ? "Other" : name)
                 .font(.headline)

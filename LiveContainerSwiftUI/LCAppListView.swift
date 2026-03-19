@@ -266,7 +266,7 @@ var appGroupsList: some View {
         )
         .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
     }
-
+}
 
 
 
@@ -1530,4 +1530,4 @@ if isNative {
 extension View {
     func apply<V: View>(@ViewBuilder _ block: (Self) -> V) -> V { block(self) }
 }
-}
+

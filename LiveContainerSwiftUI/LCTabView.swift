@@ -131,7 +131,7 @@ struct LCTabView: View {
         }
         .buttonStyle(.plain) // 🔴 確保不會被系統 ButtonStyle 干擾
     }
-
+}
 // MARK: - 邏輯擴展
 
 

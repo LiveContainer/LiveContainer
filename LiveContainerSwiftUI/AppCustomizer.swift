@@ -200,35 +200,48 @@ struct LCGroupEditView: View {
     @State private var selectedApps = Set<String>()
     @State private var showAddGroupAlert = false
     @State private var newGroupName = ""
+    @StateObject private var groupNameInput = InputHelper()
 
     var body: some View {
         NavigationView {
             List {
-                Section("Manage Group") {
+                
+                Section(header: Text("Group List")) {
                     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
                         HStack {
                             Text(name)
                             Spacer()
-                            Button(role: .destructive) {
-                                sortManager.customGroups.removeValue(forKey: name)
-                            } label: {
-                                Image(systemName: "trash")
-                            }
+                            Text("\(sortManager.customGroups[name]?.count ?? 0) Apps")
+                                .font(.caption).foregroundColor(.secondary)
                         }
                     }
+                    .onDelete { indexSet in
+                        let keys = sortManager.customGroups.keys.sorted()
+                        indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
+                    }
+                    
                     Button(action: { showAddGroupAlert = true }) {
-                        Label("New Empty Group", systemImage: "plus.circle")
+                        Label("New Empty Group", systemImage: "plus.rectangle.on.folder")
                     }
                 }
-                
-                Section("Move App (Selected \(selectedApps.count) Items)") {
+
+                // 第二區：批次選取 App
+                Section(header: Text("Selected (\(selectedApps.count)) App(s)")) {
                     ForEach(sharedModel.apps, id: \.self) { app in
                         let bid = app.appInfo.bundleIdentifier() ?? ""
+                        let currentGroup = findCurrentGroup(for: bid)
+                        
                         HStack {
-                            Text(app.appInfo.displayName())
-                            Spacer()
                             Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
+                                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .secondary)
+                            
+                            VStack(alignment: .leading) {
+                                Text(app.appInfo.displayName())
+                                if let group = currentGroup {
+                                    Text("Now Is In: \(group)").font(.caption2).foregroundColor(.blue)
+                                }
+                            }
+                            Spacer()
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -238,34 +251,55 @@ struct LCGroupEditView: View {
                     }
                 }
             }
-            .navigationTitle("Group Manager")
+            .navigationTitle("Group Edit")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
+                
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu("Move To...") {
-                        ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                            Button(name) {
-                                sortManager.batchMoveApps(selectedApps, to: name)
-                                dismiss()
+                    if !selectedApps.isEmpty {
+                        Menu {
+                            Section("Move To...") {
+                                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                                    Button(name) {
+                                        sortManager.moveApps(selectedApps, to: name)
+                                        selectedApps.removeAll()
+                                    }
+                                }
+                                Button("Move To Other") {
+                                    sortManager.moveApps(selectedApps, to: nil)
+                                    selectedApps.removeAll()
+                                }
                             }
+                        } label: {
+                            Text("Group")
                         }
-                        Button("Move To Other") {
-                            sortManager.batchMoveApps(selectedApps, to: nil)
-                            dismiss()
-                        }
+                    } else {
+                        EditButton()
                     }
-                    .disabled(selectedApps.isEmpty)
                 }
             }
-            .textFieldAlert(isPresented: $showAddGroupAlert, title: "New Group", text: $newGroupName, placeholder: "Group Name") { name in
-                if !name.isEmpty { sortManager.customGroups[name] = [] }
-            }
+            .textFieldAlert(
+                isPresented: $showAddGroupAlert,
+                title: "New Group",
+                text: $newGroupName,
+                placeholder: "Group Name...",
+                action: { name in
+                    if !name.isEmpty {
+                        sortManager.customGroups[name] = []
+                    }
+                }
+            )
         }
     }
+
+    private func findCurrentGroup(for bid: String) -> String? {
+        for (name, ids) in sortManager.customGroups {
+            if ids.contains(bid) { return name }
+        }
+        return nil
+    }
 }
-
-
-
-

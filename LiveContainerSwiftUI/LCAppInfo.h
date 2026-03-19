@@ -40,6 +40,7 @@ typedef NS_ENUM(NSInteger, LCOrientationLock){
 @property NSDate* lastLaunched;
 @property NSDate* installationDate;
 @property NSString* remark;
+@property NSArray<NSString*>* customUrlSchemes;
 #if is32BitSupported
 @property bool is32bit;
 #endif

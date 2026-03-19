@@ -1087,12 +1087,12 @@ extension NSNotification {
     static let InstallAppNotification = Notification.Name.init("InstallAppNotification")
 }
 
-//public enum LCTabIdentifier: Hashable {
-    //case sources
-    //case apps
-    //case tweaks
-    //case settings
-    //case cache
-    //case search
-    //case explore
-//}
+public enum LCTabIdentifier: Hashable {
+    case sources
+    case apps
+    case tweaks
+    case settings
+    case cache
+    case search
+    case explore
+}

@@ -278,18 +278,19 @@ struct LCGroupEditView: View {
                             Divider()
                             
                             
-                            Button(action: {
-                                withAnimation {
-                                    for bid in selectedApps {
-                                        if !sortManager.pinnedBundleIds.contains(bid) {
-                                            sortManager.pinnedBundleIds.append(bid)
-                                        }
-                                    }
-                                    selectedApps.removeAll()
-                                }
-                            }) {
-                                Label("Add to Favorites", systemImage: "star.fill")
-                            }
+                            
+Button(action: {
+    withAnimation {
+        for bid in selectedApps {
+           
+            sortManager.pinnedBundleIds.insert(bid) 
+        }
+        selectedApps.removeAll()
+    }
+}) {
+    Label("Add to Favorites", systemImage: "star.fill")
+}
+
 
                             Divider()
 

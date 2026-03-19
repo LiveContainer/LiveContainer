@@ -62,20 +62,26 @@ extension LCAppListView {
                             .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
                             .listRowSeparator(.hidden)
                             
-                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                Button {
-                                    withAnimation(.spring()) {
-                                        sharedAppSortManager.togglePin(bid)
-                                    }
-                                } label: {
-                                    if isPinned {
-                                        Label("Unfavorite", systemImage: "star.slash.fill")
-                                    } else {
-                                        Label("Favorite", systemImage: "star.fill")
-                                    }
-                                }
-                                .tint(isPinned ? .gray : .yellow)
-                            }
+                            
+.swipeActions(edge: .leading, allowsFullSwipe: false) {
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
+    
+    Button {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            sharedAppSortManager.togglePin(bid)
+        }
+    } label: {
+        
+        if isPinned {
+            Label("Unfavorite", systemImage: "star.slash.fill")
+        } else {
+            Label("Favorite", systemImage: "star.fill")
+        }
+    }
+    .tint(isPinned ? .gray : .yellow)
+}
+
                             
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 moveGroupMenu(for: app)
@@ -96,7 +102,7 @@ extension LCAppListView {
                                 .foregroundColor(.accentColor)
                         }
                         
-                        Text(groupName == "Other" ? "lc.common.other".loc : groupName)
+                        Text(groupName == "Other" ? "Other" : groupName)
                             .font(.headline)
                         
                         Spacer()

@@ -239,7 +239,7 @@ var appGroupsList: some View {
         }
     }
 }
-}
+
 
 
 class SearchContext: ObservableObject {

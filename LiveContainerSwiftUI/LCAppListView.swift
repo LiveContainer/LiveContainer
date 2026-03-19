@@ -18,82 +18,6 @@ enum AppLaunchMode: Int {
 
 extension LCAppListView {
 
-    @ViewBuilder
-    func leadingSwipeActions(for app: LCAppModel, inGroup groupName: String) -> some View {
-        let bid = app.appInfo.bundleIdentifier() ?? ""
-        
-        if groupName == "Favorites" {
-            
-            Button {
-                withAnimation {
-                    sharedAppSortManager.togglePin(bid)
-                    
-                }
-            } label: {
-                Label("Unfavorite", systemImage: "star.slash.fill")
-            }
-            .tint(.gray)
-        } else {
-            
-            let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
-            Button {
-                withAnimation {
-                    sharedAppSortManager.togglePin(bid)
-                }
-            } label: {
-                Label(isPinned ? "Unfavorite" : "Favorite", 
-                      systemImage: isPinned ? "star.slash.fill" : "star.fill")
-            }
-            .tint(isPinned ? .gray : .yellow)
-        }
-    }
-
-    @ViewBuilder
-    func trailingSwipeActions(for app: LCAppModel, inGroup groupName: String) -> some View {
-        let bid = app.appInfo.bundleIdentifier() ?? ""
-        
-        if groupName == "Favorites" {
-            
-            Button {
-                
-               
-                    sharedAppSortManager.togglePin(bid)
-                    
-                    
-                    
-                
-                    if let previousGroup = findPreviousGroup(for: bid) {
-                        sharedAppSortManager.moveApp(bid, to: previousGroup)
-                    }
-                
-            } label: {
-                Label("Restore", systemImage: "arrow.uturn.backward")
-            }
-            .tint(.blue)
-            
-        } else {
-            
-            Menu {
-                ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-                    Button { sharedAppSortManager.moveApp(bid, to: name) } label: {
-                        Label("\(name)", systemImage: "folder")
-                    }
-                }
-                Button("Other", systemImage: "folder") { sharedAppSortManager.moveApp(bid, to: nil) }
-                Divider()
-                Button("New Group", systemImage: "plus") {
-                    Task {
-                        if let newName = await groupNameInput.open() {
-                            sharedAppSortManager.moveApp(bid, to: newName)
-                        }
-                    }
-                }
-            } label: {
-                Label("Group", systemImage: "folder.badge.plus")
-            }
-            .tint(.accentColor)
-        }
-    }
     
     
 
@@ -106,9 +30,9 @@ extension LCAppListView {
         }
         return nil
     }
-}
 
-extension LCAppListView {
+
+
 
     
 
@@ -212,7 +136,7 @@ struct AppReplaceOption : Hashable {
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
-    
+    @State private var isGroupEditing = false
     @StateObject private var groupNameInput = InputHelper() 
     @State private var triggerNavigation = false
     @State private var isSearchFieldVisible = false 
@@ -615,6 +539,11 @@ func setMode(_ mode: AppLaunchMode) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
+                     Button {
+        isGroupEditing = true
+    } label: {
+        Image(systemName: "folder.badge.gearshape")
+    }
                     Menu {
                         Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
                             ForEach(AppSortType.allCases, id: \.self) { sortType in
@@ -626,6 +555,12 @@ func setMode(_ mode: AppLaunchMode) {
                         }
                     } label: { Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") }
                 }
+                .sheet(isPresented: $isGroupEditing) {
+    LCGroupEditView()
+        .environmentObject(sharedAppSortManager)
+        .environmentObject(sharedModel)
+}
+
             }
         }
         .navigationViewStyle(.stack)

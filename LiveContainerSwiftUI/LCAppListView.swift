@@ -43,8 +43,8 @@ extension LCAppListView {
                         Button("Help", systemImage: "questionmark") { helpPresent = true }
                     }
                 }
-                ToolbarItem(placement: .topBarLeading) { launchModeSelector }
-                ToolbarItem(placement: .topBarTrailing){
+                ToolbarItem(placement: .principal) { launchModeSelector }
+                ToolbarItem(placement: .principal){
                     Button {
                         withAnimation(.spring()) {
                             isSearchFieldVisible.toggle()
@@ -52,7 +52,7 @@ extension LCAppListView {
                         }
                     } label: { Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass") }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .principal) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
                 }
                 ToolbarItem(placement: .topBarTrailing) {

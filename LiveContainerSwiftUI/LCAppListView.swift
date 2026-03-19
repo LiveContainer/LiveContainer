@@ -91,9 +91,9 @@ func trailingSwipeActions(for app: LCAppModel) -> some View {
             }
 
             Button(role: .destructive) {
-                withAnimation {
+                
                     sharedAppSortManager.customGroups.removeValue(forKey: name)
-                }
+                
             } label: {
                 Label("Delete Group", systemImage: "trash")
             }
@@ -204,7 +204,7 @@ var appGroupsList: some View {
     
     
     
-    func groupHeader(name: String, count: Int) -> some View {
+    func groupLabel(name: String, count: Int) -> some View {
         HStack {
             Text(name == "Other" ? "Other" : name)
                 .font(.headline)

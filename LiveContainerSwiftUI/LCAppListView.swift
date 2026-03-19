@@ -104,7 +104,7 @@ ToolbarItem(placement: .topBarTrailing) {
     }
 }
         
-            
+            }
             .navigationViewStyle(.stack)
             .sheet(isPresented: $isGroupEditing) {
                 LCGroupEditView()

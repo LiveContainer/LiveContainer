@@ -15,62 +15,103 @@ enum AppLaunchMode: Int {
     case realIPhone = 1
 
 }
+
+extension LCAppListView {
+
+    @ViewBuilder
+    func leadingSwipeActions(for app: LCAppModel, inGroup groupName: String) -> some View {
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        
+        if groupName == "Favorites" {
+            
+            Button {
+                withAnimation {
+                    sharedAppSortManager.togglePin(bid)
+                    
+                }
+            } label: {
+                Label("Unfavorite", systemImage: "star.slash.fill")
+            }
+            .tint(.gray)
+        } else {
+            
+            let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
+            Button {
+                withAnimation {
+                    sharedAppSortManager.togglePin(bid)
+                }
+            } label: {
+                Label(isPinned ? "Unfavorite" : "Favorite", 
+                      systemImage: isPinned ? "star.slash.fill" : "star.fill")
+            }
+            .tint(isPinned ? .gray : .yellow)
+        }
+    }
+
+    @ViewBuilder
+    func trailingSwipeActions(for app: LCAppModel, inGroup groupName: String) -> some View {
+        let bid = app.appInfo.bundleIdentifier() ?? ""
+        
+        if groupName == "Favorites" {
+            
+            Button {
+                
+               
+                    sharedAppSortManager.togglePin(bid)
+                    
+                    
+                    
+                
+                    if let previousGroup = findPreviousGroup(for: bid) {
+                        sharedAppSortManager.moveApp(bid, to: previousGroup)
+                    }
+                
+            } label: {
+                Label("Restore", systemImage: "arrow.uturn.backward")
+            }
+            .tint(.blue)
+            
+        } else {
+            
+            Menu {
+                ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
+                    Button { sharedAppSortManager.moveApp(bid, to: name) } label: {
+                        Label("\(name)", systemImage: "folder")
+                    }
+                }
+                Button("Other", systemImage: "folder") { sharedAppSortManager.moveApp(bid, to: nil) }
+                Divider()
+                Button("New Group", systemImage: "plus") {
+                    Task {
+                        if let newName = await groupNameInput.open() {
+                            sharedAppSortManager.moveApp(bid, to: newName)
+                        }
+                    }
+                }
+            } label: {
+                Label("Group", systemImage: "folder.badge.plus")
+            }
+            .tint(.accentColor)
+        }
+    }
+    
+    
+
+    func findPreviousGroup(for bid: String) -> String? {
+        
+        for (groupName, ids) in sharedAppSortManager.customGroups {
+            if ids.contains(bid) {
+                return groupName
+            }
+        }
+        return nil
+    }
+}
+
 extension LCAppListView {
 
     
 
-@ViewBuilder
-func leadingSwipeActions(for app: LCAppModel) -> some View {
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
-    
-    Button {
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            sharedAppSortManager.togglePin(bid)
-        }
-    } label: {
-        Label(isPinned ? "Unfavorite" : "Favorite", 
-              systemImage: isPinned ? "star.slash.fill" : "star.fill")
-    }
-    .tint(isPinned ? .gray : .yellow)
-}
-
-
-@ViewBuilder
-func trailingSwipeActions(for app: LCAppModel) -> some View {
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    
-    
-    Menu {
-        
-        ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-            Button {
-                sharedAppSortManager.moveApp(bid, to: name)
-            } label: {
-                Label("\(name)", systemImage: "folder")
-            }
-        }
-    
-        
-        Button("Other", systemImage: "folder") {
-            sharedAppSortManager.moveApp(bid, to: nil)
-        }
-        
-        Divider()
-        
-        
-        Button("New Group", systemImage: "plus") {
-            Task {
-                if let newName = await groupNameInput.open() {
-                    sharedAppSortManager.moveApp(bid, to: newName)
-                }
-            }
-        }
-    } label: {
-        Label("Group", systemImage: "folder.badge.plus")
-    }
-    .tint(.accentColor)
-}
 
 
     
@@ -250,12 +291,12 @@ var appGroupsList: some View {
                         
                         
                         .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                            leadingSwipeActions(for: app)
+                            leadingSwipeActions(for: app, inGroup: groupName)
                         }
                         
                         
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            trailingSwipeActions(for: app)
+                            trailingSwipeActions(for: app, inGroup: groupName)
                         }
                 }
             },

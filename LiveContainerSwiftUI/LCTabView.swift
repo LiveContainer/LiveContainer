@@ -8,41 +8,114 @@
 import SwiftUI
 import Foundation
 
+// 🔹 分頁 enum
+enum LCTabIdentifier: CaseIterable {
+    case sources, apps, tweaks, explore, settings, cache
+    
+    var title: String {
+        switch self {
+        case .sources: return "Sources"
+        case .apps: return "Apps"
+        case .tweaks: return "Tweaks"
+        case .explore: return "Explore"
+        case .settings: return "Settings"
+        case .cache: return "Manager"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .sources: return "books.vertical"
+        case .apps: return "square.stack.3d.up.fill"
+        case .tweaks: return "wrench.and.screwdriver"
+        case .explore: return "safari.fill"
+        case .settings: return "gearshape.fill"
+        case .cache: return "internaldrive"
+        }
+    }
+}
+
+// 🔹 全域模型
+class DataManagerModel: ObservableObject {
+    @Published var selectedTab: LCTabIdentifier = .apps
+    @Published var mainWindowOpened: Bool = false
+    @Published var multiLCStatus: Int = 0
+    var deepLink: URL?
+}
+
+class DataManager {
+    static let shared = DataManager()
+    var model = DataManagerModel()
+}
+
+// 🔹 LCTabView
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
-
+    
     @State private var selectedTab: LCTabIdentifier
+    
     @EnvironmentObject var sharedModel: DataManagerModel
-
+    @EnvironmentObject var sceneDelegate: SceneDelegate
+    
+    @State var errorShow = false
+    @State var errorInfo = ""
+    @State var shouldToggleMainWindowOpen = false
+    
+    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+    
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _appDataFolderNames = appDataFolderNames
         _tweakFolderNames = tweakFolderNames
         _selectedTab = State(initialValue: DataManager.shared.model.selectedTab)
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
-            Group {
+            // 🔥 根據 selectedTab 切換 View
+            VStack {
                 switch selectedTab {
-                case .sources: LCSourcesView()
-                case .apps: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                case .tweaks: LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore: ExploreView()
-                case .settings: LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                case .cache: LCCacheManagementView()
+                case .sources:
+                    LCSourcesView()
+                case .apps:
+                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                case .tweaks:
+                    LCTweaksView(tweakFolders: $tweakFolderNames)
+                case .explore:
+                    ExploreView()
+                case .settings:
+                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                case .cache:
+                    LCCacheManagementView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+            
+            // 🔧 自訂 Toolbar
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        .errorAlert(isPresented: $errorShow, info: errorInfo, copyAction: { copyError() })
+        .task {
+            // 同步初始狀態
+            selectedTab = sharedModel.selectedTab
+            await performInitialChecks()
+        }
+        // 點擊 toolbar 後同步到全域
         .onChange(of: selectedTab) { newValue in
             sharedModel.selectedTab = newValue
         }
+        // 處理 Scene 斷線
+        .onReceive(pub) { out in
+            handleSceneDisconnect(out)
+        }
+        // 處理 Deep Link
+        .onOpenURL { url in
+            dispatchURL(url: url)
+        }
     }
-
+    
+    // 🔧 Toolbar
     private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
@@ -56,7 +129,7 @@ struct LCTabView: View {
         }
         .background(.ultraThinMaterial)
     }
-
+    
     private func tabButton(tab: LCTabIdentifier) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -75,7 +148,21 @@ struct LCTabView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+    
 }
+// 🔹 Error alert extension
+extension View {
+    func errorAlert(isPresented: Binding<Bool>, info: String, copyAction: @escaping () -> Void) -> some View {
+        self.alert("lc.common.error".loc, isPresented: isPresented) {
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: copyAction)
+        } message: {
+            Text(info)
+        }
+    }
+}
+
+
 
 
 

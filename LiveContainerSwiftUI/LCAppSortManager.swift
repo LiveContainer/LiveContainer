@@ -60,7 +60,11 @@ enum AppSortType: String, CaseIterable {
 class LCAppSortManager: ObservableObject {
     private let userDefaults = LCUtils.appGroupUserDefault
     private let pinnedKey = "LC_PinnedBundleIds"
-
+        @Published var lastGroupMap: [String: String?] = [:] {
+        didSet {
+            UserDefaults.standard.set(lastGroupMap, forKey: lastGroupKey)
+        }
+    }
     @Published var pinnedBundleIds: Set<String> = []
     static var shared: LCAppSortManager = LCAppSortManager()
     
@@ -111,6 +115,7 @@ func moveApp(_ bundleId: String, to group: String?) {
 }
 
     init() {
+        self.lastGroupMap = UserDefaults.standard.dictionary(forKey: lastGroupKey) as? [String: String?] ?? [:]
         if let savedIds = userDefaults.stringArray(forKey: pinnedKey) {
             self.pinnedBundleIds = Set(savedIds)
         }
@@ -150,16 +155,27 @@ func moveApp(_ bundleId: String, to group: String?) {
     }
     func togglePin(_ bundleId: String) {
         if pinnedBundleIds.contains(bundleId) {
+            
             pinnedBundleIds.remove(bundleId)
+            lastGroupMap.removeValue(forKey: bundleId)
         } else {
+            
+            let currentGroup = findCurrentGroup(for: bundleId)
+            lastGroupMap[bundleId] = currentGroup
             pinnedBundleIds.insert(bundleId)
         }
-        
-        
         savePinnedIds()
-        
-        
         objectWillChange.send()
+    }
+
+    
+    private func findCurrentGroup(for bundleId: String) -> String? {
+        for (groupName, ids) in customGroups {
+            if ids.contains(bundleId) {
+                return groupName
+            }
+        }
+        return nil 
     }
 
     private func savePinnedIds() {

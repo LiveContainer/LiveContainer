@@ -205,7 +205,7 @@ struct LCGroupEditView: View {
     var body: some View {
         NavigationView {
             List {
-                
+              
                 Section(header: Text("Group List")) {
                     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
                         HStack {
@@ -224,7 +224,7 @@ struct LCGroupEditView: View {
                     }
                 }
 
-                
+              
                 Section(header: Text("Select App (\(selectedApps.count))")) {
                     TextField("Search App...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
@@ -254,7 +254,7 @@ struct LCGroupEditView: View {
                             }
                             Spacer()
                         }
-                        .contentShape(Rectangle())
+                        .contentShape(Rectangle()) 
                         .onTapGesture { toggleSelection(for: bid) }
                     }
                 }
@@ -262,57 +262,57 @@ struct LCGroupEditView: View {
             .navigationTitle("Manage Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                
+             
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
-            
-            
+                
+              
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(action: { showAddGroupAlert = true }) {
-                            Label("New Group", systemImage: "folder.badge.plus")
+                    HStack(spacing: 15) {
+                       
+                        Button {
+                            showAddGroupAlert = true
+                        } label: {
+                            Image(systemName: "folder.badge.plus")
                         }
-
+                        
+                      
                         if !selectedApps.isEmpty {
-                            Divider()
-                            
-                            
-                            
-Button(action: {
-    withAnimation {
-        for bid in selectedApps {
-           
-            sortManager.pinnedBundleIds.insert(bid) 
-        }
-        selectedApps.removeAll()
-    }
-}) {
-    Label("Add to Favorites", systemImage: "star.fill")
-}
-
-
-                            Divider()
-
-                            Section("Move To Group") {
-                                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                                    Button(name) { moveToGroup(name) }
+                            Menu {
+                                Button(action: {
+                                    withAnimation {
+                                        for bid in selectedApps {
+                                            sortManager.pinnedBundleIds.insert(bid)
+                                        }
+                                        selectedApps.removeAll()
+                                    }
+                                }) {
+                                    Label("Add to Favorites", systemImage: "star.fill")
                                 }
-                            }
-                            
-                            Button(role: .destructive) {
-                                moveToGroup(nil) 
+
+                                Divider()
+
+                                Section("Move To Group") {
+                                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                                        Button(name) { moveToGroup(name) }
+                                    }
+                                }
+                                
+                                Button(role: .destructive) {
+                                    moveToGroup(nil) 
+                                } label: {
+                                    Label("Remove From Group", systemImage: "minus.circle")
+                                }
                             } label: {
-                                Label("Remove From Group", systemImage: "minus.circle")
+                                Image(systemName: "ellipsis.circle.fill")
+                                    .font(.system(size: 17, weight: .semibold))
                             }
                         }
-                    } label: {
-                        Image(systemName: selectedApps.isEmpty ? "folder.badge.plus" : "ellipsis.circle.fill")
-                            .font(.system(size: 17, weight: .semibold))
                     }
                 }
-            } 
-        }
+            }
+            
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
                 title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
@@ -329,7 +329,7 @@ Button(action: {
                 },
                 actionCancel: { _ in newGroupName = "" }
             )
-        
+        }
     }
 
     

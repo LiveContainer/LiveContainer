@@ -8,33 +8,57 @@
 import SwiftUI
 import Foundation
 
-// 🔹 LCTabView
+// 🔹 1. 透過 Extension 補齊現有 Enum 的屬性
+extension LCTabIdentifier {
+    var title: String {
+        switch self {
+        case .sources: return "lc.tabView.sources".loc
+        case .apps: return "lc.tabView.apps".loc
+        case .tweaks: return "lc.tabView.tweaks".loc
+        case .explore: return "Explore"
+        case .settings: return "lc.tabView.settings".loc
+        case .cache: return "Manager"
+        case .search: return "Search"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .sources: return "books.vertical"
+        case .apps: return "square.stack.3d.up.fill"
+        case .tweaks: return "wrench.and.screwdriver"
+        case .explore: return "safari.fill"
+        case .settings: return "gearshape.fill"
+        case .cache: return "internaldrive"
+        case .search: return "magnifyingglass"
+        }
+    }
+}
+
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🟢 核心：使用本地 State 驅動 UI，確保切換順暢
+    // 🟢 核心：使用本地 State 驅動
     @State private var selectedTab: LCTabIdentifier
     
-    // 監聽全局模型（用於 Deep Link 或外部狀態變更）
     @ObservedObject var sharedModel = DataManager.shared.model
-    
     @State var errorShow = false
     @State var errorInfo = ""
     @State var shouldToggleMainWindowOpen = false 
     @EnvironmentObject var sceneDelegate: SceneDelegate
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
 
-    // 初始化：將全局模型的初始值賦給本地 State
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
-        _appDataFolderNames = appDataFolderNames
-        _tweakFolderNames = tweakFolderNames
-        _selectedTab = State(initialValue: DataManager.shared.model.selectedTab)
+        self._appDataFolderNames = appDataFolderNames
+        self._tweakFolderNames = tweakFolderNames
+        // 從全域模型讀取初始值
+        self._selectedTab = State(initialValue: DataManager.shared.model.selectedTab)
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // 🔥 根據 selectedTab 切換 View
+            // 🔥 2. 確保 Switch 窮舉所有 Case (包含 .search)
             VStack {
                 switch selectedTab {
                 case .sources:
@@ -43,7 +67,7 @@ struct LCTabView: View {
                     LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 case .tweaks:
                     LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore:
+                case .explore, .search: // 將 search 暫時指向 explore 或建立新 View
                     ExploreView()
                 case .settings:
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
@@ -53,27 +77,23 @@ struct LCTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 🔧 自訂 iOS 26 磨砂底部工具欄
+            // 🔧 3. 自訂底部工具欄
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        // 錯誤處理
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
         } message: {
             Text(errorInfo)
         }
-        // 生命週期與同步
         .task {
             await performInitialChecks()
         }
         .onChange(of: selectedTab) { newValue in
-            // 本地切換時，同步更新全局模型
             sharedModel.selectedTab = newValue
         }
         .onChange(of: sharedModel.selectedTab) { newValue in
-            // 當全局模型（例如經由 Deep Link）改變時，同步回本地 UI
             if selectedTab != newValue {
                 selectedTab = newValue
             }
@@ -86,19 +106,18 @@ struct LCTabView: View {
         }
     }
     
-    // 🔹 自訂底部工具欄實作
     private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
-                // 左側三個
+                // 左側功能組
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
                 
-                Spacer(minLength: 24) 
+                Spacer(minLength: 25)
                 
-                // 右側三個
+                // 右側功能組
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
@@ -120,7 +139,7 @@ struct LCTabView: View {
                 Image(systemName: tab.icon)
                     .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
                     .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
-                Text(tab.title.localized) // 確保支援語系
+                Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
@@ -130,6 +149,22 @@ struct LCTabView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - 邏輯檢查擴展
+extension LCTabView {
+    
+    
+    // 解決 Immutable 賦值報錯的輔助方法
+    private func triggerError(message: String) {
+        self.errorInfo = message
+        self.errorShow = true
+    }
+
+    
+    
+    
+}
+
 
 // MARK: - 邏輯擴展
 

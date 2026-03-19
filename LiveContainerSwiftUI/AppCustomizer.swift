@@ -192,6 +192,79 @@ struct LCEditAppView: View {
         onSave()
     }
 }
+struct LCGroupEditView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var sortManager: LCAppSortManager
+    @EnvironmentObject var sharedModel: SharedModel
+    
+    @State private var selectedApps = Set<String>()
+    @State private var showAddGroupAlert = false
+    @State private var newGroupName = ""
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section("Manage Group") {
+                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                        HStack {
+                            Text(name)
+                            Spacer()
+                            Button(role: .destructive) {
+                                sortManager.customGroups.removeValue(forKey: name)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                        }
+                    }
+                    Button(action: { showAddGroupAlert = true }) {
+                        Label("New Empty Group", systemImage: "plus.circle")
+                    }
+                }
+                
+                Section("Move App (Selected \(selectedApps.count) Items)") {
+                    ForEach(sharedModel.apps, id: \.self) { app in
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        HStack {
+                            Text(app.appInfo.displayName())
+                            Spacer()
+                            Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if selectedApps.contains(bid) { selectedApps.remove(bid) }
+                            else { selectedApps.insert(bid) }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Group Manager")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu("Move To...") {
+                        ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                            Button(name) {
+                                sortManager.batchMoveApps(selectedApps, to: name)
+                                dismiss()
+                            }
+                        }
+                        Button("Move To Other") {
+                            sortManager.batchMoveApps(selectedApps, to: nil)
+                            dismiss()
+                        }
+                    }
+                    .disabled(selectedApps.isEmpty)
+                }
+            }
+            .textFieldAlert(isPresented: $showAddGroupAlert, title: "New Group", text: $newGroupName, placeholder: "Group Name") { name in
+                if !name.isEmpty { sortManager.customGroups[name] = [] }
+            }
+        }
+    }
+}
 
 
 

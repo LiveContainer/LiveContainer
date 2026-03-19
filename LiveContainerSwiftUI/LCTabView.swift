@@ -13,69 +13,97 @@ struct LCTabView: View {
     @Binding var tweakFolderNames: [String]
     
     // --- 狀態儲存區 ---
-    // 使用 @AppStorage，這樣使用者下次開啟 App 時會停留在上次的分頁
+    // 使用 @AppStorage 確保重啟 App 後能留在上次的分頁
     @AppStorage("selectedTabKey") private var localSelectedTab: LCTabIdentifier = .apps
     
     @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
     @EnvironmentObject var sceneDelegate: SceneDelegate
-    
+    @State var shouldToggleMainWindowOpen = false
+    @Environment(\.scenePhase) var scenePhase
+    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+
     var body: some View {
         VStack(spacing: 0) {
-            // 1. 內容區域
+            // 1. 內容區域 (使用 ZStack 搭配 .id 強制重繪)
             ZStack {
                 currentPage
             }
-            // 關鍵：使用 localSelectedTab 作為 ID，確保狀態一變就強制刷新
             .id(localSelectedTab) 
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 2. iOS 26 風格透明 Toolbar
+            // 2. iOS 26 風格透明 Toolbar (左3 / 右3)
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .task { await performInitialChecks() }
-        // 當本地狀態改變時，同步回全域模型，確保 deepLink 等邏輯正常
+        // 錯誤彈窗
+        .alert("lc.common.error".loc, isPresented: $errorShow) {
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: { copyError() })
+        } message: {
+            Text(errorInfo)
+        }
+        // 初始化任務
+        .task {
+            await performInitialChecks()
+        }
+        // 同步狀態回全域模型
         .onChange(of: localSelectedTab) { newValue in
             sharedModel.selectedTab = newValue
         }
+        .onReceive(pub) { out in
+            handleSceneDisconnect(out)
+        }
+        .onOpenURL { url in
+            dispatchURL(url: url)
+        }
     }
 
+    // 分頁邏輯切換
     @ViewBuilder
     private var currentPage: some View {
         switch localSelectedTab {
-        case .sources: LCSourcesView()
-        case .apps: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-        case .tweaks: LCTweaksView(tweakFolders: $tweakFolderNames)
-        case .explore: ExploreView()
-        case .settings: LCSettingsView(appDataFolderNames: $appDataFolderNames)
-        case .cache: LCCacheManagementView()
-        default: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+        case .sources:
+            LCSourcesView()
+        case .apps:
+            LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+        case .tweaks:
+            LCTweaksView(tweakFolders: $tweakFolderNames)
+        case .explore:
+            ExploreView()
+        case .settings:
+            LCSettingsView(appDataFolderNames: $appDataFolderNames)
+        case .cache:
+            LCCacheManagementView()
+        default:
+            LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
         }
     }
 }
 
+// MARK: - UI 元件: iOS 26 風格 Toolbar
 extension LCTabView {
     private var ios26TransparentToolbar: some View {
         VStack(spacing: 0) {
-            Divider().opacity(0.15)
+            Divider().opacity(0.15) // 極淡的分割線
             
             HStack(spacing: 0) {
-                // 左 3
+                // 左側三個按鈕
                 tabGroup([.sources, .apps, .tweaks])
                 
                 Spacer(minLength: 30) // 中間對稱空隙
                 
-                // 右 3
+                // 右側三個按鈕
                 tabGroup([.explore, .settings, .cache])
             }
             .padding(.horizontal, 10)
             .padding(.top, 12)
+            // 自動適配安全區域（Safe Area）
             .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
         }
-        // 🔴 iOS 26 透明背景關鍵：與頂部 Bar 一致的材質
-        .background(.ultraThinMaterial) 
+        // 使用與頂部 Bar 一致的透明磨砂材質
+        .background(.ultraThinMaterial)
     }
 
     private func tabGroup(_ ids: [LCTabIdentifier]) -> some View {
@@ -83,38 +111,38 @@ extension LCTabView {
             let info = tabInfo(for: id)
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                // 使用快彈簧動畫，解決「按了沒反應」的視覺感
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     localSelectedTab = id
                 }
             } label: {
                 VStack(spacing: 4) {
                     Image(systemName: info.icon)
-                        .font(.system(size: 22, weight: localSelectedTab == id ? .semibold : .regular))
-                        .scaleEffect(localSelectedTab == id ? 1.15 : 1.0)
+                        .font(.system(size: 21, weight: localSelectedTab == id ? .semibold : .regular))
+                        .scaleEffect(localSelectedTab == id ? 1.1 : 1.0)
                     Text(info.title)
                         .font(.system(size: 10, weight: .medium))
                 }
                 .frame(maxWidth: .infinity)
                 .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.5))
-                .contentShape(Rectangle()) // 🔴 確保整個格子都是熱區
+                // 確保點擊熱區覆蓋整個格子
+                .contentShape(Rectangle())
             }
         }
     }
 
-    // 輔助函式：統一管理圖標與標題
     private func tabInfo(for id: LCTabIdentifier) -> (title: String, icon: String) {
         switch id {
-        case .sources: return ("Sources", "books.vertical")
-        case .apps: return ("Apps", "square.stack.3d.up.fill")
-        case .tweaks: return ("Tweaks", "wrench.and.screwdriver")
+        case .sources: return ("lc.tabView.sources".loc, "books.vertical")
+        case .apps: return ("lc.tabView.apps".loc, "square.stack.3d.up.fill")
+        case .tweaks: return ("lc.tabView.tweaks".loc, "wrench.and.screwdriver")
         case .explore: return ("Explore", "safari.fill")
-        case .settings: return ("Settings", "gearshape.fill")
+        case .settings: return ("lc.tabView.settings".loc, "gearshape.fill")
         case .cache: return ("Manager", "internaldrive")
         default: return ("", "")
         }
     }
 }
+
 
 
 

@@ -200,7 +200,7 @@ struct LCGroupEditView: View {
     @State private var selectedApps = Set<String>()
     @State private var showAddGroupAlert = false
     @State private var newGroupName = ""
-    @StateObject private var groupNameInput = InputHelper()
+    @State private var searchText = "" 
 
     var body: some View {
         NavigationView {
@@ -209,99 +209,157 @@ struct LCGroupEditView: View {
                 Section(header: Text("Group List")) {
                     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
                         HStack {
+                            Image(systemName: "folder").foregroundColor(.accentColor)
                             Text(name)
                             Spacer()
-                            Text("\(sortManager.customGroups[name]?.count ?? 0) Apps")
+                            Text("\(sortManager.customGroups[name]?.count ?? 0) App")
                                 .font(.caption).foregroundColor(.secondary)
                         }
                     }
                     .onDelete { indexSet in
-                        let keys = sortManager.customGroups.keys.sorted()
-                        indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
-                    }
-                    
-                    Button(action: { showAddGroupAlert = true }) {
-                        Label("New Empty Group", systemImage: "plus.rectangle.on.folder")
+                        withAnimation {
+                            let keys = sortManager.customGroups.keys.sorted()
+                            indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
+                        }
                     }
                 }
 
-                // 第二區：批次選取 App
-                Section(header: Text("Selected (\(selectedApps.count)) App(s)")) {
-                    ForEach(sharedModel.apps, id: \.self) { app in
+                
+                Section(header: Text("Select App (\(selectedApps.count))")) {
+                    
+                    TextField("Search App...", text: $searchText)
+                        .textFieldStyle(.roundedBorder)
+                        .listRowSeparator(.hidden)
+                    
+                    ForEach(filteredApps, id: \.self) { app in
                         let bid = app.appInfo.bundleIdentifier() ?? ""
                         let currentGroup = findCurrentGroup(for: bid)
                         
                         HStack {
+                            
                             Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 20))
                                 .foregroundColor(selectedApps.contains(bid) ? .accentColor : .secondary)
+                                .onTapGesture {
+                                    toggleSelection(for: bid)
+                                }
+                            
+                            
+                            if let icon = app.appInfo.iconIsDarkIcon(false) {
+                                Image(uiImage: icon)
+                                    .resizable()
+                                    .frame(width: 32, height: 32)
+                                    .cornerRadius(8)
+                            }
                             
                             VStack(alignment: .leading) {
                                 Text(app.appInfo.displayName())
+                                    .font(.body)
                                 if let group = currentGroup {
-                                    Text("Now Is In: \(group)").font(.caption2).foregroundColor(.blue)
+                                    Text(" \(group)")
+                                        .font(.caption2)
+                                        .foregroundColor(.blue)
                                 }
                             }
                             Spacer()
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if selectedApps.contains(bid) { selectedApps.remove(bid) }
-                            else { selectedApps.insert(bid) }
+                            toggleSelection(for: bid)
                         }
                     }
                 }
             }
-            .navigationTitle("Group Edit")
+            .navigationTitle("Manage Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
                 
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if !selectedApps.isEmpty {
-                        Menu {
-                            Section("Move To...") {
-                                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                                    Button(name) {
-                                        sortManager.moveApps(selectedApps, to: name)
-                                        selectedApps.removeAll()
+                    HStack {
+                        
+                        if !selectedApps.isEmpty {
+                            Menu {
+                                Button(action: { showAddGroupAlert = true }) {
+                                    Label("New Group", systemImage: "folder.badge.plus")
+                                }
+                                
+                                Divider()
+                                
+                                Section("Move To Group") {
+                                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                                        Button(name) {
+                                            moveToGroup(name)
+                                        }
                                     }
                                 }
-                                Button("Move To Other") {
-                                    sortManager.moveApps(selectedApps, to: nil)
-                                    selectedApps.removeAll()
+                                
+                                Button(role: .destructive) {
+                                    moveToGroup(nil) 
+                                } label: {
+                                    Label("Remove From Group", systemImage: "minus.circle")
                                 }
+                            } label: {
+                                Text("List")
+                                    .fontWeight(.bold)
                             }
-                        } label: {
-                            Text("Group")
+                        } else {
+                            
+                            Button { showAddGroupAlert = true } label: {
+                                Image(systemName: "folder.badge.plus")
+                            }
                         }
-                    } else {
-                        EditButton()
                     }
                 }
             }
-         
-.textFieldAlert(
-    isPresented: $showAddGroupAlert,
-    title: "New Group",
-    text: $newGroupName,             
-    placeholder: "Enter group name",
-    action: { name in 
-        
-        if let name = name, !name.isEmpty {
-            sortManager.customGroups[name] = [] 
-            newGroupName = "" 
+            // 彈窗處理
+            .textFieldAlert(
+                isPresented: $showAddGroupAlert,
+                title: selectedApps.isEmpty ? "New Group" : "New Folder",
+                text: $newGroupName,
+                placeholder: "Enter Name",
+                action: { name in
+                    if let name = name, !name.isEmpty {
+                        withAnimation {
+                           
+                            sortManager.customGroups[name] = []
+                            
+                            if !selectedApps.isEmpty {
+                                moveToGroup(name)
+                            }
+                            newGroupName = ""
+                        }
+                    }
+                },
+                actionCancel: { _ in newGroupName = "" }
+            )
         }
-    },
-    actionCancel: { _ in 
-        newGroupName = "" 
-    } 
-)
+    }
 
 
+    
+    private var filteredApps: [LCAppModel] {
+        if searchText.isEmpty {
+            return sharedModel.apps
+        } else {
+            return sharedModel.apps.filter { $0.appInfo.displayName().localizedCaseInsensitiveContains(searchText) }
+        }
+    }
 
+    private func toggleSelection(for bid: String) {
+        if selectedApps.contains(bid) {
+            selectedApps.remove(bid)
+        } else {
+            selectedApps.insert(bid)
+        }
+    }
+
+    private func moveToGroup(_ groupName: String?) {
+        withAnimation {
+            sortManager.moveApps(selectedApps, to: groupName)
+            selectedApps.removeAll() 
         }
     }
 

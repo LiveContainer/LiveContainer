@@ -219,7 +219,7 @@ struct LCGroupEditView: View {
                 Text("New Group")
             }
             .font(.subheadline)
-            .fontWeight(.medium)
+            
             .textCase(nil) 
         }
     }

@@ -278,43 +278,57 @@ struct LCGroupEditView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        
-                        if !selectedApps.isEmpty {
-                            Menu {
-                                Button(action: { showAddGroupAlert = true }) {
-                                    Label("New Group", systemImage: "folder.badge.plus")
-                                }
-                                
-                                Divider()
-                                
-                                Section("Move To Group") {
-                                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                                        Button(name) {
-                                            moveToGroup(name)
-                                        }
-                                    }
-                                }
-                                
-                                Button(role: .destructive) {
-                                    moveToGroup(nil) 
-                                } label: {
-                                    Label("Remove From Group", systemImage: "minus.circle")
-                                }
-                            } label: {
-                                Text("List")
-                                    .fontWeight(.bold)
-                            }
-                        } else {
-                            
-                            Button { showAddGroupAlert = true } label: {
-                                Image(systemName: "folder.badge.plus")
-                            }
+    Menu {
+        
+        Button(action: { showAddGroupAlert = true }) {
+            Label("New Group", systemImage: "folder.badge.plus")
+        }
+
+        if !selectedApps.isEmpty {
+            Divider()
+            
+            
+            Button(action: {
+                withAnimation {
+                    // 假設你的 sortManager 有 togglePin 方法，或直接操作陣列
+                    for bid in selectedApps {
+                        if !sortManager.pinnedBundleIds.contains(bid) {
+                            sortManager.pinnedBundleIds.append(bid)
                         }
+                    }
+                    selectedApps.removeAll()
+                }
+            }) {
+                Label("Add to Favorites", systemImage: "star.fill")
+            }
+
+            Divider()
+
+            // --- 第三部分：移動到現有組別 ---
+            Section("Move To Group") {
+                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                    Button(name) {
+                        moveToGroup(name)
                     }
                 }
             }
-            // 彈窗處理
+            
+            Button(role: .destructive) {
+                moveToGroup(nil) 
+            } label: {
+                Label("Remove From Group", systemImage: "minus.circle")
+            }
+        }
+    } label: {
+        
+        Image(systemName: selectedApps.isEmpty ? "folder.badge.plus" : "ellipsis.circle.fill")
+            .font(.system(size: 17, weight: .semibold))
+    }
+}
+
+                }
+            }
+            
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
                 title: selectedApps.isEmpty ? "New Group" : "New Folder",

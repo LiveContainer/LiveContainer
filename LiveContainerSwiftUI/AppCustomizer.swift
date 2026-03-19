@@ -326,7 +326,7 @@ struct LCGroupEditView: View {
                     }
                 }
             }
-
+            }
             
             
             .textFieldAlert(

@@ -282,10 +282,23 @@ struct LCGroupEditView: View {
                     }
                 }
 
-                if !selectedApps.isEmpty {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showAddGroupAlert = true
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                    }
+                }
+
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !selectedApps.isEmpty {
                         Menu {
-                            
                             Button(action: togglePinStatus) {
                                 let allSelectedArePinned = selectedApps.allSatisfy { sortManager.pinnedBundleIds.contains($0) }
                                 Label(allSelectedArePinned ? "Remove from Favorites" : "Add to Favorites", 
@@ -308,9 +321,13 @@ struct LCGroupEditView: View {
                         } label: {
                             Image(systemName: "ellipsis.circle.fill")
                         }
+                    } else {
+                        EmptyView()
                     }
                 }
             }
+
+            
             
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,

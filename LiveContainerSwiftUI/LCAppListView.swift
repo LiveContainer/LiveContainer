@@ -683,6 +683,7 @@ func setMode(_ mode: AppLaunchMode) {
         }
         
        } 
+         .navigationViewStyle(.stack)
     }
     
     var JITEnablingModal : some View {

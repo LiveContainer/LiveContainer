@@ -229,7 +229,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
     
-
+    }
 
 
 

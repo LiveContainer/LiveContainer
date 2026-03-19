@@ -20,69 +20,90 @@ extension LCAppListView {
     func allModifiers(content: some View) -> some View {
         content
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    if sharedModel.multiLCStatus != 2 {
-                        if !installprogressVisible {
-                            Menu {
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: { choosingIPA = true })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: { Task{ await startInstallFromUrl() } })
-                            } label: { Label("add", systemImage: "plus") }
-                        } else {
-                            ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    if(UserDefaults.sideStoreExist()) {
-                        Button { LCUtils.openSideStore(delegate: self) } label: {
-                            Image("SideStoreBadge").resizable().renderingMode(.template)
-                                .foregroundColor(SharedModel.isLiquidGlassEnabled ? .primary : .accentColor)
-                                .frame(width: 20, height: 20)
-                        }
-                    } else {
-                        Button("Help", systemImage: "questionmark") { helpPresent = true }
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) { launchModeSelector }
-                ToolbarItem(placement: .topBarLeading){
-                    Button {
-                        withAnimation(.spring()) {
-                            isSearchFieldVisible.toggle()
-                            if !isSearchFieldVisible { searchContext.query = "" }
-                        }
-                    } label: { Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass") }
-                }
                 
-ToolbarItem(placement: .topBarTrailing) {
-    Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
-}
+ToolbarItem(placement: .topBarLeading) {
+    HStack(spacing: 12) { 
+       
+        if sharedModel.multiLCStatus != 2 {
+            if !installprogressVisible {
+                Menu {
+                    Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus") { choosingIPA = true }
+                    Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus") { Task { await startInstallFromUrl() } }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 17, weight: .medium))
+                }
+            } else {
+                ProgressView().progressViewStyle(.circular).padding(.horizontal, 4)
+            }
+        }
 
+        
+        if UserDefaults.sideStoreExist() {
+            Button { LCUtils.openSideStore(delegate: self) } label: {
+                Image("SideStoreBadge").resizable().renderingMode(.template)
+                    .foregroundColor(SharedModel.isLiquidGlassEnabled ? .primary : .accentColor)
+                    .frame(width: 18, height: 18) // 稍微縮小以配合整體比例
+            }
+        } else {
+            Button { helpPresent = true } label: {
+                Image(systemName: "questionmark.circle")
+                    .font(.system(size: 17))
+            }
+        }
 
-ToolbarItem(placement: .topBarTrailing) {
-    Button {
-        isGroupEditing = true
-    } label: {
-        Image(systemName: "folder.badge.gearshape")
+       
+        launchModeSelector
+            .font(.system(size: 17))
     }
 }
 
 
 ToolbarItem(placement: .topBarTrailing) {
-    Menu {
-        Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
-            ForEach(AppSortType.allCases, id: \.self) { sortType in
-                Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
+    HStack(spacing: 12) {
+       
+        Button {
+            withAnimation(.spring()) {
+                isSearchFieldVisible.toggle()
+                if !isSearchFieldVisible { searchContext.query = "" }
             }
+        } label: {
+            Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass")
+                .font(.system(size: 17, weight: .medium))
         }
-        .onChange(of: sharedAppSortManager.appSortType) { _ in
-            if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
+
+        
+        Button { Task { await onOpenWebViewTapped() } } label: {
+            Image(systemName: "link")
+                .font(.system(size: 17))
         }
-    } label: { 
-        Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") 
+
+      
+        Menu {
+           
+            Section {
+                Button {
+                    isGroupEditing = true
+                } label: {
+                    Label("Manage Groups", systemImage: "folder.badge.gearshape")
+                }
+            }
+
+            
+            Section {
+                Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
+                    ForEach(AppSortType.allCases, id: \.self) { sortType in
+                        Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(.system(size: 17))
+        }
     }
 }
-
-            }
+        
             
             .navigationViewStyle(.stack)
             .sheet(isPresented: $isGroupEditing) {

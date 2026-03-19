@@ -206,7 +206,7 @@ extension LCAppListView {
         }
     }
 }
-
+}
 extension LCAppListView {
 
     

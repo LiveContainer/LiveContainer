@@ -58,7 +58,10 @@ enum AppSortType: String, CaseIterable {
 
 /// Manages the state and logic for sorting the list of applications.
 class LCAppSortManager: ObservableObject {
-    
+    private let userDefaults = LCUtils.appGroupUserDefault
+    private let pinnedKey = "LC_PinnedBundleIds"
+
+    @Published var pinnedBundleIds: Set<String> = []
     static var shared: LCAppSortManager = LCAppSortManager()
     
     @AppStorage("LCAppSortType", store: LCUtils.appGroupUserDefault) var appSortType: AppSortType = .defaultOrder {
@@ -108,6 +111,9 @@ func moveApp(_ bundleId: String, to group: String?) {
 }
 
     init() {
+        if let savedIds = userDefaults.stringArray(forKey: pinnedKey) {
+            self.pinnedBundleIds = Set(savedIds)
+        }
         self.customGroups = UserDefaults.standard.dictionary(forKey: "LCCustomGroups") as? [String: [String]] ?? [:]
         self.customSortOrder = LCUtils.appGroupUserDefault.array(forKey: "LCCustomSortOrder") as? [String] ?? []
         
@@ -142,7 +148,25 @@ func moveApp(_ bundleId: String, to group: String?) {
             }
             .store(in: &cancellables)
     }
-    
+    func togglePin(_ bundleId: String) {
+        if pinnedBundleIds.contains(bundleId) {
+            pinnedBundleIds.remove(bundleId)
+        } else {
+            pinnedBundleIds.insert(bundleId)
+        }
+        
+        
+        savePinnedIds()
+        
+        
+        objectWillChange.send()
+    }
+
+    private func savePinnedIds() {
+        
+        userDefaults.set(Array(pinnedBundleIds), forKey: pinnedKey)
+        userDefaults.synchronize() 
+    }
     // MARK: - Internal Logic
     
     func getUniqueIdentifier(for app: LCAppModel) -> String? {

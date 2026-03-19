@@ -207,24 +207,20 @@ struct LCGroupEditView: View {
             
             List {
                 Section(header: 
-    HStack {
-        Text("Group List")
-        Spacer()
-        
-        Button {
+    Button(action: {
             showAddGroupAlert = true
-        } label: {
-            HStack(spacing: 4) {
+        }) {
+            HStack {
                 Image(systemName: "plus.circle.fill")
+                    .foregroundColor(.accentColor)
                 Text("New Group")
+                    .foregroundColor(.accentColor)
+                    .fontWeight(.medium)
+                Spacer()
             }
-            .font(.subheadline)
-            
-            .textCase(nil) 
         }
-            .buttonStyle(.borderless) 
-    }
-) {
+    
+        .contentShape(Rectangle())
     
     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
         HStack {

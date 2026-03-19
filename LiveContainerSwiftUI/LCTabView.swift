@@ -8,25 +8,66 @@
 import SwiftUI
 import Foundation
 
+import SwiftUI
+import Foundation
+
+// 🔹 分頁 enum
+enum LCTabIdentifier: CaseIterable {
+    case sources, apps, tweaks, explore, settings, cache
+    
+    var title: String {
+        switch self {
+        case .sources: return "Sources"
+        case .apps: return "Apps"
+        case .tweaks: return "Tweaks"
+        case .explore: return "Explore"
+        case .settings: return "Settings"
+        case .cache: return "Manager"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .sources: return "books.vertical"
+        case .apps: return "square.stack.3d.up.fill"
+        case .tweaks: return "wrench.and.screwdriver"
+        case .explore: return "safari.fill"
+        case .settings: return "gearshape.fill"
+        case .cache: return "internaldrive"
+        }
+    }
+}
+
+// 🔹 範例全局模型
+class DataManagerModel: ObservableObject {
+    @Published var selectedTab: LCTabIdentifier = .apps
+}
+
+class DataManager {
+    static let shared = DataManager()
+    var model = DataManagerModel()
+}
+
+// 🔹 LCTabView
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🟢 採用你測試成功的邏輯：直接用 @State 驅動切換
-    @State private var selectedTab: LCTabIdentifier = .apps
+    @State private var selectedTab: LCTabIdentifier
     
-    @ObservedObject var sharedModel = DataManager.shared.model
-    @State var errorShow = false
-    @State var errorInfo = ""
-    @State var shouldToggleMainWindowOpen = false 
-    @EnvironmentObject var sceneDelegate: SceneDelegate
-    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-
+    @EnvironmentObject var sharedModel: DataManagerModel
+    
+    init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
+        _appDataFolderNames = appDataFolderNames
+        _tweakFolderNames = tweakFolderNames
+        _selectedTab = State(initialValue: DataManager.shared.model.selectedTab)
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-            // 🔥 核心：根據你的邏輯切換 View
-            // 加入 Spacer(minLength: 0) 確保內容撐開
-            VStack {
+            
+            // 🔥 根據 selectedTab 切換 View
+            Group {
                 switch selectedTab {
                 case .sources:
                     LCSourcesView()
@@ -40,80 +81,54 @@ struct LCTabView: View {
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
                 case .cache:
                     LCCacheManagementView()
-                default:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 🔧 自定義 iOS 26 磨砂 Toolbar (取代系統底部的 Bar 以獲得透明感)
+            // 🔧 自訂 Toolbar
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .errorAlert(isPresented: $errorShow, info: errorInfo, copyAction: { copyError() })
-        .task {
-            // 同步初始狀態
-            selectedTab = sharedModel.selectedTab
-            await performInitialChecks()
-        }
-        // 保持同步：當選中項改變，告知全域模型（為了 Deep Link 等功能）
         .onChange(of: selectedTab) { newValue in
+            // 同步到全局模型
             sharedModel.selectedTab = newValue
         }
-        // 保持同步：當外部（如 Deep Link）改了全域，更新 UI
-        .onChange(of: sharedModel.selectedTab) { newValue in
-            if selectedTab != newValue {
-                selectedTab = newValue
-            }
-        }
-        .onReceive(pub) { out in
-            handleSceneDisconnect(out)
-        }
-        .onOpenURL { url in
-            dispatchURL(url: url)
-        }
     }
-
-    // 🔧 自定義工具欄實作
+    
+    // 🔹 自訂底部工具欄
     private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
-                tabButton(title: "lc.tabView.sources".loc, icon: "books.vertical", id: .sources)
-                tabButton(title: "lc.tabView.apps".loc, icon: "square.stack.3d.up.fill", id: .apps)
-                tabButton(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
-                
-                Spacer(minLength: 20) // iOS 26 中央留白美學
-                
-                tabButton(title: "Explore", icon: "safari.fill", id: .explore)
-                tabButton(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
-                tabButton(title: "Manager", icon: "internaldrive", id: .cache)
+                ForEach(LCTabIdentifier.allCases, id: \.self) { tab in
+                    tabButton(tab: tab)
+                }
             }
             .padding(.top, 10)
             .padding(.bottom, (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) > 0 ? (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) : 10)
         }
-        .background(.ultraThinMaterial) // 達成透明感
+        .background(.ultraThinMaterial)
     }
-
-    private func tabButton(title: String, icon: String, id: LCTabIdentifier) -> some View {
+    
+    private func tabButton(tab: LCTabIdentifier) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            selectedTab = id
+            selectedTab = tab
+            sharedModel.selectedTab = tab
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 21, weight: selectedTab == id ? .semibold : .regular))
-                Text(title)
+                Image(systemName: tab.icon)
+                    .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
+                Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
-            .foregroundColor(selectedTab == id ? .accentColor : .primary.opacity(0.4))
+            .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.4))
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
-
 
 
 

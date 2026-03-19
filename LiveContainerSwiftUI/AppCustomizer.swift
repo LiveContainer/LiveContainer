@@ -326,6 +326,36 @@ struct LCGroupEditView: View {
         
       
     }
+     
+
+func addNewGroup() {
+    let name = newGroupName.trimmingCharacters(in: .whitespacesAndNewlines)
+    
+    
+    guard !name.isEmpty, sortManager.customGroups[name] == nil else { 
+        return 
+    }
+    
+    withAnimation {
+        
+        sortManager.customGroups[name] = []
+        
+        
+        if !selectedApps.isEmpty {
+            sortManager.moveApps(selectedApps, to: name)
+            selectedApps.removeAll()
+        }
+        
+        
+        newGroupName = ""
+        
+        
+        sortManager.objectWillChange.send()
+    }
+    
+   
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
 
     
     func togglePinStatus() {

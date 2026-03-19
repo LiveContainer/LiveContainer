@@ -204,42 +204,43 @@ struct LCGroupEditView: View {
 
     var body: some View {
         NavigationView {
-            
             List {
-                Section(header: 
-    Button(action: {
-            showAddGroupAlert = true
-        }) {
-            HStack {
-                Image(systemName: "plus.circle.fill")
-                    .foregroundColor(.accentColor)
-                Text("New Group")
-                    .foregroundColor(.accentColor)
-                    .fontWeight(.medium)
-                Spacer()
-            }
-        }
-    
-        .contentShape(Rectangle())
-    
-    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-        HStack {
-            Image(systemName: "folder").foregroundColor(.accentColor)
-            Text(name)
-            Spacer()
-            Text("\(sortManager.customGroups[name]?.count ?? 0) App")
-                .font(.caption).foregroundColor(.secondary)
-        }
-    }
-    .onDelete { indexSet in
-        withAnimation {
-            let keys = sortManager.customGroups.keys.sorted()
-            indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
-        }
-    }
-}
+                
+                Section(header: Text("Group List")) {
+                    
+                    Button(action: {
+                        showAddGroupAlert = true
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.accentColor)
+                            Text("New Group")
+                                .foregroundColor(.accentColor)
+                                .fontWeight(.medium)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain) 
 
+                    
+                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                        HStack {
+                            Image(systemName: "folder").foregroundColor(.accentColor)
+                            Text(name)
+                            Spacer()
+                            Text("\(sortManager.customGroups[name]?.count ?? 0) App")
+                                .font(.caption).foregroundColor(.secondary)
+                        }
+                    }
+                    .onDelete { indexSet in
+                        withAnimation {
+                            let keys = sortManager.customGroups.keys.sorted()
+                            indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
+                        }
+                    }
+                }
 
+                
                 Section(header: Text("Select App (\(selectedApps.count))")) {
                     TextField("Search App...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
@@ -285,13 +286,9 @@ struct LCGroupEditView: View {
             .navigationTitle("Manage Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Confirm") { dismiss() }
                 }
-                
-            
-
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if !selectedApps.isEmpty {
@@ -318,34 +315,29 @@ struct LCGroupEditView: View {
                         } label: {
                             Image(systemName: "ellipsis.circle.fill")
                         }
-                    } else {
-                        EmptyView()
                     }
                 }
             }
-            
         }
-            .textFieldAlert(
-                isPresented: $showAddGroupAlert,
-                title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
-                text: $newGroupName,
-                placeholder: "Enter Name",
-                action: { name in
-                    if let name = name, !name.isEmpty {
-                        withAnimation {
-                            sortManager.customGroups[name] = []
-                            if !selectedApps.isEmpty { moveToGroup(name) }
-                            newGroupName = ""
-                        }
-                    }
-                },
-                actionCancel: { _ in newGroupName = "" }
-            )
-            
         
+        .textFieldAlert(
+            isPresented: $showAddGroupAlert,
+            title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
+            text: $newGroupName,
+            placeholder: "Enter Name",
+            action: { name in
+                if let name = name, !name.isEmpty {
+                    withAnimation {
+                        sortManager.customGroups[name] = []
+                        if !selectedApps.isEmpty { moveToGroup(name) }
+                        newGroupName = ""
+                    }
+                }
+            },
+            actionCancel: { _ in newGroupName = "" }
+        )
     }
 
-    
     
     func togglePinStatus() {
         withAnimation {
@@ -363,11 +355,8 @@ struct LCGroupEditView: View {
     }
 
     var filteredApps: [LCAppModel] {
-        if searchText.isEmpty {
-            return sharedModel.apps
-        } else {
-            return sharedModel.apps.filter { $0.appInfo.displayName().localizedCaseInsensitiveContains(searchText) }
-        }
+        if searchText.isEmpty { return sharedModel.apps }
+        return sharedModel.apps.filter { $0.appInfo.displayName().localizedCaseInsensitiveContains(searchText) }
     }
 
     func toggleSelection(for bid: String) {

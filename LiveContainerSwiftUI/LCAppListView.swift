@@ -139,7 +139,7 @@ func trailingSwipeActions(for app: LCAppModel) -> some View {
         }
     }
 }
-}
+
 
 
 class SearchContext: ObservableObject {
@@ -444,7 +444,7 @@ var launchModeSelector: some View {
 
 
 
-private func setMode(_ mode: AppLaunchMode) {
+func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {
         isLiveContainerMode = false
         isiPhoneMode = false
@@ -1529,4 +1529,5 @@ if isNative {
 
 extension View {
     func apply<V: View>(@ViewBuilder _ block: (Self) -> V) -> V { block(self) }
+}
 }

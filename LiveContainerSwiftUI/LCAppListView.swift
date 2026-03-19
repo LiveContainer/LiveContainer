@@ -52,7 +52,7 @@ extension LCAppListView {
                         }
                     } label: { Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass") }
                 }
-                ToolbarItem(placement: .topBsrTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
                 }
                 ToolbarItem(placement: .topBarTrailing) {

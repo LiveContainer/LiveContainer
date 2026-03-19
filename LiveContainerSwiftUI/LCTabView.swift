@@ -24,96 +24,91 @@ struct LCTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-               
-                switch sharedModel.selectedTab {
-                case .sources:
-                    LCSourcesView()
-                case .apps:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                case .tweaks:
-                    LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore:
-                    Text("Explore New Features").font(.headline) // 這裡替換成你的新 View
-                case .settings:
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                case .cache:
-                    LCCacheManagementView()
-                default:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            mainPages
             
            
-            ios26StyleToolbar
+            customiOS26Toolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-          .alert("lc.common.error".loc, isPresented: $errorShow) {
-            Button("lc.common.ok".loc, action: {})
-            Button("lc.common.copy".loc, action: { copyError() })
-        } message: { 
-            Text(errorInfo) 
+        .errorAlert(isPresented: $errorShow, info: errorInfo, copyAction: copyError)
+        .task { await performInitialChecks() }
+        .onReceive(pub) { out in handleSceneDisconnect(out) }
+        .onOpenURL { url in dispatchURL(url: url) }
+    }
+}
+
+extension LCTabView {
+    
+    private var mainPages: some View {
+        ZStack {
+            
+            switch sharedModel.selectedTab {
+            case .sources:
+                LCSourcesView()
+            case .apps:
+                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            case .tweaks:
+                LCTweaksView(tweakFolders: $tweakFolderNames)
+            case .explore:
+                Text("Explore View") 
+            case .settings:
+                LCSettingsView(appDataFolderNames: $appDataFolderNames)
+            case .cache:
+                LCCacheManagementView()
+            default:
+                LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            }
         }
-        
-        .task {
-            await performInitialChecks()
-        }
-        .onReceive(pub) { out in
-            handleSceneDisconnect(out)
-        }
-        .onOpenURL { url in 
-            dispatchURL(url: url) 
-        }
-        
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    
-    var ios26StyleToolbar: some View {
+    private var customiOS26Toolbar: some View {
         VStack(spacing: 0) {
-            Divider().opacity(0.3) 
+            Divider().opacity(0.3)
             
             HStack(spacing: 0) {
-                
+            
                 Group {
                     tabItem(title: "Sources", icon: "books.vertical", id: .sources)
                     tabItem(title: "Apps", icon: "square.stack.3d.up.fill", id: .apps)
                     tabItem(title: "Tweaks", icon: "wrench.and.screwdriver", id: .tweaks)
                 }
                 
+                Spacer(minLength: 20) 
                 
-                Spacer(minLength: 20)
                 
-           
                 Group {
-                    tabItem(title: "Explore", icon: "safari.fill", id: .explore) // 新增的功能
+                    tabItem(title: "Explore", icon: "safari.fill", id: .explore)
                     tabItem(title: "Settings", icon: "gearshape.fill", id: .settings)
                     tabItem(title: "Manager", icon: "internaldrive", id: .cache)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.top, 12)
-            
+            .padding(.horizontal, 12)
+            .padding(.top, 10)
+        
             .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
         }
-        .background(.ultraThinMaterial)
+        .background(.ultraThinMaterial) 
         .shadow(color: Color.black.opacity(0.05), radius: 10, y: -2)
     }
 
-
-    func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
-        Button(action: { 
-            UIImpactFeedbackGenerator(style: .light).impactOccurred() // 加入觸覺回饋
-            sharedModel.selectedTab = id 
+    private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
+        Button(action: {
+           
+            
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                sharedModel.selectedTab = id
+            }
         }) {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .regular))
-                    .frame(height: 26)
+                    .font(.system(size: 22, weight: sharedModel.selectedTab == id ? .semibold : .regular))
+                    .scaleEffect(sharedModel.selectedTab == id ? 1.1 : 1.0)
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
             }
-            .frame(maxWidth: .infinity) // 讓每個 Item 自動均分空間
+            .frame(maxWidth: .infinity)
             .foregroundColor(sharedModel.selectedTab == id ? .accentColor : .secondary)
         }
     }

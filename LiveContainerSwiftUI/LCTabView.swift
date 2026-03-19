@@ -8,62 +8,24 @@
 import SwiftUI
 import Foundation
 
-// 🔹 分頁 enum
-enum LCTabIdentifier: CaseIterable {
-    case sources, apps, tweaks, explore, settings, cache
-    
-    var title: String {
-        switch self {
-        case .sources: return "Sources"
-        case .apps: return "Apps"
-        case .tweaks: return "Tweaks"
-        case .explore: return "Explore"
-        case .settings: return "Settings"
-        case .cache: return "Manager"
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .sources: return "books.vertical"
-        case .apps: return "square.stack.3d.up.fill"
-        case .tweaks: return "wrench.and.screwdriver"
-        case .explore: return "safari.fill"
-        case .settings: return "gearshape.fill"
-        case .cache: return "internaldrive"
-        }
-    }
-}
-
-// 🔹 全域模型
-class DataManagerModel: ObservableObject {
-    @Published var selectedTab: LCTabIdentifier = .apps
-    @Published var mainWindowOpened: Bool = false
-    @Published var multiLCStatus: Int = 0
-    var deepLink: URL?
-}
-
-class DataManager {
-    static let shared = DataManager()
-    var model = DataManagerModel()
-}
-
 // 🔹 LCTabView
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
+    // 🟢 核心：使用本地 State 驅動 UI，確保切換順暢
     @State private var selectedTab: LCTabIdentifier
     
-    @EnvironmentObject var sharedModel: DataManagerModel
-    @EnvironmentObject var sceneDelegate: SceneDelegate
+    // 監聽全局模型（用於 Deep Link 或外部狀態變更）
+    @ObservedObject var sharedModel = DataManager.shared.model
     
     @State var errorShow = false
     @State var errorInfo = ""
-    @State var shouldToggleMainWindowOpen = false
-    
+    @State var shouldToggleMainWindowOpen = false 
+    @EnvironmentObject var sceneDelegate: SceneDelegate
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-    
+
+    // 初始化：將全局模型的初始值賦給本地 State
     init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
         _appDataFolderNames = appDataFolderNames
         _tweakFolderNames = tweakFolderNames
@@ -91,93 +53,85 @@ struct LCTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 🔧 自訂 Toolbar
+            // 🔧 自訂 iOS 26 磨砂底部工具欄
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .errorAlert(isPresented: $errorShow, info: errorInfo, copyAction: { copyError() })
+        // 錯誤處理
+        .alert("lc.common.error".loc, isPresented: $errorShow) {
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: { copyError() })
+        } message: {
+            Text(errorInfo)
+        }
+        // 生命週期與同步
         .task {
-            // 同步初始狀態
-            selectedTab = sharedModel.selectedTab
             await performInitialChecks()
         }
-        // 點擊 toolbar 後同步到全域
         .onChange(of: selectedTab) { newValue in
+            // 本地切換時，同步更新全局模型
             sharedModel.selectedTab = newValue
         }
-        // 處理 Scene 斷線
+        .onChange(of: sharedModel.selectedTab) { newValue in
+            // 當全局模型（例如經由 Deep Link）改變時，同步回本地 UI
+            if selectedTab != newValue {
+                selectedTab = newValue
+            }
+        }
         .onReceive(pub) { out in
             handleSceneDisconnect(out)
         }
-        // 處理 Deep Link
         .onOpenURL { url in
             dispatchURL(url: url)
         }
     }
     
-    // 🔧 Toolbar
+    // 🔹 自訂底部工具欄實作
     private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
-                ForEach(LCTabIdentifier.allCases, id: \.self) { tab in
-                    tabButton(tab: tab)
-                }
+                // 左側三個
+                tabButton(tab: .sources)
+                tabButton(tab: .apps)
+                tabButton(tab: .tweaks)
+                
+                Spacer(minLength: 24) 
+                
+                // 右側三個
+                tabButton(tab: .explore)
+                tabButton(tab: .settings)
+                tabButton(tab: .cache)
             }
             .padding(.top, 10)
-            .padding(.bottom, (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) > 0 ? (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) : 10)
+            .padding(.bottom, (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) > 0 ? (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) : 12)
         }
         .background(.ultraThinMaterial)
     }
     
     private func tabButton(tab: LCTabIdentifier) -> some View {
         Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            selectedTab = tab
-            sharedModel.selectedTab = tab
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            withAnimation(.snappy(duration: 0.2)) {
+                selectedTab = tab
+            }
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
-                Text(tab.title)
+                    .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
+                Text(tab.title.localized) // 確保支援語系
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
-            .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.4))
+            .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
-}
-// 🔹 Error alert extension
-extension View {
-    func errorAlert(isPresented: Binding<Bool>, info: String, copyAction: @escaping () -> Void) -> some View {
-        self.alert("lc.common.error".loc, isPresented: isPresented) {
-            Button("lc.common.ok".loc, action: {})
-            Button("lc.common.copy".loc, action: copyAction)
-        } message: {
-            Text(info)
-        }
-    }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// MARK: - 邏輯擴展
 
 extension LCTabView {
     func performInitialChecks() async {

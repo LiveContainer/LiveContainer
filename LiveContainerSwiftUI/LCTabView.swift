@@ -7,9 +7,17 @@
 
 import SwiftUI
 import Foundation
-
+enum LCTabID: Hashable {
+    case sources
+    case apps
+    case tweaks
+    case settings
+    case cache
+    case search
+    case explore
+}
 // --- 修正 1: 補齊 LCTabIdentifier 的屬性擴充 ---
-enum LCTabID {
+extension LCTabID {
     var title: String {
         switch self {
         case .sources: return "lc.tabView.sources".loc
@@ -86,7 +94,7 @@ struct LCTabView: View {
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                Spacer(minLength: 25)
+                Spacer(minLength:50)
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
@@ -97,7 +105,7 @@ struct LCTabView: View {
         .background(.ultraThinMaterial)
     }
     
-    private func tabButton(tab: LCTabIdentifier) -> some View {
+    private func tabButton(tab: LCTabID) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             // 🔴 只修改本地 State

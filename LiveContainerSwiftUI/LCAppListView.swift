@@ -52,28 +52,36 @@ extension LCAppListView {
                         }
                     } label: { Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass") }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Button {
-                            isGroupEditing = true
-                        } label: {
-                            Image(systemName: "folder.badge.gearshape")
-                        }
-                        Menu {
-                            Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
-                                ForEach(AppSortType.allCases, id: \.self) { sortType in
-                                    Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
-                                }
-                            }
-                            .onChange(of: sharedAppSortManager.appSortType) { _ in
-                                if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
-                            }
-                        } label: { Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") }
-                    }
-                }
+                
+ToolbarItem(placement: .topBarTrailing) {
+    Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
+}
+
+
+ToolbarItem(placement: .topBarTrailing) {
+    Button {
+        isGroupEditing = true
+    } label: {
+        Image(systemName: "folder.badge.gearshape")
+    }
+}
+
+
+ToolbarItem(placement: .topBarTrailing) {
+    Menu {
+        Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
+            ForEach(AppSortType.allCases, id: \.self) { sortType in
+                Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
+            }
+        }
+        .onChange(of: sharedAppSortManager.appSortType) { _ in
+            if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
+        }
+    } label: { 
+        Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") 
+    }
+}
+
             }
             
             .navigationViewStyle(.stack)

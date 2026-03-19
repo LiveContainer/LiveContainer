@@ -5,22 +5,27 @@
 //  Created by s s on 2024/8/21.
 //
 
+import SwiftUI
+import Foundation
+
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 使用本地 State 驅動 UI
+    // 狀態儲存：使用本地 State 驅動 UI 切換
     @State private var localSelectedTab: LCTabIdentifier = .apps
     
     @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
-    @EnvironmentObject var sceneDelegate: SceneDelegate
+    @State var shouldToggleMainWindowOpen = false // 補回遺失的變數
     
+    @EnvironmentObject var sceneDelegate: SceneDelegate
+    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
+
     var body: some View {
         VStack(spacing: 0) {
             // --- 內容區域 ---
-            // 使用 Group 配合 id(localSelectedTab) 是解決「不切換」的核心
             Group {
                 switch localSelectedTab {
                 case .sources:
@@ -40,32 +45,41 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 🔴 關鍵修復：當 localSelectedTab 改變時，id 改變會強迫 SwiftUI 重新生成這個 Group
+            // 🔴 暴力刷新 ID，確保分頁絕對會切換
             .id("TabViewContent-\(localSelectedTab)") 
             
             // --- iOS 26 風格透明 Toolbar ---
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        .alert("lc.common.error".loc, isPresented: $errorShow) {
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: { copyError() })
+        } message: {
+            Text(errorInfo)
+        }
         .task {
-            // 同步初始狀態
             localSelectedTab = sharedModel.selectedTab
             await performInitialChecks()
         }
-        // 監聽本地點擊，同步回全域
         .onChange(of: localSelectedTab) { newValue in
             sharedModel.selectedTab = newValue
         }
-        // 監聽全域變動（如 DeepLink），同步回本地
         .onChange(of: sharedModel.selectedTab) { newValue in
             if localSelectedTab != newValue {
                 localSelectedTab = newValue
             }
         }
+        .onReceive(pub) { out in
+            handleSceneDisconnect(out)
+        }
+        .onOpenURL { url in
+            dispatchURL(url: url)
+        }
     }
 }
 
-// MARK: - Toolbar 實作 (確保點擊穿透)
+// MARK: - Toolbar UI
 extension LCTabView {
     private var ios26TransparentToolbar: some View {
         VStack(spacing: 0) {
@@ -76,7 +90,7 @@ extension LCTabView {
                 tabItem(title: "Apps", icon: "square.stack.3d.up.fill", id: .apps)
                 tabItem(title: "Tweaks", icon: "wrench.and.screwdriver", id: .tweaks)
                 
-                Spacer(minLength: 20) // iOS 26 對稱空隙
+                Spacer(minLength: 20)
                 
                 tabItem(title: "Explore", icon: "safari.fill", id: .explore)
                 tabItem(title: "Settings", icon: "gearshape.fill", id: .settings)
@@ -85,16 +99,12 @@ extension LCTabView {
             .padding(.top, 10)
             .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
         }
-        .background(.ultraThinMaterial) // 頂部 Toolbar 同款透明感
+        .background(.ultraThinMaterial)
     }
 
     private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
-        // 使用 Button 的最簡化形式，避免閉包延遲
         Button {
-            print("Action: Switching to \(id)")
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            
-            // 使用動畫包裹狀態變更
             withAnimation(.snappy(duration: 0.2)) {
                 self.localSelectedTab = id
             }
@@ -106,12 +116,16 @@ extension LCTabView {
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle()) // 🔴 重要：增加點擊命中率
+            .contentShape(Rectangle())
             .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.5))
         }
-        .buttonStyle(PlainButtonStyle()) // 避免系統按鈕預設動畫干擾
+        .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - 邏輯檢查 (修復 self is immutable 錯誤)
+
+
 
 
 

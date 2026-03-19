@@ -121,7 +121,23 @@ struct LCTabView: View {
 
 
 extension LCTabView {
+    func performInitialChecks() async {
+        closeDuplicatedWindow()
+        checkLastLaunchError()
+        checkTeamId()
+        checkBundleId()
+        checkGetTaskAllow()
+        checkPrivateContainerBookmark()
+    }
 
+    func handleSceneDisconnect(_ notification: Notification) {
+        if let scene1 = sceneDelegate.window?.windowScene, 
+           let scene2 = notification.object as? UIWindowScene, scene1 == scene2 {
+            if shouldToggleMainWindowOpen { 
+                DataManager.shared.model.mainWindowOpened = false 
+            }
+        }
+    }
     func dispatchURL(url: URL) {
         repeat {
             if url.isFileURL {

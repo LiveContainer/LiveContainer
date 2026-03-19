@@ -23,36 +23,17 @@ struct LCTabView: View {
     @EnvironmentObject var sceneDelegate: SceneDelegate
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
 
-    var body: some View {
+        var body: some View {
         VStack(spacing: 0) {
             // --- 內容區域 ---
-            Group {
-                // 🔴 核心修復 2：直接在 body 內 switch，並綁定唯一的 ID
-                switch localSelectedTab {
-                case .sources:
-                    LCSourcesView()
-                case .apps:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                case .tweaks:
-                    LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore:
-                    ExploreView()
-                case .settings:
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                case .cache:
-                    LCCacheManagementView()
-                default:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 🔴 核心修復 3：強迫 SwiftUI 看到 ID 改變就銷毀舊視圖並重建新視圖
-            .id("Content-\(localSelectedTab)") 
+            mainContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             // --- iOS 26 透明風格 Toolbar ---
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        // 修正：將 Alert 移到最外層，避免干擾內部切換
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
@@ -60,21 +41,47 @@ struct LCTabView: View {
             Text(errorInfo)
         }
         .task {
-            // 初始化同步
+            // 確保初始化同步是瞬間完成的
             localSelectedTab = sharedModel.selectedTab
             await performInitialChecks()
         }
-        // 🔴 核心修復 4：雙向同步，確保外部跳轉（如 Deep Link）也能切換分頁
         .onChange(of: localSelectedTab) { newValue in
             sharedModel.selectedTab = newValue
         }
         .onChange(of: sharedModel.selectedTab) { newValue in
+            // 如果是外部（如 URL）觸發的，強制更新本地狀態
             if localSelectedTab != newValue {
-                localSelectedTab = newValue
+                withAnimation(.snappy) {
+                    localSelectedTab = newValue
+                }
             }
         }
+        .onReceive(pub) { out in
+            handleSceneDisconnect(out)
+        }
+        .onOpenURL { url in
+            dispatchURL(url: url)
+        }
     }
-}
+
+    // 🔴 核心修復：將視圖生成獨立出來，並強制加上 transition
+    @ViewBuilder
+    private var mainContent: some View {
+        ZStack {
+            switch localSelectedTab {
+            case .sources: LCSourcesView()
+            case .apps: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            case .tweaks: LCTweaksView(tweakFolders: $tweakFolderNames)
+            case .explore: ExploreView()
+            case .settings: LCSettingsView(appDataFolderNames: $appDataFolderNames)
+            case .cache: LCCacheManagementView()
+            default: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            }
+        }
+        .transition(.opacity.combined(with: .scale(scale: 0.98))) // 增加切換感
+        .id(localSelectedTab) // 🔴 必須是這個，不要加字串前綴，確保類型一致
+    }
+
 
 // MARK: - Toolbar 實作
 extension LCTabView {
@@ -99,29 +106,28 @@ extension LCTabView {
         .background(.ultraThinMaterial) // 透明磨砂質感
     }
 
-    private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
-        Button {
-            // 觸覺回饋
+        private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
+        // 使用底層的 contentShape 確保整塊區域都能點擊
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 21, weight: localSelectedTab == id ? .semibold : .regular))
+                .scaleEffect(localSelectedTab == id ? 1.1 : 1.0)
+            Text(title)
+                .font(.system(size: 10, weight: .medium))
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle()) // 🔴 這行非常重要
+        .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.45))
+        .onTapGesture {
+            // 🔴 使用 TapGesture 替代 Button 有時能解決複雜自定義 Bar 的響應問題
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            
-            // 🔴 核心修復 5：使用動畫更新本地狀態
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            withAnimation(.snappy(duration: 0.2)) {
                 self.localSelectedTab = id
             }
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 21, weight: localSelectedTab == id ? .semibold : .regular))
-                    .scaleEffect(localSelectedTab == id ? 1.1 : 1.0)
-                Text(title)
-                    .font(.system(size: 10, weight: .medium))
-            }
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle()) // 🔴 核心修復 6：擴大點擊範圍到整個方塊，而非只有文字
-            .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.45))
+            print("Tab switched to: \(id)") // 檢查 Debug Console 是否有印出
         }
-        .buttonStyle(PlainButtonStyle()) // 移除系統預設的高亮延遲
     }
+
 }
 
 

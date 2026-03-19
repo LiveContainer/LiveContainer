@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 // --- 修正 1: 補齊 LCTabIdentifier 的屬性擴充 ---
-extension LCTabIdentifier {
+enum LCTabID {
     var title: String {
         switch self {
         case .sources: return "lc.tabView.sources".loc
@@ -39,7 +39,7 @@ struct LCTabView: View {
     @Binding var tweakFolderNames: [String]
     
     // 🟢 核心切換：純本地 State，不受外部干擾
-    @State private var selectedTab: LCTabIdentifier = .apps
+    @State private var selectedTab: LCTabID = .apps
     
     // 修正 2: 重新宣告 sharedModel 供 extension 使用，但不綁定分頁切換
     @ObservedObject var sharedModel = DataManager.shared.model
@@ -51,7 +51,7 @@ struct LCTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
+            Group {
                 switch selectedTab {
                 case .sources:
                     LCSourcesView()

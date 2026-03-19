@@ -289,7 +289,7 @@ struct LCGroupEditView: View {
     text: $newGroupName,             
     placeholder: "Enter group name",
     action: { name in 
-        if !name.isEmpty {
+        if !name?.isEmpty == true {
             sortManager.customGroups[name] = [] 
             newGroupName = "" 
         }

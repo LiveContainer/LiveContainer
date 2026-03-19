@@ -101,12 +101,18 @@ struct LCTabView: View {
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
                 }.padding()
+                     .background(.ultraThinMaterial) // 磨砂玻璃
+            .cornerRadius(50) // 圓角
+            .opacity(0.1) 
                 Spacer(minLength: 20)
                 HStack{
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
                 }.padding()
+                     .background(.ultraThinMaterial) // 磨砂玻璃
+            .cornerRadius(50) // 圓角
+            .opacity(0.1) 
             }
             .padding(10)
               .background(

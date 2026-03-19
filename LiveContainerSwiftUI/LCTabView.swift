@@ -8,12 +8,41 @@
 import SwiftUI
 import Foundation
 
+// --- 修正 1: 補齊 LCTabIdentifier 的屬性擴充 ---
+extension LCTabIdentifier {
+    var title: String {
+        switch self {
+        case .sources: return "lc.tabView.sources".loc
+        case .apps: return "lc.tabView.apps".loc
+        case .tweaks: return "lc.tabView.tweaks".loc
+        case .explore: return "Explore"
+        case .settings: return "lc.tabView.settings".loc
+        case .cache: return "Manager"
+        case .search: return "Search"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .sources: return "books.vertical"
+        case .apps: return "square.stack.3d.up.fill"
+        case .tweaks: return "wrench.and.screwdriver"
+        case .explore: return "safari.fill"
+        case .settings: return "gearshape.fill"
+        case .cache: return "internaldrive"
+        case .search: return "magnifyingglass"
+        }
+    }
+}
+
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🟢 只使用本地 State，不聽外部 DataManager 的話
+    // 🟢 核心切換：純本地 State，不受外部干擾
     @State private var selectedTab: LCTabIdentifier = .apps
+    
+    // 修正 2: 重新宣告 sharedModel 供 extension 使用，但不綁定分頁切換
+    @ObservedObject var sharedModel = DataManager.shared.model
     
     @State var errorShow = false
     @State var errorInfo = ""
@@ -22,8 +51,6 @@ struct LCTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // 🔥 核心：直接根據本地變數 switch
-            // 使用 ZStack 或 Group 確保空間被撐開
             ZStack {
                 switch selectedTab {
                 case .sources:
@@ -41,18 +68,15 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 🔴 強制刷新 ID，這行是切換成功的保險
-            .id(selectedTab) 
+            .id(selectedTab) // 確保強制刷新
             
-            // 🔧 自定義底欄
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         .task {
-            // 只執行初始化檢查，不進行狀態同步
             await performInitialChecks()
         }
-        // 暫時移除所有 .onChange(of: sharedModel...) 邏輯
+        // 🔹 這裡不再監聽 sharedModel.selectedTab 的變化，防止循環死鎖
     }
     
     private var customBottomBar: some View {
@@ -75,14 +99,9 @@ struct LCTabView: View {
     
     private func tabButton(tab: LCTabIdentifier) -> some View {
         Button {
-            // 震動回饋
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            
-            // 直接修改本地狀態
-            // 🔴 注意：如果這裡點擊沒反應，請嘗試移除 withAnimation
+            // 🔴 只修改本地 State
             self.selectedTab = tab
-            
-            print("Successfully switched to \(tab)")
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
@@ -91,12 +110,150 @@ struct LCTabView: View {
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle()) // 確保整塊都能點
+            .contentShape(Rectangle())
             .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - 邏輯擴展
+extension LCTabView {
+    func performInitialChecks() async {
+        closeDuplicatedWindow()
+        checkLastLaunchError()
+        checkTeamId()
+        checkBundleId()
+        checkGetTaskAllow()
+        checkPrivateContainerBookmark()
+    }
+
+    func handleSceneDisconnect(_ notification: Notification) {
+        if let scene1 = sceneDelegate.window?.windowScene, 
+           let scene2 = notification.object as? UIWindowScene, scene1 == scene2 {
+            if shouldToggleMainWindowOpen { 
+                sharedModel.mainWindowOpened = false 
+            }
+        }
+    }
+
+    func dispatchURL(url: URL) {
+        repeat {
+            if url.isFileURL {
+                self.selectedTab = .apps // 🔴 修改本地 State
+                break
+            }
+            if url.scheme?.lowercased() == "sidestore" {
+                self.selectedTab = .apps
+                break
+            }
+            guard let host = url.host?.lowercased() else { return }
+            switch host {
+            case "livecontainer-launch", "install", "open-web-page", "open-url":
+                self.selectedTab = .apps
+            case "certificate":
+                self.selectedTab = .settings
+            case "source":
+                self.selectedTab = .sources
+            default:
+                return
+            }
+        } while(false)
+        sharedModel.deepLink = url
+    }
+    
+    func closeDuplicatedWindow() {
+        if let session = sceneDelegate.window?.windowScene?.session, sharedModel.mainWindowOpened {
+            UIApplication.shared.requestSceneSessionDestruction(session, options: nil) { e in
+                print(e)
+            }
+        } else {
+            shouldToggleMainWindowOpen = true
+        }
+        sharedModel.mainWindowOpened = true
+    }
+    
+    func checkLastLaunchError() {
+        var errorStr = UserDefaults.standard.string(forKey: "error")
+        if errorStr == nil && UserDefaults.standard.bool(forKey: "SigningInProgress") {
+            errorStr = "lc.signer.crashDuringSignErr".loc
+            UserDefaults.standard.removeObject(forKey: "SigningInProgress")
+        }
+        guard let errorStr else { return }
+        UserDefaults.standard.removeObject(forKey: "error")
+        errorInfo = errorStr
+        errorShow = true
+    }
+    
+    func copyError() {
+        UIPasteboard.general.string = errorInfo
+    }
+    
+    func checkTeamId() {
+        if let certificateTeamId = UserDefaults.standard.string(forKey: "LCCertificateTeamId") {
+            if sharedModel.multiLCStatus != 2 { return }
+            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else { return }
+            if certificateTeamId != primaryLCTeamId {
+                errorInfo = "lc.settings.multiLC.teamIdMismatch".loc
+                errorShow = true
+            }
+            return
+        }
+        guard let currentTeamId = LCSharedUtils.teamIdentifier() else { return }
+        if sharedModel.multiLCStatus == 2 {
+            guard let primaryLCTeamId = Bundle.main.infoDictionary?["PrimaryLiveContainerTeamId"] as? String else { return }
+            if currentTeamId != primaryLCTeamId {
+                errorInfo = "lc.settings.multiLC.teamIdMismatch".loc
+                errorShow = true
+            }
+        }
+        UserDefaults.standard.set(currentTeamId, forKey: "LCCertificateTeamId")
+    }
+    
+    func checkBundleId() {
+        if UserDefaults.standard.bool(forKey: "LCBundleIdChecked") { return }
+        let task = SecTaskCreateFromSelf(nil)
+        guard let value = SecTaskCopyValueForEntitlement(task, "application-identifier" as CFString, nil), 
+              let appIdentifier = value.takeRetainedValue() as? String else {
+            errorInfo = "Unable to determine application-identifier"
+            errorShow = true
+            return
+        }
+        guard let bundleId = Bundle.main.bundleIdentifier else { return }
+        var correctBundleId = ""
+        if appIdentifier.count > 11 {
+            let startIndex = appIdentifier.index(appIdentifier.startIndex, offsetBy: 11)
+            correctBundleId = String(appIdentifier[startIndex...])
+        }
+        if(bundleId != correctBundleId) {
+            errorInfo = "lc.settings.bundleIdMismatch %@ %@".localizeWithFormat(bundleId, correctBundleId)
+            errorShow = true
+        }
+        UserDefaults.standard.set(true, forKey: "LCBundleIdChecked")
+    }
+    
+    func checkGetTaskAllow() {
+        let task = SecTaskCreateFromSelf(nil)
+        guard let value = SecTaskCopyValueForEntitlement(task, "get-task-allow" as CFString, nil), 
+              (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false else {
+            errorInfo = "lc.settings.notDevCert".loc
+            errorShow = true
+            return
+        }
+    }
+    
+    func checkPrivateContainerBookmark() {
+        if sharedModel.multiLCStatus == 2 { return }
+        if LCUtils.appGroupUserDefault.object(forKey: "LCLaunchExtensionPrivateDocBookmark") != nil { return }
+        guard let bookmark = LCUtils.bookmark(for: LCPath.docPath) else {
+            errorInfo = "Failed to create bookmark for Documents folder?"
+            errorShow = true
+            return
+        }
+        LCUtils.appGroupUserDefault.set(bookmark, forKey: "LCLaunchExtensionPrivateDocBookmark")
+    }
+}
+
 
 
 

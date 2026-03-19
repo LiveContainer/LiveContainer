@@ -282,14 +282,23 @@ struct LCGroupEditView: View {
                     }
                 }
             }
-         .textFieldAlert(
-    isPresented: $showInput,
-    title: "Rename",
-    text: $name,
-    placeholder: "Enter name",
-    action: { newName in print(newName) },
-    actionCancel: { _ in } 
+         
+.textFieldAlert(
+    isPresented: $showAddGroupAlert,
+    title: "New Group",
+    text: $newGroupName,             
+    placeholder: "Enter group name",
+    action: { name in 
+        if !name.isEmpty {
+            sortManager.customGroups[name] = [] 
+            newGroupName = "" 
+        }
+    },
+    actionCancel: { _ in 
+        newGroupName = "" 
+    } 
 )
+
 
         }
     }

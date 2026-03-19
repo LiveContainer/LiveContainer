@@ -382,32 +382,33 @@ var groupedApps: [(key: String, value: [LCAppModel])] {
     let favoriteApps = allApps.filter { app in
         pinnedIds.contains(app.appInfo.bundleIdentifier() ?? "")
     }
+    
     groups.append((key: "Favorites", value: favoriteApps))
 
     
-    let remainingApps = allApps.filter { app in
+    let nonPinnedApps = allApps.filter { app in
         !pinnedIds.contains(app.appInfo.bundleIdentifier() ?? "")
     }
     
     var assignedIds = Set<String>()
+    
     let sortedGroupNames = sharedAppSortManager.customGroups.keys.sorted()
     
-    
     for groupName in sortedGroupNames {
-        let bundleIds = sharedAppSortManager.customGroups[groupName] ?? []
-        let appsInThisGroup = remainingApps.filter { app in
-            bundleIds.contains(app.appInfo.bundleIdentifier() ?? "")
+        let bundleIdsForThisGroup = sharedAppSortManager.customGroups[groupName] ?? []
+        let appsInThisGroup = nonPinnedApps.filter { app in
+            bundleIdsForThisGroup.contains(app.appInfo.bundleIdentifier() ?? "")
         }
         
         
         groups.append((key: groupName, value: appsInThisGroup))
         
-        
+   
         assignedIds.formUnion(appsInThisGroup.compactMap { $0.appInfo.bundleIdentifier() })
     }
 
     
-    let otherApps = remainingApps.filter { app in
+    let otherApps = nonPinnedApps.filter { app in
         guard let bid = app.appInfo.bundleIdentifier() else { return true }
         return !assignedIds.contains(bid)
     }
@@ -418,6 +419,7 @@ var groupedApps: [(key: String, value: [LCAppModel])] {
 
     return groups
 }
+
 
 
     var currentModeIcon: String {

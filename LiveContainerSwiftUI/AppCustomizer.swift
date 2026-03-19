@@ -226,7 +226,6 @@ struct LCGroupEditView: View {
 
                 
                 Section(header: Text("Select App (\(selectedApps.count))")) {
-                    
                     TextField("Search App...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
                         .listRowSeparator(.hidden)
@@ -236,14 +235,9 @@ struct LCGroupEditView: View {
                         let currentGroup = findCurrentGroup(for: bid)
                         
                         HStack {
-                            
                             Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
                                 .font(.system(size: 20))
                                 .foregroundColor(selectedApps.contains(bid) ? .accentColor : .secondary)
-                                .onTapGesture {
-                                    toggleSelection(for: bid)
-                                }
-                            
                             
                             if let icon = app.appInfo.iconIsDarkIcon(false) {
                                 Image(uiImage: icon)
@@ -253,105 +247,88 @@ struct LCGroupEditView: View {
                             }
                             
                             VStack(alignment: .leading) {
-                                Text(app.appInfo.displayName())
-                                    .font(.body)
+                                Text(app.appInfo.displayName()).font(.body)
                                 if let group = currentGroup {
-                                    Text(" \(group)")
-                                        .font(.caption2)
-                                        .foregroundColor(.blue)
+                                    Text(group).font(.caption2).foregroundColor(.blue)
                                 }
                             }
                             Spacer()
                         }
                         .contentShape(Rectangle())
-                        .onTapGesture {
-                            toggleSelection(for: bid)
-                        }
+                        .onTapGesture { toggleSelection(for: bid) }
                     }
                 }
             }
             .navigationTitle("Manage Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
-                
+            
+            
                 ToolbarItem(placement: .navigationBarTrailing) {
-    Menu {
-        
-        Button(action: { showAddGroupAlert = true }) {
-            Label("New Group", systemImage: "folder.badge.plus")
-        }
-
-        if !selectedApps.isEmpty {
-            Divider()
-            
-            
-            Button(action: {
-                withAnimation {
-                    // 假設你的 sortManager 有 togglePin 方法，或直接操作陣列
-                    for bid in selectedApps {
-                        if !sortManager.pinnedBundleIds.contains(bid) {
-                            sortManager.pinnedBundleIds.append(bid)
+                    Menu {
+                        Button(action: { showAddGroupAlert = true }) {
+                            Label("New Group", systemImage: "folder.badge.plus")
                         }
+
+                        if !selectedApps.isEmpty {
+                            Divider()
+                            
+                            
+                            Button(action: {
+                                withAnimation {
+                                    for bid in selectedApps {
+                                        if !sortManager.pinnedBundleIds.contains(bid) {
+                                            sortManager.pinnedBundleIds.append(bid)
+                                        }
+                                    }
+                                    selectedApps.removeAll()
+                                }
+                            }) {
+                                Label("Add to Favorites", systemImage: "star.fill")
+                            }
+
+                            Divider()
+
+                            Section("Move To Group") {
+                                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                                    Button(name) { moveToGroup(name) }
+                                }
+                            }
+                            
+                            Button(role: .destructive) {
+                                moveToGroup(nil) 
+                            } label: {
+                                Label("Remove From Group", systemImage: "minus.circle")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: selectedApps.isEmpty ? "folder.badge.plus" : "ellipsis.circle.fill")
+                            .font(.system(size: 17, weight: .semibold))
                     }
-                    selectedApps.removeAll()
                 }
-            }) {
-                Label("Add to Favorites", systemImage: "star.fill")
-            }
-
-            Divider()
-
-            // --- 第三部分：移動到現有組別 ---
-            Section("Move To Group") {
-                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                    Button(name) {
-                        moveToGroup(name)
-                    }
-                }
-            }
-            
-            Button(role: .destructive) {
-                moveToGroup(nil) 
-            } label: {
-                Label("Remove From Group", systemImage: "minus.circle")
-            }
-        }
-    } label: {
-        
-        Image(systemName: selectedApps.isEmpty ? "folder.badge.plus" : "ellipsis.circle.fill")
-            .font(.system(size: 17, weight: .semibold))
-    }
-}
-
-                }
-            }
-            
+            } 
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
-                title: selectedApps.isEmpty ? "New Group" : "New Folder",
+                title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
                 text: $newGroupName,
                 placeholder: "Enter Name",
                 action: { name in
                     if let name = name, !name.isEmpty {
                         withAnimation {
-                           
                             sortManager.customGroups[name] = []
-                            
-                            if !selectedApps.isEmpty {
-                                moveToGroup(name)
-                            }
+                            if !selectedApps.isEmpty { moveToGroup(name) }
                             newGroupName = ""
                         }
                     }
                 },
                 actionCancel: { _ in newGroupName = "" }
             )
-        }
+        } 
     }
-
 
     
     private var filteredApps: [LCAppModel] {

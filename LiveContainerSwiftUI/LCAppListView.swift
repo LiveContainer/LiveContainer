@@ -20,10 +20,10 @@ extension LCAppListView {
     func allModifiers(content: some View) -> some View {
         content
             .toolbar {
-                
-ToolbarItem(placement: .topBarLeading) {
-    HStack(spacing: 12) { 
-       
+    
+    
+
+    ToolbarItem(placement: .topBarLeading) {
         if sharedModel.multiLCStatus != 2 {
             if !installprogressVisible {
                 Menu {
@@ -31,37 +31,37 @@ ToolbarItem(placement: .topBarLeading) {
                     Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus") { Task { await startInstallFromUrl() } }
                 } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 17, weight: .medium))
                 }
             } else {
-                ProgressView().progressViewStyle(.circular).padding(.horizontal, 4)
+                ProgressView().progressViewStyle(.circular)
             }
         }
+    }
 
-        
+    
+    ToolbarItem(placement: .topBarLeading) {
         if UserDefaults.sideStoreExist() {
             Button { LCUtils.openSideStore(delegate: self) } label: {
                 Image("SideStoreBadge").resizable().renderingMode(.template)
                     .foregroundColor(SharedModel.isLiquidGlassEnabled ? .primary : .accentColor)
-                    .frame(width: 17, height: 17) 
+                    .frame(width: 20, height: 20)
             }
         } else {
             Button { helpPresent = true } label: {
                 Image(systemName: "questionmark.circle")
-                    .font(.system(size: 17))
             }
         }
-
-       
-        launchModeSelector
-            .font(.system(size: 17))
     }
-}
+
+    
+    ToolbarItem(placement: .topBarLeading) {
+        launchModeSelector
+    }
 
 
-ToolbarItem(placement: .topBarTrailing) {
-    HStack(spacing: 12) {
-       
+
+
+    ToolbarItem(placement: .topBarTrailing) {
         Button {
             withAnimation(.spring()) {
                 isSearchFieldVisible.toggle()
@@ -69,18 +69,19 @@ ToolbarItem(placement: .topBarTrailing) {
             }
         } label: {
             Image(systemName: isSearchFieldVisible ? "xmark.circle.fill" : "magnifyingglass")
-                .font(.system(size: 17, weight: .medium))
         }
+    }
 
-        
+    
+    ToolbarItem(placement: .topBarTrailing) {
         Button { Task { await onOpenWebViewTapped() } } label: {
             Image(systemName: "link")
-                .font(.system(size: 17))
         }
+    }
 
-      
+
+    ToolbarItem(placement: .topBarTrailing) {
         Menu {
-           
             Section {
                 Button {
                     isGroupEditing = true
@@ -88,8 +89,6 @@ ToolbarItem(placement: .topBarTrailing) {
                     Label("Manage Groups", systemImage: "folder.badge.gearshape")
                 }
             }
-
-            
             Section {
                 Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
                     ForEach(AppSortType.allCases, id: \.self) { sortType in
@@ -99,12 +98,10 @@ ToolbarItem(placement: .topBarTrailing) {
             }
         } label: {
             Image(systemName: "line.3.horizontal.decrease.circle")
-                .font(.system(size: 17))
         }
     }
 }
-        
-            }
+
             .navigationViewStyle(.stack)
             .sheet(isPresented: $isGroupEditing) {
                 LCGroupEditView()

@@ -57,8 +57,11 @@ struct LCTabView: View {
     @State var shouldToggleMainWindowOpen = false 
     @EnvironmentObject var sceneDelegate: SceneDelegate
 
-    var body: some View {
-        VStack(spacing: 0) {
+        var body: some View {
+        // 使用底層 ZStack 確保工具欄永遠在最上層
+        ZStack(alignment: .bottom) {
+            
+            // 🔴 1. 內容區域
             Group {
                 switch selectedTab {
                 case .sources:
@@ -76,38 +79,45 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .id(selectedTab) // 確保強制刷新
-            .clipped()
+            .padding(.bottom, 80) // 🔴 重要：預留底部工具欄高度，防止內容擋住點擊
+            .id(selectedTab)
+            
+            // 🔴 2. 工具欄：放在 ZStack 最下方，確保層級最高
             customBottomBar
         }
-        .background(Color(UIColor.systemBackground).ignoresSafeArea())
+        .ignoresSafeArea(.keyboard) // 避免鍵盤彈出影響
+        .background(Color(UIColor.systemBackground))
         .task {
             await performInitialChecks()
         }
-        // 🔹 這裡不再監聽 sharedModel.selectedTab 的變化，防止循環死鎖
     }
-    
-       private var customBottomBar: some View {
+
+    private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                Spacer(minLength: 20) // 縮小間距確保按鈕不被擠出螢幕
+                Spacer(minLength: 20)
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
             }
-            .padding(.horizontal, 10)
-            .padding(.top, 10)
-            // 依照錄影畫面，這裏可能需要調整 safeArea
-            .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 12)
+            .padding(10)
+            
+            // 使用更保險的方式計算安全區域
+            
         }
-        .background(.clear)
-        .contentShape(Rectangle()) // 防止點擊穿透到底層
-        .zIndex(100) // 🔴 確保工具列在所有內容之上
+        .background(
+            // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
+            Color(UIColor.systemBackground).opacity(0.95)
+        )
+        .zIndex(999) // 強制最高層級
     }
+
+    
+
 
     
         private func tabButton(tab: LCTabID) -> some View {

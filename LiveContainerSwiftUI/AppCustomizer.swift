@@ -209,7 +209,7 @@ struct LCGroupEditView: View {
                 Section(header: Text("Group List")) {
     
     HStack {
-        Image(systemName: "plus.circle.fill")
+        Image(systemName: "pencil.circle")
             .foregroundColor(.accentColor)
         
         TextField("New Group Name...", text: $newGroupName)

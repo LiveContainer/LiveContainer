@@ -12,9 +12,8 @@ struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // --- 狀態儲存區 ---
-    // 使用 @AppStorage 確保重啟 App 後能留在上次的分頁
-    @AppStorage("selectedTabKey") private var localSelectedTab: LCTabIdentifier = .apps
+   
+      @State private var localSelectedTab: LCTabIdentifier = .apps
     
     @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false

@@ -369,7 +369,7 @@ var appGroupsList: some View {
                 }
             )
         ) {
-        
+            
             ForEach(apps, id: \.self) { app in
                 let bid = app.appInfo.bundleIdentifier() ?? ""
                 HStack {
@@ -396,7 +396,6 @@ var appGroupsList: some View {
         }
     }
 }
-
 
 
   

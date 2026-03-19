@@ -42,106 +42,138 @@ extension LCTabID {
     }
 }
 
+
+
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
-    
-    // 🟢 核心切換：純本地 State，不受外部干擾
     @State private var selectedTab: LCTabID = .apps
-    
-    // 修正 2: 重新宣告 sharedModel 供 extension 使用，但不綁定分頁切換
     @ObservedObject var sharedModel = DataManager.shared.model
-    
-    @State var errorShow = false
-    @State var errorInfo = ""
-    @State var shouldToggleMainWindowOpen = false 
     @EnvironmentObject var sceneDelegate: SceneDelegate
-
-        var body: some View {
-        // 使用底層 ZStack 確保工具欄永遠在最上層
+    
+    var body: some View {
         ZStack(alignment: .bottom) {
+            // 內容區域
+            mainContentView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 🔴 1. 內容區域
-            Group {
-                switch selectedTab {
-                case .sources:
-                    LCSourcesView()
-                case .apps:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                case .tweaks:
-                    LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore, .search:
-                    ExploreView()
-                case .settings:
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                case .cache:
-                    LCCacheManagementView()
+            // iOS 26 懸浮導航欄
+            modernTabBar
+        }
+        .background(Color(UIColor.systemBackground).ignoresSafeArea())
+    }
+    
+    // --- 視圖分拆 ---
+    
+    private var mainContentView: some View {
+        Group {
+            switch selectedTab {
+            case .sources: LCSourcesView()
+            case .apps: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+            case .tweaks: LCTweaksView(tweakFolders: $tweakFolderNames)
+            case .explore, .search: ExploreView()
+            case .settings: LCSettingsView(appDataFolderNames: $appDataFolderNames)
+            case .cache: LCCacheManagementView()
+            }
+        }
+        .id(selectedTab)
+    }
+    
+    private var modernTabBar: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // 左側三個按鈕
+                HStack(spacing: 4) {
+                    modernTabButton(tab: .sources)
+                    modernTabButton(tab: .apps)
+                    modernTabButton(tab: .tweaks)
+                }
+                
+                // 中央過渡間隔 (仿 iOS 26 導航風格)
+                Spacer(minLength: 40)
+                
+                // 右側三個按鈕
+                HStack(spacing: 4) {
+                    modernTabButton(tab: .explore)
+                    modernTabButton(tab: .settings)
+                    modernTabButton(tab: .cache)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 80) // 🔴 重要：預留底部工具欄高度，防止內容擋住點擊
-            .id(selectedTab)
-            
-            // 🔴 2. 工具欄：放在 ZStack 最下方，確保層級最高
-            customBottomBar
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, safeAreaBottom + 4)
+            .background(
+                // iOS 26 招牌：超薄玻璃與細膩描邊
+                RoundedRectangle(cornerRadius: 0) // 滿版底部導航
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        VStack {
+                            Divider().opacity(0.2) // 頂部細線
+                            Spacer()
+                        }
+                    )
+            )
         }
-        .ignoresSafeArea(.keyboard) // 避免鍵盤彈出影響
-        .background(Color(UIColor.systemBackground))
-        .task {
-            await performInitialChecks()
-        }
+        .shadow(color: Color.black.opacity(0.05), radius: 10, y: -2)
     }
-
-    private var customBottomBar: some View {
-        VStack(spacing: 0) {
-            Divider().opacity(0.1)
-            HStack(spacing: 0) {
-                tabButton(tab: .sources)
-                tabButton(tab: .apps)
-                tabButton(tab: .tweaks)
-                Spacer(minLength: 20)
-                tabButton(tab: .explore)
-                tabButton(tab: .settings)
-                tabButton(tab: .cache)
-            }
-            .padding(10)
-            
-            // 使用更保險的方式計算安全區域
-            
-        }
-        .background(
-            // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
-            Color(UIColor.systemBackground).opacity(0.95)
-        )
-        .zIndex(999) // 強制最高層級
-    }
-
     
-
-
-    
-        private func tabButton(tab: LCTabID) -> some View {
+    private func modernTabButton(tab: LCTabID) -> some View {
         Button {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            print("Button tapped: \(tab)") // 加入這行在 Console 檢查
-            self.selectedTab = tab
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = tab
+            }
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         } label: {
-            VStack(spacing: 4) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
-                    .frame(height: 26) // 固定高度防止抖動
+            VStack(spacing: 6) {
+                ZStack {
+                    // 選中時的發光背板
+                    if selectedTab == tab {
+                        Circle()
+                            .fill(Color.accentColor.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+                    
+                    Image(systemName: tab.icon)
+                        .font(.system(size: 20, weight: selectedTab == tab ? .bold : .medium))
+                        .symbolVariant(selectedTab == tab ? .fill : .none)
+                        .foregroundColor(selectedTab == tab ? .accentColor : .secondary)
+                }
+                .frame(height: 30)
+                
                 Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10, weight: selectedTab == tab ? .bold : .regular))
+                    .foregroundColor(selectedTab == tab ? .primary : .secondary)
+                    .fixedSize()
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            // 🔴 關鍵：確保透明區域也能點擊
-            .contentShape(Rectangle()) 
-            .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain) // 🔴 確保不會被系統 ButtonStyle 干擾
+        .buttonStyle(StaticButtonStyle()) // 自定義 ButtonStyle 避免點擊閃爍
+    }
+
+    private var safeAreaBottom: CGFloat {
+        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.safeAreaInsets.bottom ?? 12
     }
 }
+
+// --- 輔助組件 ---
+
+struct StaticButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+
+    
+
+
+    
+       
 // MARK: - 邏輯擴展
 
 

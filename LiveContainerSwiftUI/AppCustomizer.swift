@@ -204,7 +204,7 @@ struct LCGroupEditView: View {
 
     var body: some View {
         NavigationView {
-            ZStack{
+            
             List {
                 Section(header: 
     HStack {
@@ -346,7 +346,7 @@ struct LCGroupEditView: View {
                 actionCancel: { _ in newGroupName = "" }
             )
             
-        }
+        
     }
 
     

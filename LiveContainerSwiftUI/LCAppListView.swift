@@ -355,7 +355,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 var appGroupsList: some View {
     ForEach(groupedApps, id: \.key) { groupName, apps in
         
-        Section(
+        DisclosureGroup(
             isExpanded: Binding(
                 get: { expandedGroups.contains(groupName) },
                 set: { isExpanded in
@@ -369,7 +369,7 @@ var appGroupsList: some View {
                 }
             )
         ) {
-            
+        
             ForEach(apps, id: \.self) { app in
                 let bid = app.appInfo.bundleIdentifier() ?? ""
                 HStack {
@@ -390,13 +390,12 @@ var appGroupsList: some View {
                     }
                 }
             }
-        } header: {
+        } label: {
             
             groupLabel(name: groupName, count: apps.count)
         }
     }
 }
-
 
 
 

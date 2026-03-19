@@ -350,7 +350,7 @@ struct LCGroupEditView: View {
 
   
     
-    private func togglePinStatus() {
+    func togglePinStatus() {
         withAnimation {
            
             let shouldRemove = selectedApps.allSatisfy { sortManager.pinnedBundleIds.contains($0) }
@@ -368,7 +368,7 @@ struct LCGroupEditView: View {
         }
     }
 
-    private var filteredApps: [LCAppModel] {
+    var filteredApps: [LCAppModel] {
         if searchText.isEmpty {
             return sharedModel.apps
         } else {
@@ -376,7 +376,7 @@ struct LCGroupEditView: View {
         }
     }
 
-    private func toggleSelection(for bid: String) {
+    func toggleSelection(for bid: String) {
         if selectedApps.contains(bid) {
             selectedApps.remove(bid)
         } else {
@@ -384,7 +384,7 @@ struct LCGroupEditView: View {
         }
     }
 
-    private func moveToGroup(_ groupName: String?) {
+    func moveToGroup(_ groupName: String?) {
         withAnimation {
             sortManager.moveApps(selectedApps, to: groupName)
             sortManager.objectWillChange.send()
@@ -392,7 +392,7 @@ struct LCGroupEditView: View {
         }
     }
 
-    private func findCurrentGroup(for bid: String) -> String? {
+    func findCurrentGroup(for bid: String) -> String? {
         for (name, ids) in sortManager.customGroups {
             if ids.contains(bid) { return name }
         }

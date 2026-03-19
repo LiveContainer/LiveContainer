@@ -348,41 +348,55 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
-       @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
+       @State private var expandedGroups: Set<String> = ["Default"] 
 
 
-    
     @ViewBuilder
-    var appGroupsList: some View {
+var appGroupsList: some View {
+    ForEach(groupedApps, id: \.key) { groupName, apps in
         
-        ForEach(groupedApps, id: \.key) { groupName, apps in
-            Section(header: Text(groupName)) {
-                ForEach(apps, id: \.self) { app in
-                    let bid = app.appInfo.bundleIdentifier() ?? ""
-                    HStack {
-                        if isEditMode {
-                            Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
-                                .font(.system(size: 22))
-                                .transition(.move(edge: .leading).combined(with: .opacity))
-                        }
-                        
-                        
-                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                            .disabled(isEditMode) 
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if isEditMode {
-                            if selectedApps.contains(bid) { selectedApps.remove(bid) }
-                            else { selectedApps.insert(bid) }
+        Section(
+            isExpanded: Binding(
+                get: { expandedGroups.contains(groupName) },
+                set: { isExpanded in
+                    withAnimation {
+                        if isExpanded {
+                            expandedGroups.insert(groupName)
+                        } else {
+                            expandedGroups.remove(groupName)
                         }
                     }
                 }
+            )
+        ) {
+            
+            ForEach(apps, id: \.self) { app in
+                let bid = app.appInfo.bundleIdentifier() ?? ""
+                HStack {
+                    if isEditMode {
+                        Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
+                            .font(.system(size: 22))
+                    }
+                    
+                    LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                        .disabled(isEditMode) 
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if isEditMode {
+                        if selectedApps.contains(bid) { selectedApps.remove(bid) }
+                        else { selectedApps.insert(bid) }
+                    }
+                }
             }
+        } header: {
+            
+            groupLabel(name: groupName, count: apps.count)
         }
-    
     }
+}
+
 
 
 

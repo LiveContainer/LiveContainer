@@ -214,14 +214,7 @@ var appGroupsList: some View {
                         .listRowSeparator(.hidden)
                         
                         
-                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                            leadingSwipeActions(for: app, inGroup: groupName)
-                        }
-                        
-                        
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            trailingSwipeActions(for: app, inGroup: groupName)
-                        }
+                      
                 }
             },
             label: {

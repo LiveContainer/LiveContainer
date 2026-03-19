@@ -12,115 +12,110 @@ struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 這裡改用 @ObservedObject 直接掛載 DataManager 的實例
-    // 這樣能確保點擊 Toolbar 時，這裡的 switch 絕對會收到通知
-    @ObservedObject var sharedModel = DataManager.shared.model
+    // --- 狀態儲存區 ---
+    // 使用 @AppStorage，這樣使用者下次開啟 App 時會停留在上次的分頁
+    @AppStorage("selectedTabKey") private var localSelectedTab: LCTabIdentifier = .apps
     
+    @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
     @EnvironmentObject var sceneDelegate: SceneDelegate
-    @State var shouldToggleMainWindowOpen = false
-    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-
+    
     var body: some View {
         VStack(spacing: 0) {
-            // 頁面切換核心
+            // 1. 內容區域
             ZStack {
-                
-                switch sharedModel.selectedTab {
-                case .sources:
-                    LCSourcesView()
-                case .apps:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                case .tweaks:
-                    LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore:
-                    ExploreView()
-                case .settings:
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                case .cache:
-                    LCCacheManagementView()
-                default:
-                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                }
+                currentPage
             }
-            .id(sharedModel.selectedTab) 
+            // 關鍵：使用 localSelectedTab 作為 ID，確保狀態一變就強制刷新
+            .id(localSelectedTab) 
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-           
+            // 2. iOS 26 風格透明 Toolbar
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .alert("lc.common.error".loc, isPresented: $errorShow) {
-            Button("lc.common.ok".loc, action: {})
-            Button("lc.common.copy".loc, action: { copyError() })
-        } message: { Text(errorInfo) }
         .task { await performInitialChecks() }
+        // 當本地狀態改變時，同步回全域模型，確保 deepLink 等邏輯正常
+        .onChange(of: localSelectedTab) { newValue in
+            sharedModel.selectedTab = newValue
+        }
+    }
+
+    @ViewBuilder
+    private var currentPage: some View {
+        switch localSelectedTab {
+        case .sources: LCSourcesView()
+        case .apps: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+        case .tweaks: LCTweaksView(tweakFolders: $tweakFolderNames)
+        case .explore: ExploreView()
+        case .settings: LCSettingsView(appDataFolderNames: $appDataFolderNames)
+        case .cache: LCCacheManagementView()
+        default: LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+        }
     }
 }
-
-
 
 extension LCTabView {
     private var ios26TransparentToolbar: some View {
         VStack(spacing: 0) {
-            
             Divider().opacity(0.15)
             
             HStack(spacing: 0) {
+                // 左 3
+                tabGroup([.sources, .apps, .tweaks])
                 
-                Group {
-                    tabItem(title: "Sources", icon: "books.vertical", id: .sources)
-                    tabItem(title: "Apps", icon: "square.stack.3d.up.fill", id: .apps)
-                    tabItem(title: "Tweaks", icon: "wrench.and.screwdriver", id: .tweaks)
-                }
+                Spacer(minLength: 30) // 中間對稱空隙
                 
-                Spacer(minLength: 25) 
-                
-                
-                Group {
-                    tabItem(title: "Explore", icon: "safari.fill", id: .explore)
-                    tabItem(title: "Settings", icon: "gearshape.fill", id: .settings)
-                    tabItem(title: "Manager", icon: "internaldrive", id: .cache)
-                }
+                // 右 3
+                tabGroup([.explore, .settings, .cache])
             }
             .padding(.horizontal, 10)
-            .padding(.top, 10)
+            .padding(.top, 12)
             .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
         }
-        
+        // 🔴 iOS 26 透明背景關鍵：與頂部 Bar 一致的材質
         .background(.ultraThinMaterial) 
-        
-        .background(Color(UIColor.systemBackground).opacity(0.01))
     }
 
-       private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
-        Button(action: {
-            print("Target Tab: \(id)") // 偵錯用
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            
-            // 強制在主線程更新單例
-            DispatchQueue.main.async {
-                DataManager.shared.model.selectedTab = id
-                
-                self.sharedModel.selectedTab = id 
+    private func tabGroup(_ ids: [LCTabIdentifier]) -> some View {
+        ForEach(ids, id: \.self) { id in
+            let info = tabInfo(for: id)
+            Button {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                // 使用快彈簧動畫，解決「按了沒反應」的視覺感
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    localSelectedTab = id
+                }
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: info.icon)
+                        .font(.system(size: 22, weight: localSelectedTab == id ? .semibold : .regular))
+                        .scaleEffect(localSelectedTab == id ? 1.15 : 1.0)
+                    Text(info.title)
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.5))
+                .contentShape(Rectangle()) // 🔴 確保整個格子都是熱區
             }
-        }) {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 21, weight: sharedModel.selectedTab == id ? .semibold : .regular))
-                    .scaleEffect(sharedModel.selectedTab == id ? 1.1 : 1.0)
-                
-                Text(title)
-                    .font(.system(size: 10, weight: .medium))
-            }
-            .frame(maxWidth: .infinity, minHeight: 45)
-            .foregroundColor(sharedModel.selectedTab == id ? .accentColor : .primary.opacity(0.6))
-            .contentShape(Rectangle()) 
         }
     }
 
+    // 輔助函式：統一管理圖標與標題
+    private func tabInfo(for id: LCTabIdentifier) -> (title: String, icon: String) {
+        switch id {
+        case .sources: return ("Sources", "books.vertical")
+        case .apps: return ("Apps", "square.stack.3d.up.fill")
+        case .tweaks: return ("Tweaks", "wrench.and.screwdriver")
+        case .explore: return ("Explore", "safari.fill")
+        case .settings: return ("Settings", "gearshape.fill")
+        case .cache: return ("Manager", "internaldrive")
+        default: return ("", "")
+        }
+    }
 }
+
 
 
 

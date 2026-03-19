@@ -206,23 +206,42 @@ struct LCGroupEditView: View {
         NavigationView {
             ZStack{
             List {
-                Section(header: Text("Group List")) {
-                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                        HStack {
-                            Image(systemName: "folder").foregroundColor(.accentColor)
-                            Text(name)
-                            Spacer()
-                            Text("\(sortManager.customGroups[name]?.count ?? 0) App")
-                                .font(.caption).foregroundColor(.secondary)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        withAnimation {
-                            let keys = sortManager.customGroups.keys.sorted()
-                            indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
-                        }
-                    }
-                }
+                Section(header: 
+    HStack {
+        Text("Group List")
+        Spacer()
+        
+        Button {
+            showAddGroupAlert = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "plus.circle.fill")
+                Text("New Group")
+            }
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .textCase(nil) 
+        }
+    }
+) {
+    
+    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+        HStack {
+            Image(systemName: "folder").foregroundColor(.accentColor)
+            Text(name)
+            Spacer()
+            Text("\(sortManager.customGroups[name]?.count ?? 0) App")
+                .font(.caption).foregroundColor(.secondary)
+        }
+    }
+    .onDelete { indexSet in
+        withAnimation {
+            let keys = sortManager.customGroups.keys.sorted()
+            indexSet.forEach { sortManager.customGroups.removeValue(forKey: keys[$0]) }
+        }
+    }
+}
+
 
                 Section(header: Text("Select App (\(selectedApps.count))")) {
                     TextField("Search App...", text: $searchText)
@@ -271,17 +290,10 @@ struct LCGroupEditView: View {
             .toolbar {
                 
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("Confirm") { dismiss() }
                 }
                 
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showAddGroupAlert = true
-                    } label: {
-                        Image(systemName: "folder.badge.plus")
-                    }
-                }
+            
 
                 
                 ToolbarItem(placement: .navigationBarTrailing) {

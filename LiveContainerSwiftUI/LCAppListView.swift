@@ -135,7 +135,9 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
-    
+    @State private var isEditMode = false
+@State private var selectedApps = Set<String>()
+@State private var showGroupPicker = false
     @State private var isGroupEditing = false
     @StateObject private var groupNameInput = InputHelper() 
     @State private var triggerNavigation = false
@@ -198,33 +200,30 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     @ViewBuilder
 var appGroupsList: some View {
-    ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
-        DisclosureGroup(
-            isExpanded: Binding(
-                get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
-                set: { isExpanding in
-                    if isExpanding { expandedGroups.insert(groupName) }
-                    else { expandedGroups.remove(groupName) }
-                }
-            ),
-            content: {
-                ForEach(appsInGroup, id: \.self) { app in
-                    LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                        .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
-                        .listRowSeparator(.hidden)
-                        
-                        
-                      
-                }
-            },
-            label: {
-                
-                groupLabel(name: groupName, count: appsInGroup.count)
-            }
-        )
-        .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
+    ForEach(appsInGroup, id: \.self) { app in
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    HStack {
+        
+        if isEditMode {
+            Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
+                .font(.system(size: 22))
+                .transition(.move(edge: .leading).combined(with: .opacity))
+        }
+        
+        LCAppBanner(appModel: app, ...)
+            .disabled(isEditMode) 
+    }
+    .contentShape(Rectangle())
+    .onTapGesture {
+        if isEditMode {
+            if selectedApps.contains(bid) { selectedApps.remove(bid) }
+            else { selectedApps.insert(bid) }
+        }
     }
 }
+
+
 
 
 

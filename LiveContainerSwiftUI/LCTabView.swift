@@ -251,4 +251,12 @@ extension LCTabView {
         }
         LCUtils.appGroupUserDefault.set(bookmark, forKey: "LCLaunchExtensionPrivateDocBookmark")
     }
+    func errorAlert(isPresented: Binding<Bool>, info: String, copyAction: @escaping () -> Void) -> some View {
+        self.alert("lc.common.error".loc, isPresented: isPresented) {
+            Button("lc.common.ok".loc, action: {})
+            Button("lc.common.copy".loc, action: copyAction)
+        } message: {
+            Text(info)
+        }
+    }
 }

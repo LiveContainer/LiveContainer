@@ -326,6 +326,8 @@ struct LCGroupEditView: View {
                     }
                 }
             }
+            
+        }
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
                 title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
@@ -342,7 +344,7 @@ struct LCGroupEditView: View {
                 },
                 actionCancel: { _ in newGroupName = "" }
             )
-            }
+            
         }
     }
 

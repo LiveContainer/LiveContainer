@@ -31,6 +31,44 @@ import Intents
             LCUtils.appGroupUserDefault.setValue(UIDevice.current.buildVersion, forKey: "LCLastIOSBuildVersion")
         }
         
+        // Capture incoming custom scheme URL and set up instant-boot
+        if let url = launchOptions?[.url] as? URL, let scheme = url.scheme?.lowercased() {
+            if !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+                // Find which app handles this custom scheme
+                if let docPath = ProcessInfo.processInfo.environment["HOME"] {
+                    let appsPath = "\(docPath)/Documents/Applications"
+                    let fm = FileManager.default
+                    
+                    if let apps = try? fm.contentsOfDirectory(atPath: appsPath) {
+                        for appFolder in apps {
+                            let infoPath = "\(appsPath)/\(appFolder)/LCAppInfo.plist"
+                            if let appInfoDict = NSDictionary(contentsOfFile: infoPath),
+                               let customSchemes = appInfoDict["LCCustomUrlSchemes"] as? [String] {
+                                
+                                if customSchemes.contains(scheme) {
+                                    // Write launch target
+                                    UserDefaults.standard.set(appFolder, forKey: "selected")
+                                    
+                                    if let containers = appInfoDict["LCContainers"] as? [[String:Any]],
+                                       let defaultUUID = appInfoDict["LCDataUUID"] as? String,
+                                       containers.contains(where: { ($0["folderName"] as? String) == defaultUUID }) {
+                                        UserDefaults.standard.set(defaultUUID, forKey: "selectedContainer")
+                                    }
+                                    
+                                    // Save full URL so LCBootstrap can pass it via base64 later
+                                    UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
+                                    
+                                    // Instantly boot the guest app!
+                                    LCSharedUtils.launchToGuestApp()
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         return true
     }
     

@@ -140,6 +140,12 @@ static BOOL LCIsContainerScopedAddonKey(NSString *key) {
         }
     }
     
+    // append custom url schemes
+    NSArray* customSchemes = _info[@"LCCustomUrlSchemes"];
+    if (customSchemes) {
+        [urlSchemes addObjectsFromArray:customSchemes];
+    }
+
     return urlSchemes;
 }
 
@@ -2382,6 +2388,19 @@ static BOOL LCIsContainerScopedAddonKey(NSString *key) {
     } else {
         return [NSString stringWithFormat:@"%llu bytes", bytes];
     }
+}
+
+- (NSArray<NSString*>*)customUrlSchemes {
+    return _info[@"LCCustomUrlSchemes"] ?: @[];
+}
+
+- (void)setCustomUrlSchemes:(NSArray<NSString*>*)customUrlSchemes {
+    if (customUrlSchemes.count == 0) {
+        [_info removeObjectForKey:@"LCCustomUrlSchemes"];
+    } else {
+        _info[@"LCCustomUrlSchemes"] = customUrlSchemes;
+    }
+    [self save];
 }
 
 @end

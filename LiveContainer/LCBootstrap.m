@@ -1332,6 +1332,10 @@ int LiveContainerMain(int argc, char *argv[]) {
             [lcSharedDefaults removeObjectForKey:@"LCLaunchExtensionBundleID"];
             [lcSharedDefaults removeObjectForKey:@"LCLaunchExtensionContainerName"];
         }
+        
+        if (!selectedApp && !isLiveProcess) {
+            // instant boot happens via LCLaunchExtensionBundleID which we just processed above
+        }
     }
     
     NSString* lastLaunchDataUUID;

@@ -132,9 +132,26 @@ struct LCTabView: View {
                 break
             }
             
+            // Check if it's a known custom scheme (with or without host)
+            if let scheme = url.scheme?.lowercased(),
+               !["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(scheme) {
+                
+                let allApps = DataManager.shared.model.apps + DataManager.shared.model.hiddenApps
+                if let app = allApps.first(where: { ($0.appInfo.customUrlSchemes as? [String] ?? []).contains(scheme) }) {
+                    UserDefaults.standard.set(url.absoluteString, forKey: "launchAppUrlScheme")
+                    UserDefaults.standard.set(app.appInfo.relativeBundlePath, forKey: "selected")
+                    if let container = app.appInfo.dataUUID {
+                        UserDefaults.standard.set(container, forKey: "selectedContainer")
+                    }
+                    LCSharedUtils.launchToGuestApp()
+                    return
+                }
+            }
+            
             guard let host = url.host?.lowercased() else {
                 return
             }
+
             
             switch host {
             case "livecontainer-launch", "install", "open-web-page", "open-url":

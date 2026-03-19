@@ -1871,6 +1871,7 @@ struct LCAppSettingsView: View {
     
 
     @StateObject private var renameFolderInput = InputHelper()
+    @StateObject private var addUrlSchemeInput = InputHelper()
     @StateObject private var moveToAppGroupAlert = YesNoHelper()
     @StateObject private var moveToPrivateDocAlert = YesNoHelper()
     @StateObject private var signUnsignedAlert = YesNoHelper()
@@ -2268,6 +2269,47 @@ struct LCAppSettingsView: View {
             }
             
             Section {
+                Button("lc.appSettings.forceSign".loc) {
+                    Task { await forceResign() }
+                }
+                .disabled(model.isAppRunning)
+            } footer: {
+                Text("lc.appSettings.forceSignDesc".loc)
+            }
+            
+            Section {
+                ForEach(model.uiCustomUrlSchemes, id: \.self) { scheme in
+                    HStack {
+                        Text(scheme + "://")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Button(role: .destructive) {
+                            model.uiCustomUrlSchemes.removeAll { $0 == scheme }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+                Button {
+                    Task { await addCustomUrlScheme() }
+                } label: {
+                    Label("lc.appSettings.addUrlScheme".loc, systemImage: "plus.circle")
+                }
+                
+                Button {
+                    Task { await applyAndReinstallSchemes() }
+                } label: {
+                    Label("lc.appSettings.applyAndReinstall".loc, systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(model.isAppRunning || model.isSigningInProgress)
+            } header: {
+                Text("lc.appSettings.customUrlSchemes".loc)
+            } footer: {
+                Text("lc.appSettings.customUrlSchemesDesc".loc)
+            }
+            
+            Section {
                 HStack {
                     Text("lc.appList.sort.lastLaunched".loc)
                     Spacer()
@@ -2304,6 +2346,18 @@ struct LCAppSettingsView: View {
             },
             actionCancel: {_ in
                 renameFolderInput.close(result: "")
+            }
+        )
+        .textFieldAlert(
+            isPresented: $addUrlSchemeInput.show,
+            title: "lc.appSettings.enterUrlScheme".loc,
+            text: $addUrlSchemeInput.initVal,
+            placeholder: "e.g. scrcpy2",
+            action: { newText in
+                addUrlSchemeInput.close(result: newText!)
+            },
+            actionCancel: {_ in
+                addUrlSchemeInput.close(result: "")
             }
         )
         .alert("lc.appSettings.toSharedApp".loc, isPresented: $moveToAppGroupAlert.show) {
@@ -4112,6 +4166,62 @@ extension LCAppSettingsView : LCContainerViewDelegate {
         return container.containerURL
     }
     
+    func addCustomUrlScheme() async {
+        guard let scheme = await addUrlSchemeInput.open(initVal: ""), !scheme.isEmpty else {
+            return
+        }
+        
+        let cleaned = scheme.lowercased()
+            .replacingOccurrences(of: "://", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            
+        // prevent adding reserved schemes
+        if ["livecontainer", "livecontainer2", "livecontainer3", "sidestore", "file", "http", "https"].contains(cleaned) {
+            errorInfo = "lc.appSettings.reservedUrlSchemeError".loc
+            errorShow = true
+            return
+        }
+        
+        if !model.uiCustomUrlSchemes.contains(cleaned) {
+            model.uiCustomUrlSchemes.append(cleaned)
+        }
+    }
+    
+    func applyAndReinstallSchemes() async {
+        model.isSigningInProgress = true
+        defer { model.isSigningInProgress = false }
+        
+        // Gather all custom schemes from all apps
+        var allCustomSchemes: Set<String> = []
+        let allApps = sharedModel.apps + sharedModel.hiddenApps
+        for app in allApps {
+            if let schemes = app.appInfo.customUrlSchemes {
+                allCustomSchemes.formUnion(schemes)
+            }
+        }
+        
+        let schemesArray = Array(allCustomSchemes)
+        
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            LCUtils.repackageLC(withCustomSchemes: schemesArray) { ipaURL, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        self.errorInfo = error.localizedDescription
+                        self.errorShow = true
+                    } else if let ipaURL = ipaURL {
+                        // Open the generated IPA with SideStore
+                        if let storeInstallURL = URL(string: String(format: LCUtils.storeInstallURLScheme(), ipaURL.absoluteString)) {
+                            UIApplication.shared.open(storeInstallURL)
+                        } else {
+                            self.errorInfo = "Could not generate Store install URL"
+                            self.errorShow = true
+                        }
+                    }
+                    continuation.resume()
+                }
+            }
+        }
+    }
 }
 
 extension LCAppSettingsView : LCSelectContainerViewDelegate {

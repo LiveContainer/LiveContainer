@@ -75,7 +75,7 @@ extension LCAppListView {
                     }
                 }
             }
-            // 修正：所有的修飾符必須鏈接在 content 之後，且在函數的大括號內
+            
             .navigationViewStyle(.stack)
             .sheet(isPresented: $isGroupEditing) {
                 LCGroupEditView()
@@ -657,7 +657,7 @@ func setMode(_ mode: AppLaunchMode) {
         .onChange(of: jitAlert.show) { newValue in
             sharedModel.isJITModalOpen = newValue
         }
-        
+        .navigationViewStyle(.stack)
         .onAppear() {
             if !isViewAppeared {
                 if let webpageUrlStr = UserDefaults.standard.string(forKey: "webPageToOpen") {

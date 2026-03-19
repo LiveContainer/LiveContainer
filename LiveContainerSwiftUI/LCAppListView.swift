@@ -101,6 +101,136 @@ func trailingSwipeActions(for app: LCAppModel) -> some View {
     }
 
     
+    
+    
+    
+    func groupLabel(name: String, count: Int) -> some View {
+        HStack {
+            Text(name == "Other" ? "Other" : name)
+                .font(.headline)
+            Spacer()
+            Text("\(count)")
+                .font(.subheadline).foregroundColor(.secondary)
+        }
+        .contentShape(Rectangle())
+        .contextMenu {
+            if name != "Other" {
+                Button {
+                    Task {
+                        groupNameInput.initVal = name
+                        if let newName = await groupNameInput.open() {
+                            let ids = sharedAppSortManager.customGroups[name] ?? []
+                            sharedAppSortManager.customGroups.removeValue(forKey: name)
+                            sharedAppSortManager.customGroups[newName] = ids
+                        }
+                    }
+                } label: {
+                    Label("Rename Group", systemImage: "pencil")
+                }
+
+                Button(role: .destructive) {
+                    
+                        sharedAppSortManager.customGroups.removeValue(forKey: name)
+                    
+                } label: {
+                    Label("Delete Group", systemImage: "trash")
+                }
+            }
+        }
+    }
+}
+}
+
+
+class SearchContext: ObservableObject {
+    @Published var query: String = ""
+    @Published var debouncedQuery: String = ""
+    @Published var isTyping: Bool = false
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        $query
+            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
+            .sink { [weak self] value in
+                self?.isTyping = true
+                self?.debouncedQuery = value
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    self?.isTyping = false
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+
+struct AppReplaceOption : Hashable {
+    var isReplace: Bool
+    var nameOfFolderToInstall: String
+    var appToReplace: LCAppModel?
+}
+
+struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+    
+    
+    @StateObject private var groupNameInput = InputHelper() 
+    @State private var triggerNavigation = false
+    @State private var isSearchFieldVisible = false 
+    @State private var isLiveContainerMode = true
+    @State private var isiPhoneMode = false
+    @Binding var appDataFolderNames: [String]
+    @Binding var tweakFolderNames: [String]
+    
+    @State var didAppear = false
+    // ipa choosing stuff
+    @State var choosingIPA = false
+    @State var errorShow = false
+    @State var errorInfo = ""
+    
+    // ipa installing stuff
+    @State var installprogressVisible = false
+    @State var installProgressPercentage : Float = 0.0
+    @State var installObserver : NSKeyValueObservation?
+    
+    @State var installOptions: [AppReplaceOption]
+    @StateObject var installReplaceAlert = AlertHelper<AppReplaceOption>()
+    
+    @State var webViewOpened = false
+    @State var webViewURL : URL = URL(string: "about:blank")!
+    @StateObject private var webViewUrlInput = InputHelper()
+    
+    @ObservedObject var downloadHelper = DownloadHelper()
+    @StateObject private var installUrlInput = InputHelper()
+    
+    @State private var jitLog = ""
+    @StateObject private var jitAlert = YesNoHelper()
+    
+    @StateObject private var runWhenMultitaskAlert = YesNoHelper()
+    
+    @StateObject private var generatedIconStyleSelector = AlertHelper<GeneratedIconStyle>()
+    
+    @State var safariViewOpened = false
+    @State var safariViewURL = URL(string: "https://google.com")!
+    
+    @State private var navigateTo : AnyView?
+    @State private var isNavigationActive = false
+    
+    @State private var helpPresent = false
+    
+    @State private var customSortViewPresent = false
+    
+    @EnvironmentObject private var sharedModel : SharedModel
+    @EnvironmentObject private var sharedAppSortManager : LCAppSortManager
+    
+    @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
+    @AppStorage("LCLaunchInMultitaskMode") var launchInMultitaskMode = false
+    @AppStorage("LCNativeFullscreen") var isNativeMode = true 
+
+    @State private var isViewAppeared = false
+    
+    @ObservedObject var searchContext = SearchContext()
+       @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
+
+
     @ViewBuilder
 var appGroupsList: some View {
     ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
@@ -200,136 +330,6 @@ var appGroupsList: some View {
         }
         .listRowBackground(Color.clear)
     }
-
-    
-    
-    
-    func groupLabel(name: String, count: Int) -> some View {
-        HStack {
-            Text(name == "Other" ? "Other" : name)
-                .font(.headline)
-            Spacer()
-            Text("\(count)")
-                .font(.subheadline).foregroundColor(.secondary)
-        }
-        .contentShape(Rectangle())
-        .contextMenu {
-            if name != "Other" {
-                Button {
-                    Task {
-                        groupNameInput.initVal = name
-                        if let newName = await groupNameInput.open() {
-                            let ids = sharedAppSortManager.customGroups[name] ?? []
-                            sharedAppSortManager.customGroups.removeValue(forKey: name)
-                            sharedAppSortManager.customGroups[newName] = ids
-                        }
-                    }
-                } label: {
-                    Label("Rename Group", systemImage: "pencil")
-                }
-
-                Button(role: .destructive) {
-                    
-                        sharedAppSortManager.customGroups.removeValue(forKey: name)
-                    
-                } label: {
-                    Label("Delete Group", systemImage: "trash")
-                }
-            }
-        }
-    }
-}
-
-
-
-class SearchContext: ObservableObject {
-    @Published var query: String = ""
-    @Published var debouncedQuery: String = ""
-    @Published var isTyping: Bool = false
-    
-    private var cancellables = Set<AnyCancellable>()
-    
-    init() {
-        $query
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
-            .sink { [weak self] value in
-                self?.isTyping = true
-                self?.debouncedQuery = value
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    self?.isTyping = false
-                }
-            }
-            .store(in: &cancellables)
-    }
-}
-
-struct AppReplaceOption : Hashable {
-    var isReplace: Bool
-    var nameOfFolderToInstall: String
-    var appToReplace: LCAppModel?
-}
-
-struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
-    
-    
-    @StateObject private var groupNameInput = InputHelper() 
-    @State private var triggerNavigation = false
-    @State private var isSearchFieldVisible = false 
-    @State private var isLiveContainerMode = true
-    @State private var isiPhoneMode = false
-    @Binding var appDataFolderNames: [String]
-    @Binding var tweakFolderNames: [String]
-    
-    @State var didAppear = false
-    // ipa choosing stuff
-    @State var choosingIPA = false
-    @State var errorShow = false
-    @State var errorInfo = ""
-    
-    // ipa installing stuff
-    @State var installprogressVisible = false
-    @State var installProgressPercentage : Float = 0.0
-    @State var installObserver : NSKeyValueObservation?
-    
-    @State var installOptions: [AppReplaceOption]
-    @StateObject var installReplaceAlert = AlertHelper<AppReplaceOption>()
-    
-    @State var webViewOpened = false
-    @State var webViewURL : URL = URL(string: "about:blank")!
-    @StateObject private var webViewUrlInput = InputHelper()
-    
-    @ObservedObject var downloadHelper = DownloadHelper()
-    @StateObject private var installUrlInput = InputHelper()
-    
-    @State private var jitLog = ""
-    @StateObject private var jitAlert = YesNoHelper()
-    
-    @StateObject private var runWhenMultitaskAlert = YesNoHelper()
-    
-    @StateObject private var generatedIconStyleSelector = AlertHelper<GeneratedIconStyle>()
-    
-    @State var safariViewOpened = false
-    @State var safariViewURL = URL(string: "https://google.com")!
-    
-    @State private var navigateTo : AnyView?
-    @State private var isNavigationActive = false
-    
-    @State private var helpPresent = false
-    
-    @State private var customSortViewPresent = false
-    
-    @EnvironmentObject private var sharedModel : SharedModel
-    @EnvironmentObject private var sharedAppSortManager : LCAppSortManager
-    
-    @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
-    @AppStorage("LCLaunchInMultitaskMode") var launchInMultitaskMode = false
-    @AppStorage("LCNativeFullscreen") var isNativeMode = true 
-
-    @State private var isViewAppeared = false
-    
-    @ObservedObject var searchContext = SearchContext()
-       @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
-
 
 
 var groupedApps: [(key: String, value: [LCAppModel])] {

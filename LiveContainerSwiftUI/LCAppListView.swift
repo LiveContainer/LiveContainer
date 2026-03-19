@@ -688,7 +688,7 @@ func setMode(_ mode: AppLaunchMode) {
             }
         }
         
-        
+       } 
     }
     
     var JITEnablingModal : some View {

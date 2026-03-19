@@ -56,156 +56,124 @@ extension LCAppListView {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: { Task { await onOpenWebViewTapped() } })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                     Button {
-        isGroupEditing = true
-    } label: {
-        Image(systemName: "folder.badge.gearshape")
-    }
-                    Menu {
-                        Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
-                            ForEach(AppSortType.allCases, id: \.self) { sortType in
-                                Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
+                    HStack {
+                        Button {
+                            isGroupEditing = true
+                        } label: {
+                            Image(systemName: "folder.badge.gearshape")
+                        }
+                        Menu {
+                            Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
+                                ForEach(AppSortType.allCases, id: \.self) { sortType in
+                                    Label(sortType.displayName, systemImage: sortType.systemImage).tag(sortType)
+                                }
                             }
-                        }
-                        .onChange(of: sharedAppSortManager.appSortType) { _ in
-                            if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
-                        }
-                    } label: { Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") }
+                            .onChange(of: sharedAppSortManager.appSortType) { _ in
+                                if sharedAppSortManager.appSortType == .custom { customSortViewPresent = true }
+                            }
+                        } label: { Label("lc.appList.sort".loc, systemImage: "line.3.horizontal.decrease.circle") }
+                    }
                 }
-                .sheet(isPresented: $isGroupEditing) {
-    LCGroupEditView()
-        .environmentObject(sharedAppSortManager)
-        .environmentObject(sharedModel)
-}
-
             }
-        }
-        .navigationViewStyle(.stack)
-        .alert("lc.common.error".loc, isPresented: $errorShow){
-            Button("lc.common.ok".loc, action: {})
-            Button("lc.common.copy".loc, action: { copyError() })
-        } message: { Text(errorInfo) }
-        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
-        }, onDismiss: { choosingIPA = false })
-        .textFieldAlert(
-            isPresented: $groupNameInput.show,
-            title: "New Group",
-            text: $groupNameInput.initVal,
-            placeholder: "Group Name",
-            action: { name in groupNameInput.close(result: name) },
-            actionCancel: { _ in groupNameInput.close(result: nil) }
-        )
-        .alert("lc.common.error".loc, isPresented: $errorShow){
-            Button("lc.common.ok".loc, action: {
-            })
-            Button("lc.common.copy".loc, action: {
-                copyError()
-            })
-        } message: {
-            Text(errorInfo)
-        }
-        .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
-        }, onDismiss: {
-            choosingIPA = false
-        })
-        .alert("lc.appList.installation".loc, isPresented: $installReplaceAlert.show) {
-            ForEach(installOptions, id: \.self) { installOption in
-                Button(role: installOption.isReplace ? .destructive : nil, action: {
-                    installReplaceAlert.close(result: installOption)
+            // 修正：所有的修飾符必須鏈接在 content 之後，且在函數的大括號內
+            .navigationViewStyle(.stack)
+            .sheet(isPresented: $isGroupEditing) {
+                LCGroupEditView()
+                    .environmentObject(sharedAppSortManager)
+                    .environmentObject(sharedModel)
+            }
+            .alert("lc.common.error".loc, isPresented: $errorShow){
+                Button("lc.common.ok".loc, action: {})
+                Button("lc.common.copy".loc, action: { copyError() })
+            } message: { Text(errorInfo) }
+            .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
+                Task { await startInstallApp(fileUrls[0]) }
+            }, onDismiss: { choosingIPA = false })
+            .textFieldAlert(
+                isPresented: $groupNameInput.show,
+                title: "New Group",
+                text: $groupNameInput.initVal,
+                placeholder: "Group Name",
+                action: { name in groupNameInput.close(result: name) },
+                actionCancel: { _ in groupNameInput.close(result: nil) }
+            )
+            .alert("lc.appList.installation".loc, isPresented: $installReplaceAlert.show) {
+                ForEach(installOptions, id: \.self) { installOption in
+                    Button(role: installOption.isReplace ? .destructive : nil, action: {
+                        installReplaceAlert.close(result: installOption)
+                    }, label: {
+                        Text(installOption.isReplace ? installOption.nameOfFolderToInstall : "lc.appList.installAsNew".loc)
+                    })
+                }
+                Button(role: .cancel, action: {
+                    installReplaceAlert.close(result: nil)
                 }, label: {
-                    Text(installOption.isReplace ? installOption.nameOfFolderToInstall : "lc.appList.installAsNew".loc)
+                    Text("lc.appList.abortInstallation".loc)
                 })
-                
+            } message: {
+                Text("lc.appList.installReplaceTip".loc)
             }
-            Button(role: .cancel, action: {
-                installReplaceAlert.close(result: nil)
-            }, label: {
-                Text("lc.appList.abortInstallation".loc)
-            })
-        } message: {
-            Text("lc.appList.installReplaceTip".loc)
-        }
-        .alert("lc.webView.runApp".loc, isPresented: $runWhenMultitaskAlert.show) {
-            Button(role: .destructive) {
-                runWhenMultitaskAlert.close(result: true)
-            } label: {
-                Text("lc.common.continue".loc)
+            .alert("lc.webView.runApp".loc, isPresented: $runWhenMultitaskAlert.show) {
+                Button(role: .destructive) {
+                    runWhenMultitaskAlert.close(result: true)
+                } label: {
+                    Text("lc.common.continue".loc)
+                }
+                Button("lc.common.cancel".loc, role: .cancel) {
+                    runWhenMultitaskAlert.close(result: false)
+                }
+            } message: {
+                Text("lc.appBanner.confirmRunWhenMultitasking".loc)
             }
-            Button("lc.common.cancel".loc, role: .cancel) {
-                runWhenMultitaskAlert.close(result: false)
+            .alert("lc.appList.generatedIconStyleSelector.title".loc, isPresented:$generatedIconStyleSelector.show) {
+                Button { generatedIconStyleSelector.close(result: .Light) } label: { Text("lc.appList.generatedIconStyleSelector.light".loc) }
+                Button { generatedIconStyleSelector.close(result: .Dark) } label: { Text("lc.appList.generatedIconStyleSelector.dark".loc) }
+                Button { generatedIconStyleSelector.close(result: .Original) } label: { Text("lc.appList.generatedIconStyleSelector.original".loc) }
+                Button("lc.common.cancel".loc, role: .cancel) { generatedIconStyleSelector.close(result: nil) }
             }
-        } message: {
-            Text("lc.appBanner.confirmRunWhenMultitasking".loc)
-        }
-        .alert("lc.appList.generatedIconStyleSelector.title".loc, isPresented:$generatedIconStyleSelector.show) {
-            Button {
-                generatedIconStyleSelector.close(result: .Light)
-            } label: {
-                Text("lc.appList.generatedIconStyleSelector.light".loc)
+            .textFieldAlert(
+                isPresented: $webViewUrlInput.show,
+                title:  "lc.appList.enterUrlTip".loc,
+                text: $webViewUrlInput.initVal,
+                placeholder: "scheme://",
+                action: { newText in webViewUrlInput.close(result: newText) },
+                actionCancel: {_ in webViewUrlInput.close(result: nil) }
+            )
+            .textFieldAlert(
+                isPresented: $installUrlInput.show,
+                title:  "lc.appList.installUrlInputTip".loc,
+                text: $installUrlInput.initVal,
+                placeholder: "https://",
+                action: { newText in installUrlInput.close(result: newText) },
+                actionCancel: {_ in installUrlInput.close(result: nil) }
+            )
+            .downloadAlert(helper: downloadHelper)
+            .sheet(isPresented: $jitAlert.show, onDismiss: { jitAlert.close(result: false) }) {
+                JITEnablingModal
             }
-            Button {
-                generatedIconStyleSelector.close(result: .Dark)
-            } label: {
-                Text("lc.appList.generatedIconStyleSelector.dark".loc)
+            .fullScreenCover(isPresented: $webViewOpened) {
+                LCWebView(url: $webViewURL, isPresent: $webViewOpened, itmsServicesHandler: { urlStr in
+                    await installFromPlist(urlStr: urlStr)
+                })
             }
-            Button {
-                generatedIconStyleSelector.close(result: .Original)
-            } label: {
-                Text("lc.appList.generatedIconStyleSelector.original".loc)
+            .fullScreenCover(isPresented: $safariViewOpened) {
+                SafariView(url: $safariViewURL)
             }
-            Button("lc.common.cancel".loc, role: .cancel) {
-                generatedIconStyleSelector.close(result: nil)
+            .sheet(isPresented: $helpPresent) {
+                LCHelpView(isPresent: $helpPresent)
             }
-        }
-        .textFieldAlert(
-            isPresented: $webViewUrlInput.show,
-            title:  "lc.appList.enterUrlTip".loc,
-            text: $webViewUrlInput.initVal,
-            placeholder: "scheme://",
-            action: { newText in
-                webViewUrlInput.close(result: newText)
-            },
-            actionCancel: {_ in
-                webViewUrlInput.close(result: nil)
+            .sheet(isPresented: $customSortViewPresent) {
+                LCCustomSortView()
             }
-        )
-        .textFieldAlert(
-            isPresented: $installUrlInput.show,
-            title:  "lc.appList.installUrlInputTip".loc,
-            text: $installUrlInput.initVal,
-            placeholder: "https://",
-            action: { newText in
-                installUrlInput.close(result: newText)
-            },
-            actionCancel: {_ in
-                installUrlInput.close(result: nil)
-            }
-        )
-        .downloadAlert(helper: downloadHelper)
-        .sheet(isPresented: $jitAlert.show, onDismiss: {
-            jitAlert.close(result: false)
-        }) {
-            JITEnablingModal
-        }
-    
-        .fullScreenCover(isPresented: $webViewOpened) {
-            LCWebView(url: $webViewURL, isPresent: $webViewOpened, itmsServicesHandler: { urlStr in
-                await installFromPlist(urlStr: urlStr)
-            })
-        }
-        .fullScreenCover(isPresented: $safariViewOpened) {
-            SafariView(url: $safariViewURL)
-        }
-        .sheet(isPresented: $helpPresent) {
-            LCHelpView(isPresent: $helpPresent)
-        }
-        .sheet(isPresented: $customSortViewPresent) {
-            LCCustomSortView()
-        }
     }
-}
+    
+    // 其他函數保持不變...
+    func findPreviousGroup(for bid: String) -> String? {
+        for (groupName, ids) in sharedAppSortManager.customGroups {
+            if ids.contains(bid) { return groupName }
+        }
+        return nil
+    }
 }
 extension LCAppListView {
 

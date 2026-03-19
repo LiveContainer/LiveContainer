@@ -204,6 +204,7 @@ struct LCGroupEditView: View {
 
     var body: some View {
         NavigationView {
+            ZStack{
             List {
                 Section(header: Text("Group List")) {
                     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
@@ -312,7 +313,7 @@ struct LCGroupEditView: View {
                         EmptyView()
                     }
                 }
-            
+            }
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
                 title: selectedApps.isEmpty ? "New Group" : "Move to New Group",

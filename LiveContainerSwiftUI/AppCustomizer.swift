@@ -222,6 +222,7 @@ struct LCGroupEditView: View {
             
             .textCase(nil) 
         }
+            .buttonStyle(.borderless) 
     }
 ) {
     

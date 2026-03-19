@@ -17,30 +17,32 @@ enum AppLaunchMode: Int {
 }
 extension LCAppListView {
     @ViewBuilder
+@ViewBuilder
 private func groupHeaderContextMenu(name: String) -> some View {
-    Button {
-        Task {
-            groupNameInput.initVal = name
-            if let newName = await groupNameInput.open() {
-                
-                let ids = sharedAppSortManager.customGroups[name] ?? []
-                sharedAppSortManager.customGroups.removeValue(forKey: name)
-                sharedAppSortManager.customGroups[newName] = ids
-                
+    Group { 
+        Button {
+            Task {
+                groupNameInput.initVal = name
+                if let newName = await groupNameInput.open() {
+                    let ids = sharedAppSortManager.customGroups[name] ?? []
+                    sharedAppSortManager.customGroups.removeValue(forKey: name)
+                    sharedAppSortManager.customGroups[newName] = ids
+                }
             }
+        } label: {
+            Label("Rename Group", systemImage: "pencil")
         }
-    } label: {
-        Label("Rename Group", systemImage: "pencil")
-    }
 
-    Button(role: .destructive) {
-        withAnimation {
-            sharedAppSortManager.customGroups.removeValue(forKey: name)
+        Button(role: .destructive) {
+            withAnimation {
+                sharedAppSortManager.customGroups.removeValue(forKey: name)
+            }
+        } label: {
+            Label("Delete Group", systemImage: "trash")
         }
-    } label: {
-        Label("Delete Group", systemImage: "trash")
     }
 }
+
 
     
     @ViewBuilder

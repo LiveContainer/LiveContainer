@@ -60,6 +60,7 @@ enum AppSortType: String, CaseIterable {
 class LCAppSortManager: ObservableObject {
     private let userDefaults = LCUtils.appGroupUserDefault
     private let pinnedKey = "LC_PinnedBundleIds"
+    private let lastGroupKey = "LC_LastGroupBeforePin" 
         @Published var lastGroupMap: [String: String?] = [:] {
         didSet {
             UserDefaults.standard.set(lastGroupMap, forKey: lastGroupKey)

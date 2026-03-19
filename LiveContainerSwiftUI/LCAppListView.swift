@@ -288,6 +288,10 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+
+@AppStorage("LCNativeFullscreen") var isNativeFullscreen = true
+
+
     @State private var isEditMode = false
 @State private var selectedApps = Set<String>()
 @State private var showGroupPicker = false
@@ -543,8 +547,9 @@ var launchModeSelector: some View {
             setMode(.native)
         } label: {
             HStack {
-                Text("LiveContainer mode")
-                if isLiveContainerMode { Image(systemName: "checkmark") }
+                Text("LiveContainer Mode")
+                
+                if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") { Image(systemName: "checkmark") }
             }
         }
 
@@ -554,21 +559,24 @@ var launchModeSelector: some View {
             } label: {
                 HStack {
                     Text("Real iPhone Mode (9:16)")
-                    if !isLiveContainerMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
+                    
+                    if !UserDefaults.standard.bool(forKey: "LCNativeFullscreen") && 
+                        LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
                         Image(systemName: "checkmark")
                     }
                 }
             }
-            
-            
         }
     } label: {
+        
+        let isNative = UserDefaults.standard.bool(forKey: "LCNativeFullscreen")
         let isReal = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-        let isFake = LCUtils.appGroupUserDefault.bool(forKey: "LCFakeIPhoneMode")
-        Image(systemName: isLiveContainerMode ? "bolt.circle" : "bolt.circle")
-            .foregroundColor(isLiveContainerMode ? .green : (isReal ? .purple : (isFake ? .orange : .blue)))
+        
+        Image(systemName: "bolt.circle")
+            .foregroundColor(isNative ? .green : (isReal ? .purple : .blue))
     }
 }
+
 
 
 
@@ -577,27 +585,23 @@ var launchModeSelector: some View {
 
 func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {
-        isLiveContainerMode = false
-        isiPhoneMode = false
-        UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
-        UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
-        LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
-        LCUtils.appGroupUserDefault.set(false, forKey: "LCFakeIPhoneMode") 
-
         switch mode {
         case .native:
-            isLiveContainerMode = true
             UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+            LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
+            isLiveContainerMode = true 
         case .realIPhone:
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
             UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
             LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
-        
+            isLiveContainerMode = false 
         }
     }
+    
     sharedModel.objectWillChange.send()
-    UserDefaults.standard.synchronize()
-    LCUtils.appGroupUserDefault.synchronize()
 }
+
 
 
 

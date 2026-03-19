@@ -167,13 +167,7 @@ extension LCAppListView {
             }
     }
     
-    // 其他函數保持不變...
-    func findPreviousGroup(for bid: String) -> String? {
-        for (groupName, ids) in sharedAppSortManager.customGroups {
-            if ids.contains(bid) { return groupName }
-        }
-        return nil
-    }
+    
 }
 extension LCAppListView {
 

@@ -120,10 +120,6 @@ struct LCTabView: View {
 }
 
 
-enum LCTabIdentifier {
-    case sources, apps, tweaks, explore, settings, cache
-}
-
 extension LCTabView {
 
     func dispatchURL(url: URL) {

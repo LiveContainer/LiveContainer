@@ -43,7 +43,7 @@ ToolbarItem(placement: .topBarLeading) {
             Button { LCUtils.openSideStore(delegate: self) } label: {
                 Image("SideStoreBadge").resizable().renderingMode(.template)
                     .foregroundColor(SharedModel.isLiquidGlassEnabled ? .primary : .accentColor)
-                    .frame(width: 18, height: 18) // 稍微縮小以配合整體比例
+                    .frame(width: 17, height: 17) 
             }
         } else {
             Button { helpPresent = true } label: {

@@ -99,6 +99,25 @@ class LCAppSortManager: ObservableObject {
 
 
 
+func batchMoveApps(_ bundleIds: Set<String>, to targetGroup: String?) {
+    
+    for groupName in customGroups.keys {
+        customGroups[groupName]?.removeAll { bundleIds.contains($0) }
+    }
+    
+    
+    if let target = targetGroup {
+        var currentIds = customGroups[target] ?? []
+        currentIds.append(contentsOf: bundleIds)
+        customGroups[target] = currentIds
+    }
+    
+    
+    customGroups = customGroups.filter { !$0.key.isEmpty }
+    objectWillChange.send()
+}
+
+
 func moveApp(_ bundleId: String, to group: String?) {
     
     for (name, var ids) in customGroups {

@@ -96,22 +96,28 @@ struct LCTabView: View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
+                HStack{
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
+                }.padding()
                 Spacer(minLength: 20)
+                HStack{
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
+                }.padding()
             }
             .padding(10)
-          
+              .background(
+            // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
+            Color(.clear)
         }
         .background(
             // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
-            Color(UIColor.systemBackground).opacity(0.95)
+            Color(.clear)
         )
-        .zIndex(999) // 強制最高層級
+        .zIndex(999) 
     }
 
     

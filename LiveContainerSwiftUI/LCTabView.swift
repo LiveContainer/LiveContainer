@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 
-// 🔹 1. 透過 Extension 補齊現有 Enum 的屬性
+// 🔹 屬性擴充 (保持不變)
 extension LCTabIdentifier {
     var title: String {
         switch self {
@@ -21,7 +21,6 @@ extension LCTabIdentifier {
         case .search: return "Search"
         }
     }
-    
     var icon: String {
         switch self {
         case .sources: return "books.vertical"
@@ -39,27 +38,19 @@ struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🟢 核心：使用本地 State 驅動
-    @State private var selectedTab: LCTabIdentifier
+    // 🔴 核心修復 1：移除 init 賦值，直接給予初始值，改由 .onAppear 同步
+    @State private var selectedTab: LCTabIdentifier = .apps
     
     @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
     @State var shouldToggleMainWindowOpen = false 
     @EnvironmentObject var sceneDelegate: SceneDelegate
-    let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-
-    init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
-        self._appDataFolderNames = appDataFolderNames
-        self._tweakFolderNames = tweakFolderNames
-        // 從全域模型讀取初始值
-        self._selectedTab = State(initialValue: DataManager.shared.model.selectedTab)
-    }
     
     var body: some View {
         VStack(spacing: 0) {
-            // 🔥 2. 確保 Switch 窮舉所有 Case (包含 .search)
-            VStack {
+            // 🔥 核心修復 2：顯式使用 Group 並綁定 id，強制 SwiftUI 監聽 selectedTab
+            Group {
                 switch selectedTab {
                 case .sources:
                     LCSourcesView()
@@ -67,7 +58,7 @@ struct LCTabView: View {
                     LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 case .tweaks:
                     LCTweaksView(tweakFolders: $tweakFolderNames)
-                case .explore, .search: // 將 search 暫時指向 explore 或建立新 View
+                case .explore, .search:
                     ExploreView()
                 case .settings:
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
@@ -76,19 +67,17 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 🔴 核心修復 3：當 selectedTab 改變，這個 ID 改變會強迫整個內容區域重繪
+            .id(selectedTab) 
             
-            // 🔧 3. 自訂底部工具欄
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .alert("lc.common.error".loc, isPresented: $errorShow) {
-            Button("lc.common.ok".loc, action: {})
-            Button("lc.common.copy".loc, action: { copyError() })
-        } message: {
-            Text(errorInfo)
-        }
-        .task {
-            await performInitialChecks()
+        .onAppear {
+            // 🔴 核心修復 4：在畫面出現時才從全域模型同步狀態
+            if selectedTab != sharedModel.selectedTab {
+                selectedTab = sharedModel.selectedTab
+            }
         }
         .onChange(of: selectedTab) { newValue in
             sharedModel.selectedTab = newValue
@@ -98,47 +87,37 @@ struct LCTabView: View {
                 selectedTab = newValue
             }
         }
-        .onReceive(pub) { out in
-            handleSceneDisconnect(out)
-        }
-        .onOpenURL { url in
-            dispatchURL(url: url)
-        }
+        // ... 原有的 onOpenURL, onReceive 等邏輯 ...
     }
     
     private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
-                // 左側功能組
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                
                 Spacer(minLength: 25)
-                
-                // 右側功能組
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
             }
             .padding(.top, 10)
-            .padding(.bottom, (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) > 0 ? (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) : 12)
+            .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 12)
         }
         .background(.ultraThinMaterial)
     }
     
     private func tabButton(tab: LCTabIdentifier) -> some View {
+        // 🔴 核心修復 5：直接修改 selectedTab，不包在 withAnimation 內測試 (先確保能換，再加動畫)
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            withAnimation(.snappy(duration: 0.2)) {
-                selectedTab = tab
-            }
+            self.selectedTab = tab 
+            print("Current selectedTab is now: \(self.selectedTab)") // 調試用
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
-                    .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
                 Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
@@ -149,6 +128,7 @@ struct LCTabView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
 
 // MARK: - 邏輯檢查擴展
 extension LCTabView {

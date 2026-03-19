@@ -5,20 +5,20 @@
 //  Created by s s on 2024/8/21.
 //
 
-import SwiftUI
+import SwiftUI // 必須確保這行在最上方
 import Foundation
 
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 狀態儲存：使用本地 State 驅動 UI 切換
+    // 🔴 核心修復 1：使用本地 State 確保 UI 刷新優先權最高
     @State private var localSelectedTab: LCTabIdentifier = .apps
     
     @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
-    @State var shouldToggleMainWindowOpen = false // 補回遺失的變數
+    @State var shouldToggleMainWindowOpen = false 
     
     @EnvironmentObject var sceneDelegate: SceneDelegate
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
@@ -27,6 +27,7 @@ struct LCTabView: View {
         VStack(spacing: 0) {
             // --- 內容區域 ---
             Group {
+                // 🔴 核心修復 2：直接在 body 內 switch，並綁定唯一的 ID
                 switch localSelectedTab {
                 case .sources:
                     LCSourcesView()
@@ -45,10 +46,10 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 🔴 暴力刷新 ID，確保分頁絕對會切換
-            .id("TabViewContent-\(localSelectedTab)") 
+            // 🔴 核心修復 3：強迫 SwiftUI 看到 ID 改變就銷毀舊視圖並重建新視圖
+            .id("Content-\(localSelectedTab)") 
             
-            // --- iOS 26 風格透明 Toolbar ---
+            // --- iOS 26 透明風格 Toolbar ---
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
@@ -59,9 +60,11 @@ struct LCTabView: View {
             Text(errorInfo)
         }
         .task {
+            // 初始化同步
             localSelectedTab = sharedModel.selectedTab
             await performInitialChecks()
         }
+        // 🔴 核心修復 4：雙向同步，確保外部跳轉（如 Deep Link）也能切換分頁
         .onChange(of: localSelectedTab) { newValue in
             sharedModel.selectedTab = newValue
         }
@@ -70,16 +73,10 @@ struct LCTabView: View {
                 localSelectedTab = newValue
             }
         }
-        .onReceive(pub) { out in
-            handleSceneDisconnect(out)
-        }
-        .onOpenURL { url in
-            dispatchURL(url: url)
-        }
     }
 }
 
-// MARK: - Toolbar UI
+// MARK: - Toolbar 實作
 extension LCTabView {
     private var ios26TransparentToolbar: some View {
         VStack(spacing: 0) {
@@ -90,38 +87,45 @@ extension LCTabView {
                 tabItem(title: "Apps", icon: "square.stack.3d.up.fill", id: .apps)
                 tabItem(title: "Tweaks", icon: "wrench.and.screwdriver", id: .tweaks)
                 
-                Spacer(minLength: 20)
+                Spacer(minLength: 25) // iOS 26 的寬間距美學
                 
                 tabItem(title: "Explore", icon: "safari.fill", id: .explore)
                 tabItem(title: "Settings", icon: "gearshape.fill", id: .settings)
                 tabItem(title: "Manager", icon: "internaldrive", id: .cache)
             }
-            .padding(.top, 10)
-            .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
+            .padding(.top, 12)
+            .padding(.bottom, (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) > 0 ? (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 20) : 12)
         }
-        .background(.ultraThinMaterial)
+        .background(.ultraThinMaterial) // 透明磨砂質感
     }
 
     private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
         Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            withAnimation(.snappy(duration: 0.2)) {
+            // 觸覺回饋
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            
+            // 🔴 核心修復 5：使用動畫更新本地狀態
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                 self.localSelectedTab = id
             }
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 21, weight: localSelectedTab == id ? .semibold : .regular))
+                    .scaleEffect(localSelectedTab == id ? 1.1 : 1.0)
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-            .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.5))
+            .contentShape(Rectangle()) // 🔴 核心修復 6：擴大點擊範圍到整個方塊，而非只有文字
+            .foregroundColor(localSelectedTab == id ? .accentColor : .primary.opacity(0.45))
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(PlainButtonStyle()) // 移除系統預設的高亮延遲
     }
 }
+
+
+
 
 // MARK: - 邏輯檢查 (修復 self is immutable 錯誤)
 

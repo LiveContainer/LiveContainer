@@ -77,7 +77,7 @@ struct LCTabView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .id(selectedTab) // 確保強制刷新
-            
+            .clipped()
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
@@ -87,43 +87,50 @@ struct LCTabView: View {
         // 🔹 這裡不再監聽 sharedModel.selectedTab 的變化，防止循環死鎖
     }
     
-    private var customBottomBar: some View {
+       private var customBottomBar: some View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                Spacer(minLength:50)
+                Spacer(minLength: 20) // 縮小間距確保按鈕不被擠出螢幕
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
             }
+            .padding(.horizontal, 10)
             .padding(.top, 10)
+            // 依照錄影畫面，這裏可能需要調整 safeArea
             .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 12)
         }
-        .background(.ultraThinMaterial)
+        .background(.clear)
+        .contentShape(Rectangle()) // 防止點擊穿透到底層
+        .zIndex(100) // 🔴 確保工具列在所有內容之上
     }
+
     
-    private func tabButton(tab: LCTabID) -> some View {
+        private func tabButton(tab: LCTabID) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            // 🔴 只修改本地 State
+            print("Button tapped: \(tab)") // 加入這行在 Console 檢查
             self.selectedTab = tab
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
+                    .frame(height: 26) // 固定高度防止抖動
                 Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
+            .padding(.vertical, 8)
+            // 🔴 關鍵：確保透明區域也能點擊
+            .contentShape(Rectangle()) 
             .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain) // 🔴 確保不會被系統 ButtonStyle 干擾
     }
-}
 
 // MARK: - 邏輯擴展
 

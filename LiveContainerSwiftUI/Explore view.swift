@@ -4,7 +4,7 @@ struct ExploreView: View {
     @State private var searchText = ""
 
     var body: some View {
-        NavigationStack {
+        
             ScrollView {
                 VStack(spacing: 20) {
                     // 這裡可以放置未來的推廣內容或功能卡片
@@ -29,13 +29,9 @@ struct ExploreView: View {
                 }
                 .padding()
             }
-            // 設置標題以確保頂部 Toolbar 透明風格生效
-            .navigationTitle("Explore")
-            .navigationBarTitleDisplayMode(.large)
-            // 如果你需要搜索功能，可以取消註解下面這行
-            // .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            
         }
-    }
+    
     
     // 預留一個頂部的裝飾區塊
     private var headerSection: some View {

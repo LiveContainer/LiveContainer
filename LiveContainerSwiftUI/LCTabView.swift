@@ -12,58 +12,53 @@ struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
+    // 這裡改用 @ObservedObject 直接掛載 DataManager 的實例
+    // 這樣能確保點擊 Toolbar 時，這裡的 switch 絕對會收到通知
+    @ObservedObject var sharedModel = DataManager.shared.model
+    
     @State var errorShow = false
     @State var errorInfo = ""
-    @State var previousSelectedTab: LCTabIdentifier = .apps
-    
-    @EnvironmentObject var sharedModel: SharedModel
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @State var shouldToggleMainWindowOpen = false
-    @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
 
     var body: some View {
         VStack(spacing: 0) {
-            
+            // 頁面切換核心
             ZStack {
                 
-                Group {
-                    switch sharedModel.selectedTab {
-                    case .sources:
-                        LCSourcesView()
-                    case .apps:
-                        LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                    case .tweaks:
-                        LCTweaksView(tweakFolders: $tweakFolderNames)
-                    case .explore:
-                        
-                        ExploreView() 
-                    case .settings:
-                        LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                    case .cache:
-                        LCCacheManagementView()
-                    default:
-                        LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                    }
+                switch sharedModel.selectedTab {
+                case .sources:
+                    LCSourcesView()
+                case .apps:
+                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
+                case .tweaks:
+                    LCTweaksView(tweakFolders: $tweakFolderNames)
+                case .explore:
+                    ExploreView()
+                case .settings:
+                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
+                case .cache:
+                    LCCacheManagementView()
+                default:
+                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 }
             }
             .id(sharedModel.selectedTab) 
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            
+           
             ios26TransparentToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
-        } message: { 
-            Text(errorInfo) 
-        }
+        } message: { Text(errorInfo) }
         .task { await performInitialChecks() }
-        .onOpenURL { url in dispatchURL(url: url) }
     }
 }
+
 
 
 extension LCTabView {
@@ -99,29 +94,32 @@ extension LCTabView {
         .background(Color(UIColor.systemBackground).opacity(0.01))
     }
 
-    private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
+       private func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
         Button(action: {
-            
+            print("Target Tab: \(id)") // 偵錯用
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             
-            
-            withAnimation(.snappy(duration: 0.25)) {
-                sharedModel.selectedTab = id
+            // 強制在主線程更新單例
+            DispatchQueue.main.async {
+                DataManager.shared.model.selectedTab = id
+                
+                self.sharedModel.selectedTab = id 
             }
         }) {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: sharedModel.selectedTab == id ? .semibold : .regular))
-                    .symbolVariant(sharedModel.selectedTab == id ? .fill : .none)
+                    .font(.system(size: 21, weight: sharedModel.selectedTab == id ? .semibold : .regular))
+                    .scaleEffect(sharedModel.selectedTab == id ? 1.1 : 1.0)
                 
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
             }
-            .frame(maxWidth: .infinity)
-            .foregroundColor(sharedModel.selectedTab == id ? .accentColor : .primary.opacity(0.5))
+            .frame(maxWidth: .infinity, minHeight: 45)
+            .foregroundColor(sharedModel.selectedTab == id ? .accentColor : .primary.opacity(0.6))
             .contentShape(Rectangle()) 
         }
     }
+
 }
 
 

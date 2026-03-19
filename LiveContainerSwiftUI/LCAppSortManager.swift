@@ -99,7 +99,8 @@ class LCAppSortManager: ObservableObject {
 
 
 
-func batchMoveApps(_ bundleIds: Set<String>, to targetGroup: String?) {
+
+func moveApps(_ bundleIds: Set<String>, to targetGroup: String?) {
     
     for groupName in customGroups.keys {
         customGroups[groupName]?.removeAll { bundleIds.contains($0) }
@@ -113,9 +114,9 @@ func batchMoveApps(_ bundleIds: Set<String>, to targetGroup: String?) {
     }
     
     
-    customGroups = customGroups.filter { !$0.key.isEmpty }
     objectWillChange.send()
 }
+
 
 
 func moveApp(_ bundleId: String, to group: String?) {

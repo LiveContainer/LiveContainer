@@ -16,33 +16,131 @@ enum AppLaunchMode: Int {
 
 }
 extension LCAppListView {
-    @ViewBuilder
+
+    
+
 @ViewBuilder
-private func groupHeaderContextMenu(name: String) -> some View {
-    Group { 
-        Button {
+private func leadingSwipeActions(for app: LCAppModel) -> some View {
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
+    
+    Button {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            sharedAppSortManager.togglePin(bid)
+        }
+    } label: {
+        Label(isPinned ? "Unfavorite" : "Favorite", 
+              systemImage: isPinned ? "star.slash.fill" : "star.fill")
+    }
+    .tint(isPinned ? .gray : .yellow)
+}
+
+
+@ViewBuilder
+private func trailingSwipeActions(for app: LCAppModel) -> some View {
+    let bid = app.appInfo.bundleIdentifier() ?? ""
+    
+    
+    Menu {
+        
+        ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
+            Button {
+                sharedAppSortManager.moveApp(bid, to: name)
+            } label: {
+                Label("\(name)", systemImage: "folder")
+            }
+        }
+    
+        
+        Button("Other", systemImage: "folder") {
+            sharedAppSortManager.moveApp(bid, to: nil)
+        }
+        
+        Divider()
+        
+        
+        Button("New Group", systemImage: "plus") {
             Task {
-                groupNameInput.initVal = name
                 if let newName = await groupNameInput.open() {
-                    let ids = sharedAppSortManager.customGroups[name] ?? []
-                    sharedAppSortManager.customGroups.removeValue(forKey: name)
-                    sharedAppSortManager.customGroups[newName] = ids
+                    sharedAppSortManager.moveApp(bid, to: newName)
                 }
             }
-        } label: {
-            Label("Rename Group", systemImage: "pencil")
         }
+    } label: {
+        Label("Group", systemImage: "folder.badge.plus")
+    }
+    .tint(.accentColor)
+}
 
-        Button(role: .destructive) {
-            withAnimation {
-                sharedAppSortManager.customGroups.removeValue(forKey: name)
+
+    
+    @ViewBuilder
+    private func groupHeaderContextMenu(name: String) -> some View {
+        Group { 
+            Button {
+                Task {
+                    groupNameInput.initVal = name
+                    if let newName = await groupNameInput.open() {
+                        let ids = sharedAppSortManager.customGroups[name] ?? []
+                        sharedAppSortManager.customGroups.removeValue(forKey: name)
+                        sharedAppSortManager.customGroups[newName] = ids
+                    }
+                }
+            } label: {
+                Label("Rename Group", systemImage: "pencil")
             }
-        } label: {
-            Label("Delete Group", systemImage: "trash")
+
+            Button(role: .destructive) {
+                withAnimation {
+                    sharedAppSortManager.customGroups.removeValue(forKey: name)
+                }
+            } label: {
+                Label("Delete Group", systemImage: "trash")
+            }
         }
+    }
+
+    
+    @ViewBuilder
+private var appGroupsList: some View {
+    ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
+        DisclosureGroup(
+            isExpanded: Binding(
+                get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
+                set: { isExpanding in
+                    if isExpanding { expandedGroups.insert(groupName) }
+                    else { expandedGroups.remove(groupName) }
+                }
+            ),
+            content: {
+                ForEach(appsInGroup, id: \.self) { app in
+                    LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                        .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                        .listRowSeparator(.hidden)
+                        
+                        
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            leadingSwipeActions(for: app)
+                        }
+                        
+                        
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            trailingSwipeActions(for: app)
+                        }
+                }
+            },
+            label: {
+                
+                groupLabel(name: groupName, count: appsInGroup.count)
+            }
+        )
+        .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
     }
 }
 
+
+extension LCAppListView {
+  
 
     
     @ViewBuilder
@@ -68,87 +166,7 @@ private func groupHeaderContextMenu(name: String) -> some View {
     }
 
 
-      @ViewBuilder
-    private var appGroupsList: some View {
-        
-        ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
-            DisclosureGroup(
-                isExpanded: Binding(
-                    get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
-                    set: { isExpanding in
-                        if isExpanding { expandedGroups.insert(groupName) }
-                        else { expandedGroups.remove(groupName) }
-                    }
-                ),
-                content: {
-                    ForEach(appsInGroup, id: \.self) { app in
-                        let bid = app.appInfo.bundleIdentifier() ?? ""
-                        let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
-
-                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
-                            .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
-                            .listRowSeparator(.hidden)
-                            
-                            
-.swipeActions(edge: .leading, allowsFullSwipe: false) {
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
-    
-    Button {
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            sharedAppSortManager.togglePin(bid)
-        }
-    } label: {
-        
-        if isPinned {
-            Label("Unfavorite", systemImage: "star.slash.fill")
-        } else {
-            Label("Favorite", systemImage: "star.fill")
-        }
-    }
-    .tint(isPinned ? .gray : .yellow)
-}
-
-                            
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                moveGroupMenu(for: app)
-                            }
-                    }
-                },
-                label: {
-                    
-                    HStack(spacing: 8) {
-                        if groupName == "Favorites" {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
-                        } else if groupName == "Other" {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundColor(.secondary)
-                        } else {
-                            Image(systemName: "folder")
-                                .foregroundColor(.accentColor)
-                        }
-                        
-                        Text(groupName == "Other" ? "Other" : groupName)
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Text("\(appsInGroup.count)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .contextMenu {
-                        
-                        if groupName != "Other" && groupName != "Favorites" {
-                            groupHeaderContextMenu(name: groupName)
-                        }
-                    }
-                }
-            )
-            .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
-        }
-    }
+   
 
 
     
@@ -184,36 +202,7 @@ private func groupHeaderContextMenu(name: String) -> some View {
     }
 
     
-    private func moveGroupMenu(for app: LCAppModel) -> some View {
-        Menu {
-            ForEach(sharedAppSortManager.customGroups.keys.sorted(), id: \.self) { name in
-                Button {
-    sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: name)
-} label: {
-   
-    Label("\(name)", systemImage: "folder")
-}
-
-
-            }
-            
-            Button("Other",systemImage:"folder") {
-                sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: nil)
-            }
-            Divider()
-            Button("New Group", systemImage: "plus") {
-                Task {
-                    if let newName = await groupNameInput.open() {
-                        sharedAppSortManager.moveApp(app.appInfo.bundleIdentifier() ?? "", to: newName)
-                    }
-                }
-            }
-        } label: {
-            Label("Group", systemImage: "folder.badge.plus")
-        }
-        .tint(.accentColor)
-    }
-
+    
     
     private func groupHeader(name: String, count: Int) -> some View {
         HStack {

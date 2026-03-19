@@ -8,49 +8,23 @@
 import SwiftUI
 import Foundation
 
-// 🔹 屬性擴充 (保持不變)
-extension LCTabIdentifier {
-    var title: String {
-        switch self {
-        case .sources: return "lc.tabView.sources".loc
-        case .apps: return "lc.tabView.apps".loc
-        case .tweaks: return "lc.tabView.tweaks".loc
-        case .explore: return "Explore"
-        case .settings: return "lc.tabView.settings".loc
-        case .cache: return "Manager"
-        case .search: return "Search"
-        }
-    }
-    var icon: String {
-        switch self {
-        case .sources: return "books.vertical"
-        case .apps: return "square.stack.3d.up.fill"
-        case .tweaks: return "wrench.and.screwdriver"
-        case .explore: return "safari.fill"
-        case .settings: return "gearshape.fill"
-        case .cache: return "internaldrive"
-        case .search: return "magnifyingglass"
-        }
-    }
-}
-
 struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🔴 核心修復 1：移除 init 賦值，直接給予初始值，改由 .onAppear 同步
+    // 🟢 只使用本地 State，不聽外部 DataManager 的話
     @State private var selectedTab: LCTabIdentifier = .apps
     
-    @ObservedObject var sharedModel = DataManager.shared.model
     @State var errorShow = false
     @State var errorInfo = ""
     @State var shouldToggleMainWindowOpen = false 
     @EnvironmentObject var sceneDelegate: SceneDelegate
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // 🔥 核心修復 2：顯式使用 Group 並綁定 id，強制 SwiftUI 監聽 selectedTab
-            Group {
+            // 🔥 核心：直接根據本地變數 switch
+            // 使用 ZStack 或 Group 確保空間被撐開
+            ZStack {
                 switch selectedTab {
                 case .sources:
                     LCSourcesView()
@@ -67,27 +41,18 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // 🔴 核心修復 3：當 selectedTab 改變，這個 ID 改變會強迫整個內容區域重繪
+            // 🔴 強制刷新 ID，這行是切換成功的保險
             .id(selectedTab) 
             
+            // 🔧 自定義底欄
             customBottomBar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        .onAppear {
-            // 🔴 核心修復 4：在畫面出現時才從全域模型同步狀態
-            if selectedTab != sharedModel.selectedTab {
-                selectedTab = sharedModel.selectedTab
-            }
+        .task {
+            // 只執行初始化檢查，不進行狀態同步
+            await performInitialChecks()
         }
-        .onChange(of: selectedTab) { newValue in
-            sharedModel.selectedTab = newValue
-        }
-        .onChange(of: sharedModel.selectedTab) { newValue in
-            if selectedTab != newValue {
-                selectedTab = newValue
-            }
-        }
-        // ... 原有的 onOpenURL, onReceive 等邏輯 ...
+        // 暫時移除所有 .onChange(of: sharedModel...) 邏輯
     }
     
     private var customBottomBar: some View {
@@ -109,11 +74,15 @@ struct LCTabView: View {
     }
     
     private func tabButton(tab: LCTabIdentifier) -> some View {
-        // 🔴 核心修復 5：直接修改 selectedTab，不包在 withAnimation 內測試 (先確保能換，再加動畫)
         Button {
+            // 震動回饋
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            self.selectedTab = tab 
-            print("Current selectedTab is now: \(self.selectedTab)") // 調試用
+            
+            // 直接修改本地狀態
+            // 🔴 注意：如果這裡點擊沒反應，請嘗試移除 withAnimation
+            self.selectedTab = tab
+            
+            print("Successfully switched to \(tab)")
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
@@ -122,12 +91,13 @@ struct LCTabView: View {
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
+            .contentShape(Rectangle()) // 確保整塊都能點
             .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
+
 
 
 // MARK: - 邏輯檢查擴展

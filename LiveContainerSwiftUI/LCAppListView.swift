@@ -198,31 +198,37 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
        @State private var expandedGroups: Set<String> = ["Default"] // 預設展開的組別名
 
 
+    
     @ViewBuilder
-var appGroupsList: some View {
-    ForEach(appsInGroup, id: \.self) { app in
-    let bid = app.appInfo.bundleIdentifier() ?? ""
-    HStack {
+    var appGroupsList: some View {
         
-        if isEditMode {
-            Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
-                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
-                .font(.system(size: 22))
-                .transition(.move(edge: .leading).combined(with: .opacity))
+        ForEach(groupedApps, id: \.key) { groupName, apps in
+            Section(header: Text(groupName)) {
+                ForEach(apps, id: \.self) { app in
+                    let bid = app.appInfo.bundleIdentifier() ?? ""
+                    HStack {
+                        if isEditMode {
+                            Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(selectedApps.contains(bid) ? .accentColor : .gray)
+                                .font(.system(size: 22))
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                        }
+                        
+                        
+                        LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
+                            .disabled(isEditMode) 
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if isEditMode {
+                            if selectedApps.contains(bid) { selectedApps.remove(bid) }
+                            else { selectedApps.insert(bid) }
+                        }
+                    }
+                }
+            }
         }
-        
-        LCAppBanner(appModel: app, ...)
-            .disabled(isEditMode) 
-    }
-    .contentShape(Rectangle())
-    .onTapGesture {
-        if isEditMode {
-            if selectedApps.contains(bid) { selectedApps.remove(bid) }
-            else { selectedApps.insert(bid) }
-        }
-    }
-}
-
+    
 
 
 

@@ -20,7 +20,7 @@ extension LCAppListView {
     
 
 @ViewBuilder
-private func leadingSwipeActions(for app: LCAppModel) -> some View {
+func leadingSwipeActions(for app: LCAppModel) -> some View {
     let bid = app.appInfo.bundleIdentifier() ?? ""
     let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
     
@@ -37,7 +37,7 @@ private func leadingSwipeActions(for app: LCAppModel) -> some View {
 
 
 @ViewBuilder
-private func trailingSwipeActions(for app: LCAppModel) -> some View {
+func trailingSwipeActions(for app: LCAppModel) -> some View {
     let bid = app.appInfo.bundleIdentifier() ?? ""
     
     
@@ -75,7 +75,7 @@ private func trailingSwipeActions(for app: LCAppModel) -> some View {
 
     
     @ViewBuilder
-    private func groupHeaderContextMenu(name: String) -> some View {
+    func groupHeaderContextMenu(name: String) -> some View {
         Group { 
             Button {
                 Task {
@@ -102,7 +102,7 @@ private func trailingSwipeActions(for app: LCAppModel) -> some View {
 
     
     @ViewBuilder
-private var appGroupsList: some View {
+var appGroupsList: some View {
     ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
         DisclosureGroup(
             isExpanded: Binding(
@@ -144,7 +144,7 @@ private var appGroupsList: some View {
 
     
     @ViewBuilder
-    private var searchSection: some View {
+    var searchSection: some View {
         if isSearchFieldVisible {
             Section {
                 HStack {
@@ -171,7 +171,7 @@ private var appGroupsList: some View {
 
     
     @ViewBuilder
-    private var hiddenAppsSection: some View {
+    var hiddenAppsSection: some View {
         if (LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.isHiddenAppUnlocked) || 
            (!LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") && sharedModel.hiddenApps.count > 0) {
             
@@ -239,7 +239,7 @@ private var appGroupsList: some View {
         }
     }
 }
-
+}
 
 
 class SearchContext: ObservableObject {

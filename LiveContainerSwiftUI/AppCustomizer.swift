@@ -312,6 +312,7 @@ Button(action: {
                     }
                 }
             } 
+        }
             .textFieldAlert(
                 isPresented: $showAddGroupAlert,
                 title: selectedApps.isEmpty ? "New Group" : "Move to New Group",
@@ -328,7 +329,7 @@ Button(action: {
                 },
                 actionCancel: { _ in newGroupName = "" }
             )
-        } 
+        
     }
 
     

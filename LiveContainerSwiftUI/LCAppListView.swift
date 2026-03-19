@@ -41,17 +41,10 @@ extension LCAppListView {
     }
 
 
-    @ViewBuilder
+      @ViewBuilder
     private var appGroupsList: some View {
-        let keys = groupedApps.keys.sorted { k1, k2 in
-            if k1 == "Other" { return false }
-            if k2 == "Other" { return true }
-            return k1 < k2
-        }
-
-        ForEach(keys, id: \.self) { groupName in
-            let appsInGroup = groupedApps[groupName] ?? []
-            
+        
+        ForEach(groupedApps, id: \.key) { groupName, appsInGroup in
             DisclosureGroup(
                 isExpanded: Binding(
                     get: { expandedGroups.contains(groupName) || !searchContext.debouncedQuery.isEmpty },
@@ -62,21 +55,68 @@ extension LCAppListView {
                 ),
                 content: {
                     ForEach(appsInGroup, id: \.self) { app in
+                        let bid = app.appInfo.bundleIdentifier() ?? ""
+                        let isPinned = sharedAppSortManager.pinnedBundleIds.contains(bid)
+
                         LCAppBanner(appModel: app, delegate: self, appDataFolders: $appDataFolderNames, tweakFolders: $tweakFolderNames)
                             .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
                             .listRowSeparator(.hidden)
+                            
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                Button {
+                                    withAnimation(.spring()) {
+                                        sharedAppSortManager.togglePin(bid)
+                                    }
+                                } label: {
+                                    if isPinned {
+                                        Label("Unfavorite", systemImage: "star.slash.fill")
+                                    } else {
+                                        Label("Favorite", systemImage: "star.fill")
+                                    }
+                                }
+                                .tint(isPinned ? .gray : .yellow)
+                            }
+                            
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 moveGroupMenu(for: app)
                             }
                     }
                 },
                 label: {
-                    groupHeader(name: groupName, count: appsInGroup.count)
+                    
+                    HStack(spacing: 8) {
+                        if groupName == "Favorites" {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                        } else if groupName == "Other" {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundColor(.secondary)
+                        } else {
+                            Image(systemName: "folder")
+                                .foregroundColor(.accentColor)
+                        }
+                        
+                        Text(groupName == "Other" ? "lc.common.other".loc : groupName)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Text("\(appsInGroup.count)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .contextMenu {
+                        
+                        if groupName != "Other" && groupName != "Favorites" {
+                            groupHeaderContextMenu(name: groupName)
+                        }
+                    }
                 }
             )
             .listRowInsets(EdgeInsets(top: 10, leading: 15, bottom: 10, trailing: 15))
         }
     }
+
 
     
     @ViewBuilder

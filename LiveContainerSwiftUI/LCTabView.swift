@@ -14,101 +14,117 @@ struct LCTabView: View {
     
     @State var errorShow = false
     @State var errorInfo = ""
-    @State var previousSelectedTab : LCTabIdentifier = .apps
+    @State var previousSelectedTab: LCTabIdentifier = .apps
     
-    @EnvironmentObject var sharedModel : SharedModel
+    @EnvironmentObject var sharedModel: SharedModel
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
-    
- 
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                if sharedModel.selectedTab == .sources {
+               
+                switch sharedModel.selectedTab {
+                case .sources:
                     LCSourcesView()
-                } else if sharedModel.selectedTab == .apps {
+                case .apps:
                     LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
-                } else if sharedModel.selectedTab == .tweaks {
+                case .tweaks:
                     LCTweaksView(tweakFolders: $tweakFolderNames)
-                } else if sharedModel.selectedTab == .settings {
+                case .explore:
+                    Text("Explore New Features").font(.headline) // 這裡替換成你的新 View
+                case .settings:
                     LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                } else if sharedModel.selectedTab == .cache {
-                    
-                    
-                        LCCacheManagementView()
-                    
-                    
+                case .cache:
+                    LCCacheManagementView()
+                default:
+                    LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            customToolbar 
+           
+            ios26StyleToolbar
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
-        
-      
-
-        .alert("lc.common.error".loc, isPresented: $errorShow) {
+          .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {})
             Button("lc.common.copy".loc, action: { copyError() })
         } message: { 
             Text(errorInfo) 
         }
+        
         .task {
-            closeDuplicatedWindow()
-            checkLastLaunchError()
-            checkTeamId()
-            checkBundleId()
-            checkGetTaskAllow()
-            checkPrivateContainerBookmark()
-            
+            await performInitialChecks()
         }
         .onReceive(pub) { out in
-            if let scene1 = sceneDelegate.window?.windowScene, 
-               let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
-                if shouldToggleMainWindowOpen { 
-                    DataManager.shared.model.mainWindowOpened = false 
-                }
-            }
+            handleSceneDisconnect(out)
         }
         .onOpenURL { url in 
             dispatchURL(url: url) 
         }
-    }
-
-    var customToolbar: some View {
-        HStack(spacing: 30) {
-            if DataManager.shared.model.multiLCStatus != 2 {
-                tabItem(title: "lc.tabView.sources".loc, icon: "books.vertical", id: .sources)
-            }
-            tabItem(title: "lc.tabView.apps".loc, icon: "square.stack.3d.up.fill", id: .apps)
-            if DataManager.shared.model.multiLCStatus != 2 {
-                tabItem(title: "lc.tabView.tweaks".loc, icon: "wrench.and.screwdriver", id: .tweaks)
-            }
-            tabItem(title: "lc.tabView.settings".loc, icon: "gearshape.fill", id: .settings)
-            tabItem(title: "Manager", icon: "internaldrive", id: .cache)
-        }
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity)
-        .background(Color(UIColor.systemBackground).shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1))
-    }
-
-    func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
-        Button(action: { sharedModel.selectedTab = id }) {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                Text(title)
-                    .font(.caption2)
-            }
-            .foregroundColor(sharedModel.selectedTab == id ? .blue : .gray)
-        }
+        
     }
 
     
+    var ios26StyleToolbar: some View {
+        VStack(spacing: 0) {
+            Divider().opacity(0.3) 
+            
+            HStack(spacing: 0) {
+                
+                Group {
+                    tabItem(title: "Sources", icon: "books.vertical", id: .sources)
+                    tabItem(title: "Apps", icon: "square.stack.3d.up.fill", id: .apps)
+                    tabItem(title: "Tweaks", icon: "wrench.and.screwdriver", id: .tweaks)
+                }
+                
+                
+                Spacer(minLength: 20)
+                
+           
+                Group {
+                    tabItem(title: "Explore", icon: "safari.fill", id: .explore) // 新增的功能
+                    tabItem(title: "Settings", icon: "gearshape.fill", id: .settings)
+                    tabItem(title: "Manager", icon: "internaldrive", id: .cache)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.top, 12)
+            
+            .padding(.bottom, UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 15)
+        }
+        .background(.ultraThinMaterial)
+        .shadow(color: Color.black.opacity(0.05), radius: 10, y: -2)
+    }
+
+
+    func tabItem(title: String, icon: String, id: LCTabIdentifier) -> some View {
+        Button(action: { 
+            UIImpactFeedbackGenerator(style: .light).impactOccurred() // 加入觸覺回饋
+            sharedModel.selectedTab = id 
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .regular))
+                    .frame(height: 26)
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .frame(maxWidth: .infinity) // 讓每個 Item 自動均分空間
+            .foregroundColor(sharedModel.selectedTab == id ? .accentColor : .secondary)
+        }
+    }
+}
+
+
+enum LCTabIdentifier {
+    case sources, apps, tweaks, explore, settings, cache
+}
+
+extension LCTabView {
 
     func dispatchURL(url: URL) {
         repeat {

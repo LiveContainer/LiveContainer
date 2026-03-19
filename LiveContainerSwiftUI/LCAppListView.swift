@@ -270,40 +270,51 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
 
 
-var groupedApps: [String: [LCAppModel]] {
-        var result: [String: [LCAppModel]] = [:]
-        let allApps = filteredApps
-        var assignedBundleIds = Set<String>()
+var groupedApps: [(key: String, value: [LCAppModel])] {
+    var groups: [(key: String, value: [LCAppModel])] = []
+    let allApps = filteredApps
+    let pinnedIds = sharedAppSortManager.pinnedBundleIds
+    
 
+    let favoriteApps = allApps.filter { app in
+        pinnedIds.contains(app.appInfo.bundleIdentifier() ?? "")
+    }
+    if !favoriteApps.isEmpty {
         
-        let sortedGroupNames = sharedAppSortManager.customGroups.keys.sorted()
-        for groupName in sortedGroupNames {
-    if let bundleIds = sharedAppSortManager.customGroups[groupName] {
-        let appsInThisGroup = allApps.filter { app in
-            bundleIds.contains(app.appInfo.bundleIdentifier() ?? "")
-        }
-        
-        
-        result[groupName] = appsInThisGroup 
-        
-        if !appsInThisGroup.isEmpty {
-            
-            assignedBundleIds.formUnion(appsInThisGroup.compactMap { $0.appInfo.bundleIdentifier() })
+        groups.append((key: "Favorites", value: favoriteApps))
+    }
+
+    
+    let remainingApps = allApps.filter { app in
+        !pinnedIds.contains(app.appInfo.bundleIdentifier() ?? "")
+    }
+    
+    var assignedIds = Set<String>()
+    let sortedGroupNames = sharedAppSortManager.customGroups.keys.sorted()
+    
+    for groupName in sortedGroupNames {
+        if let bundleIds = sharedAppSortManager.customGroups[groupName] {
+            let appsInThisGroup = remainingApps.filter { app in
+                bundleIds.contains(app.appInfo.bundleIdentifier() ?? "")
+            }
+            if !appsInThisGroup.isEmpty {
+                groups.append((key: groupName, value: appsInThisGroup))
+                assignedIds.formUnion(appsInThisGroup.compactMap { $0.appInfo.bundleIdentifier() })
+            }
         }
     }
+
+    
+    let otherApps = remainingApps.filter { app in
+        guard let bid = app.appInfo.bundleIdentifier() else { return true }
+        return !assignedIds.contains(bid)
+    }
+    if !otherApps.isEmpty {
+        groups.append((key: "Other", value: otherApps))
+    }
+
+    return groups
 }
-
-
-
-
-        
-        let otherApps = allApps.filter { !assignedBundleIds.contains($0.appInfo.bundleIdentifier() ?? "") }
-        if !otherApps.isEmpty {
-            result["Other"] = otherApps
-        }
-
-        return result
-    }
 
     var currentModeIcon: String {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {

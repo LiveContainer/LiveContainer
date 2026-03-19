@@ -205,8 +205,8 @@ struct LCGroupEditView: View {
     var body: some View {
         NavigationView {
             List {
-              
                 Section(header: Text("Group List")) {
+                   
                     ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
                         HStack {
                             Image(systemName: "folder").foregroundColor(.accentColor)
@@ -224,7 +224,6 @@ struct LCGroupEditView: View {
                     }
                 }
 
-              
                 Section(header: Text("Select App (\(selectedApps.count))")) {
                     TextField("Search App...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
@@ -233,6 +232,7 @@ struct LCGroupEditView: View {
                     ForEach(filteredApps, id: \.self) { app in
                         let bid = app.appInfo.bundleIdentifier() ?? ""
                         let currentGroup = findCurrentGroup(for: bid)
+                        let isPinned = sortManager.pinnedBundleIds.contains(bid) // 判斷是否已是最愛
                         
                         HStack {
                             Image(systemName: selectedApps.contains(bid) ? "checkmark.circle.fill" : "circle")
@@ -247,7 +247,14 @@ struct LCGroupEditView: View {
                             }
                             
                             VStack(alignment: .leading) {
-                                Text(app.appInfo.displayName()).font(.body)
+                                HStack {
+                                    Text(app.appInfo.displayName()).font(.body)
+                                    if isPinned {
+                                        Image(systemName: "star.fill")
+                                            .font(.caption2)
+                                            .foregroundColor(.yellow)
+                                    }
+                                }
                                 if let group = currentGroup {
                                     Text(group).font(.caption2).foregroundColor(.blue)
                                 }
@@ -262,52 +269,44 @@ struct LCGroupEditView: View {
             .navigationTitle("Manage Group")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-             
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
                 
-              
+               
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 15) {
-                       
-                        Button {
-                            showAddGroupAlert = true
-                        } label: {
-                            Image(systemName: "folder.badge.plus")
-                        }
-                        
-                      
-                        if !selectedApps.isEmpty {
-                            Menu {
-                                Button(action: {
-                                    withAnimation {
-                                        for bid in selectedApps {
-                                            sortManager.pinnedBundleIds.insert(bid)
-                                        }
-                                        selectedApps.removeAll()
-                                    }
-                                }) {
-                                    Label("Add to Favorites", systemImage: "star.fill")
-                                }
+                    Button {
+                        showAddGroupAlert = true
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                    }
+                }
 
-                                Divider()
-
-                                Section("Move To Group") {
-                                    ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
-                                        Button(name) { moveToGroup(name) }
-                                    }
-                                }
-                                
-                                Button(role: .destructive) {
-                                    moveToGroup(nil) 
-                                } label: {
-                                    Label("Remove From Group", systemImage: "minus.circle")
-                                }
-                            } label: {
-                                Image(systemName: "ellipsis.circle.fill")
-                                    .font(.system(size: 17, weight: .semibold))
+                if !selectedApps.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Menu {
+                            
+                            Button(action: togglePinStatus) {
+                                let allSelectedArePinned = selectedApps.allSatisfy { sortManager.pinnedBundleIds.contains($0) }
+                                Label(allSelectedArePinned ? "Remove from Favorites" : "Add to Favorites", 
+                                      systemImage: allSelectedArePinned ? "star.slash" : "star.fill")
                             }
+
+                            Divider()
+
+                            Section("Move To Group") {
+                                ForEach(sortManager.customGroups.keys.sorted(), id: \.self) { name in
+                                    Button(name) { moveToGroup(name) }
+                                }
+                            }
+                            
+                            Button(role: .destructive) {
+                                moveToGroup(nil) 
+                            } label: {
+                                Label("Remove From Group", systemImage: "minus.circle")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle.fill")
                         }
                     }
                 }
@@ -332,7 +331,26 @@ struct LCGroupEditView: View {
         }
     }
 
+  
     
+    private func togglePinStatus() {
+        withAnimation {
+           
+            let shouldRemove = selectedApps.allSatisfy { sortManager.pinnedBundleIds.contains($0) }
+            
+            for bid in selectedApps {
+                if shouldRemove {
+                    sortManager.pinnedBundleIds.remove(bid)
+                } else {
+                    sortManager.pinnedBundleIds.insert(bid)
+                }
+            }
+            
+            sortManager.objectWillChange.send() 
+            selectedApps.removeAll()
+        }
+    }
+
     private var filteredApps: [LCAppModel] {
         if searchText.isEmpty {
             return sharedModel.apps
@@ -352,6 +370,7 @@ struct LCGroupEditView: View {
     private func moveToGroup(_ groupName: String?) {
         withAnimation {
             sortManager.moveApps(selectedApps, to: groupName)
+            sortManager.objectWillChange.send()
             selectedApps.removeAll() 
         }
     }

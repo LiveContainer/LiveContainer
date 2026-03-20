@@ -50,7 +50,7 @@ struct LiquidGlassBackground: View {
     private var fillColor: Color {
         switch appearance {
         case .clear:  return .white.opacity(0.08)
-        case .tinted: return Color(red: 0.12, green: 0.12, blue: 0.25).opacity(0.55)
+        case .tinted: return Color(red: 0.12, green: 0.12, blue: 0.25).opacity(0.05)
         }
     }
     private var saturation: Double { appearance == .clear ? 1.8 : 1.4 }
@@ -71,7 +71,7 @@ struct LiquidGlassBackground: View {
             // 3. Top specular highlight
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.30), .white.opacity(0)],
+                    colors: [.white.opacity(0.05), .white.opacity(0)],
                     startPoint: .top,
                     endPoint: .init(x: 0.5, y: 0.45)
                 )
@@ -80,7 +80,7 @@ struct LiquidGlassBackground: View {
             // 4. Diagonal shimmer
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.18), .clear, .white.opacity(0.04)],
+                    colors: [.white.opacity(0.10), .clear, .white.opacity(0.04)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

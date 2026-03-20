@@ -71,7 +71,7 @@ struct LiquidGlassBackground: View {
             
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.005), .white.opacity(0)],
+                    colors: [.white.opacity(0.0005), .white.opacity(0)],
                     startPoint: .top,
                     endPoint: .init(x: 0.5, y: 0.45)
                 )
@@ -80,7 +80,7 @@ struct LiquidGlassBackground: View {
             
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.01), .clear, .white.opacity(0.005)],
+                    colors: [.white.opacity(0.001), .clear, .white.opacity(0.0005)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -196,7 +196,7 @@ struct LCTabView: View {
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                }.frame(maxWidth:150)
+                }.frame(maxWidth:160)
                 }
                 Spacer()
                 LiquidGlass{
@@ -204,7 +204,7 @@ struct LCTabView: View {
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
-                }.frame(maxWidth:150)
+                }.frame(maxWidth:160)
                 }
             }
             .padding(10)

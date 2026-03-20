@@ -93,7 +93,7 @@ struct LCCacheManagementView: View {
                 .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity)
-                .padding(.top, 10)
+                .padding(.top, 8)
             
             
             Color.clear

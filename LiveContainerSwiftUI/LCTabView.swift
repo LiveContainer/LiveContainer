@@ -38,6 +38,69 @@ struct LiquidGlass<Content: View>: View {
     
     
 }
+enum LiquidGlassAppearance {
+    case clear   // 透明
+    case tinted  // 不同色調
+}
+struct LiquidGlassBackground: View {
+    var appearance: LiquidGlassAppearance
+    var cornerRadius: CGFloat
+    
+    
+    private var fillColor: Color {
+        switch appearance {
+        case .clear:  return .white.opacity(0.08)
+        case .tinted: return Color(red: 0.12, green: 0.12, blue: 0.25).opacity(0.55)
+        }
+    }
+    private var saturation: Double { appearance == .clear ? 1.8 : 1.4 }
+    private var brightness: Double { appearance == .clear ? 0.0 : -0.08 }
+    private var strokeOpacity: Double { appearance == .clear ? 0.28 : 0.18 }
+    
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        ZStack {
+            // 1. System blur material
+            shape.fill(.ultraThinMaterial)
+                .saturation(saturation)
+                .brightness(brightness)
+            
+            // 2. Tint fill
+            shape.fill(fillColor)
+            
+            // 3. Top specular highlight
+            shape.fill(
+                LinearGradient(
+                    colors: [.white.opacity(0.30), .white.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .init(x: 0.5, y: 0.45)
+                )
+            )
+            
+            // 4. Diagonal shimmer
+            shape.fill(
+                LinearGradient(
+                    colors: [.white.opacity(0.18), .clear, .white.opacity(0.04)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            
+            // 5. Border
+            shape.strokeBorder(
+                LinearGradient(
+                    colors: [.white.opacity(strokeOpacity), .white.opacity(strokeOpacity * 0.4)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                lineWidth: 0.8
+            )
+        }
+        .shadow(color: .black.opacity(0.35), radius: 18, x: 0, y: 8)
+    }
+    
+    
+}
 enum LCTabID: Hashable {
     case sources
     case apps

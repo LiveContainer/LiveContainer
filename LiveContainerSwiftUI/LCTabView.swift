@@ -62,7 +62,7 @@ struct LiquidGlassBackground: View {
         ZStack {
             
             shape.fill(.ultraThinMaterial)
-                .opacity(0.05)
+                .opacity(0.5)
                 .saturation(saturation)
                 .brightness(brightness)
                 .blendMode(.plusLighter)

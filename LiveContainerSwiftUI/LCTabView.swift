@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 
-struct GlassCard: View {
+struct GlassCard <Content: View>: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 20)
             .fill(.ultraThinMaterial)

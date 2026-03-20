@@ -119,25 +119,25 @@ var launchModeSelector: some View {
         } label: {
             HStack {
                 Text("LiveContainer Mode")
-                if isNativeMode { 
+                if isNative { 
                     Image(systemName: "checkmark") 
                 }
             }
         }
 
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        //if UIDevice.current.userInterfaceIdiom == .pad {
             Button {
                 setMode(.realIPhone)
             } label: {
                 HStack {
                     Text("Real iPhone Mode (9:16)")
                     
-                    if !isNativeMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
+                    if !isNative && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
                         Image(systemName: "checkmark")
                     }
                 }
             }
-        }
+        //}
     } label: {
         
         Image(systemName: "bolt.circle")

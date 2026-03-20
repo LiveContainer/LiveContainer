@@ -544,7 +544,7 @@ struct LCSourcesView: View {
             
             
             
-            Color.clear.frame(height: 100) 
+            Color.clear.frame(height: 60) 
         }
                         }
                         .padding(.vertical)

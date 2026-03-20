@@ -103,7 +103,7 @@ struct LCCacheManagementView: View {
                 .listRowBackground(Color.clear) 
         }
                     }
-                
+                 .listRowBackground(Color.clear) 
                 }
                 .navigationTitle("App Manager")
                 .navigationViewStyle(.stack)

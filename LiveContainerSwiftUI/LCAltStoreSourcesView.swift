@@ -535,6 +535,16 @@ struct LCSourcesView: View {
                                 .frame(minHeight: 160, alignment: .center)
                                 .padding(.horizontal)
                             }
+                            VStack(spacing: 8) {
+            Text("\(viewModel.sources.count) Sources") 
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .padding(.top, 8)
+            
+            
+            
+            Color.clear.frame(height: 100) 
+        }
                         }
                         .padding(.vertical)
                     }

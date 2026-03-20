@@ -98,7 +98,7 @@ struct LCCacheManagementView: View {
             
             
             Color.clear
-                .frame(height: 80)
+                .frame(height: 100)
                 
         
                 }

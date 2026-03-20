@@ -9,6 +9,10 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum AppLaunchMode: Int {
+    case native = 0
+    case realIPhone = 1
+}
 class SearchContext: ObservableObject {
     @Published var query: String = ""
     @Published var debouncedQuery: String = ""
@@ -37,6 +41,9 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+    //⭐️⭐️⭐️Switch mode
+    @AppStorage("LCNativeFullscreen") var isNativeFullscreen = true
+    @AppStorage("LCRealiPhoneMode") var isiPhone = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
@@ -87,6 +94,83 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
+ //⭐️⭐️⭐️Switch mode
+   var currentLaunchMode: AppLaunchMode {
+    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
+        return .native
+    }
+    if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
+        return .realIPhone
+    }
+    
+    return .native 
+}
+
+
+
+
+
+ //⭐️⭐️⭐️Switch mode
+var launchModeSelector: some View {
+    Menu {
+        Button {
+            setMode(.native)
+        } label: {
+            HStack {
+                Text("LiveContainer Mode")
+                if isNativeMode { 
+                    Image(systemName: "checkmark") 
+                }
+            }
+        }
+
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            Button {
+                setMode(.realIPhone)
+            } label: {
+                HStack {
+                    Text("Real iPhone Mode (9:16)")
+                    
+                    if !isNativeMode && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+        }
+    } label: {
+        
+        Image(systemName: "bolt.circle")
+            .foregroundColor(
+                isNativeMode ? .green : (LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ? .purple : .blue)
+            )
+    }
+}
+
+
+
+
+
+
+
+ //⭐️⭐️⭐️Switch mode
+func setMode(_ mode: AppLaunchMode) {
+    withAnimation(.easeInOut(duration: 0.2)) {
+        switch mode {
+        case .native:
+            isNativeMode = true 
+            LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
+            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+        case .realIPhone:
+            isNativeMode = false
+            LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
+            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
+        }
+    }
+    
+    sharedModel.objectWillChange.send()
+}
+
+    
     var sortedApps: [LCAppModel] {
         return sharedAppSortManager.sortedApps
     }
@@ -264,6 +348,10 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     
 
                 }
+               //⭐️⭐️⭐️switch mode 
+                ToolbarItem(placement: .topBarLeading) {
+                  launchModeSelector
+               }
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
@@ -984,7 +1072,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
-    func launchAppWithBundleId(bundleId : String, container : String?, forceJIT: Bool? = nil) async {
+   func launchAppWithBundleId(bundleId : String, container : String?, forceJIT: Bool? = nil) async {
         if bundleId == "" {
             return
         }
@@ -1026,19 +1114,31 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorShow = true
             return
         }
+        
+        let targetDataUUID = container ?? appFound.appInfo.dataUUID ?? ""
 
-        do {            
-            if #available(iOS 16.0, *), launchInMultitaskMode {
-                try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-            } else {
-                try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
-            }
+   
+        //⭐️⭐️⭐️switch mode
+    if launchInMultitaskMode {
+        do {
+            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+        }
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
+          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") { 
+
+        
+        do {
+            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
         }
         
     }
+}
     
     func authenticateUser() async {
         do {

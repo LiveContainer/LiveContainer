@@ -173,7 +173,7 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 80) 
+            
             .id(selectedTab)
             
         

@@ -265,11 +265,35 @@ struct LCDataManagementView : View {
             return
         }
 
-        let failures = LCUtils.removeAllAppKeychain()
-        if !failures.isEmpty {
-            let uniqueCodes = Array(Set(failures.map { Int($0) })).sorted()
-            errorInfo = "Keychain cleanup reported errors: \(uniqueCodes.map(String.init).joined(separator: ", "))"
-            errorShow = true
+        var allFolderNames = Set<String>()
+
+        // Collect from apps
+        for app in sharedModel.apps {
+            for container in app.appInfo.containers {
+                allFolderNames.insert(container.folderName)
+            }
+        }
+
+        // Collect from hidden apps
+        for app in sharedModel.hiddenApps {
+            for container in app.appInfo.containers {
+                allFolderNames.insert(container.folderName)
+            }
+        }
+
+        // Also include filesystem folders (important!)
+        let fm = FileManager.default
+        let paths = [LCPath.dataPath, LCPath.lcGroupDataPath]
+
+        for path in paths where fm.fileExists(atPath: path.path) {
+            if let folders = try? fm.contentsOfDirectory(atPath: path.path) {
+                allFolderNames.formUnion(folders)
+             }
+        }
+
+        // Remove keychain entries
+        for folderName in allFolderNames {
+            LCUtils.removeAppKeychain(dataUUID: folderName)
         }
     }
     

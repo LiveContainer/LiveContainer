@@ -59,7 +59,7 @@ static void UIKitGuestHooksInit() {
                 break;
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
-//            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
+            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
             swizzle(UIViewController.class, @selector(shouldAutorotateToInterfaceOrientation:), @selector(hook_shouldAutorotateToInterfaceOrientation:));
@@ -746,10 +746,10 @@ BOOL canAppOpenItself(NSURL* url) {
 ) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
-        CGFloat targetW = screenH * (9.0 / 16.0); 
+        CGFloat targetW = MIN(screenW, screenH * (9.0 / 16.0));
         return CGRectMake(0, 0, targetW, screenH);
     }
-    //return [self hook_UIScreen_bounds];  
+     
     CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
         CGFloat targetW = nativeBounds.size.width; 
@@ -777,9 +777,7 @@ BOOL canAppOpenItself(NSURL* url) {
     CGRect realBounds = scene.coordinateSpace.bounds;
     CGFloat realH = realBounds.size.height;
     CGFloat realW = realBounds.size.width;
-    //CGFloat targetW = realH * (9.0 / 16.0);
-    //CGFloat offsetX = (realW - targetW) / 2.0;
-    //CGFloat targetW, offsetX;
+  
     
 BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
 CGFloat targetW, offsetX;
@@ -833,7 +831,7 @@ if (isReal) {
             return;
         }
         
-        CGFloat targetW = realH * (9.0 / 16.0);
+        targetW = MIN(realW, realH * (9.0 / 16.0));
         CGFloat offsetX = (realW - targetW) / 2.0;
         
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];

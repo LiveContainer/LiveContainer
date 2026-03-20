@@ -60,6 +60,7 @@ struct LCCacheManagementView: View {
     var body: some View {
         ZStack {
             NavigationView {
+                VStack{
                 List {
                     Section {
                         let total = cacheItems.reduce(0) { $0 + $1.size }
@@ -99,7 +100,7 @@ struct LCCacheManagementView: View {
             
             Color.clear
                 .frame(height: 60)
-                
+                    }
         
                 }
                 .navigationTitle("App Manager")

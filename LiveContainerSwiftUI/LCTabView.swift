@@ -61,18 +61,19 @@ struct LiquidGlassBackground: View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         ZStack {
             
-            shape.fill(.ultraThinMaterial)
-                .opacity(0.1)
-                .saturation(saturation)
-                .brightness(brightness)
+            //shape.fill(.ultraThinMaterial)
+                
+                //.saturation(saturation)
+                //.brightness(brightness)
             
             
             shape.fill(fillColor)
-            
+            .saturation(saturation)
+            .brightness(brightness)
             
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.05), .white.opacity(0)],
+                    colors: [.white.opacity(0.1), .white.opacity(0)],
                     startPoint: .top,
                     endPoint: .init(x: 0.5, y: 0.45)
                 )
@@ -81,13 +82,19 @@ struct LiquidGlassBackground: View {
             
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.1), .clear, .white.opacity(0.05)],
+                    colors: [.white.opacity(0.2), .clear, .white.opacity(0.1)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
             
-            
+            shape.fill(
+                LinearGradient(
+                    colors: [.white.opacity(0.3), .clear, .white.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             shape.strokeBorder(
                 LinearGradient(
                     colors: [.white.opacity(strokeOpacity), .white.opacity(strokeOpacity * 0.4)],

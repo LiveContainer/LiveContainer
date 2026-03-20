@@ -61,7 +61,8 @@ struct LiquidGlassBackground: View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         ZStack {
             
-            shape.fill(.ultraThinMaterial(opacity:0.1))
+            shape.fill(.ultraThinMaterial)
+                .opacity(0.1)
                 .saturation(saturation)
                 .brightness(brightness)
             

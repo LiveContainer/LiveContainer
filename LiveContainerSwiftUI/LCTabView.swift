@@ -9,26 +9,34 @@ import SwiftUI
 import Foundation
 
 
-struct GlassCard <Content: View>: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(.ultraThinMaterial)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.05),
-                                Color.white.opacity(0.01)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            )
-            .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
+struct LiquidGlass<Content: View>: View {
+    var appearance: LiquidGlassAppearance
+    var cornerRadius: CGFloat
+    var padding: EdgeInsets
+    @ViewBuilder var content: Content
+    
+    init(
+        appearance: LiquidGlassAppearance = .clear,
+        cornerRadius: CGFloat = 999,
+        padding: EdgeInsets = .init(top: 14, leading: 22, bottom: 14, trailing: 22),
+        @ViewBuilder content: () -> Content
+    ) {
+        self.appearance = appearance
+        self.cornerRadius = cornerRadius
+        self.padding = padding
+        self.content = content()
     }
+    
+    var body: some View {
+        content
+            .padding(padding)
+            .background {
+                LiquidGlassBackground(appearance: appearance, cornerRadius: cornerRadius)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+    
+    
 }
 enum LCTabID: Hashable {
     case sources
@@ -119,7 +127,7 @@ struct LCTabView: View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
-                GlassCard{
+                LiquidGlass{
                 HStack{
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
@@ -127,7 +135,7 @@ struct LCTabView: View {
                 }
                 }
                 Spacer(minLength: 20)
-                GlassCard{
+                LiquidGlass{
                 HStack{
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)

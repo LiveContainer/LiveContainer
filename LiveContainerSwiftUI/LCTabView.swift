@@ -196,7 +196,7 @@ struct LCTabView: View {
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                }.frame(maxWidth:180)
+                }.frame(maxWidth:150)
                 }
                 Spacer()
                 LiquidGlass{
@@ -204,7 +204,7 @@ struct LCTabView: View {
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
-                }.frame(maxWidth:180)
+                }.frame(maxWidth:150)
                 }
             }
             .padding(10)

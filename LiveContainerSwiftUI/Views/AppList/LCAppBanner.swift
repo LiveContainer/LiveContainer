@@ -236,102 +236,7 @@ struct LCAppBanner : View {
             onCompletion: { result in
             
         })
-        .contextMenu{
-            if model.uiContainers.count > 1 {
-                Picker(selection: $model.uiSelectedContainer , label: Text("Containers")) {
-                    ForEach(model.uiContainers, id:\.self) { container in
-                        Text(container.name).tag(container)
-                    }
-                }
-            }
-
-            
-            Section(appInfo.relativeBundlePath) {
-                if #available(iOS 16.0, *){
-                    
-                } else {
-                    Text(appInfo.relativeBundlePath)
-                }
-                if !model.uiIsShared {
-                    if model.uiSelectedContainer != nil {
-                        Button {
-                            openDataFolder()
-                        } label: {
-                            Label("lc.appBanner.openDataFolder".loc, systemImage: "folder")
-                        }
-                    }
-                }
-                if #available(iOS 16.0, *) {
-                    Button {
-                        if launchInMultitaskMode {
-                            Task{ await runApp(multitask: false) }
-                        } else {
-                            Task{ await runApp(multitask: true) }
-                        }
-                        
-                    } label: {
-                        if launchInMultitaskMode {
-                            Label("lc.appBanner.run".loc, systemImage: "play.fill")
-                        } else {
-                            Label("lc.appBanner.multitask".loc, systemImage: "macwindow.badge.plus")
-                        }
-                        
-                    }
-                }
-                Menu {
-                    Button {
-                        copyLaunchUrl()
-                    } label: {
-                        Label("lc.appBanner.copyLaunchUrl".loc, systemImage: "link")
-                    }
-                    Button {
-                        Task { await saveIcon() }
-                    } label: {
-                        Label("lc.appBanner.saveAppIcon".loc, systemImage: "square.and.arrow.down")
-                    }
-                    Button {
-                        Task { await openSafariViewToCreateAppClip() }
-                    } label: {
-                        Label("lc.appBanner.createAppClip".loc, systemImage: "appclip")
-                    }
-
-                } label: {
-                    Label("lc.appBanner.addToHomeScreen".loc, systemImage: "plus.app")
-                }
-
-                Menu {
-                    Button {
-                        Task { await exportIPA(includeData: false) }
-                    } label: {
-                        Label("Export IPA (App Only)", systemImage: "square.and.arrow.up")
-                    }
-
-                    Button {
-                        Task { await exportIPA(includeData: true) }
-                    } label: {
-                        Label("Export IPA + Data", systemImage: "square.and.arrow.up.on.square")
-                    }
-                } label: {
-                    Label("Export as IPA", systemImage: "archivebox")
-                }
-                
-                Button {
-                    openSettings()
-                } label: {
-                    Label("lc.tabView.settings".loc, systemImage: "gear")
-                }
-
-                
-                if !model.uiIsShared {
-                    Button(role: .destructive) {
-                         Task{ await uninstall() }
-                    } label: {
-                        Label("lc.appBanner.uninstall".loc, systemImage: "trash")
-                    }
-                }
-            }
-        }
-        
+        .betterContextMenu(menuProvider: makeContextMenu)
         .alert("lc.appBanner.confirmUninstallTitle".loc, isPresented: $appRemovalAlert.show) {
             Button(role: .destructive) {
                 appRemovalAlert.close(result: true)
@@ -445,6 +350,84 @@ struct LCAppBanner : View {
             .foregroundColor(.white)
             .frame(width: 16, height:16)
             .background(Capsule().fill(Color(color)))
+    }
+
+    func makeContextMenu() -> UIMenu {
+        var menuChildren: [UIMenuElement] = []
+
+        // 1. Containers Picker (Equivalent to a Menu with single selection)
+        if model.uiContainers.count > 1 {
+            let containerActions = model.uiContainers.map { container in
+                UIAction(title: container.name,
+                         state: container == model.uiSelectedContainer ? .on : .off) { _ in
+                    model.uiSelectedContainer = container
+                }
+            }
+            let containerMenu = UIMenu(title: "Containers", options: .displayInline, children: containerActions)
+            menuChildren.append(containerMenu)
+        }
+
+        // 2. Main Section
+        var sectionChildren: [UIMenuElement] = []
+
+        // Open Data Folder
+        if !model.uiIsShared, model.uiSelectedContainer != nil {
+            let openFolder = UIAction(title: "lc.appBanner.openDataFolder".loc,
+                                      image: UIImage(systemName: "folder")) { _ in
+                openDataFolder()
+            }
+            sectionChildren.append(openFolder)
+        }
+
+        // Multitask Toggle
+        if #available(iOS 16.0, *) {
+            let runTitle = launchInMultitaskMode ? "lc.appBanner.run".loc : "lc.appBanner.multitask".loc
+            let runImage = launchInMultitaskMode ? "play.fill" : "macwindow.badge.plus"
+
+            let multitaskAction = UIAction(title: runTitle, image: UIImage(systemName: runImage)) { _ in
+                Task { await runApp(multitask: !launchInMultitaskMode) }
+            }
+            sectionChildren.append(multitaskAction)
+        }
+
+        // Submenu: Add to Home Screen
+        let subMenuActions = [
+            UIAction(title: "lc.appBanner.copyLaunchUrl".loc, image: UIImage(systemName: "link")) { _ in
+                copyLaunchUrl()
+            },
+            UIAction(title: "lc.appBanner.saveAppIcon".loc, image: UIImage(systemName: "square.and.arrow.down")) { _ in
+                Task { await saveIcon() }
+            },
+            UIAction(title: "lc.appBanner.createAppClip".loc, image: UIImage(systemName: "appclip")) { _ in
+                Task { await openSafariViewToCreateAppClip() }
+            }
+        ]
+        let addToHomeMenu = UIMenu(title: "lc.appBanner.addToHomeScreen".loc,
+                                   image: UIImage(systemName: "plus.app"),
+                                   children: subMenuActions)
+        sectionChildren.append(addToHomeMenu)
+
+        // Settings
+        let settingsAction = UIAction(title: "lc.tabView.settings".loc, image: UIImage(systemName: "gear")) { _ in
+            openSettings()
+        }
+        sectionChildren.append(settingsAction)
+
+        // Destructive Uninstall
+        if !model.uiIsShared {
+            let uninstallAction = UIAction(title: "lc.appBanner.uninstall".loc,
+                                           image: UIImage(systemName: "trash"),
+                                           attributes: .destructive) { _ in
+                Task { await uninstall() }
+            }
+            sectionChildren.append(uninstallAction)
+        }
+
+        // Wrap the section in an inline menu to mimic SwiftUI Section behavior
+        let mainSection = UIMenu(title: appInfo.relativeBundlePath, options: .displayInline, children: sectionChildren)
+        menuChildren.append(mainSection)
+
+        return UIMenu(title: "", children: menuChildren)
     }
 
     // MARK: - Functions

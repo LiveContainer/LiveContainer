@@ -8,9 +8,8 @@
 #define LiveContainerSwiftUI_Bridging_Header_h_h
 #include "LCAppInfo.h"
 #include "../LiveContainer/LCSharedUtils.h"
-#include "LCUtils.h"
-#include "unarchive.h"
-#include <CoreLocation/CoreLocation.h>
+#include "Utilities/LCUtils.h"
+#include "Utilities/unarchive.h"
 #include "../MultitaskSupport/AppSceneViewController.h"
 #include "../MultitaskSupport/DecoratedAppSceneViewController.h"
 #include "../MultitaskSupport/LCStatusBarManager.h"
@@ -19,5 +18,6 @@
 #include "../LiveContainer/FoundationPrivate.h"
 #include "../LiveContainer/Tweaks/CoreLocation+GuestHooks.h"
 #include "../LiveContainer/Tweaks/AVFoundation+GuestHooks.h"
+#include <CoreLocation/CoreLocation.h>
 
 #endif /* LiveContainerSwiftUI_Bridging_Header_h_h */

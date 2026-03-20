@@ -26,7 +26,7 @@ struct LCCustomSortView: View {
                                 Image(uiImage: app.appInfo.iconIsDarkIcon(darkModeIcon))
                                     .resizable()
                                     .frame(width: 60, height: 60)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
                                 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(app.appInfo.displayName())

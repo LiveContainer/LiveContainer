@@ -7,6 +7,111 @@
 
 import SwiftUI
 import Foundation
+
+import SwiftUI
+
+import SwiftUI
+
+struct GlassCard<Content: View>: View {
+    var cornerRadius: CGFloat = 28
+    var content: () -> Content
+    
+    @State private var glow: CGPoint = CGPoint(x: 0.5, y: 0.3)
+    @State private var tilt: CGSize = .zero
+    
+    var body: some View {
+        GeometryReader { geo in
+            let size = geo.size
+            
+            ZStack {
+                // 🔹 底層模糊（深度）
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(.ultraThinMaterial)
+                
+                // 🔹 第二層：淡色霧（空氣感）
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(Color.white.opacity(0.05))
+                
+                // 🔹 動態高光（跟手指）
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.white.opacity(0.7),
+                                Color.white.opacity(0.2),
+                                Color.clear
+                            ],
+                            center: UnitPoint(x: glow.x, y: glow.y),
+                            startRadius: 20,
+                            endRadius: 250
+                        )
+                    )
+                    .blendMode(.screen)
+                
+                // 🔹 邊緣光（關鍵！）
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.6),
+                                Color.white.opacity(0.05),
+                                Color.white.opacity(0.3)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+                
+                // 🔹 上層柔光（讓它「活」起來）
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.5),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+                    .blendMode(.overlay)
+                
+                // 🔹 內容
+                content()
+                    .padding(20)
+            }
+            .shadow(color: Color.black.opacity(0.25), radius: 25, x: 0, y: 20)
+            .rotation3DEffect(
+                .degrees(Double(tilt.height / 10)),
+                axis: (x: -1, y: 0, z: 0)
+            )
+            .rotation3DEffect(
+                .degrees(Double(tilt.width / 10)),
+                axis: (x: 0, y: 1, z: 0)
+            )
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let x = value.location.x / size.width
+                        let y = value.location.y / size.height
+                        glow = CGPoint(x: x, y: y)
+                        
+                        tilt = CGSize(
+                            width: (x - 0.5) * 20,
+                            height: (y - 0.5) * 20
+                        )
+                    }
+                    .onEnded { _ in
+                        withAnimation(.spring()) {
+                            tilt = .zero
+                        }
+                    }
+            )
+        }
+        .frame(height: 200)
+    }
+}
 enum LCTabID: Hashable {
     case sources
     case apps
@@ -96,23 +201,21 @@ struct LCTabView: View {
         VStack(spacing: 0) {
             Divider().opacity(0.1)
             HStack(spacing: 0) {
+                GlassCard{
                 HStack{
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                }.padding()
-                     .background(.ultraThinMaterial) // 磨砂玻璃
-            .cornerRadius(50) // 圓角
-            .opacity(0.1) 
+                }
+                }
                 Spacer(minLength: 20)
+                GlassCard{
                 HStack{
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
-                }.padding()
-                     .background(.ultraThinMaterial) // 磨砂玻璃
-            .cornerRadius(50) // 圓角
-            .opacity(0.1) 
+                }
+                }
             }
             .padding(10)
               .background(

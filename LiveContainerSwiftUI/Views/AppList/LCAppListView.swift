@@ -42,7 +42,7 @@ struct AppReplaceOption : Hashable {
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     //⭐️⭐️⭐️Switch mode
-    @AppStorage("LCNativeFullscreen") var isNativeFullscreen = true
+    @AppStorage("LCNativeFullscreen") var isNativeMode = true
     @AppStorage("LCRealiPhoneMode") var isiPhone = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
@@ -94,6 +94,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
+    //⭐️⭐️⭐️Switch mode
+   var isNativeMode: Bool {
+       return UserDefaults.standard.bool(forKey: "LCNativeFullscreen")
+   }
+   var isiPhone: Bool {
+       return LCUtils.appGroupUserDefault.bool(forKey: "LCRealiPhoneMode")
+   }
  //⭐️⭐️⭐️Switch mode
    var currentLaunchMode: AppLaunchMode {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
@@ -157,18 +164,24 @@ func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {
         switch mode {
         case .native:
-            isNativeMode = true 
+        
+            isNativeFullscreen = true
+            isiPhone = false
+            
             LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
-            UserDefaults.standard.set(false, forKey: "LCIsIPhoneMode")
+            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
         case .realIPhone:
-            isNativeMode = false
+            
+            isNativeFullscreen = false
+            isiPhone = true
+            
             LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
-            UserDefaults.standard.set(true, forKey: "LCIsIPhoneMode")
+            UserDefaults.standard.set(false, forKey: "LCNativeFullscreen")
         }
     }
-    
     sharedModel.objectWillChange.send()
 }
+
 
     
     var sortedApps: [LCAppModel] {

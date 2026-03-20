@@ -88,6 +88,18 @@ struct LCCacheManagementView: View {
                             }
                         }
                     }
+                    VStack(spacing: 8) {
+            Text("\(cacheItems.count) Apps")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 10)
+            
+            
+            Color.clear
+                .frame(height: 80)
+                
+        }
                 }
                 .navigationTitle("App Manager")
                 .navigationViewStyle(.stack)

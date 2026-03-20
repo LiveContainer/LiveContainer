@@ -94,13 +94,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State private var isViewAppeared = false
     
     @ObservedObject var searchContext = SearchContext()
-    //⭐️⭐️⭐️Switch mode
-   var isNativeMode: Bool {
-       return UserDefaults.standard.bool(forKey: "LCNativeFullscreen")
-   }
-   var isiPhone: Bool {
-       return LCUtils.appGroupUserDefault.bool(forKey: "LCRealiPhoneMode")
-   }
+
  //⭐️⭐️⭐️Switch mode
    var currentLaunchMode: AppLaunchMode {
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {

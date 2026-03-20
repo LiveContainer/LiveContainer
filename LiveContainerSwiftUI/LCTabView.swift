@@ -8,149 +8,26 @@
 import SwiftUI
 import Foundation
 
-import SwiftUI
 
-struct GlassContainer<Content: View>: View {
-    var cornerRadius: CGFloat = 28
-    var content: () -> Content
-    
-    @State private var glow = CGPoint(x: 0.5, y: 0.3)
-    @State private var tilt: CGSize = .zero
-    
+struct GlassCard: View {
     var body: some View {
-        GeometryReader { geo in
-            let size = geo.size
-            
-            ZStack {
-                // 背景玻璃
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.ultraThinMaterial)
-                
-                // 空氣層
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color.white.opacity(0.05))
-                
-                // 動態光
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.white.opacity(0.7),
-                                Color.white.opacity(0.2),
-                                Color.clear
-                            ],
-                            center: UnitPoint(x: glow.x, y: glow.y),
-                            startRadius: 20,
-                            endRadius: 250
-                        )
-                    )
-                    .blendMode(.screen)
-                
-                // 邊緣光
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .strokeBorder(
+        RoundedRectangle(cornerRadius: 20)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.6),
-                                Color.white.opacity(0.05),
-                                Color.white.opacity(0.3)
+                                Color.white.opacity(0.5),
+                                Color.white.opacity(0.1)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
                         lineWidth: 1
                     )
-                
-                // 柔光
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.5),
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-                    .blendMode(.overlay)
-                
-                content()
-                    .padding(20)
-            }
-            .shadow(color: Color.black.opacity(0.25), radius: 25, x: 0, y: 20)
-            .rotation3DEffect(.degrees(Double(tilt.height / 10)), axis: (x: -1, y: 0, z: 0))
-            .rotation3DEffect(.degrees(Double(tilt.width / 10)), axis: (x: 0, y: 1, z: 0))
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let x = value.location.x / size.width
-                        let y = value.location.y / size.height
-                        glow = CGPoint(x: x, y: y)
-                        tilt = CGSize(width: (x - 0.5) * 20, height: (y - 0.5) * 20)
-                    }
-                    .onEnded { _ in
-                        withAnimation(.spring()) {
-                            tilt = .zero
-                        }
-                    }
             )
-        }
-    }
-}
-
-struct GlassCard<Content: View>: View {
-    var content: () -> Content
-    
-    var body: some View {
-        GlassContainer {
-            content()
-        }
-        .frame(height: 180)
-    }
-}
-struct GlassButton: View {
-    var title: String
-    var action: () -> Void
-    
-    @State private var pressed = false
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .fontWeight(.semibold)
-                .padding()
-                .frame(maxWidth: .infinity)
-        }
-        .background(
-            GlassContainer {
-                EmptyView()
-            }
-        )
-        .scaleEffect(pressed ? 0.96 : 1)
-        .animation(.spring(response: 0.3), value: pressed)
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false }
-        )
-    }
-}
-struct GlassNavBar: View {
-    var title: String
-    
-    var body: some View {
-        GlassContainer {
-            HStack {
-                Image(systemName: "chevron.left")
-                Spacer()
-                Text(title)
-                    .font(.headline)
-                Spacer()
-                Image(systemName: "ellipsis")
-            }
-        }
-        .frame(height: 70)
+            .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
     }
 }
 enum LCTabID: Hashable {

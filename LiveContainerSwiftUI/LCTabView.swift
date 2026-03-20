@@ -139,7 +139,7 @@ struct LCTabView: View {
               .background(Color(.clear))
         }
         .background(Color(.clear))
-        )
+        
         .zIndex(999) 
     }
 

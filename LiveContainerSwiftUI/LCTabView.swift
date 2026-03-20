@@ -39,8 +39,8 @@ struct LiquidGlass<Content: View>: View {
     
 }
 enum LiquidGlassAppearance {
-    case clear   // 透明
-    case tinted  // 不同色調
+    case clear   
+    case tinted  
 }
 struct LiquidGlassBackground: View {
     var appearance: LiquidGlassAppearance
@@ -60,15 +60,15 @@ struct LiquidGlassBackground: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         ZStack {
-            // 1. System blur material
+            
             shape.fill(.ultraThinMaterial)
                 .saturation(saturation)
                 .brightness(brightness)
             
-            // 2. Tint fill
+            
             shape.fill(fillColor)
             
-            // 3. Top specular highlight
+            
             shape.fill(
                 LinearGradient(
                     colors: [.white.opacity(0.005), .white.opacity(0)],
@@ -77,7 +77,7 @@ struct LiquidGlassBackground: View {
                 )
             )
             
-            // 4. Diagonal shimmer
+            
             shape.fill(
                 LinearGradient(
                     colors: [.white.opacity(0.01), .clear, .white.opacity(0.005)],
@@ -86,7 +86,7 @@ struct LiquidGlassBackground: View {
                 )
             )
             
-            // 5. Border
+            
             shape.strokeBorder(
                 LinearGradient(
                     colors: [.white.opacity(strokeOpacity), .white.opacity(strokeOpacity * 0.4)],
@@ -110,7 +110,7 @@ enum LCTabID: Hashable {
     case search
     case explore
 }
-// --- 修正 1: 補齊 LCTabIdentifier 的屬性擴充 ---
+
 extension LCTabID {
     var title: String {
         switch self {
@@ -140,10 +140,10 @@ struct LCTabView: View {
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
-    // 🟢 核心切換：純本地 State，不受外部干擾
+    
     @State private var selectedTab: LCTabID = .apps
     
-    // 修正 2: 重新宣告 sharedModel 供 extension 使用，但不綁定分頁切換
+    
     @ObservedObject var sharedModel = DataManager.shared.model
     
     @State var errorShow = false
@@ -152,10 +152,10 @@ struct LCTabView: View {
     @EnvironmentObject var sceneDelegate: SceneDelegate
 
        var body: some View {
-        // 使用底層 ZStack 確保工具欄永遠在最上層
+        
         ZStack(alignment: .bottom) {
             
-            // 🔴 1. 內容區域
+            
             Group {
                 switch selectedTab {
                 case .sources:
@@ -173,14 +173,14 @@ struct LCTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 80) // 🔴 重要：預留底部工具欄高度，防止內容擋住點擊
+            .padding(.bottom, 80) 
             .id(selectedTab)
             
-            // 🔴 2. 工具欄：放在 ZStack 最下方，確保層級最高
+        
             customBottomBar
             .background(.clear)
         }
-        .ignoresSafeArea(.keyboard) // 避免鍵盤彈出影響
+        .ignoresSafeArea(.keyboard) 
         .background(Color(UIColor.systemBackground))
         .task {
             await performInitialChecks()
@@ -208,9 +208,9 @@ struct LCTabView: View {
                 }
             }
             .padding(10)
-              .background(Color(.clear))
+              .background(.clear)
         }
-        .background(Color(.clear))
+        .background(.clear)
         
         .zIndex(999) 
     }
@@ -221,35 +221,35 @@ struct LCTabView: View {
         private func tabButton(tab: LCTabID) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            print("Button tapped: \(tab)") // 加入這行在 Console 檢查
+            print("Button tapped: \(tab)") 
             self.selectedTab = tab
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
                     .font(.system(size: 16, weight: selectedTab == tab ? .semibold : .regular))
-                    .frame(height: 20) // 固定高度防止抖動
+                    .frame(height: 20)
                 Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 4)
-            // 🔴 關鍵：確保透明區域也能點擊
+            
             .contentShape(Rectangle()) 
             .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))
         }
-        .buttonStyle(.plain) // 🔴 確保不會被系統 ButtonStyle 干擾
+        .buttonStyle(.plain) 
     }
 }
-// MARK: - 邏輯擴展
 
 
 
 
-// MARK: - 邏輯檢查擴展
+
+
 extension LCTabView {
     
     
-    // 解決 Immutable 賦值報錯的輔助方法
+    
     private func triggerError(message: String) {
         self.errorInfo = message
         self.errorShow = true
@@ -261,7 +261,7 @@ extension LCTabView {
 }
 
 
-// MARK: - 邏輯擴展
+
 
 extension LCTabView {
     func performInitialChecks() async {

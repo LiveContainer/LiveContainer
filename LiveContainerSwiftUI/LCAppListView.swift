@@ -707,6 +707,8 @@ func setMode(_ mode: AppLaunchMode) {
             footerSection
         }
          .listRowBackground(Color.clear) 
+               .scrollContentBackground(.hidden)
+
         .listStyle(.insetGrouped)
         .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
         .navigationTitle("lc.appList.myApps".loc)

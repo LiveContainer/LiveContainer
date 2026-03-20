@@ -18,7 +18,7 @@ struct LiquidGlass<Content: View>: View {
     init(
         appearance: LiquidGlassAppearance = .clear,
         cornerRadius: CGFloat = 999,
-        padding: EdgeInsets = .init(top: 14, leading: 22, bottom: 14, trailing: 22),
+        padding: EdgeInsets = .init(top: 5, leading: 5, bottom: 5, trailing: 5),
         @ViewBuilder content: () -> Content
     ) {
         self.appearance = appearance
@@ -49,7 +49,7 @@ struct LiquidGlassBackground: View {
     
     private var fillColor: Color {
         switch appearance {
-        case .clear:  return .white.opacity(0.08)
+        case .clear:  return .white.opacity(0.01)
         case .tinted: return Color(red: 0.12, green: 0.12, blue: 0.25).opacity(0.05)
         }
     }
@@ -71,7 +71,7 @@ struct LiquidGlassBackground: View {
             // 3. Top specular highlight
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.05), .white.opacity(0)],
+                    colors: [.white.opacity(0.005), .white.opacity(0)],
                     startPoint: .top,
                     endPoint: .init(x: 0.5, y: 0.45)
                 )
@@ -80,7 +80,7 @@ struct LiquidGlassBackground: View {
             // 4. Diagonal shimmer
             shape.fill(
                 LinearGradient(
-                    colors: [.white.opacity(0.10), .clear, .white.opacity(0.04)],
+                    colors: [.white.opacity(0.01), .clear, .white.opacity(0.005)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -225,13 +225,13 @@ struct LCTabView: View {
         } label: {
             VStack(spacing: 4) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 21, weight: selectedTab == tab ? .semibold : .regular))
-                    .frame(height: 26) // 固定高度防止抖動
+                    .font(.system(size: 16, weight: selectedTab == tab ? .semibold : .regular))
+                    .frame(height: 20) // 固定高度防止抖動
                 Text(tab.title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
             // 🔴 關鍵：確保透明區域也能點擊
             .contentShape(Rectangle()) 
             .foregroundColor(selectedTab == tab ? .accentColor : .primary.opacity(0.45))

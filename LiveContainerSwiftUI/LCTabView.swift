@@ -136,13 +136,9 @@ struct LCTabView: View {
                 }
             }
             .padding(10)
-              .background(
-            // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
-            Color(.clear)
+              .background(Color(.clear))
         }
-        .background(
-            // 使用背景色而不是透明，確保點擊不會穿透到底下的內容
-            Color(.clear)
+        .background(Color(.clear))
         )
         .zIndex(999) 
     }

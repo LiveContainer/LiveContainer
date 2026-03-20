@@ -178,6 +178,7 @@ struct LCTabView: View {
             
             // 🔴 2. 工具欄：放在 ZStack 最下方，確保層級最高
             customBottomBar
+            .background(.clear)
         }
         .ignoresSafeArea(.keyboard) // 避免鍵盤彈出影響
         .background(Color(UIColor.systemBackground))
@@ -197,7 +198,7 @@ struct LCTabView: View {
                 tabButton(tab: .tweaks)
                 }
                 }
-                Spacer(minLength: 20)
+                Spacer()
                 LiquidGlass{
                 HStack{
                 tabButton(tab: .explore)

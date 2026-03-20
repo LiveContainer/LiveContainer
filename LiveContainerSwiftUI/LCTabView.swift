@@ -10,13 +10,11 @@ import Foundation
 
 import SwiftUI
 
-import SwiftUI
-
-struct GlassCard<Content: View>: View {
+struct GlassContainer<Content: View>: View {
     var cornerRadius: CGFloat = 28
     var content: () -> Content
     
-    @State private var glow: CGPoint = CGPoint(x: 0.5, y: 0.3)
+    @State private var glow = CGPoint(x: 0.5, y: 0.3)
     @State private var tilt: CGSize = .zero
     
     var body: some View {
@@ -24,15 +22,15 @@ struct GlassCard<Content: View>: View {
             let size = geo.size
             
             ZStack {
-                // 🔹 底層模糊（深度）
+                // 背景玻璃
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.ultraThinMaterial)
                 
-                // 🔹 第二層：淡色霧（空氣感）
+                // 空氣層
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(Color.white.opacity(0.05))
                 
-                // 🔹 動態高光（跟手指）
+                // 動態光
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(
                         RadialGradient(
@@ -48,7 +46,7 @@ struct GlassCard<Content: View>: View {
                     )
                     .blendMode(.screen)
                 
-                // 🔹 邊緣光（關鍵！）
+                // 邊緣光
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .strokeBorder(
                         LinearGradient(
@@ -63,7 +61,7 @@ struct GlassCard<Content: View>: View {
                         lineWidth: 1
                     )
                 
-                // 🔹 上層柔光（讓它「活」起來）
+                // 柔光
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(
                         LinearGradient(
@@ -77,30 +75,19 @@ struct GlassCard<Content: View>: View {
                     )
                     .blendMode(.overlay)
                 
-                // 🔹 內容
                 content()
                     .padding(20)
             }
             .shadow(color: Color.black.opacity(0.25), radius: 25, x: 0, y: 20)
-            .rotation3DEffect(
-                .degrees(Double(tilt.height / 10)),
-                axis: (x: -1, y: 0, z: 0)
-            )
-            .rotation3DEffect(
-                .degrees(Double(tilt.width / 10)),
-                axis: (x: 0, y: 1, z: 0)
-            )
+            .rotation3DEffect(.degrees(Double(tilt.height / 10)), axis: (x: -1, y: 0, z: 0))
+            .rotation3DEffect(.degrees(Double(tilt.width / 10)), axis: (x: 0, y: 1, z: 0))
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
                         let x = value.location.x / size.width
                         let y = value.location.y / size.height
                         glow = CGPoint(x: x, y: y)
-                        
-                        tilt = CGSize(
-                            width: (x - 0.5) * 20,
-                            height: (y - 0.5) * 20
-                        )
+                        tilt = CGSize(width: (x - 0.5) * 20, height: (y - 0.5) * 20)
                     }
                     .onEnded { _ in
                         withAnimation(.spring()) {
@@ -109,7 +96,61 @@ struct GlassCard<Content: View>: View {
                     }
             )
         }
-        .frame(height: 200)
+    }
+}
+
+struct GlassCard<Content: View>: View {
+    var content: () -> Content
+    
+    var body: some View {
+        GlassContainer {
+            content()
+        }
+        .frame(height: 180)
+    }
+}
+struct GlassButton: View {
+    var title: String
+    var action: () -> Void
+    
+    @State private var pressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .fontWeight(.semibold)
+                .padding()
+                .frame(maxWidth: .infinity)
+        }
+        .background(
+            GlassContainer {
+                EmptyView()
+            }
+        )
+        .scaleEffect(pressed ? 0.96 : 1)
+        .animation(.spring(response: 0.3), value: pressed)
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in pressed = true }
+                .onEnded { _ in pressed = false }
+        )
+    }
+}
+struct GlassNavBar: View {
+    var title: String
+    
+    var body: some View {
+        GlassContainer {
+            HStack {
+                Image(systemName: "chevron.left")
+                Spacer()
+                Text(title)
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "ellipsis")
+            }
+        }
+        .frame(height: 70)
     }
 }
 enum LCTabID: Hashable {

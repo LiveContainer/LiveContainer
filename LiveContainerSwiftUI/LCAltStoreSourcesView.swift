@@ -539,6 +539,7 @@ struct LCSourcesView: View {
             Text("\(viewModel.sources.count) Sources") 
                 .font(.footnote)
                 .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity)
                 .padding(.top, 8)
             
             

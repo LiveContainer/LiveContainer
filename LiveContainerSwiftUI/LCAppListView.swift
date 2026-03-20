@@ -704,7 +704,7 @@ func setMode(_ mode: AppLaunchMode) {
             searchSection
             appGroupsList
             hiddenAppsSection
-            
+            footerSection
         }
         .listStyle(.insetGrouped)
         .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
@@ -714,7 +714,7 @@ func setMode(_ mode: AppLaunchMode) {
             sharedModel.isJITModalOpen = newValue
         
         }
-               footerSection
+               
            }   
         .navigationViewStyle(.stack)
         .onAppear() {

@@ -104,6 +104,8 @@ struct LCCacheManagementView: View {
         }
                     }
                  .listRowBackground(Color.clear) 
+                    .scrollContentBackground(.hidden)
+
                 }
                 .navigationTitle("App Manager")
                 .navigationViewStyle(.stack)

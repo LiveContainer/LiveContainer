@@ -482,13 +482,22 @@ var appGroupsList: some View {
     
     @ViewBuilder
     var footerSection: some View {
-        Section {
+        
+        VStack(spacing: 8) {
             let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
             Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
                 .font(.footnote).foregroundColor(.gray).frame(maxWidth: .infinity, alignment: .center)
                 .onTapGesture(count: 3) { Task { await authenticateUser() } }
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 10)
+            
+           
+            Color.clear
+                .frame(height: 60)
+                .listRowBackground(Color.clear) 
         }
-        .listRowBackground(Color.clear)
     }
 
 

@@ -699,11 +699,12 @@ func setMode(_ mode: AppLaunchMode) {
     
     var body: some View {
        NavigationView {
+           VStack{
         List {
             searchSection
             appGroupsList
             hiddenAppsSection
-            footerSection
+            
         }
         .listStyle(.insetGrouped)
         .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
@@ -711,7 +712,10 @@ func setMode(_ mode: AppLaunchMode) {
       .apply { allModifiers(content: $0) }   
         .onChange(of: jitAlert.show) { newValue in
             sharedModel.isJITModalOpen = newValue
+        
         }
+               footerSection
+           }   
         .navigationViewStyle(.stack)
         .onAppear() {
             if !isViewAppeared {

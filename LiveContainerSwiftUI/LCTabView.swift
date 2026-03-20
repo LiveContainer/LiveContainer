@@ -189,14 +189,14 @@ struct LCTabView: View {
 
     private var customBottomBar: some View {
         VStack(spacing: 0) {
-            Divider().opacity(0.1)
+            
             HStack(spacing: 0) {
                 LiquidGlass{
                 HStack{
                 tabButton(tab: .sources)
                 tabButton(tab: .apps)
                 tabButton(tab: .tweaks)
-                }
+                }.frame(maxWidth:180)
                 }
                 Spacer()
                 LiquidGlass{
@@ -204,7 +204,7 @@ struct LCTabView: View {
                 tabButton(tab: .explore)
                 tabButton(tab: .settings)
                 tabButton(tab: .cache)
-                }
+                }.frame(maxWidth:180)
                 }
             }
             .padding(10)

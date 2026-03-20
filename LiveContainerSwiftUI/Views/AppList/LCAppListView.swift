@@ -42,7 +42,7 @@ struct AppReplaceOption : Hashable {
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     //⭐️⭐️⭐️Switch mode
-    @AppStorage("LCNativeFullscreen") var isNativeMode = true
+    @AppStorage("LCNativeFullscreen") var isNative = true
     @AppStorage("LCRealiPhoneMode") var isiPhone = false
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
@@ -142,7 +142,7 @@ var launchModeSelector: some View {
         
         Image(systemName: "bolt.circle")
             .foregroundColor(
-                isNativeMode ? .green : (LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ? .purple : .blue)
+                isNative ? .green : (LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ? .purple : .blue)
             )
     }
 }
@@ -159,14 +159,14 @@ func setMode(_ mode: AppLaunchMode) {
         switch mode {
         case .native:
         
-            isNativeFullscreen = true
+            isNative = true
             isiPhone = false
             
             LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
             UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
         case .realIPhone:
             
-            isNativeFullscreen = false
+            isNative = false
             isiPhone = true
             
             LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")

@@ -90,7 +90,7 @@ struct LCCacheManagementView: View {
                     }
                     VStack(spacing: 8) {
             Text("\(cacheItems.count) Apps")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(.footnote)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)

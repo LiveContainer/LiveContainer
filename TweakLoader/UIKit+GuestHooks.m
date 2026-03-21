@@ -832,7 +832,7 @@ if (isReal) {
             return;
         }
         
-        targetW = MIN(realW, realH * (9.0 / 16.0));
+        CGFloat targetW = MIN(realW, realH * (9.0 / 16.0));
         CGFloat offsetX = (realW - targetW) / 2.0;
         
         [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];

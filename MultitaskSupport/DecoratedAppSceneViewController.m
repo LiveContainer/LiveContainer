@@ -492,10 +492,8 @@ void UIKitFixesInit(void) {
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)resizeWindow:(UIPanGestureRecognizer*)sender {
     if(_isMaximized) return;
-    
     CGPoint point = [sender translationInView:self.view];
     [sender setTranslation:CGPointZero inView:self.view];
-
     CGRect frame = self.view.frame;
     frame.size.width = MAX(50, frame.size.width + point.x);
     frame.size.height = MAX(50, frame.size.height + point.y);
@@ -507,12 +505,13 @@ void UIKitFixesInit(void) {
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-        vc.appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
-        vc.appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
     }
     [self.appSceneVC updateFrameWithSettingsBlock:nil];
 }
+
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [super touchesBegan:touches withEvent:event];

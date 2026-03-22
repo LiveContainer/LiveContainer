@@ -383,7 +383,7 @@ void UIKitFixesInit(void) {
         }
     });
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)appSceneVC:(AppSceneViewController*)vc didUpdateFromSettings:(UIMutableApplicationSceneSettings *)baseSettings transitionContext:(id)newContext {
     UIMutableApplicationSceneSettings *newSettings = [vc.presenter.scene.settings mutableCopy];
     newSettings.userInterfaceStyle = baseSettings.userInterfaceStyle;
@@ -396,7 +396,14 @@ void UIKitFixesInit(void) {
     } else {
         [self updateWindowedFrameWithSettings:newSettings];
     }
-    CGRect newFrame = CGRectMake(0, 0, self.view.frame.size.width/self.scaleRatio, (self.view.frame.size.height - self.navigationBar.frame.size.height)/self.scaleRatio);
+    CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+    CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+    BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
+    if (isRealIPhoneMode) {
+        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+        viewW = targetW;
+    }
+    CGRect newFrame = CGRectMake(0, 0, viewW, viewH);
     
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);

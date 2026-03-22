@@ -223,7 +223,7 @@
         self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
          self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
-        }
+        
     }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;

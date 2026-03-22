@@ -183,7 +183,7 @@
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-    self.contentView.autoresizingMask = UIViewAutoresizingNone; 
+
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
     CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
@@ -229,7 +229,7 @@
         CGFloat viewH = self.view.bounds.size.height;
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-        self.contentView.autoresizingMask = UIViewAutoresizingNone;  
+    
         self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else if (self.presenter.presentationView) {
         self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;  // ✅ 讓 autoresize 自動撐滿
@@ -250,10 +250,8 @@
         }
         CGFloat w = self.view.frame.size.width / self.scaleRatio;
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-           w = MIN(h * (9.0 / 16.0), w);
-        }
-        CGRect frame = CGRectMake(0, 0, w, h); 
+        // ✅ settings.frame 永遠用完整視窗大小，9:16 只影響 contentView 的顯示位置
+        CGRect frame = CGRectMake(0, 0, w, h);
 
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;
@@ -270,6 +268,7 @@
         }];
     });
 }
+
 
 - (BOOL)isAppRunning {
     return _pid > 0 && getpgid(_pid) > 0;

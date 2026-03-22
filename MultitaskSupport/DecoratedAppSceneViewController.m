@@ -398,19 +398,22 @@ void UIKitFixesInit(void) {
     }
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
-    CGRect newFrame;
     BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
-    CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-    CGFloat offsetX = (viewW - targetW) / 2.0;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+        CGFloat offsetX = (viewW - targetW) / 2.0;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            _appSceneVC.contentView.layer.position = CGPointMake(offsetX, 0);
+            _appSceneVC.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
         });
-     }
-
-     newFrame = CGRectMake(0, 0, viewW, viewH);
-
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            _appSceneVC.contentView.layer.position = CGPointMake(0, 0);
+            _appSceneVC.contentView.bounds = CGRectMake(0, 0, viewW, viewH);
+        });
+    }
     
+    CGRect newFrame = CGRectMake(0, 0, viewW, viewH);
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);
     } else {
@@ -419,6 +422,7 @@ void UIKitFixesInit(void) {
     
     [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
 }
+
 
 - (void)adjustNavigationBarButtonSpacingWithNegativeSpacing:(CGFloat)spacing rightMargin:(CGFloat)margin {
     if (!self.navigationBar) return;
@@ -502,12 +506,15 @@ void UIKitFixesInit(void) {
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-        _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        _appSceneVC.contentView.layer.position = CGPointMake(offsetX, 0);
+        _appSceneVC.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
     } else {
-        //_appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        _appSceneVC.contentView.layer.position = CGPointMake(0, 0);
+        _appSceneVC.contentView.bounds = CGRectMake(0, 0, viewW, viewH);
     }
     [self.appSceneVC updateFrameWithSettingsBlock:nil];
 }
+
 
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {

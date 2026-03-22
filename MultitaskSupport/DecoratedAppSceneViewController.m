@@ -480,7 +480,7 @@ void UIKitFixesInit(void) {
     self.view.center = CGPointMake(self.view.center.x + point.x, self.view.center.y + point.y);
     [self updateOriginalFrame];
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)resizeWindow:(UIPanGestureRecognizer*)sender {
     if(_isMaximized) return;
     
@@ -492,6 +492,7 @@ void UIKitFixesInit(void) {
     frame.size.height = MAX(50, frame.size.height + point.y);
     self.view.frame = frame;
     [self updateOriginalFrame];
+    [self.appSceneVC updateFrameWithSettingsBlock:nil];
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {

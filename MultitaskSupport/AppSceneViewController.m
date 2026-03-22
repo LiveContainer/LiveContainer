@@ -187,14 +187,14 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
 
 
 
-if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-    CGFloat viewW = self.view.bounds.size.width;
-    CGFloat viewH = self.view.bounds.size.height;
-    CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-    CGFloat offsetX = (viewW - targetW) / 2.0;
-    self.contentView.layer.position = CGPointMake(offsetX, 0);
-    self.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
-}
+//if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+    //CGFloat viewW = self.view.bounds.size.width;
+    //CGFloat viewH = self.view.bounds.size.height;
+    //CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+    //CGFloat offsetX = (viewW - targetW) / 2.0;
+    //self.contentView.layer.position = CGPointMake(offsetX, 0);
+    //self.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
+//}
 
 
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];

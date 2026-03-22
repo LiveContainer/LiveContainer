@@ -257,8 +257,14 @@ if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         }
         CGFloat w = self.view.frame.size.width / self.scaleRatio;
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
-        // ✅ settings.frame 永遠用完整視窗大小，9:16 只影響 contentView 的顯示位置
-        CGRect frame = CGRectMake(0, 0, w, h);
+        CGFloat frameOriginX = 0; 
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+          CGFloat targetW = MIN(h * (9.0 / 16.0), w);
+          frameOriginX = (w - targetW) / 2.0;
+          w = targetW;
+        }
+       CGRect frame = CGRectMake(frameOriginX, 0, w, h);
+
 
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;

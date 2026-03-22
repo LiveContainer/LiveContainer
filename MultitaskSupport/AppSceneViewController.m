@@ -220,9 +220,10 @@
         CGFloat viewH = self.view.bounds.size.height;
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-        self.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
-    } else if (self.presenter.presentationView) {
-        self.presenter.presentationView.frame = self.view.bounds;  
+        self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+    } else {
+         self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        }
     }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;

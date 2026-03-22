@@ -215,19 +215,22 @@
 }
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"] && self.presenter.presentationView) {
-        CGFloat viewW = self.view.bounds.size.width;
-        CGFloat viewH = self.view.bounds.size.height;
-        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-        CGFloat offsetX = (viewW - targetW) / 2.0;
-        self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
-    } else {
-         self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
-        
+    [super viewWillLayoutSubviews];
+    CGFloat viewW = self.view.bounds.size.width;
+    CGFloat viewH = self.view.bounds.size.height;
+    if (self.presenter.presentationView) {
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+            CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+            CGFloat offsetX = (viewW - targetW) / 2.0;
+            self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        } else {
+            self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        }
     }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
+
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
     __block int currentDebounceToken = self.resizeDebounceToken + 1;

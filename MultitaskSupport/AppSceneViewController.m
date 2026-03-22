@@ -229,12 +229,13 @@
         }
         CGFloat w = self.view.frame.size.width / self.scaleRatio;
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-            w = MIN(h * (9.0 / 16.0), w);
-            offsetX = (w - targetW) / 2.0;
-            w = targetW;
-        }
-        CGRect frame = CGRectMake(offsetX, self.view.frame.origin.y, w, h);
+        CGFloat originX = self.view.frame.origin.x;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+         CGFloat targetW = MIN(h * (9.0 / 16.0), w);
+         originX += (w - targetW) / 2.0;  
+         w = targetW;
+         }
+         CGRect frame = CGRectMake(originX, self.view.frame.origin.y, w, h);
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;
             settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;

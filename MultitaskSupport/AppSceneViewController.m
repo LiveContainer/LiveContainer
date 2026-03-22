@@ -179,9 +179,13 @@
         [weakSelf appTerminationCleanUp];
     }];
     
-  [self.contentView addSubview:self.presenter.presentationView];
+ [self.contentView addSubview:self.presenter.presentationView];
 self.contentView.layer.anchorPoint = CGPointMake(0, 0);
 self.contentView.layer.position = CGPointMake(0, 0);
+
+self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
+self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
+
 if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
@@ -225,19 +229,20 @@ if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
-    if (self.presenter.presentationView && [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat viewW = self.view.bounds.size.width;
-        CGFloat viewH = self.view.bounds.size.height;
+    if (!self.presenter.presentationView) return;
+    CGFloat viewW = self.view.bounds.size.width;
+    CGFloat viewH = self.view.bounds.size.height;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-    
-        self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
-    } else if (self.presenter.presentationView) {
-        self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;  // ✅ 讓 autoresize 自動撐滿
+        self.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+    } else {
+        self.presenter.presentationView.frame = CGRectMake(0, 0, viewW, viewH);
     }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
+
 
 
 //⭐️⭐️⭐️Real iPhone mode + multitask mode

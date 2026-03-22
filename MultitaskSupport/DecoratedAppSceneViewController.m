@@ -401,9 +401,10 @@ void UIKitFixesInit(void) {
     BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+        offsetX = (viewW - targetW) / 2.0; 
         viewW = targetW;
     }
-    CGRect newFrame = CGRectMake(0, 0, viewW, viewH);
+    CGRect newFrame = CGRectMake(offsetX, 0, viewW, viewH);
     
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);

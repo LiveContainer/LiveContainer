@@ -390,7 +390,6 @@ void UIKitFixesInit(void) {
     newSettings.interfaceOrientation = baseSettings.interfaceOrientation;
     newSettings.deviceOrientation = baseSettings.deviceOrientation;
     newSettings.foreground = YES;
-    
     if(self.isMaximized) {
         [self updateMaximizedFrameWithSettings:newSettings];
     } else {
@@ -399,27 +398,21 @@ void UIKitFixesInit(void) {
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
     BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
-    if (isRealIPhoneMode) {
-        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-        CGFloat offsetX = (viewW - targetW) / 2.0;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            _appSceneVC.contentView.layer.position = CGPointMake(offsetX, 0);
-            _appSceneVC.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
-        });
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            _appSceneVC.contentView.layer.position = CGPointMake(0, 0);
-            _appSceneVC.contentView.bounds = CGRectMake(0, 0, viewW, viewH);
-        });
-    }
-    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (isRealIPhoneMode) {
+            CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+            CGFloat offsetX = (viewW - targetW) / 2.0;
+            _appSceneVC.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        } else {
+            _appSceneVC.presenter.presentationView.frame = CGRectMake(0, 0, viewW, viewH);
+        }
+    });
     CGRect newFrame = CGRectMake(0, 0, viewW, viewH);
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);
     } else {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.width, newFrame.size.height);
     }
-    
     [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
 }
 
@@ -506,11 +499,9 @@ void UIKitFixesInit(void) {
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
-        _appSceneVC.contentView.layer.position = CGPointMake(offsetX, 0);
-        _appSceneVC.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
+        _appSceneVC.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
-        _appSceneVC.contentView.layer.position = CGPointMake(0, 0);
-        _appSceneVC.contentView.bounds = CGRectMake(0, 0, viewW, viewH);
+        _appSceneVC.presenter.presentationView.frame = CGRectMake(0, 0, viewW, viewH);
     }
     [self.appSceneVC updateFrameWithSettingsBlock:nil];
 }

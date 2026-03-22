@@ -230,20 +230,20 @@ if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
-    if (!self.presenter.presentationView) return;
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
-        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-        CGFloat offsetX = (viewW - targetW) / 2.0;
-        self.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
-    } else {
-        self.presenter.presentationView.frame = CGRectMake(0, 0, viewW, viewH);
+    if (self.presenter.presentationView) {
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+            CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+            CGFloat offsetX = (viewW - targetW) / 2.0;
+            self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+        } else {
+            self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        }
     }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
-
 
 
 //⭐️⭐️⭐️Real iPhone mode + multitask mode

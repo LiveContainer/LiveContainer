@@ -398,13 +398,14 @@ void UIKitFixesInit(void) {
     }
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
-    BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
-    if (isRealIPhoneMode) {
+    CGRect newFrame;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-        offsetX = (viewW - targetW) / 2.0; 
-        viewW = targetW;
+        CGFloat offsetX = (viewW - targetW) / 2.0;
+        newFrame = CGRectMake(offsetX, 0, targetW, viewH);
+    } else {
+        newFrame = CGRectMake(0, 0, viewW, viewH); 
     }
-    CGRect newFrame = CGRectMake(offsetX, 0, viewW, viewH);
     
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
         newSettings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);

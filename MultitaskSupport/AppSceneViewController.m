@@ -187,7 +187,7 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
 
 
 
-if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
     CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
@@ -233,7 +233,7 @@ if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
     if (self.presenter.presentationView) {
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
             CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
             CGFloat offsetX = (viewW - targetW) / 2.0;
             self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
@@ -258,7 +258,7 @@ if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
         CGFloat w = self.view.frame.size.width / self.scaleRatio;
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
         CGFloat frameOriginX = 0; 
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
           CGFloat targetW = MIN(h * (9.0 / 16.0), w);
           frameOriginX = (w - targetW) / 2.0;
           w = targetW;

@@ -400,12 +400,12 @@ void UIKitFixesInit(void) {
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
     CGRect newFrame;
-    BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
+    BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
         newFrame = CGRectMake(0, 0, targetW, viewH);
-        // ✅ 直接設定 presentationView 的位置來置中
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             vc.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
         });
@@ -505,7 +505,7 @@ void UIKitFixesInit(void) {
     [self updateOriginalFrame];
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
-    BOOL isRealIPhoneMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"];
+    BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;

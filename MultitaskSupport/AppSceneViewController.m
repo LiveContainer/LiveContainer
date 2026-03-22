@@ -110,7 +110,7 @@
 
     return self;
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)setUpAppPresenter {
     RBSProcessPredicate* predicate = [PrivClass(RBSProcessPredicate) predicateMatchingIdentifier:@(self.pid)];
     
@@ -182,7 +182,13 @@
     [self.contentView addSubview:self.presenter.presentationView];
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
-    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
+    CGFloat viewW = self.view.bounds.size.width;
+    CGFloat viewH = self.view.bounds.size.height;
+    CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+    CGFloat offsetX = (viewW - targetW) / 2.0;
+    self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+}
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
 

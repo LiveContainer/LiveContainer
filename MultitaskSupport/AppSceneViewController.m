@@ -213,8 +213,17 @@
         [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
     }
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"] && self.presenter.presentationView) {
+        CGFloat viewW = self.view.bounds.size.width;
+        CGFloat viewH = self.view.bounds.size.height;
+        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+        CGFloat offsetX = (viewW - targetW) / 2.0;
+        self.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+    } else if (self.presenter.presentationView) {
+        self.presenter.presentationView.frame = self.view.bounds;  
+    }
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }

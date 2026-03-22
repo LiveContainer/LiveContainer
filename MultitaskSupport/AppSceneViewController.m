@@ -218,6 +218,7 @@
     [self updateFrameWithSettingsBlock:self.nextUpdateSettingsBlock];
     self.nextUpdateSettingsBlock = nil;
 }
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
     __block int currentDebounceToken = self.resizeDebounceToken + 1;
     _resizeDebounceToken = currentDebounceToken;
@@ -230,8 +231,10 @@
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
         if ([[NSUserDefaults standardUserDefaults] boolForKey:@"LCRealIPhoneMode"]) {
             w = MIN(h * (9.0 / 16.0), w);
+            offsetX = (w - targetW) / 2.0;
+            w = targetW;
         }
-        CGRect frame = CGRectMake(self.view.frame.origin.x, self.view.frame.origin.y, w, h);
+        CGRect frame = CGRectMake(offsetX, self.view.frame.origin.y, w, h);
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             settings.deviceOrientation = UIDevice.currentDevice.orientation;
             settings.interfaceOrientation = self.view.window.windowScene.interfaceOrientation;

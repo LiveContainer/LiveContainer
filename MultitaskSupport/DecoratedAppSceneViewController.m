@@ -409,9 +409,7 @@ void UIKitFixesInit(void) {
         });
     } else {
         newFrame = CGRectMake(0, 0, viewW, viewH);
-        dispatch_async(dispatch_get_main_queue(), ^{
-            _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
-        });
+        
     }
     
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
@@ -507,7 +505,7 @@ void UIKitFixesInit(void) {
         CGFloat offsetX = (viewW - targetW) / 2.0;
         _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
-        _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+        //_appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
     }
     [self.appSceneVC updateFrameWithSettingsBlock:nil];
 }

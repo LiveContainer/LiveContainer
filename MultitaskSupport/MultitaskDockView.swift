@@ -1271,39 +1271,55 @@ struct ControlMenuContent: View {
     @EnvironmentObject var dockManager: MultitaskDockManager
 
     var body: some View {
-        
-        Button {
-            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
-                vc.maximizeWindow()
-            }
-        } label: {
-            Label("FullScreen", systemImage: "arrow.up.left.and.arrow.down.right")
-        }
+    
+        let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
+        let isHidden = app.view?.isHidden ?? false
 
-        
-        Button {
-            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
-                vc.minimizeWindow()
+        Section {
+            Button {
+                viewController?.maximizeWindow()
+            } label: {
+                Label(viewController?.isMaximized == true ? "Restore" : "FullScreen", 
+                      systemImage: viewController?.isMaximized == true ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
             }
-        } label: {
-            Label("Minimize", systemImage: "rectangle.stack.badge.minus")
+
+            if isHidden {
+                
+                Button {
+                    viewController?.unminimizeWindowPiP()
+                } label: {
+                    Label("Restore Window", systemImage: "pip.enter")
+                }
+            } else {
+                
+                Button {
+                    viewController?.minimizeWindowPiP()
+                } label: {
+                    Label("Minimize to PiP", systemImage: "pip.exit")
+                }
+                
+                
+                Button {
+                    viewController?.minimizeWindow()
+                } label: {
+                    Label("Minimize", systemImage: "rectangle.stack.badge.minus")
+                }
+            }
         }
 
         Divider()
 
-        
-        Button(role: .destructive) {
-            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
-                vc.closeWindow() 
-                dockManager.removeRunningApp(app.appUUID) 
+        Section {
+            Button(role: .destructive) {
+                viewController?.closeWindow()
+                dockManager.removeRunningApp(app.appUUID)
+            } label: {
+                Label("Close", systemImage: "xmark.circle")
             }
-        } label: {
-            Label("Close", systemImage: "xmark.circle")
         }
 
         Divider()
 
-       
         Button(role: .cancel) {
             //back
         } label: {

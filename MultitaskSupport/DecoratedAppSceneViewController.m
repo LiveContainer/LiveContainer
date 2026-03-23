@@ -374,14 +374,19 @@ void UIKitFixesInit(void) {
                 UIPasteboard.generalPasteboard.string = error.localizedDescription;
             }]];
             [self presentViewController:alert animated:YES completion:nil];
-        } else {
+       } else {
             self.pid = vc.pid;
             [self updateOriginalFrame];
-            [vc.view setNeedsLayout];
-            [vc.view layoutIfNeeded];
             if (self.pidAvailableHandler) {
-                self.pidAvailableHandler(@(self.pid), nil);
+            self.pidAvailableHandler(@(self.pid), nil);
             }
+    
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [vc.view setNeedsLayout];
+                [vc.view layoutIfNeeded];
+            });
+        
+
         }
     });
 }
@@ -401,6 +406,10 @@ void UIKitFixesInit(void) {
     
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+    if (viewW <= 0 || viewH <= 0) {
+    [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
+    return;
+    }
     CGRect newFrame;
     BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {

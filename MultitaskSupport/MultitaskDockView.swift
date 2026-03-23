@@ -1271,64 +1271,68 @@ struct ControlMenuContent: View {
     @EnvironmentObject var dockManager: MultitaskDockManager
 
     var body: some View {
-    
-        let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
-        let isHidden = app.view?.isHidden ?? false
-        let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: viewController)
         
-        Section {
-            if isInPiP {
-                
-                Button {
-                    PiPManager.shared.stopPiP()
-                } label: {
-                    Label("Restore from PiP", systemImage: "pip.enter")
-                }
-            } else {
-                
-                Button {
-                    if let appSceneVC = viewController?.appSceneVC {
-                        PiPManager.shared.startPiP(withVC: appSceneVC)
-                    }
-                } label: {
-                    Label("Enter PiP Mode", systemImage: "pip.exit")
-                }
-            }
+        let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
+        let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: viewController)
+        let isMax = viewController?.isMaximized ?? false
 
-                Button {
-                viewController?.maximizeWindow()
-            } label: {
-                let isMax = viewController?.isMaximized ?? false
-                Label(isMax ? "Exit FullScreen" : "FullScreen", 
-                      systemImage: isMax ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+        
+        Group {
+            Section {
+                if isInPiP {
+                    
+                    Button {
+                        PiPManager.shared.stopPiP()
+                    } label: {
+                        Label("Restore from PiP", systemImage: "pip.enter")
+                    }
+                } else {
+                    
+                    Button {
+                        if let appSceneVC = viewController?.appSceneVC {
+                            PiPManager.shared.startPiP(withVC: appSceneVC)
+                        }
+                    } label: {
+                        Label("Enter PiP Mode", systemImage: "pip.exit")
+                    }
                 }
-            }
-                
+
+            
+                Button {
+                    viewController?.maximizeWindow()
+                } label: {
+                    Label(isMax ? "Exit FullScreen" : "FullScreen", 
+                          systemImage: isMax ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                }
+
+               
                 Button {
                     viewController?.minimizeWindow()
                 } label: {
                     Label("Minimize", systemImage: "rectangle.stack.badge.minus")
                 }
             }
-        }
 
-        Divider()
+            Divider()
 
-        Section {
-            Button(role: .destructive) {
-                viewController?.closeWindow()
-                dockManager.removeRunningApp(app.appUUID)
-            } label: {
-                Label("Close", systemImage: "xmark.circle")
+            Section {
+                
+                Button(role: .destructive) {
+                    viewController?.closeWindow()
+                    dockManager.removeRunningApp(app.appUUID)
+                } label: {
+                    Label("Close", systemImage: "xmark.circle")
+                }
             }
-        }
 
-        Divider()
+            Divider()
 
-        Button(role: .cancel) {
-            //back
-        } label: {
-            Label("Back", systemImage: "chevron.backward")
+            
+            Button(role: .cancel) {
+                // back
+            } label: {
+                Label("Back", systemImage: "chevron.backward")
+            }
         }
     }
 }

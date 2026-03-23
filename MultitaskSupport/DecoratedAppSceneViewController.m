@@ -138,7 +138,7 @@ void UIKitFixesInit(void) {
         self.view.frame = frame;
     }
     
-    // Navigation bar
+    // Navigation bar 
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, navBarHeight)];
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@"Unnamed window"];
@@ -154,7 +154,6 @@ void UIKitFixesInit(void) {
     if (!self.navigationBar.superview) {
         [self.view addArrangedSubview:self.navigationBar];
     }
-    
     
     CGRect contentFrame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - navBarHeight);
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
@@ -172,22 +171,24 @@ void UIKitFixesInit(void) {
     [fixedPositionContentView addSubview:self.contentView];
     
 
-    UIView *invisibleMoveZone = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
-    invisibleMoveZone.backgroundColor = [UIColor clearColor];
-    [self.view addSubview:invisibleMoveZone];
-    [self.view bringSubviewToFront:invisibleMoveZone];
+    CGFloat handleSize = 30.0;
+    ResizeHandleView *moveHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(0, 0, handleSize, handleSize)];
+    
+    moveHandle.transform = CGAffineTransformMakeRotation(M_PI); 
+    moveHandle.alpha = _isMaximized ? 0.0 : 1.0;
+    [self.view addSubview:moveHandle];
+    [self.view bringSubviewToFront:moveHandle];
     
     UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
     moveGesture.maximumNumberOfTouches = 1;
-    [invisibleMoveZone addGestureRecognizer:moveGesture];
-    // ------------------------------------------
+    [moveHandle addGestureRecognizer:moveGesture];
+    // ------------------------------------
 
-    
+    // Resize handle
     UIPanGestureRecognizer *resizeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
-    CGFloat handleSize = 30.0;
     self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - handleSize, self.view.frame.size.height - handleSize, handleSize, handleSize)];
     self.resizeHandle.alpha = _isMaximized ? 0.0 : 1.0;
     [self.resizeHandle addGestureRecognizer:resizeGesture];
@@ -200,7 +201,7 @@ void UIKitFixesInit(void) {
     [self.view insertSubview:_appSceneVC.view atIndex:0];
     _appSceneVC.view.translatesAutoresizingMaskIntoConstraints = NO;
     
-    
+  
     [self updateVerticalConstraints];
     [NSLayoutConstraint activateConstraints:@[
         [_appSceneVC.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
@@ -211,6 +212,7 @@ void UIKitFixesInit(void) {
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [self updateOriginalFrame];
 }
+
 
 //⭐️⭐️⭐️
 

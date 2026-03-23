@@ -410,8 +410,11 @@ void UIKitFixesInit(void) {
         [self updateWindowedFrameWithSettings:newSettings];
     }
     
-    CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
-    CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+    CGFloat viewW = _appSceneVC.view.frame.size.width / self.scaleRatio;
+    CGFloat viewH = _appSceneVC.view.frame.size.height / self.scaleRatio;
+
+    //CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+    //CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
     if (viewW <= 0 || viewH <= 0) {
     [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
     return;

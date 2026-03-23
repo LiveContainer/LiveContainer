@@ -8,6 +8,8 @@
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 
+#import "LiveContainerSwiftUI-Swift.h"
+
 @implementation RBSTarget(hook)
 + (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
     if([environmentIdentifier containsString:@"LiveProcess"]) {

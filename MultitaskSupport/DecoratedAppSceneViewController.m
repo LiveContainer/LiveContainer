@@ -118,9 +118,10 @@ void UIKitFixesInit(void) {
 
     return self;
 }
-
+//⭐️⭐️⭐️
 - (void)setupDecoratedView {
-    CGFloat navBarHeight = 44;
+    
+    CGFloat navBarHeight = 0; 
     self.view = [UIStackView new];
     BOOL isLandscape = UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation);
     CGRect frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
@@ -130,7 +131,6 @@ void UIKitFixesInit(void) {
     if(_isMaximized) {
         [self updateMaximizedFrameWithSettings:self.appSceneVC.settings];
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-        // save origin as normalized coordinates
         frame.origin.x /= maxFrame.size.width;
         frame.origin.y /= maxFrame.size.height;
         self.originalFrame = frame;
@@ -155,6 +155,7 @@ void UIKitFixesInit(void) {
         [self.view addArrangedSubview:self.navigationBar];
     }
     
+    
     CGRect contentFrame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - navBarHeight);
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -170,16 +171,24 @@ void UIKitFixesInit(void) {
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [fixedPositionContentView addSubview:self.contentView];
     
+
+    UIView *invisibleMoveZone = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+    invisibleMoveZone.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:invisibleMoveZone];
+    [self.view bringSubviewToFront:invisibleMoveZone];
+    
     UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
     moveGesture.maximumNumberOfTouches = 1;
-    [self.navigationBar addGestureRecognizer:moveGesture];
+    [invisibleMoveZone addGestureRecognizer:moveGesture];
+    // ------------------------------------------
 
-    // Resize handle (idea stolen from Notes debugging window)
+    
     UIPanGestureRecognizer *resizeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
     resizeGesture.minimumNumberOfTouches = 1;
     resizeGesture.maximumNumberOfTouches = 1;
-    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - navBarHeight, self.view.frame.size.height - navBarHeight, navBarHeight, navBarHeight)];
+    CGFloat handleSize = 30.0;
+    self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - handleSize, self.view.frame.size.height - handleSize, handleSize, handleSize)];
     self.resizeHandle.alpha = _isMaximized ? 0.0 : 1.0;
     [self.resizeHandle addGestureRecognizer:resizeGesture];
     [self.view addSubview:self.resizeHandle];
@@ -191,19 +200,19 @@ void UIKitFixesInit(void) {
     [self.view insertSubview:_appSceneVC.view atIndex:0];
     _appSceneVC.view.translatesAutoresizingMaskIntoConstraints = NO;
     
+    
     [self updateVerticalConstraints];
     [NSLayoutConstraint activateConstraints:@[
         [_appSceneVC.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [_appSceneVC.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
     ]];
     
-    
     NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
-
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [self updateOriginalFrame];
 }
 
+//⭐️⭐️⭐️
 
 // Stolen from UIKitester
 - (UIView *)scaleSliderViewWithTitle:(NSString *)title min:(CGFloat)minValue max:(CGFloat)maxValue value:(CGFloat)initialValue stepInterval:(CGFloat)step {

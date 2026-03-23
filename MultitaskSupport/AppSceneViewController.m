@@ -226,22 +226,21 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
         baseSettings.interruptionPolicy = 0;
         baseSettings.peripheryInsets = self.view.window.safeAreaInsets;
         [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
-    } else {
-        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-            CGFloat w = self.view.frame.size.width;
-            CGFloat h = self.view.frame.size.height;
-            if (w > 0 && h > 0) {
-                CGFloat targetW = MIN(h * (9.0 / 16.0), w);
-                baseSettings.frame = CGRectMake(0, 0, targetW, h);
-            }
-            
-            if (actionType == 1) {
-                [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
-                return;
-            }
+   } else {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        CGFloat w = self.view.frame.size.width;
+        CGFloat h = self.view.frame.size.height;
+        if (w > 0 && h > 0) {
+            CGFloat targetW = MIN(h * (9.0 / 16.0), w);
+            baseSettings.frame = CGRectMake(0, 0, targetW, h);
         }
-        [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
+        
+        [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
+        return;
     }
+    [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
+  }
+
 }
 
 

@@ -407,6 +407,7 @@ void UIKitFixesInit(void) {
         newFrame = CGRectMake(0, 0, targetW, viewH);
         
         dispatch_async(dispatch_get_main_queue(), ^{
+            _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
             vc.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
         });
     } else {

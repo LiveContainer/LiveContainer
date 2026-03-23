@@ -381,13 +381,19 @@ void UIKitFixesInit(void) {
             self.pidAvailableHandler(@(self.pid), nil);
             }
     
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [vc.view setNeedsLayout];
-                [vc.view layoutIfNeeded];
-            });
-        
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+                 CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+                 CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+                 CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+                 CGFloat offsetX = (viewW - targetW) / 2.0;
+                 _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
+                 _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+                 [_appSceneVC updateFrameWithSettingsBlock:nil];
+                 }
+          });
+       }
 
-        }
     });
 }
 //⭐️⭐️⭐️Real iPhone mode + multitask mode

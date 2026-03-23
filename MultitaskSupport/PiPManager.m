@@ -92,16 +92,17 @@ static PiPManager* sharedInstance = nil;
 }
 
 
-
+//⭐️⭐️⭐️
 - (void)pictureInPictureControllerDidStartPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    
+        [MultitaskDockManager.shared refreshMenu];
 }
 
 - (void)pictureInPictureControllerWillStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
     [self.displayingDecoratedVC unminimizeWindowPiP];
 }
-
+//⭐️⭐️⭐️
 - (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
+    [MultitaskDockManager.shared refreshMenu];
     [self.displayingVC.view insertSubview:self.displayingVC.contentView atIndex:0];
     self.displayingVC.contentView.transform = CGAffineTransformIdentity;
     [self.displayingVC setBackgroundNotificationEnabled:true];

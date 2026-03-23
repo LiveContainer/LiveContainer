@@ -1280,6 +1280,7 @@ struct ControlMenuContent: View {
 
     var body: some View {
         
+        let _ = dockManager.menuUpdateTrigger 
         let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
         let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: viewController)
         let isMax = viewController?.isMaximized ?? false

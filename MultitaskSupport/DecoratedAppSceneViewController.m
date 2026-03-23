@@ -442,6 +442,7 @@ void UIKitFixesInit(void) {
     } else {
     newFrame = CGRectMake(0, 0, viewW, viewH);
     _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _appSenceVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
     }
 
 

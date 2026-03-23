@@ -316,6 +316,7 @@ void UIKitFixesInit(void) {
 }
 //⭐️⭐️⭐️
 - (void)maximizeWindow {
+    [MultitaskDockManager.shared refreshMenu];
     if (self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
         CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);

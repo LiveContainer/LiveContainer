@@ -547,8 +547,6 @@ void UIKitFixesInit(void) {
     self.resizeHandle.frame = CGRectMake(self.view.frame.size.width - handleSize, self.view.frame.size.height - handleSize, handleSize, handleSize);
     CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
     CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
-    CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
-    CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
     
     BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {

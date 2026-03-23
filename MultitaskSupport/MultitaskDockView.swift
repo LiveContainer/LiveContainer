@@ -1279,68 +1279,74 @@ struct ControlMenuContent: View {
     @EnvironmentObject var dockManager: MultitaskDockManager
 
     var body: some View {
-        
+      
         let _ = dockManager.menuUpdateTrigger 
         let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
-        let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: viewController)
-        let isMax = viewController?.isMaximized ?? false
-
         
         Group {
-            Section {
-                if isInPiP {
-                    
-                    Button {
-                        PiPManager.shared.stopPiP()
-                    } label: {
-                        Label("Restore from PiP", systemImage: "pip.enter")
-                    }
-                } else {
-                    
-                    Button {
-                        if let appSceneVC = viewController?.appSceneVC {
-                            PiPManager.shared.startPiP(withVC: appSceneVC)
+            if let vc = viewController {
+                let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: vc)
+                let isMax = vc.isMaximized
+
+                Section {
+                   
+                    if isInPiP {
+                        Button {
+                            PiPManager.shared.stopPiP()
+                        } label: {
+                            Label("Restore from PiP", systemImage: "pip.enter")
                         }
+                    } else {
+                        Button {
+                            if let appSceneVC = vc.appSceneVC {
+                                PiPManager.shared.startPiP(withVC: appSceneVC)
+                            }
+                        } label: {
+                            Label("Enter PiP Mode", systemImage: "pip.exit")
+                        }
+                    }
+
+                   
+                    Button {
+                        vc.maximizeWindow()
                     } label: {
-                        Label("Enter PiP Mode", systemImage: "pip.exit")
+                        Label(isMax ? "Exit FullScreen" : "FullScreen", 
+                              systemImage: isMax ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                    }
+
+                   
+                    Button {
+                        vc.minimizeWindow()
+                    } label: {
+                        Label("Minimize", systemImage: "rectangle.stack.badge.minus")
                     }
                 }
 
-            
-                Button {
-                    viewController?.maximizeWindow()
-                } label: {
-                    Label(isMax ? "Exit FullScreen" : "FullScreen", 
-                          systemImage: isMax ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                Divider()
+
+              
+                Section {
+                    Button(role: .destructive) {
+                        vc.closeWindow()
+                        dockManager.removeRunningApp(app.appUUID)
+                    } label: {
+                        Label("Close App", systemImage: "xmark.circle")
+                    }
                 }
 
-               
-                Button {
-                    viewController?.minimizeWindow()
+                Divider()
+
+              
+                Button(role: .cancel) {
+                    // back
                 } label: {
-                    Label("Minimize", systemImage: "rectangle.stack.badge.minus")
+                    Label("Back", systemImage: "chevron.backward")
                 }
-            }
-
-            Divider()
-
-            Section {
                 
-                Button(role: .destructive) {
-                    viewController?.closeWindow()
-                    dockManager.removeRunningApp(app.appUUID)
-                } label: {
-                    Label("Close", systemImage: "xmark.circle")
-                }
-            }
-
-            Divider()
-
-            
-            Button(role: .cancel) {
-                // back
-            } label: {
-                Label("Back", systemImage: "chevron.backward")
+            } else {
+                
+                Text("Window is unavailable")
+                    .foregroundColor(.secondary)
             }
         }
     }

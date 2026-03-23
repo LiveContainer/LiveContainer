@@ -234,10 +234,16 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
                 CGFloat targetW = MIN(h * (9.0 / 16.0), w);
                 baseSettings.frame = CGRectMake(0, 0, targetW, h);
             }
+        
+            if (baseSettings.foreground && !settings.foreground) {
+                [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
+                return;
+            }
         }
         [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
     }
 }
+
 
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {

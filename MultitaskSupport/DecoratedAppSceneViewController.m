@@ -33,6 +33,10 @@ void UIKitFixesInit(void) {
 }
 
 @interface DecoratedAppSceneViewController()
+//⭐️⭐️⭐️
+@property (nonatomic, strong) ResizeHandleView *moveHandle;
+//⭐️⭐️⭐️
+
 @property(nonatomic) NSArray* activatedVerticalConstraints;
 @property(nonatomic) NSString* dataUUID;
 @property(nonatomic) NSString* windowName;
@@ -172,12 +176,11 @@ void UIKitFixesInit(void) {
     
 
     CGFloat handleSize = 30.0;
-    ResizeHandleView *moveHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(0, 0, handleSize, handleSize)];
-    
-    moveHandle.transform = CGAffineTransformMakeRotation(M_PI); 
-    moveHandle.alpha = _isMaximized ? 0.0 : 1.0;
-    [self.view addSubview:moveHandle];
-    [self.view bringSubviewToFront:moveHandle];
+   self.moveHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(0, 0, handleSize, handleSize)]; // 使用屬性賦值
+   self.moveHandle.transform = CGAffineTransformMakeRotation(M_PI); 
+   self.moveHandle.alpha = _isMaximized ? 0.0 : 1.0;
+   [self.view addSubview:self.moveHandle];
+   [self.view bringSubviewToFront:self.moveHandle];
     
     UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
@@ -311,7 +314,7 @@ void UIKitFixesInit(void) {
         self.view.alpha = 1;
     } completion:nil];
 }
-
+//⭐️⭐️⭐️
 - (void)maximizeWindow {
     if (self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
@@ -320,6 +323,7 @@ void UIKitFixesInit(void) {
             self.view.frame = newFrame;
             self.view.layer.borderWidth = 1;
             self.resizeHandle.alpha = 1;
+            self.moveHandle.alpha = 1;
             [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
                 [self updateWindowedFrameWithSettings:settings];
             }];
@@ -337,6 +341,7 @@ void UIKitFixesInit(void) {
             
             self.view.layer.borderWidth = 0;
             self.resizeHandle.alpha = 0;
+            self.moveHandle.alpha = 0;
             [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
                 [self updateMaximizedFrameWithSettings:settings];
             }];
@@ -347,7 +352,7 @@ void UIKitFixesInit(void) {
         }];
     }
 }
-
+//⭐️⭐️⭐️
 - (void)appSceneVCAppDidExit:(AppSceneViewController*)vc {
     BOOL skipTerminationScreen = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCSkipTerminatedScreen"];
     BOOL isManual = _isAppTerminationRequested;

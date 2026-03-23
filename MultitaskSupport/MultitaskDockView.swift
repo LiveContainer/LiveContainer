@@ -1146,6 +1146,18 @@ struct AppIconView: View {
         }
         .frame(width: iconSize, height: iconSize)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        //⭐️⭐️⭐️
+        .contextMenu {
+            ControlMenuContent(app: app)
+        }
+        .onPressGesture(
+            onPress: { isPressed = true },
+            onRelease: { location in 
+                isPressed = false
+                let _ = dockManager.bringMultitaskViewToFront(uuid: app.appUUID, from: location)
+            }
+        )
+        //⭐️⭐️⭐️
         .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 3)
         .scaleEffect(isPressed ? 1.15 : 1.0)
         .animation(.easeInOut(duration: 0.1), value: isPressed)
@@ -1249,6 +1261,53 @@ struct LoadingIconView: View {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 .scaleEffect(1.2)
+        }
+    }
+}
+//⭐️⭐️⭐️
+@available(iOS 16.0, *)
+struct ControlMenuContent: View {
+    let app: DockAppModel
+    @EnvironmentObject var dockManager: MultitaskDockManager
+
+    var body: some View {
+        
+        Button {
+            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
+                vc.toggleMaximize() 
+            }
+        } label: {
+            Label("FullScreen", systemImage: "arrow.up.left.and.arrow.down.right")
+        }
+
+        
+        Button {
+            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
+                vc.minimizeWindow()
+            }
+        } label: {
+            Label("Minimumize", systemImage: "rectangle.stack.badge.minus")
+        }
+
+        Divider()
+
+        
+        Button(role: .destructive) {
+            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
+                vc.closeWindow() 
+                dockManager.removeRunningApp(app.appUUID) 
+            }
+        } label: {
+            Label("Close", systemImage: "xmark.circle")
+        }
+
+        Divider()
+
+       
+        Button(role: .cancel) {
+            //back
+        } label: {
+            Label("Back", systemImage: "chevron.backward")
         }
     }
 }

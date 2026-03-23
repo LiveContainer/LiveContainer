@@ -235,7 +235,8 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
                 baseSettings.frame = CGRectMake(0, 0, targetW, h);
             }
         
-            if (baseSettings.foreground && !settings.foreground) {
+           if (baseSettings.foreground && !((UIMutableApplicationSceneSettings *)settings).foreground) {
+
                 [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
                 return;
             }

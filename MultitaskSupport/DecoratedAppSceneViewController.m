@@ -211,6 +211,8 @@ void UIKitFixesInit(void) {
     NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [self updateOriginalFrame];
+    [self.view layoutIfNeeded];
+
 }
 
 

@@ -1274,7 +1274,7 @@ struct ControlMenuContent: View {
         
         Button {
             if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
-                vc.maximumizeWindow() 
+                vc.maximizeWindow() 
             }
         } label: {
             Label("FullScreen", systemImage: "arrow.up.left.and.arrow.down.right")
@@ -1286,7 +1286,7 @@ struct ControlMenuContent: View {
                 vc.minimizeWindow()
             }
         } label: {
-            Label("Minimumize", systemImage: "rectangle.stack.badge.minus")
+            Label("Minimize", systemImage: "rectangle.stack.badge.minus")
         }
 
         Divider()

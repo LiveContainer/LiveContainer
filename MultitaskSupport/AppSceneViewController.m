@@ -212,7 +212,7 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
         });
     }    
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)_performActionsForUIScene:(UIScene *)scene withUpdatedFBSScene:(id)fbsScene settingsDiff:(FBSSceneSettingsDiff *)diff fromSettings:(UIApplicationSceneSettings *)settings transitionContext:(id)context lifecycleActionType:(uint32_t)actionType {
     if(!self.isAppRunning) {
         [self appTerminationCleanUp];
@@ -223,14 +223,22 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
     UIApplicationSceneTransitionContext *newContext = [context copy];
     newContext.actions = nil;
     if(self.isNativeWindow) {
-        // directly update the settings
         baseSettings.interruptionPolicy = 0;
         baseSettings.peripheryInsets = self.view.window.safeAreaInsets;
         [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
     } else {
+        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+            CGFloat w = self.view.frame.size.width;
+            CGFloat h = self.view.frame.size.height;
+            if (w > 0 && h > 0) {
+                CGFloat targetW = MIN(h * (9.0 / 16.0), w);
+                baseSettings.frame = CGRectMake(0, 0, targetW, h);
+            }
+        }
         [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
     }
 }
+
 //⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];

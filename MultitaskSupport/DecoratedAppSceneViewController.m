@@ -363,7 +363,7 @@ void UIKitFixesInit(void) {
         [self.view insertSubview:label atIndex:0];
     }
 }
-
+//⭐️⭐️⭐️Real iPhone mode + multitask mode
 - (void)appSceneVC:(AppSceneViewController*)vc didInitializeWithError:(NSError *)error {
     dispatch_async(dispatch_get_main_queue(), ^{
         if(error) {
@@ -377,6 +377,8 @@ void UIKitFixesInit(void) {
         } else {
             self.pid = vc.pid;
             [self updateOriginalFrame];
+            [vc.view setNeedsLayout];
+            [vc.view layoutIfNeeded];
             if (self.pidAvailableHandler) {
                 self.pidAvailableHandler(@(self.pid), nil);
             }
@@ -424,6 +426,8 @@ void UIKitFixesInit(void) {
     }
     
     [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
+    [vc.view setNeedsLayout];
+    [vc.view layoutIfNeeded];
 }
 
 

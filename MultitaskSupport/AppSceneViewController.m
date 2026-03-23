@@ -182,6 +182,8 @@
  [self.contentView addSubview:self.presenter.presentationView];
 self.contentView.layer.anchorPoint = CGPointMake(0, 0);
 self.contentView.layer.position = CGPointMake(0, 0);
+[self.view setNeedsLayout];
+[self.view layoutIfNeeded];
 self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
 self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
 

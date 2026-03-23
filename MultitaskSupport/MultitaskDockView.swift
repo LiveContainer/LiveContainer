@@ -1274,30 +1274,35 @@ struct ControlMenuContent: View {
     
         let viewController = app.view?._viewDelegate() as? DecoratedAppSceneViewController
         let isHidden = app.view?.isHidden ?? false
-
+        let isInPiP = PiPManager.shared.isPiP(withDecoratedVC: viewController)
+        
         Section {
-            Button {
-                viewController?.maximizeWindow()
-            } label: {
-                Label(viewController?.isMaximized == true ? "Restore" : "FullScreen", 
-                      systemImage: viewController?.isMaximized == true ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-            }
-
-            if isHidden {
+            if isInPiP {
                 
                 Button {
-                    viewController?.unminimizeWindowPiP()
+                    PiPManager.shared.stopPiP()
                 } label: {
-                    Label("Restore Window", systemImage: "pip.enter")
+                    Label("Restore from PiP", systemImage: "pip.enter")
                 }
             } else {
                 
                 Button {
-                    viewController?.minimizeWindowPiP()
+                    if let appSceneVC = viewController?.appSceneVC {
+                        PiPManager.shared.startPiP(withVC: appSceneVC)
+                    }
                 } label: {
-                    Label("Minimize to PiP", systemImage: "pip.exit")
+                    Label("Enter PiP Mode", systemImage: "pip.exit")
                 }
-                
+            }
+
+                Button {
+                viewController?.maximizeWindow()
+            } label: {
+                let isMax = viewController?.isMaximized ?? false
+                Label(isMax ? "Exit FullScreen" : "FullScreen", 
+                      systemImage: isMax ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                }
+            }
                 
                 Button {
                     viewController?.minimizeWindow()

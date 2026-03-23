@@ -185,7 +185,7 @@ void UIKitFixesInit(void) {
     UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
     moveGesture.minimumNumberOfTouches = 1;
     moveGesture.maximumNumberOfTouches = 1;
-    [moveHandle addGestureRecognizer:moveGesture];
+    [self.moveHandle addGestureRecognizer:moveGesture];
     // ------------------------------------
 
     // Resize handle

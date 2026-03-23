@@ -236,8 +236,10 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
         if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
             CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
             CGFloat offsetX = (viewW - targetW) / 2.0;
+            self.contentView.autoresizingMask = UIViewAutoresizingNone;
             self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
         } else {
+            self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
         }
     }

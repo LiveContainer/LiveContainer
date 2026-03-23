@@ -227,7 +227,8 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
         baseSettings.peripheryInsets = self.view.window.safeAreaInsets;
         [self.presenter.scene updateSettings:baseSettings withTransitionContext:newContext completion:nil];
    } else {
-    [self.delegate appSceneVC:self.didUpdateFromSettings:baseSettings transitionContext:newContext];
+        [self.delegate appSceneVC:self didUpdateFromSettings:baseSettings transitionContext:newContext];
+
 }
 }
 

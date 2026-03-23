@@ -436,14 +436,14 @@ void UIKitFixesInit(void) {
     CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
     CGFloat offsetX = (viewW - targetW) / 2.0;
     newFrame = CGRectMake(0, 0, targetW, viewH);
-
+    
     _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
-    vc.presenter.presentationView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+    _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
     newFrame = CGRectMake(0, 0, viewW, viewH);
-    
-    vc.presenter.presentationView.frame = CGRectMake(0, 0, viewW, viewH);
+    _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     }
+
 
     
     if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {

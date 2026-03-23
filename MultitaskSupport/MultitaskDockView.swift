@@ -1274,7 +1274,7 @@ struct ControlMenuContent: View {
         
         Button {
             if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController {
-                vc.maximizeWindow() 
+                vc.isMaximized = true
             }
         } label: {
             Label("FullScreen", systemImage: "arrow.up.left.and.arrow.down.right")

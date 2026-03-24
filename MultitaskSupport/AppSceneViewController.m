@@ -8,12 +8,12 @@
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "AppSceneViewController.h"
 #import "DecoratedAppSceneViewController.h"
-#import "LiveContainerSwiftUI-Swift.h"
 #import "../LiveContainerSwiftUI/Utilities/LCUtils.h"
 #import "PiPManager.h"
 #import "Localization.h"
 #import "LCSharedUtils.h"
 #import "utils.h"
+#import "LiveContainerSwiftUI-Swift.h"
 
 @interface AppSceneViewController()
 @property int resizeDebounceToken;

@@ -644,7 +644,7 @@ class AppInfoProvider {
             view.transform = .identity
             let origFrame = view.frame
             let pipManager = PiPManager.shared!
-            if let decoratedVC = view._viewDelegate(), pipManager.isPiP(withDecoratedVC: decoratedVC) {
+            if let decoratedVC = view._viewDelegate() as? UIViewController, pipManager.isPiP(withDecoratedVC: decoratedVC)  {
                 pipManager.stopPiP()
             } else {
                 view.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)

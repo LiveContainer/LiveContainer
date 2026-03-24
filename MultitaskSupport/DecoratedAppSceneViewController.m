@@ -495,12 +495,14 @@ void UIKitFixesInit(void) {
     if (!self.navigationBar) return;
     [self findAndAdjustButtonBarStackView:self.navigationBar withSpacing:spacing rightMargin:margin];
 }
-
+//⭐️⭐️⭐️
 - (void)findAndAdjustButtonBarStackView:(UIView *)view withSpacing:(CGFloat)spacing rightMargin:(CGFloat)margin {
     for (UIView *subview in view.subviews) {
         if ([subview isKindOfClass:NSClassFromString(@"_UIButtonBarStackView")]) {
             if ([subview respondsToSelector:@selector(setSpacing:)]) {
-                [(_UIButtonBarStackView *)subview setSpacing:spacing];
+            
+                   [(id)subview setSpacing:spacing]; 
+                
             }
             
             if (subview.superview) {
@@ -532,38 +534,42 @@ void UIKitFixesInit(void) {
         
         [UIView animateWithDuration:0.3 animations:^{
             switch (newMode) {
-                case 0: { 
+                case 0: {
+                    self.navigationBar.hidden = NO;
                     
                     self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
                     self.navigationItem.leftBarButtonItems = nil;
+                    
                     
                     [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0]; 
                     break;
                 }
                 
-                case 1: { 
+                case 1: {
+                    self.navigationBar.hidden = NO;
                     
                     self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems ?: self.navigationItem.leftBarButtonItems;
                     self.navigationItem.rightBarButtonItems = nil;
                     
-                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:1];
+                    
+                    NSUInteger lastIndex = self.mainStackView.arrangedSubviews.count;
+                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:lastIndex];
                     break;
                 }
                 
-                case 2: {
+                case 2: 
                 default: {
-                    
-                    self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
-                    self.navigationItem.leftBarButtonItems = nil;
-                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:2]; 
+                    self.navigationBar.hidden = YES;
+                
+                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:self.mainStackView.arrangedSubviews.count];
                     break;
                 }
             }
             
             
             [self updateVerticalConstraints];
-        
             [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
+            [self.mainStackView layoutIfNeeded]; 
         }];
         return;
     }
@@ -575,6 +581,7 @@ void UIKitFixesInit(void) {
         }];
     }
 }
+
 
 
 - (void)moveWindow:(UIPanGestureRecognizer*)sender {
@@ -628,13 +635,11 @@ void UIKitFixesInit(void) {
 }
 //⭐️⭐️⭐️
 - (void)updateVerticalConstraints {
-    
     NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
     
-    
+
     BOOL forceHideInMaximized = (MultitaskDockManager.shared.isCollapsed && _isMaximized);
     BOOL shouldHideBar = (toolbarMode == 2) || forceHideInMaximized;
-    
     
     CGFloat navBarHeight = shouldHideBar ? 0 : 44.0;
     self.navigationBar.hidden = shouldHideBar;
@@ -647,53 +652,47 @@ void UIKitFixesInit(void) {
         };
     }
 
-
+    
     if (self.activatedVerticalConstraints) {
         [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
     }
 
-
     NSMutableArray *newConstraints = [NSMutableArray array];
-    
+
     switch (toolbarMode) {
         case 0: { 
-            [newConstraints addObjectsFromArray:@[
-                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
-                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-            ]];
             
-            if ([self.view.arrangedSubviews containsObject:self.navigationBar]) {
-                [self.view insertArrangedSubview:self.navigationBar atIndex:0];
-            }
+            [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0];
+            
+        
+            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
             break;
         }
 
-        case 1: {
-            [newConstraints addObjectsFromArray:@[
-                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
-                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-            ]];
+        case 1: { 
             
-            [self.view addArrangedSubview:self.navigationBar];
+            [self.mainStackView addArrangedSubview:self.navigationBar];
+            
+            
+            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
             break;
         }
 
-        case 2: {
+        case 2: 
         default: {
-            [newConstraints addObjectsFromArray:@[
-                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-                [self.navigationBar.heightAnchor constraintEqualToConstant:0]
-            ]];
+        
+            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:0]];
             break;
         }
     }
 
+    
     self.activatedVerticalConstraints = newConstraints;
     [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
+    
+    [self.mainStackView layoutIfNeeded];
 }
+
 
 //⭐️⭐️⭐️
 - (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
@@ -761,25 +760,52 @@ void UIKitFixesInit(void) {
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, [self updateMaximizedSafeAreaWithSettings:settings]);
     self.view.frame = maxFrame;
 }
-
+//⭐️⭐️⭐️
 - (void)updateWindowedFrameWithSettings:(UIMutableApplicationSceneSettings *)settings {
+    
     UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, safeAreaInsets);
+    
+
     settings.peripheryInsets = UIEdgeInsetsZero;
     settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
     
-    CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
+    
+    
+    CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, 
+                                 self.originalFrame.origin.y * maxFrame.size.height, 
+                                 self.originalFrame.size.width, 
+                                 self.originalFrame.size.height);
+    
     CGPoint center = self.view.center;
     CGRect frame = CGRectZero;
+    
+    
     frame.size.width = MIN(newFrame.size.width, maxFrame.size.width);
     frame.size.height = MIN(newFrame.size.height, maxFrame.size.height);
+    
+   
     CGFloat oobOffset = MAX(30, frame.size.width - 30);
-    frame.origin.x = MAX(maxFrame.origin.x - oobOffset, MIN(CGRectGetMaxX(maxFrame) - frame.size.width + oobOffset, center.x - frame.size.width / 2));
-    frame.origin.y = MAX(maxFrame.origin.y, MIN(center.y - frame.size.height / 2, CGRectGetMaxY(maxFrame) - frame.size.height));
+    
+   
+    frame.origin.x = MAX(maxFrame.origin.x - oobOffset, 
+                         MIN(CGRectGetMaxX(maxFrame) - frame.size.width + oobOffset, 
+                         center.x - frame.size.width / 2));
+                         
+   
+    frame.origin.y = MAX(maxFrame.origin.y, 
+                         MIN(center.y - frame.size.height / 2, 
+                         CGRectGetMaxY(maxFrame) - frame.size.height));
+    
+   
     [UIView animateWithDuration:0.3 animations:^{
         self.view.frame = frame;
+        self.view.layer.borderWidth = 1.0; 
+        self.resizeHandle.alpha = 1.0;     
+        self.moveHandle.alpha = 1.0;       
     }];
 }
+
 
 - (void)updateOriginalFrame {
     if(_isMaximized) return;

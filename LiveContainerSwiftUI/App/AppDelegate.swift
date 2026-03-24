@@ -71,7 +71,15 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
         if newOptions == nil {
             newOptions = UIScene.ActivationRequestOptions()
         }
-        newOptions!._setRequestFullscreen(UIScreen.main.bounds == self.keyWindow!.bounds)
+        let activeWindow = UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .first { $0.activationState == .foregroundActive }?.keyWindow
+         ?? self.keyWindow 
+
+        if let bounds = activeWindow?.bounds {
+        newOptions!._setRequestFullscreen(UIScreen.main.bounds == bounds)
+        }
+
         self.hook_requestSceneSessionActivation(sceneSession, userActivity: userActivity, options: newOptions, errorHandler: errorHandler)
     }
     

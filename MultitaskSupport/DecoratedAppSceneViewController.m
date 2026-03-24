@@ -40,31 +40,15 @@ void UIKitFixesInit(void) {
 @end
 
 @interface DecoratedAppSceneViewController () <AppSceneViewControllerDelegate>
-
-
-@property (nonatomic, strong) UIStackView *mainStackView; 
-@property (nonatomic, strong) UINavigationBar *navigationBar;
-@property (nonatomic, strong) UINavigationItem *navigationItem;
-@property (nonatomic, strong) UIView *contentView;
-@property (nonatomic, strong) AppSceneViewController *appSceneVC;
 @property (nonatomic, strong) UIBarButtonItem *maximizeButton;
-
-@property (nonatomic, strong) ResizeHandleView *moveHandle;
-@property (nonatomic, strong) ResizeHandleView *resizeHandle;
-
 @property (nonatomic, strong) NSArray<NSLayoutConstraint *> *activatedVerticalConstraints;
-@property (nonatomic, assign) CGFloat scaleRatio;
-@property (nonatomic, assign) BOOL isMaximized;
 @property (nonatomic, assign) CGRect originalFrame;
-
 @property (nonatomic, copy) NSString *dataUUID;
 @property (nonatomic, copy) NSString *windowName;
 @property (nonatomic, assign) int pid;
 @property (nonatomic, assign) BOOL isAppTerminationRequested;
-
-@property (nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
-
 @end
+
 
 //⭐️⭐️⭐️
 

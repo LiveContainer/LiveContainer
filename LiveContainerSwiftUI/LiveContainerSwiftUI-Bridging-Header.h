@@ -20,5 +20,14 @@
 #import "PiPManager.h"
 #import "VirtualWindowsHostView.h"
 
+@interface UISceneActivationRequestOptions (Private)
+- (void)_setRequestFullscreen:(BOOL)fullscreen;
+@end
+
+@interface UIView (Private)
+- (id)_viewDelegate;
+@end
+
+
 #endif
  //* LiveContainerSwiftUI_Bridging_Header_h_h */

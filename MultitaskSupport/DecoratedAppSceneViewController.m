@@ -62,10 +62,11 @@ void UIKitFixesInit(void) {
     self = [super initWithNibName:nil bundle:nil];
     _scaleRatio = 1.0;
     _isMaximized = [NSUserDefaults.lcUserDefaults boolForKey:@"LCLaunchMultitaskMaximized"];
-    [rootVC addChildViewController:self];
-    [self setupDecoratedView];
-    [MultitaskDockManager.shared.windowHostingView addSubview:self.view];
     _appSceneVC = [[AppSceneViewController alloc] initWithBundleId:bundleId dataUUID:dataUUID delegate:self];
+    [rootVC addChildViewController:self];
+    [MultitaskDockManager.shared.windowHostingView addSubview:self.view];
+    [self setupDecoratedView];
+   
     
     
     [MultitaskDockManager.shared addRunningApp:windowName appUUID:dataUUID view:self.view];

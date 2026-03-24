@@ -8,6 +8,74 @@
 import Foundation
 import SwiftUI
 
+//⭐️⭐️⭐️
+struct ToolbarModePicker: View {
+    
+   
+    private enum ToolbarMode: Int, CaseIterable {
+        case top = 0
+        case bottom = 1
+        case hidden = 2
+        
+        var description: String {
+            switch self {
+            case .top: return "top"
+            case .bottom: return "bottom"
+            case .hidden: return "hidden"
+            }
+        }
+        
+        var icon: String {
+            switch self {
+            case .top: return "sidebar.top.rectangle"
+            case .bottom: return "sidebar.bottom.rectangle"
+            case .hidden: return "rectangle.dashed"
+            }
+        }
+    }
+
+    
+    @AppStorage("LCMultitaskToolbarMode", store: UserDefaults.lcSharedDefaults) 
+    private var toolbarMode: Int = 0
+
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: ToolbarMode(rawValue: toolbarMode)?.icon ?? "gear")
+                        .foregroundColor(.accentColor)
+                    Text("Toolbar Setting")
+                        .font(.headline)
+                }
+                
+                Picker("Display Location", selection: $toolbarMode) {
+                    ForEach(ToolbarMode.allCases, id: \.rawValue) { mode in
+                        Text(mode.description).tag(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                
+                Text(footerText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true) 
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private var footerText: String {
+        switch toolbarMode {
+        case 0: return "The toolbar is fixed at the top of the window, which conforms to the general window operation logic."
+        case 1: return "The toolbar is fixed at the bottom of the window, making it suitable for one-handed operation and the iPhone layout."
+        case 2: return "Completely hide the toolbar, allowing the app content to fill the entire window space."
+        default: return ""
+        }
+    }
+}
+
+
+
 enum JITEnablerType : Int {
     case SideJITServer = 0
     case StkiJIT = 1
@@ -267,9 +335,12 @@ struct LCSettingsView: View {
                                     Text("lc.settings.restartTerminatedApp".loc)
                                 }
                             }
-                            Toggle(isOn: $bottomWindowBar) {
-                                Text("lc.settings.bottomWindowBar".loc)
-                            }
+                            //⭐️⭐️⭐️
+                            ToolbarModePicker()
+                            //⭐️⭐️⭐️
+                            //Toggle(isOn: $bottomWindowBar) {
+                                //Text("lc.settings.bottomWindowBar".loc)
+                            //}
                             Toggle(isOn: $redirectURLToHost) {
                                 Text("lc.settings.redirectURLToHost".loc)
                             }

@@ -3,9 +3,15 @@
 //  LiveContainer
 //
 //  Created by Duy Tran on 22/2/26.
-//
+//#import "VirtualWindowsHostView.h"
 #import "DecoratedAppSceneViewController.h"
-#import "VirtualWindowsHostView.h"
+#import "AppSceneViewController.h" 
+
+@interface UIView (PrivateDelegate)
+- (id)_viewDelegate;
+@end
+
+#import "LiveContainerSwiftUI-Swift.h" 
 
 @implementation VirtualWindowsHostView
 - (instancetype)init {

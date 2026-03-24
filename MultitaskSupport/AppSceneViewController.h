@@ -4,8 +4,8 @@
 //
 //  Created by s s on 2025/5/17.
 //
-#import "UIKitPrivate+MultitaskSupport.h"
-#import "FoundationPrivate.h"
+@class UIKitPrivate+MultitaskSupport
+@class FoundationPrivate
 @import UIKit;
 @import Foundation;
 

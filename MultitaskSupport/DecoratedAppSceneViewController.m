@@ -10,7 +10,7 @@
 
 #import "LiveContainerSwiftUI-Swift.h"
 
-@implementation RBSTarget(hook)
+@implementation RBSTarget (hook)
 + (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
     if([environmentIdentifier containsString:@"LiveProcess"]) {
         environmentIdentifier = [NSString stringWithFormat:@"LiveProcess:%d", pid];
@@ -18,6 +18,7 @@
     return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
 }
 @end
+
 static int hook_return_2(void) {
     return 2;
 }
@@ -51,13 +52,14 @@ void UIKitFixesInit(void) {
 
 
 //⭐️⭐️⭐️
-
 @implementation DecoratedAppSceneViewController
+@synthesize mainStackView = _mainStackView;
 - (instancetype)initWindowName:(NSString*)windowName bundleId:(NSString*)bundleId dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC {
     self = [super initWithNibName:nil bundle:nil];
     _scaleRatio = 1.0;
     _isMaximized = [NSUserDefaults.lcUserDefaults boolForKey:@"LCLaunchMultitaskMaximized"];
     [rootVC addChildViewController:self];
+    [self setupDecoratedView];
     [MultitaskDockManager.shared.windowHostingView addSubview:self.view];
     _appSceneVC = [[AppSceneViewController alloc] initWithBundleId:bundleId dataUUID:dataUUID delegate:self];
     [self setupDecoratedView];
@@ -179,11 +181,11 @@ void UIKitFixesInit(void) {
 
 
     if (toolbarMode == 1) { 
-        [self.view addArrangedSubview:fixedPositionContentView];
-        [self.view addArrangedSubview:self.navigationBar];
+        [self.mainStackView addArrangedSubview:fixedPositionContentView];
+        [self.mainStackView addArrangedSubview:self.navigationBar];
     } else { 
-        [self.view addArrangedSubview:self.navigationBar];
-        [self.view addArrangedSubview:fixedPositionContentView];
+        [self.mainStackView addArrangedSubview:self.navigationBar];
+        [self.mainStackView addArrangedSubview:fixedPositionContentView];
     }
     [self.view sendSubviewToBack:fixedPositionContentView];
 

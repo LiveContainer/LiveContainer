@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h> 
 #import "FoundationPrivate.h"
-#import "AppSceneViewController.h"
-#import "ResizeHandleView.h"
+@class AppSceneViewController
+@class ResizeHandleView
 
 
 @interface _UIPrototypingMenuSlider : UISlider

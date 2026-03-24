@@ -1,11 +1,15 @@
+#import <UIKit/UIKit.h> 
 #import "FoundationPrivate.h"
 #import "AppSceneViewController.h"
 #import "ResizeHandleView.h"
 
-// 宣告私有類別
+
 @interface _UIPrototypingMenuSlider : UISlider
 @property (nonatomic, assign) CGFloat stepSize;
 @end
+
+
+@class AppSceneViewController;
 
 API_AVAILABLE(ios(16.0))
 @interface DecoratedAppSceneViewController : UIViewController <AppSceneViewControllerDelegate>

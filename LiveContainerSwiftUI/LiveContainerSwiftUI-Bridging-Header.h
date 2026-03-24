@@ -6,15 +6,19 @@
 //
 #ifndef LiveContainerSwiftUI_Bridging_Header_h_h
 #define LiveContainerSwiftUI_Bridging_Header_h_h
-#include "LCAppInfo.h"
-#include "../LiveContainer/LCSharedUtils.h"
-#include "Utilities/LCUtils.h"
-#include "Utilities/unarchive.h"
-#include "../MultitaskSupport/AppSceneViewController.h"
-#include "../MultitaskSupport/DecoratedAppSceneViewController.h"
-#include "../MultitaskSupport/LCStatusBarManager.h"
-#include "../MultitaskSupport/PiPManager.h"
-#include "../MultitaskSupport/VirtualWindowsHostView.h"
-#include "../LiveContainer/FoundationPrivate.h"
 
-#endif /* LiveContainerSwiftUI_Bridging_Header_h_h */
+
+#import "LCAppInfo.h"
+#import "LCSharedUtils.h"
+#import "LCUtils.h"
+#import "unarchive.h"
+
+
+#import "AppSceneViewController.h"
+#import "DecoratedAppSceneViewController.h"
+#import "LCStatusBarManager.h"
+#import "PiPManager.h"
+#import "VirtualWindowsHostView.h"
+
+#endif
+ //* LiveContainerSwiftUI_Bridging_Header_h_h */

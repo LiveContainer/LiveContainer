@@ -7,6 +7,7 @@
 #import "VirtualWindowsHostView.h"
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
+#import <objc/runtime.h> 
 
 
 @implementation RBSTarget (hook)
@@ -61,7 +62,7 @@ void UIKitFixesInit(void) {
     [self setupDecoratedView];
     [MultitaskDockManager.shared.windowHostingView addSubview:self.view];
     _appSceneVC = [[AppSceneViewController alloc] initWithBundleId:bundleId dataUUID:dataUUID delegate:self];
-    [self setupDecoratedView];
+    
     
     [MultitaskDockManager.shared addRunningApp:windowName appUUID:dataUUID view:self.view];
     

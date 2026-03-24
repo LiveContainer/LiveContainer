@@ -39,11 +39,10 @@ void UIKitFixesInit(void) {
         method_exchangeImplementations(class_getClassMethod(RBSTarget.class, @selector(targetWithPid:environmentIdentifier:)), class_getClassMethod(RBSTarget.class, @selector(hook_targetWithPid:environmentIdentifier:)));
     }
 }
-//⭐️⭐️⭐️
 
-@interface _UIPrototypingMenuSlider : UISlider
-@property (nonatomic, assign) CGFloat stepSize;
-@end
+
+
+
 
 @interface DecoratedAppSceneViewController () <AppSceneViewControllerDelegate>
 @property (nonatomic, strong) UIBarButtonItem *maximizeButton;

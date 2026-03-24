@@ -35,7 +35,7 @@ struct ToolbarModePicker: View {
     }
 
     
-    @AppStorage("LCMultitaskToolbarMode", store: UserDefaults.lcSharedDefaults()) 
+    @AppStorage("LCMultitaskToolbarMode", store: UserDefaults.lcShared()) 
     private var toolbarMode: Int = 0
 
     var body: some View {

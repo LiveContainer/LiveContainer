@@ -627,11 +627,11 @@ void UIKitFixesInit(void) {
 }
 //⭐️⭐️⭐️
 - (void)updateVerticalConstraints {
-    NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
     
-
+    NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
     BOOL forceHideInMaximized = (MultitaskDockManager.shared.isCollapsed && _isMaximized);
     BOOL shouldHideBar = (toolbarMode == 2) || forceHideInMaximized;
+    
     
     CGFloat navBarHeight = shouldHideBar ? 0 : 44.0;
     self.navigationBar.hidden = shouldHideBar;
@@ -644,46 +644,49 @@ void UIKitFixesInit(void) {
         };
     }
 
-    
+   
     if (self.activatedVerticalConstraints) {
         [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
     }
 
     NSMutableArray *newConstraints = [NSMutableArray array];
+    UIView *appView = _appSceneVC.view;
 
-    switch (toolbarMode) {
-        case 0: { 
-            
-            [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0];
-            
+  
+    if (shouldHideBar) {
+       
+        [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0];
+        [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:0]];
         
-            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
-            break;
-        }
+      
+        [newConstraints addObject:[appView.topAnchor constraintEqualToAnchor:self.view.topAnchor]];
+        [newConstraints addObject:[appView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]];
 
-        case 1: { 
-            
-            [self.mainStackView addArrangedSubview:self.navigationBar];
-            
-            
-            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
-            break;
-        }
-
-        case 2: 
-        default: {
+    } else if (toolbarMode == 1) {
+        [self.mainStackView addArrangedSubview:self.navigationBar];
+        [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
         
-            [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:0]];
-            break;
-        }
+       
+        [newConstraints addObject:[appView.topAnchor constraintEqualToAnchor:self.view.topAnchor]];
+        [newConstraints addObject:[appView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight]];
+
+    } else {
+      
+        [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0];
+        [newConstraints addObject:[self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]];
+        
+       
+        [newConstraints addObject:[appView.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight]];
+        [newConstraints addObject:[appView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]];
     }
 
-    
+ 
     self.activatedVerticalConstraints = newConstraints;
     [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
     
-    [self.mainStackView layoutIfNeeded];
+    [self.view layoutIfNeeded];
 }
+
 
 
 //⭐️⭐️⭐️

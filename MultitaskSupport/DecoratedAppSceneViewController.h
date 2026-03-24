@@ -1,7 +1,6 @@
 #import <UIKit/UIKit.h> 
 #import "FoundationPrivate.h"
-@class AppSceneViewController
-@class ResizeHandleView
+
 
 
 @interface _UIPrototypingMenuSlider : UISlider
@@ -10,6 +9,7 @@
 
 
 @class AppSceneViewController;
+@class ResizeHandleView;
 
 API_AVAILABLE(ios(16.0))
 @interface DecoratedAppSceneViewController : UIViewController <AppSceneViewControllerDelegate>

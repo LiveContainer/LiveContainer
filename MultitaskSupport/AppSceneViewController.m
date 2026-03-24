@@ -4,6 +4,8 @@
 //
 //  Created by s s on 2025/5/17.
 //
+#import "FoundationPrivate.h"
+#import "UIKitPrivate+MultitaskSupport.h"
 #import "AppSceneViewController.h"
 #import "DecoratedAppSceneViewController.h"
 #import "LiveContainerSwiftUI-Swift.h"

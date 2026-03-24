@@ -278,31 +278,41 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
     return image;
 }
 
-@implementation UIImage(LCUtils)
+#pragma mark - UIImage (LCUtils) Implementation
+
+@implementation UIImage (LCUtils)
+
 + (instancetype)generateIconForBundleURL:(NSURL*)url style:(GeneratedIconStyle)style hasBorder:(BOOL)hasBorder {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         iconsNeedToGenerateOriginalIcon = [NSMutableSet new];
+        
         
         void* handle = dlopen("/System/Library/PrivateFrameworks/IconServices.framework/IconServices", RTLD_LAZY|RTLD_GLOBAL);
         assert(handle);
 
         Class isBundleClass = PrivClass(ISBundleIcon);
         Method originalGetProviderMethod = class_getInstanceMethod(isBundleClass, @selector(makeResourceProvider));
+        
+        
         class_addMethod(isBundleClass, @selector(makeResourceProviderOrignal), method_getImplementation(originalGetProviderMethod), method_getTypeEncoding(originalGetProviderMethod));
         method_exchangeImplementations(originalGetProviderMethod, class_getInstanceMethod(ISBundleIconFake.class, @selector(makeResourceProvider)));
 
-        // stop IFBundle from trying to connect to lsd database
+        
         method_exchangeImplementations(class_getInstanceMethod(PrivClass(IFBundle), @selector(platform)), class_getInstanceMethod(IFBundleFake.class, @selector(platform)));
-        // stop LSBundleIcon from trying to connect to lsd database
         method_exchangeImplementations(class_getInstanceMethod(PrivClass(LSApplicationRecord), @selector(initWithURL:allowPlaceholder:error:)), class_getInstanceMethod(LSApplicationRecordFake.class, @selector(initWithURL:allowPlaceholder:error:)));
     });
     
-    if(@available(iOS 18.0, *)) {
+    
+    if (@available(iOS 18.0, *)) {
         
     } else {
-        style = 0;
+        
+        if (style != Original) {
+            style = 0; 
+        }
     }
+    
     
     ISBundleIcon* icon = [[PrivClass(ISBundleIcon) alloc] initWithBundleURL:url];
     ISImageDescriptor *descriptor = [PrivClass(ISImageDescriptor) imageDescriptorNamed:@"com.apple.IconServices.ImageDescriptor.HomeScreen"];
@@ -311,38 +321,37 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
     [request setIcon:(ISConcreteIcon*)icon];
     [request setImageDescriptor:descriptor];
     
-
     descriptor.ignoreCache = YES;
     descriptor.scale = UIScreen.mainScreen.scale;
     descriptor.variantOptions = 0;
 
+    
     if (@available(iOS 16.0, *)) {
-        // 0 = light mode, 1 = dark mode
-        if(style == 1) {
-            descriptor.appearance = 1;
-        } else {
-            descriptor.appearance = 0;
-        }
+        
+        descriptor.appearance = (style == 1) ? 1 : 0;
     }
+    
     if (@available(iOS 18.0, *)) {
-        if(@available(iOS 18.2, *)) {
-            // 0 = normal, 2 = tinted mode, 3 = liquid glass (gray scale)
+        if (@available(iOS 18.2, *)) {
+            // 0 = Normal, 2 = Tinted, 3 = Liquid Glass
             descriptor.appearanceVariant = 0;
         }
-        descriptor.specialIconOptions = 2;
+        descriptor.specialIconOptions = 2; 
     }
     
     descriptor.drawBorder = hasBorder;
     descriptor.shouldApplyMask = hasBorder;
     
-    if(style == Original) {
+    
+    if (style == Original) {
         [iconsNeedToGenerateOriginalIcon addObject:icon];
     }
     
     IFImage* ifImage = [request generateImageReturningRecordIdentifiers:nil];
     CGImageRef imageRef = [ifImage CGImage];
     
-    if(style == Original) {
+    
+    if (style == Original) {
         [iconsNeedToGenerateOriginalIcon removeObject:icon];
     }
 

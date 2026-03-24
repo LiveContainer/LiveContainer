@@ -61,6 +61,10 @@ jobs:
           filetype_parameter: ${{ steps.filetype_parameter.outputs.filetype_parameter }}
           file_to_build: ${{ steps.file_to_build.outputs.file_to_build }}
         run: |
+          # 執行編譯並過濾錯誤訊息
+          # -i: 忽略大小寫, -C 5: 顯示前後 5 行上下文
+          # PIPESTATUS[0] 確保獲取的是 xcodebuild 的結束代碼而非 grep 的
+          set -o pipefail
           xcodebuild archive \
             -archivePath "$archive_path" \
             -scheme "$scheme" \
@@ -69,7 +73,7 @@ jobs:
             -arch arm64 \
             -configuration Release \
             -allowProvisioningUpdates \
-            COMPILER_INDEX_STORE_ENABLE=NO
+            COMPILER_INDEX_STORE_ENABLE=NO 2>&1 | grep -iC 5 "error:" || exit ${PIPESTATUS[0]}
 
       - name: Tar Build Artifact
         run: tar -cvf "$archive_path.xcarchive.tar" "$archive_path.xcarchive"

@@ -216,7 +216,7 @@ void UIKitFixesInit(void) {
     
     
     [self addChildViewController:_appSceneVC];
-    [self.view insertSubview:_appSceneVC.view atIndex:0];
+    [self.contentView addSubview:_appSceneVC.view];
     _appSceneVC.view.translatesAutoresizingMaskIntoConstraints = NO;
     
 

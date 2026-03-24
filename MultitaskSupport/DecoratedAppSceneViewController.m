@@ -505,7 +505,9 @@ void UIKitFixesInit(void) {
 //⭐️⭐️⭐️
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"LCMultitaskToolbarMode"]) {
-        NSInteger newMode = [change[NSKeyValueChangeNewKey] integerValue];
+        id newValue = change[NSKeyValueChangeNewKey];
+        if (!newValue || [newValue isKindOfClass:[NSNull class]]) return;
+        NSInteger newMode = [newValue integerValue];
         
         [UIView animateWithDuration:0.3 animations:^{
             switch (newMode) {

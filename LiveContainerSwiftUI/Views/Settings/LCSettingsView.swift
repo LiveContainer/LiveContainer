@@ -27,8 +27,8 @@ struct ToolbarModePicker: View {
         
         var icon: String {
             switch self {
-            case .top: return "sidebar.top.rectangle"
-            case .bottom: return "sidebar.bottom.rectangle"
+            case .top: return "inset.filled.topthird.rectangle"
+            case .bottom: return "inset.filled.bottomthird.rectangle"
             case .hidden: return "rectangle.dashed"
             }
         }

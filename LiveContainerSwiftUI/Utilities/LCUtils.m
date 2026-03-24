@@ -1,25 +1,24 @@
-@import Darwin;
-@import MachO;
-@import UIKit;
-@import UniformTypeIdentifiers;
-@import Security;
-
 #import "LCUtils.h"
-#import "../../LiveContainer/LCSharedUtils.h"
 #import "LCAppInfo.h"
-#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
+#import "../../LiveContainer/LCSharedUtils.h"
 #import "../../ZSign/zsigner.h"
 
 
 @protocol _UISceneSettingsDiffAction <NSObject> @end
-
-
 #import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
+
+
 @interface UIApplication (Private)
 @property (nonatomic, readonly) UIWindow *keyWindow __deprecated;
 @end
 
 #import "LiveContainerSwiftUI-Swift.h"
+
+@import Darwin;
+@import MachO;
+@import UIKit;
+@import UniformTypeIdentifiers;
+@import Security;
 
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)

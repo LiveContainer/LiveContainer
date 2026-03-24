@@ -7,6 +7,11 @@
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 #import <objc/runtime.h> 
+
+
+
+@protocol _UISceneSettingsDiffAction <NSObject>
+@end
 #import "LiveContainerSwiftUI-Swift.h"
 
 

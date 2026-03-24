@@ -1,13 +1,16 @@
 #import "FoundationPrivate.h"
 #import "AppSceneViewController.h"
+#import "ResizeHandleView.h"
 
 API_AVAILABLE(ios(16.0))
 @interface DecoratedAppSceneViewController : UIViewController<AppSceneViewControllerDelegate>
 @property (nonatomic, strong) AppSceneViewController *appSceneVC;
 @property(nonatomic) UIStackView *view;
+@property(nonatomic) UIStackView *mainStackView;
 @property(nonatomic) UINavigationBar *navigationBar;
 @property(nonatomic) UINavigationItem *navigationItem;
-@property(nonatomic) UIView *resizeHandle;
+@property(nonatomic) ResizeHandleView *resizeHandle;
+@property(nonatomic) ResizeHandleView *moveHandle;
 @property(nonatomic) UIView* contentView;
 
 @property (nonatomic, assign) BOOL isMaximized;  
@@ -21,4 +24,3 @@ API_AVAILABLE(ios(16.0))
 - (void)updateVerticalConstraints;
 @property(nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
 @end
-

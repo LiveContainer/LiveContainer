@@ -144,7 +144,8 @@ void UIKitFixesInit(void) {
 
     return self;
 }
-//⭐️⭐️⭐️- (void)setupDecoratedView {
+//⭐️⭐️⭐️
+- (void)setupDecoratedView {
     
     NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
     CGFloat navBarHeight = (toolbarMode == 2) ? 0 : 44.0; 

@@ -11,6 +11,12 @@
 #import "../../ZSign/zsigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
 
+@interface UIApplication (Private)
+@property (nonatomic, readonly) UIWindow *keyWindow __deprecated;
+@end
+
+
+
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)
 - (BOOL)safari_isHTTPFamilyURL {

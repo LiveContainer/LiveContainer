@@ -278,7 +278,7 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
     return image;
 }
 
-@implementation UIImage(LiveContainer)
+@implementation UIImage(LCUtils)
 + (instancetype)generateIconForBundleURL:(NSURL*)url style:(GeneratedIconStyle)style hasBorder:(BOOL)hasBorder {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{

@@ -8,6 +8,9 @@
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 #import <objc/runtime.h> 
+#import "AppSceneViewController.h"
+#import "ResizeHandleView.h"
+
 
 
 @implementation RBSTarget (hook)

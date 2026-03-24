@@ -124,15 +124,20 @@ void UIKitFixesInit(void) {
 
     return self;
 }
-//⭐️⭐️⭐️
-- (void)setupDecoratedView {
+//⭐️⭐️⭐️- (void)setupDecoratedView {
     
-    CGFloat navBarHeight = 0; 
+    NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
+    CGFloat navBarHeight = (toolbarMode == 2) ? 0 : 44.0; 
+    
     self.view = [UIStackView new];
+    self.view.axis = UILayoutConstraintAxisVertical;
+    self.view.backgroundColor = UIColor.systemBackgroundColor;
+    self.view.layer.cornerRadius = 10;
+    self.view.layer.masksToBounds = YES;
+
+    
     BOOL isLandscape = UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation);
     CGRect frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
-    CGPoint rootViewCenter = self.view.superview.center;
-    frame.origin = CGPointMake(rootViewCenter.x - frame.size.width / 2, rootViewCenter.y - frame.size.height / 2);
     
     if(_isMaximized) {
         [self updateMaximizedFrameWithSettings:self.appSceneVC.settings];
@@ -141,91 +146,80 @@ void UIKitFixesInit(void) {
         frame.origin.y /= maxFrame.size.height;
         self.originalFrame = frame;
     } else {
+        
+        CGPoint rootViewCenter = [MultitaskDockManager.shared.windowHostingView center];
+        frame.origin = CGPointMake(rootViewCenter.x - frame.size.width / 2, rootViewCenter.y - frame.size.height / 2);
         self.view.frame = frame;
     }
     
-    // Navigation bar 
+    
     UINavigationBar *navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, navBarHeight)];
     navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     UINavigationItem *navigationItem = [[UINavigationItem alloc] initWithTitle:@"Unnamed window"];
     navigationBar.items = @[navigationItem];
-    
-    self.view.axis = UILayoutConstraintAxisVertical;
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
-    self.view.layer.cornerRadius = 10;
-    self.view.layer.masksToBounds = YES;
-
     self.navigationBar = navigationBar;
     self.navigationItem = navigationBar.items.firstObject;
-    if (!self.navigationBar.superview) {
-        [self.view addArrangedSubview:self.navigationBar];
-    }
-    
+    self.navigationBar.hidden = (toolbarMode == 2);
+
+
     CGRect contentFrame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - navBarHeight);
     UIView *fixedPositionContentView = [[UIView alloc] initWithFrame:contentFrame];
-    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    if([NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"]) {
-        [self.view insertArrangedSubview:fixedPositionContentView atIndex:0];
-    } else {
-        [self.view addArrangedSubview:fixedPositionContentView];
-    }
-    [self.view sendSubviewToBack:fixedPositionContentView];
+    fixedPositionContentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
     self.contentView = [[UIView alloc] initWithFrame:contentFrame];
     self.contentView.layer.anchorPoint = self.contentView.layer.position = CGPointMake(0, 0);
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [fixedPositionContentView addSubview:self.contentView];
-    
+
+
+    if (toolbarMode == 1) { 
+        [self.view addArrangedSubview:fixedPositionContentView];
+        [self.view addArrangedSubview:self.navigationBar];
+    } else { 
+        [self.view addArrangedSubview:self.navigationBar];
+        [self.view addArrangedSubview:fixedPositionContentView];
+    }
+    [self.view sendSubviewToBack:fixedPositionContentView];
+
 
     CGFloat handleSize = 30.0;
-   self.moveHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(0, 0, handleSize, handleSize)]; // 使用屬性賦值
-   self.moveHandle.transform = CGAffineTransformMakeRotation(M_PI); 
-   self.moveHandle.alpha = _isMaximized ? 0.0 : 1.0;
-   [self.view addSubview:self.moveHandle];
-   [self.view bringSubviewToFront:self.moveHandle];
+    self.moveHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(0, 0, handleSize, handleSize)];
+    self.moveHandle.transform = CGAffineTransformMakeRotation(M_PI); 
+    self.moveHandle.alpha = _isMaximized ? 0.0 : 1.0;
+    [self.view addSubview:self.moveHandle];
+    [self.view bringSubviewToFront:self.moveHandle];
     
     UIPanGestureRecognizer *moveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveWindow:)];
-    moveGesture.minimumNumberOfTouches = 1;
-    moveGesture.maximumNumberOfTouches = 1;
     [self.moveHandle addGestureRecognizer:moveGesture];
-    // ------------------------------------
 
-    // Resize handle
-    UIPanGestureRecognizer *resizeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
-    resizeGesture.minimumNumberOfTouches = 1;
-    resizeGesture.maximumNumberOfTouches = 1;
     self.resizeHandle = [[ResizeHandleView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - handleSize, self.view.frame.size.height - handleSize, handleSize, handleSize)];
     self.resizeHandle.alpha = _isMaximized ? 0.0 : 1.0;
+    UIPanGestureRecognizer *resizeGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(resizeWindow:)];
     [self.resizeHandle addGestureRecognizer:resizeGesture];
     [self.view addSubview:self.resizeHandle];
     
     self.view.layer.borderWidth = _isMaximized ? 0.0 : 1.0;
     self.view.layer.borderColor = UIColor.secondarySystemBackgroundColor.CGColor;
     
+    
     [self addChildViewController:_appSceneVC];
     [self.view insertSubview:_appSceneVC.view atIndex:0];
     _appSceneVC.view.translatesAutoresizingMaskIntoConstraints = NO;
     
-  
+
     [self updateVerticalConstraints];
     [NSLayoutConstraint activateConstraints:@[
         [_appSceneVC.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [_appSceneVC.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor]
     ]];
     
-    NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
-    [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
+
+    [[NSUserDefaults lcSharedDefaults] addObserver:self forKeyPath:@"LCMultitaskToolbarMode" options:NSKeyValueObservingOptionNew context:NULL];
+    
     [self updateOriginalFrame];
     [self.view layoutIfNeeded];
-
-
-    NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
-    [defaults addObserver:self forKeyPath:@"LCMultitaskToolbarMode" options:NSKeyValueObservingOptionNew context:NULL];
-    [self updateVerticalConstraints];
-    [self updateOriginalFrame];
-    [self.view layoutIfNeeded];
-
 }
+
 
 
 //⭐️⭐️⭐️
@@ -508,7 +502,7 @@ void UIKitFixesInit(void) {
     }
 }
 
-
+//⭐️⭐️⭐️
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"LCMultitaskToolbarMode"]) {
         NSInteger newMode = [change[NSKeyValueChangeNewKey] integerValue];
@@ -609,7 +603,7 @@ void UIKitFixesInit(void) {
     // FIXME: how to bring view to front when touching the passthrough view?
     [self.view.superview bringSubviewToFront:self.view];
 }
-
+//⭐️⭐️⭐️
 - (void)updateVerticalConstraints {
     
     NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
@@ -678,31 +672,48 @@ void UIKitFixesInit(void) {
     [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
 }
 
-
+//⭐️⭐️⭐️
 - (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
-    BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
+    
+    NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
+    
     UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
-    if(self.navigationBar.hidden) {
+
+    
+
+    if (toolbarMode == 2 || self.navigationBar.hidden) {
+        
         settings.peripheryInsets = safeAreaInsets;
         safeAreaInsets = UIEdgeInsetsZero;
-    } else if(bottomWindowBar) {
-        // allow the control bar to overlap the bottom safe area
+        
+    } else if (toolbarMode == 1) {
+    
         safeAreaInsets.bottom = 0;
         settings.peripheryInsets = safeAreaInsets;
         safeAreaInsets.top = safeAreaInsets.left = safeAreaInsets.right = 0;
+        
     } else {
+        
         settings.peripheryInsets = UIEdgeInsetsMake(0, safeAreaInsets.left, safeAreaInsets.bottom, safeAreaInsets.right);
         safeAreaInsets.bottom = safeAreaInsets.left = safeAreaInsets.right = 0;
     }
     
-    // scale peripheryInsets to match the scale ratio
-    settings.peripheryInsets = UIEdgeInsetsMake(settings.peripheryInsets.top/_scaleRatio, settings.peripheryInsets.left/_scaleRatio, settings.peripheryInsets.bottom/_scaleRatio, settings.peripheryInsets.right/_scaleRatio);
-    if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+
+    settings.peripheryInsets = UIEdgeInsetsMake(
+        settings.peripheryInsets.top / _scaleRatio,
+        settings.peripheryInsets.left / _scaleRatio,
+        settings.peripheryInsets.bottom / _scaleRatio,
+        settings.peripheryInsets.right / _scaleRatio
+    );
+
+
+    if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         UIInterfaceOrientation currentOrientation = UIApplication.sharedApplication.statusBarOrientation;
-        if(UIInterfaceOrientationIsLandscape(currentOrientation)) {
+        if (UIInterfaceOrientationIsLandscape(currentOrientation)) {
             safeAreaInsets.top = 0;
         }
-        switch(currentOrientation) {
+        
+        switch (currentOrientation) {
             case UIInterfaceOrientationLandscapeLeft:
                 settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.left, 0, settings.peripheryInsets.right, settings.peripheryInsets.bottom);
                 break;
@@ -713,14 +724,15 @@ void UIKitFixesInit(void) {
                 settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.top, settings.peripheryInsets.left, settings.peripheryInsets.bottom, settings.peripheryInsets.right);
                 break;
         }
-
     } else {
         settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.top, settings.peripheryInsets.left, settings.peripheryInsets.bottom, settings.peripheryInsets.right);
     }
     
+    
     safeAreaInsets.bottom = 0;
     return safeAreaInsets;
 }
+
 
 - (void)updateMaximizedFrameWithSettings:(UIMutableApplicationSceneSettings *)settings {
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, [self updateMaximizedSafeAreaWithSettings:settings]);

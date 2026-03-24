@@ -12,7 +12,7 @@
 @class ResizeHandleView;
 
 @protocol AppSceneViewControllerDelegate; 
-@interface DecoratedAppSceneViewController : UIViewController <AppSceneViewControllerDelegate>
+
 
 API_AVAILABLE(ios(16.0))
 @interface DecoratedAppSceneViewController : UIViewController <AppSceneViewControllerDelegate>

@@ -218,6 +218,13 @@ void UIKitFixesInit(void) {
     [self updateOriginalFrame];
     [self.view layoutIfNeeded];
 
+
+    NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
+    [defaults addObserver:self forKeyPath:@"LCMultitaskToolbarMode" options:NSKeyValueObservingOptionNew context:NULL];
+    [self updateVerticalConstraints];
+    [self updateOriginalFrame];
+    [self.view layoutIfNeeded];
+
 }
 
 
@@ -503,28 +510,55 @@ void UIKitFixesInit(void) {
 
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-    if(_isMaximized) {
+    if ([keyPath isEqualToString:@"LCMultitaskToolbarMode"]) {
+        NSInteger newMode = [change[NSKeyValueChangeNewKey] integerValue];
+        
+        [UIView animateWithDuration:0.3 animations:^{
+            switch (newMode) {
+                case 0: { 
+                    
+                    self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
+                    self.navigationItem.leftBarButtonItems = nil;
+                    
+                    [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+                    break;
+                }
+                
+                case 1: { 
+                    
+                    self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems ?: self.navigationItem.leftBarButtonItems;
+                    self.navigationItem.rightBarButtonItems = nil;
+                    
+                    [self.view addArrangedSubview:self.navigationBar];
+                    break;
+                }
+                
+                case 2: {
+                default: {
+                    
+                    self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
+                    self.navigationItem.leftBarButtonItems = nil;
+                    [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+                    break;
+                }
+            }
+            
+            
+            [self updateVerticalConstraints];
+        
+            [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
+        }];
+        return;
+    }
+    
+    
+    if ([keyPath isEqualToString:@"LCMultitaskMaximized"] || _isMaximized) {
         [self.appSceneVC.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
             [self updateMaximizedFrameWithSettings:settings];
         }];
     }
-    
-    BOOL bottomWindowBar = [change[NSKeyValueChangeNewKey] boolValue];
-    [UIView animateWithDuration:0.3 animations:^{
-        if(bottomWindowBar) {
-            self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems;
-            self.navigationItem.rightBarButtonItems = nil;
-            [self.view addArrangedSubview:self.navigationBar];
-        } else {
-            self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems;
-            self.navigationItem.leftBarButtonItems = nil;
-            [self.view insertArrangedSubview:self.navigationBar atIndex:0];
-        }
-        
-        [self updateVerticalConstraints];
-        [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
-    }];
 }
+
 
 - (void)moveWindow:(UIPanGestureRecognizer*)sender {
     if(_isMaximized) return;
@@ -577,37 +611,73 @@ void UIKitFixesInit(void) {
 }
 
 - (void)updateVerticalConstraints {
-    // Update safe area insets
+    
+    NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
+    
+    
+    BOOL forceHideInMaximized = (MultitaskDockManager.shared.isCollapsed && _isMaximized);
+    BOOL shouldHideBar = (toolbarMode == 2) || forceHideInMaximized;
+    
+    
+    CGFloat navBarHeight = shouldHideBar ? 0 : 44.0;
+    self.navigationBar.hidden = shouldHideBar;
+
+    
     if(_isMaximized) {
         __weak typeof(self) weakSelf = self;
         self.appSceneVC.nextUpdateSettingsBlock = ^(UIMutableApplicationSceneSettings *settings) {
             [weakSelf updateMaximizedFrameWithSettings:settings];
         };
     }
-    
-    BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
-    BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && _isMaximized;
-    CGFloat navBarHeight = hideWindowBar ? 0 : 0;
-    self.navigationBar.hidden = hideWindowBar;
-    //⭐️⭐️⭐️
-    self.navigationBar.hidden = YES;
-    //⭐️⭐️⭐️
-    [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
-    if(bottomWindowBar) {
-        self.activatedVerticalConstraints = @[
-            [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
-            [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-        ];
-    } else {
-        self.activatedVerticalConstraints = @[
-            [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
-            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-            [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-        ];
+
+
+    if (self.activatedVerticalConstraints) {
+        [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
     }
+
+
+    NSMutableArray *newConstraints = [NSMutableArray array];
+    
+    switch (toolbarMode) {
+        case 0: { 
+            [newConstraints addObjectsFromArray:@[
+                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
+                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
+            ]];
+            
+            if ([self.view.arrangedSubviews containsObject:self.navigationBar]) {
+                [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+            }
+            break;
+        }
+
+        case 1: {
+            [newConstraints addObjectsFromArray:@[
+                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
+                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
+            ]];
+            
+            [self.view addArrangedSubview:self.navigationBar];
+            break;
+        }
+
+        case 2: {
+        default: {
+            [newConstraints addObjectsFromArray:@[
+                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+                [self.navigationBar.heightAnchor constraintEqualToConstant:0]
+            ]];
+            break;
+        }
+    }
+
+    self.activatedVerticalConstraints = newConstraints;
     [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
 }
+
 
 - (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
     BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];

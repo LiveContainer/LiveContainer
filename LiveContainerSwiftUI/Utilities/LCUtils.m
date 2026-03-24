@@ -9,13 +9,17 @@
 #import "LCAppInfo.h"
 #import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
 #import "../../ZSign/zsigner.h"
-#import "LiveContainerSwiftUI-Swift.h"
 
+
+@protocol _UISceneSettingsDiffAction <NSObject> @end
+
+
+#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
 @interface UIApplication (Private)
 @property (nonatomic, readonly) UIWindow *keyWindow __deprecated;
 @end
 
-
+#import "LiveContainerSwiftUI-Swift.h"
 
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)

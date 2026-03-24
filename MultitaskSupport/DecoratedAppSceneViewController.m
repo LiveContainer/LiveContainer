@@ -33,20 +33,33 @@ void UIKitFixesInit(void) {
         method_exchangeImplementations(class_getClassMethod(RBSTarget.class, @selector(targetWithPid:environmentIdentifier:)), class_getClassMethod(RBSTarget.class, @selector(hook_targetWithPid:environmentIdentifier:)));
     }
 }
-
-@interface DecoratedAppSceneViewController()
 //⭐️⭐️⭐️
+@interface DecoratedAppSceneViewController () <AppSceneViewControllerDelegate>
+
+@property (nonatomic, strong) UIStackView *view; 
+@property (nonatomic, strong) UINavigationBar *navigationBar;
+@property (nonatomic, strong) UINavigationItem *navigationItem;
+@property (nonatomic, strong) UIView *contentView;
+@property (nonatomic, strong) AppSceneViewController *appSceneVC;
+@property (nonatomic, strong) UIBarButtonItem *maximizeButton;
+
 @property (nonatomic, strong) ResizeHandleView *moveHandle;
-//⭐️⭐️⭐️
+@property (nonatomic, strong) ResizeHandleView *resizeHandle;
 
-@property(nonatomic) NSArray* activatedVerticalConstraints;
-@property(nonatomic) NSString* dataUUID;
-@property(nonatomic) NSString* windowName;
-@property(nonatomic) int pid;
-@property(nonatomic) CGRect originalFrame;
-@property(nonatomic) UIBarButtonItem *maximizeButton;
-@property(nonatomic) bool isAppTerminationRequested;
+@property (nonatomic, strong) NSArray<NSLayoutConstraint *> *activatedVerticalConstraints;
+@property (nonatomic, assign) CGFloat scaleRatio;
+@property (nonatomic, assign) BOOL isMaximized;
+@property (nonatomic, assign) CGRect originalFrame;
+
+@property (nonatomic, copy) NSString *dataUUID;
+@property (nonatomic, copy) NSString *windowName;
+@property (nonatomic, assign) int pid;
+@property (nonatomic, assign) BOOL isAppTerminationRequested;
+
+@property (nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
+
 @end
+//⭐️⭐️⭐️
 
 @implementation DecoratedAppSceneViewController
 - (instancetype)initWindowName:(NSString*)windowName bundleId:(NSString*)bundleId dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC {

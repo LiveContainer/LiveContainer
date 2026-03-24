@@ -1,16 +1,13 @@
 #import "DecoratedAppSceneViewController.h"
+#import "AppSceneViewController.h"
 #import "ResizeHandleView.h"
 #import "LiveContainerSwiftUI-Swift.h"
-#import "AppSceneViewController.h"
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "PiPManager.h"
 #import "VirtualWindowsHostView.h"
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 #import <objc/runtime.h> 
-#import "AppSceneViewController.h"
-#import "ResizeHandleView.h"
-
 
 
 @implementation RBSTarget (hook)

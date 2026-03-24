@@ -34,9 +34,15 @@ void UIKitFixesInit(void) {
     }
 }
 //⭐️⭐️⭐️
+
+@interface _UIPrototypingMenuSlider : UISlider
+@property (nonatomic, assign) CGFloat stepSize;
+@end
+
 @interface DecoratedAppSceneViewController () <AppSceneViewControllerDelegate>
 
-@property (nonatomic, strong) UIStackView *view; 
+
+@property (nonatomic, strong) UIStackView *mainStackView; 
 @property (nonatomic, strong) UINavigationBar *navigationBar;
 @property (nonatomic, strong) UINavigationItem *navigationItem;
 @property (nonatomic, strong) UIView *contentView;
@@ -59,6 +65,7 @@ void UIKitFixesInit(void) {
 @property (nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
 
 @end
+
 //⭐️⭐️⭐️
 
 @implementation DecoratedAppSceneViewController
@@ -142,12 +149,13 @@ void UIKitFixesInit(void) {
     NSInteger toolbarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskToolbarMode"];
     CGFloat navBarHeight = (toolbarMode == 2) ? 0 : 44.0; 
     
-    self.view = [UIStackView new];
-    self.view.axis = UILayoutConstraintAxisVertical;
-    self.view.backgroundColor = UIColor.systemBackgroundColor;
-    self.view.layer.cornerRadius = 10;
-    self.view.layer.masksToBounds = YES;
-
+    UIStackView *stackView = [UIStackView new];
+    stackView.axis = UILayoutConstraintAxisVertical;
+    stackView.backgroundColor = UIColor.systemBackgroundColor;
+    stackView.layer.cornerRadius = 10;
+    stackView.layer.masksToBounds = YES;
+    self.view = stackView; 
+    self.mainStackView = stackView;
     
     BOOL isLandscape = UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation);
     CGRect frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
@@ -529,7 +537,7 @@ void UIKitFixesInit(void) {
                     self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
                     self.navigationItem.leftBarButtonItems = nil;
                     
-                    [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:0]; 
                     break;
                 }
                 
@@ -538,7 +546,7 @@ void UIKitFixesInit(void) {
                     self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems ?: self.navigationItem.leftBarButtonItems;
                     self.navigationItem.rightBarButtonItems = nil;
                     
-                    [self.view addArrangedSubview:self.navigationBar];
+                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:1];
                     break;
                 }
                 
@@ -547,7 +555,7 @@ void UIKitFixesInit(void) {
                     
                     self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems ?: self.navigationItem.rightBarButtonItems;
                     self.navigationItem.leftBarButtonItems = nil;
-                    [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+                    [self.mainStackView insertArrangedSubview:self.navigationBar atIndex:2]; 
                     break;
                 }
             }

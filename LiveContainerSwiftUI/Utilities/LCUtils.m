@@ -3,15 +3,19 @@
 #import "../../LiveContainer/LCSharedUtils.h"
 #import "../../ZSign/zsigner.h"
 
+#import "AppSceneViewController.h" 
+#import "DecoratedAppSceneViewController.h" 
+
+
 
 @class DecoratedAppSceneViewController;
 
 
 @protocol _UISceneSettingsDiffAction <NSObject> @end
 
-#import "LiveContainerSwiftUI-Swift.h"
-#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
 
+#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
+#import "LiveContainerSwiftUI-Swift.h"
 @import Darwin;
 @import MachO;
 @import UIKit;

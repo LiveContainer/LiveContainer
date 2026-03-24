@@ -7,6 +7,9 @@
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 
+@protocol _UISceneSettingsDiffAction <NSObject>
+@end
+
 @class UIMutableApplicationSceneSettings;
 @class _UIScenePresenter;
 @class AppSceneViewController;

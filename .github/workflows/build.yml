@@ -33,13 +33,14 @@ jobs:
       - name: Set Scheme
         id: scheme
         run: |
-          if [ $scheme = default ]
+          if [ "${{ env.scheme }}" = "default" ]
           then
             scheme_list=$(xcodebuild -list -json | tr -d "\n")
             scheme=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
             echo Using default scheme: $scheme
           else
-            echo Using configured scheme: $scheme
+            echo Using configured scheme: ${{ env.scheme }}
+            scheme=${{ env.scheme }}
           fi
           echo "scheme=$scheme" >> $GITHUB_OUTPUT
       - name: Set filetype_parameter
@@ -53,12 +54,24 @@ jobs:
           file_to_build=`ls -A | grep -i \\.xcworkspace\$ || ls -A | grep -i \\.xcodeproj\$`
           file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
           echo "file_to_build=$file_to_build" >> $GITHUB_OUTPUT
+
       - name: Archive
         env:
           scheme: ${{ steps.scheme.outputs.scheme }}
           filetype_parameter: ${{ steps.filetype_parameter.outputs.filetype_parameter }}
           file_to_build: ${{ steps.file_to_build.outputs.file_to_build }}
-        run: xcodebuild archive -archivePath "$archive_path" -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -sdk iphoneos -arch arm64 -configuration Release | xcpretty && exit ${PIPESTATUS[0]}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -archivePath "$archive_path" \
+            -scheme "$scheme" \
+            -"$filetype_parameter" "$file_to_build" \
+            -sdk iphoneos \
+            -arch arm64 \
+            -configuration Release \
+            -allowProvisioningUpdates \
+            COMPILER_INDEX_STORE_ENABLE=NO 2>&1 | grep -iC 5 "error:" || exit ${PIPESTATUS[0]}
+
       - name: Tar Build Artifact
         run: tar -cvf "$archive_path.xcarchive.tar" "$archive_path.xcarchive"
       - name: Upload a Build Artifact
@@ -66,6 +79,7 @@ jobs:
         with:
           name: ${{ env.archive_path }}.xcarchive.tar
           path: ${{ env.archive_path }}.xcarchive.tar
+
       - name: Create IPA
         run: |
           sh .github/build_github.sh
@@ -86,31 +100,27 @@ jobs:
     name: Nightly Release
     permissions:
       contents: write
-    if: inputs.release__nightly || github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    if: |
+      (inputs.release__nightly || github.event_name == 'push') && 
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     needs: [build]
     concurrency:
       group: release__nightly
       cancel-in-progress: true
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Download a Build Artifact
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact }}
-      - name: Download a Build Artifact2
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.artifact2 }}
+          pattern: LiveContainer*
+          merge-multiple: true
       - name: Get Commit Info
         id: commit_info
         run: |
-          COMMIT_SHA=$(git rev-parse HEAD)
-          COMMIT_MSG=$(git log -1 --pretty=%s)
-          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
-          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_ENV
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_MSG=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
       - name: Update AltStore source
         id: update_source
         env:
@@ -125,14 +135,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with: 
+          tag_name: nightly
+          name: "Nightly Build" 
           body: |
             **Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             **Message:** ${{ github.event.head_commit.message }}
             
-            This is a nightly release [created automatically with GitHub Actions workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}).
+            This is an official nightly release from the main branch.
           files: |
-            ${{ needs.build.outputs.artifact }}
-            ${{ needs.build.outputs.artifact2 }}
+            *.ipa
             .github/apps_nightly.json
       - name: Update apps.json in Release 1.0
         uses: softprops/action-gh-release@v2
@@ -142,3 +153,37 @@ jobs:
             .github/apps_ss_lc.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release__beta:
+    name: Beta Release
+    permissions:
+      contents: write
+    if: github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    needs: [build]
+    concurrency:
+      group: release__beta
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: LiveContainer*
+          merge-multiple: true
+      - name: Beta Release
+        uses: andelf/nightly-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with: 
+          tag_name: beta
+          name: "Beta Build (${{ github.ref_name }})" 
+          body: |
+            **Experimental Beta Build**
+            Branch: `${{ github.ref_name }}`
+            Commit: ${{ github.sha }}
+            
+            This release is for testing new features in your branch.
+          files: |
+            *.ipa

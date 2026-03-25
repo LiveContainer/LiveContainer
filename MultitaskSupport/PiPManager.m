@@ -9,7 +9,7 @@
 #include "DecoratedAppSceneViewController.h"
 #include "../LiveContainer/utils.h"
 //⭐️⭐️⭐️⤵️
-#import "../LiveContainer/MultitaskDockManager.h" 
+#import "LiveContainerSwiftUI-Swift.h"
 //⭐️⭐️⭐️⤴️
 API_AVAILABLE(ios(16.0))
 @interface PiPManager()

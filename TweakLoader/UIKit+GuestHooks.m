@@ -21,15 +21,18 @@ static void UIKitGuestHooksInit(void) {
 //⭐️⭐️⭐️⤴️
 __attribute__((constructor))
 static void Real_UIKitGuestHooksInit(void) {
+    NSString *lcGuestAppId = NSUserDefaults.lcGuestAppId;
     if(!NSUserDefaults.lcGuestAppId) return;
-    if ([guestAppId isEqualToString:@"com.SideStore.SideStore"] || 
-        [guestAppId containsString:@"sidestore"] ||
-        NSUserDefaults.isSideStore) { 
-        return; 
+    if (!([lcGuestAppId isEqualToString:@"com.SideStore.SideStore"] || 
+          [lcGuestAppId.lowercaseString containsString:@"sidestore"] ||
+          NSUserDefaults.isSideStore)) { 
+        //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
+          swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+          swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
+        
     }
-    //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
-     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
+    
+   
     
 //if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification

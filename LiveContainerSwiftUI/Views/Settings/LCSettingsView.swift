@@ -495,10 +495,6 @@ struct LCSettingsView: View {
     func openForkedRepo() {
         UIApplication.shared.open(URL(string: "https://github.com/Mod4-Da-GOAT/LiveContainer")!)
     }
-    
-    func openForkedRepo() {
-        UIApplication.shared.open(URL(string: "https://github.com/iamcheese-man/LiveContainer")!)
-    }
 
     func isDebuggerAttached() -> Bool {
         // Method 1: Check P_TRACED flag (works for lldb, etc)

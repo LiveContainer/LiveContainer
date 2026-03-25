@@ -8,6 +8,7 @@
 #include "AppSceneViewController.h"
 #include "DecoratedAppSceneViewController.h"
 #include "../LiveContainer/utils.h"
+#import "MultitaskDockManager.h"
 
 API_AVAILABLE(ios(16.0))
 @interface PiPManager()

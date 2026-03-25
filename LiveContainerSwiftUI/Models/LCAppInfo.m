@@ -5,7 +5,7 @@
 #import <UIKit/UIKit.h>
 #import "LCAppInfo.h"
 #import "LCUtils.h"
-#import "../LiveContainer/LCSharedUtils.h"
+#import "../../LiveContainer/LCSharedUtils.h"
 
 uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 

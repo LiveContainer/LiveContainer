@@ -340,11 +340,12 @@ class AppPreferenceModel: LCAppPreferencesDelegate {
             return AppPreferenceModel._enBundle;
         }
         let language = "en"
-        let path = settingsBundle.path(forResource:language, ofType: "lproj")
-        let bundle = Bundle(path: path!)
-        AppPreferenceModel._enBundle = bundle
+        if let path = settingsBundle.path(forResource:language, ofType: "lproj") {
+            let bundle = Bundle(path: path)
+            AppPreferenceModel._enBundle = bundle
+        }
         AppPreferenceModel._enBundleFound = true
-        return bundle
+        return AppPreferenceModel._enBundle
     }
     
     init(settingsBundle: Bundle, userDefaults: UserDefaults, table: String?) {

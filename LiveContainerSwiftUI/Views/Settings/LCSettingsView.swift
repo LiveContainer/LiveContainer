@@ -44,17 +44,6 @@ struct LCSettingsView: View {
     @AppStorage("LCDeviceUDID", store: LCUtils.appGroupUserDefault) var deviceUDID: String = ""
     @AppStorage("LCJITEnablerType", store: LCUtils.appGroupUserDefault) var JITEnabler: JITEnablerType = .SideJITServer
     
-    @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
-    @AppStorage("LCLaunchInMultitaskMode") var launchInMultitaskMode = false
-    @AppStorage("LCLaunchMultitaskMaximized") var launchMultitaskMaximized = false
-    @AppStorage("LCMultitaskBottomWindowBar", store: LCUtils.appGroupUserDefault) var bottomWindowBar = false
-    @AppStorage("LCAutoEndPiP", store: LCUtils.appGroupUserDefault) var autoEndPiP = false
-    @AppStorage("LCSkipTerminatedScreen", store: LCUtils.appGroupUserDefault) var skipTerminatedScreen = false
-    @AppStorage("LCRestartTerminatedApp", store: LCUtils.appGroupUserDefault) var restartTerminatedApp = false
-    @AppStorage("LCMaxOneAppOnStage", store: LCUtils.appGroupUserDefault) var onlyOneAppOnStage = false
-    @AppStorage("LCDockWidth", store: LCUtils.appGroupUserDefault) var dockWidth: Double = 80
-    @AppStorage("LCRedirectURLToHost", store: LCUtils.appGroupUserDefault) var redirectURLToHost = false
-    
     @State var store : Store = .Unknown
     
     @AppStorage("LCLoadTweaksToSelf") var injectToLCItelf = false
@@ -143,12 +132,23 @@ struct LCSettingsView: View {
                                 Text("lc.settings.jitlessDiagnose".loc)
                             }
                         }
-                    } header: {
-                        Text("lc.settings.multiLC".loc)
                     } footer: {
                         Text("lc.settings.multiLCDesc".loc)
                     }
                 }
+                
+                if #available(iOS 16.1, *) {
+                    Section {
+                        NavigationLink {
+                            LCMultitaskSettingView()
+                        } label: {
+                            Text("lc.appBanner.multitask".loc)
+                        }
+                    } footer: {
+                        Text("lc.settings.multitaskDesc".loc)
+                    }
+                }
+                
                 Section {
                     if JITEnabler == .SideJITServer || JITEnabler == .JITStreamerEBLegacy {
                         HStack {
@@ -230,67 +230,6 @@ struct LCSettingsView: View {
                         }
                     } footer: {
                         Text("lc.settings.strictHidingDesc".loc)
-                    }
-                }
-                
-                if #available(iOS 16.1, *) {
-                    Section {
-                        if(UIApplication.shared.supportsMultipleScenes) {
-                            Picker(selection: $multitaskMode) {
-                                Text("lc.settings.multitaskMode.virtualWindow".loc).tag(MultitaskMode.virtualWindow)
-                                Text("lc.settings.multitaskMode.nativeWindow".loc).tag(MultitaskMode.nativeWindow)
-                            } label: {
-                                Text("lc.settings.multitaskMode".loc)
-                            }
-                        }
-                        Toggle(isOn: $launchInMultitaskMode) {
-                            Text("lc.settings.autoLaunchInMultitaskMode".loc)
-                        }
-                        
-                        if multitaskMode == .virtualWindow {
-                            Toggle(isOn: $launchMultitaskMaximized) {
-                                Text("lc.settings.launchMultitaskMaximized".loc)
-                            }
-                            if launchMultitaskMaximized {
-                                Toggle(isOn: $onlyOneAppOnStage) {
-                                    Text("lc.settings.onlyOneAppOnStage".loc)
-                                }
-                            }
-                            Toggle(isOn: $autoEndPiP) {
-                                Text("lc.settings.autoEndPiP".loc)
-                            }
-                            Toggle(isOn: $skipTerminatedScreen) {
-                                Text("lc.settings.skipTerminatedScreen".loc)
-                            }
-                            if skipTerminatedScreen {
-                                Toggle(isOn: $restartTerminatedApp) {
-                                    Text("lc.settings.restartTerminatedApp".loc)
-                                }
-                            }
-                            Toggle(isOn: $bottomWindowBar) {
-                                Text("lc.settings.bottomWindowBar".loc)
-                            }
-                            Toggle(isOn: $redirectURLToHost) {
-                                Text("lc.settings.redirectURLToHost".loc)
-                            }
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text("lc.settings.dockWidth".loc)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Text("\(Int(dockWidth))px")
-                                        .foregroundColor(.secondary)
-                                        .font(.caption)
-                                }
-                                Slider(value: $dockWidth, in: 60...110) {
-                                    Text("lc.settings.dockWidth".loc)
-                                }
-                                .tint(.accentColor)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    } footer: {
-                        Text("lc.settings.multitaskDesc".loc)
                     }
                 }
                 

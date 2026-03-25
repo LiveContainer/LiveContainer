@@ -5,10 +5,10 @@
 @import Security;
 
 #import "LCUtils.h"
-#import "../LiveContainer/LCSharedUtils.h"
+#import "../../LiveContainer/LCSharedUtils.h"
 #import "LCAppInfo.h"
-#import "../MultitaskSupport/DecoratedAppSceneViewController.h"
-#import "../ZSign/zsigner.h"
+#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
+#import "../../ZSign/zsigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
 
 // make SFSafariView happy and open data: URLs

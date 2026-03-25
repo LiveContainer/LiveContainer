@@ -7,7 +7,7 @@
 #import "AppSceneViewController.h"
 #import "DecoratedAppSceneViewController.h"
 #import "LiveContainerSwiftUI-Swift.h"
-#import "../LiveContainerSwiftUI/LCUtils.h"
+#import "../LiveContainerSwiftUI/Utilities/LCUtils.h"
 #import "PiPManager.h"
 #import "Localization.h"
 #import "LCSharedUtils.h"

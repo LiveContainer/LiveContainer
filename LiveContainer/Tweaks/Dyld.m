@@ -248,10 +248,17 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
 
     
     kern_return_t ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
-    assert(ret == KERN_SUCCESS);
+    if(ret != KERN_SUCCESS) {
+        assert(os_tpro_is_supported());
+        os_thread_self_restrict_tpro_to_rw();
+    }
     *origFunction = (void*)*(void**)vtableFunctionPtr;
     *(uint64_t*)vtableFunctionPtr = (uint64_t)hookFunction;
     builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ);
+    if(ret != KERN_SUCCESS) {
+        assert(os_tpro_is_supported());
+        os_thread_self_restrict_tpro_to_ro();
+    }
     return true;
 }
 
@@ -427,7 +434,10 @@ void *dlopen_nolock(const char *path, int mode) {
     
     kern_return_t ret;
     ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(uintptr_t[2]), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
-    assert(ret == KERN_SUCCESS);
+    if(ret != KERN_SUCCESS) {
+        assert(os_tpro_is_supported());
+        os_thread_self_restrict_tpro_to_rw();
+    }
     void *origLockPtr = lockUnlockPtr[0], *origUnlockPtr = lockUnlockPtr[1];
     lockUnlockPtr[0] = hook_libdyld_os_unfair_recursive_lock_lock_with_options;
     lockUnlockPtr[1] = hook_libdyld_os_unfair_recursive_lock_unlock;
@@ -439,12 +449,18 @@ void *dlopen_nolock(const char *path, int mode) {
     }
     
     ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(uintptr_t[2]), false, PROT_READ | PROT_WRITE);
-    assert(ret == KERN_SUCCESS);
+    if(ret != KERN_SUCCESS) {
+        assert(os_tpro_is_supported());
+        os_thread_self_restrict_tpro_to_rw();
+    }
     lockUnlockPtr[0] = origLockPtr;
     lockUnlockPtr[1] = origUnlockPtr;
     
     ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)lockUnlockPtr, sizeof(uintptr_t[2]), false, PROT_READ);
-    assert(ret == KERN_SUCCESS);
+    if(ret != KERN_SUCCESS) {
+        assert(os_tpro_is_supported());
+        os_thread_self_restrict_tpro_to_rw();
+    }
 #else
     litehook_rebind_symbol(libdyldHeader, os_unfair_recursive_lock_lock_with_options, hook_libdyld_os_unfair_recursive_lock_lock_with_options, nil);
     litehook_rebind_symbol(libdyldHeader, os_unfair_recursive_lock_unlock, hook_libdyld_os_unfair_recursive_lock_unlock, nil);

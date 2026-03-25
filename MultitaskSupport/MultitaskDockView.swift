@@ -128,6 +128,15 @@ class AppInfoProvider {
 // MARK: - MultitaskDockView Manager
 @available(iOS 16.0, *)
 @objc public class MultitaskDockManager: NSObject, ObservableObject {
+     //⭐️⭐️⭐️⤵️
+     @Published var menuUpdateTrigger: UUID = UUID()
+    @objc public func refreshMenu() {
+        DispatchQueue.main.async {
+            self.menuUpdateTrigger = UUID()
+        }
+    }
+    //⭐️⭐️⭐️⤴️
+    
     @objc public static let shared = MultitaskDockManager()
     
     @Published var apps: [DockAppModel] = []

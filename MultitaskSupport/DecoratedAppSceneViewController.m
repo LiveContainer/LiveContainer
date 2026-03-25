@@ -13,15 +13,6 @@
 @protocol _UISceneSettingsDiffAction <NSObject>
 @end
 
-
-//⭐️⭐️⭐️⤵️
-@interface NSFileManager (GuestHooks)
-- (NSURL *)hook_containerURLForSecurityApplicationGroupIdentifier:(NSString *)groupId;
-- (BOOL)hook_createDirectoryAtPath:(NSString *)p withIntermediateDirectories:(BOOL)i attributes:(id)a error:(id *)e;
-@end
-//⭐️⭐️⭐️⤴️
-
-
 @implementation RBSTarget (hook)
 + (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)environmentIdentifier {
     if([environmentIdentifier containsString:@"LiveProcess"]) {
@@ -30,18 +21,7 @@
     return [self hook_targetWithPid:pid environmentIdentifier:environmentIdentifier];
 }
 @end
-//⭐️⭐️⭐️⤵️
-@interface RBSTarget (Hook)
-+ (instancetype)targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)env;
-- (instancetype)hook_targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)env;
-@end
-@interface _UIPrototypingMenuSlider : UISlider
-@property (nonatomic, assign) CGFloat stepSize;
-@end
-@interface MultitaskDockManager (Methods)
-- (void)refreshMenu;
-@end
-//⭐️⭐️⭐️⤴️
+
 static int hook_return_2(void) {
     return 2;
 }
@@ -71,18 +51,7 @@ void UIKitFixesInit(void) {
 @property (nonatomic, copy) NSString *windowName;
 @property (nonatomic, assign) int pid;
 @property (nonatomic, assign) BOOL isAppTerminationRequested;
-//⭐️⭐️⭐️⤵️
-@property (nonatomic, strong) UIStackView *mainStackView;
-@property (nonatomic, strong) UINavigationBar *navigationBar;
-@property (nonatomic, strong) UINavigationItem *navigationItem;
-@property (nonatomic, strong) UIView *contentView;
-@property (nonatomic, strong) ResizeHandleView *moveHandle;
-@property (nonatomic, strong) ResizeHandleView *resizeHandle;
-@property (nonatomic, strong) AppSceneViewController *appSceneVC;
-@property (nonatomic, assign) BOOL isMaximized;
-@property (nonatomic, assign) CGFloat scaleRatio;
-@property (nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
-//⭐️⭐️⭐️⤴️
+
 @end
 
 

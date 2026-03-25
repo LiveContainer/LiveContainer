@@ -8,7 +8,9 @@
 #include "AppSceneViewController.h"
 #include "DecoratedAppSceneViewController.h"
 #include "../LiveContainer/utils.h"
-
+//⭐️⭐️⭐️⤵️
+#import "LiveContainerSwiftUI-Swift.h"
+//⭐️⭐️⭐️⤴️
 API_AVAILABLE(ios(16.0))
 @interface PiPManager()
 @property(nonatomic, strong) AVPictureInPictureVideoCallViewController *pipVideoCallViewController;
@@ -92,16 +94,17 @@ static PiPManager* sharedInstance = nil;
 }
 
 
-
+//⭐️⭐️⭐️
 - (void)pictureInPictureControllerDidStartPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
-    
+    [MultitaskDockManager.shared refreshMenu];
 }
 
 - (void)pictureInPictureControllerWillStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
     [self.displayingDecoratedVC unminimizeWindowPiP];
 }
-
+//⭐️⭐️⭐️
 - (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController {
+    [MultitaskDockManager.shared refreshMenu];
     [self.displayingVC.view insertSubview:self.displayingVC.contentView atIndex:0];
     self.displayingVC.contentView.transform = CGAffineTransformIdentity;
     [self.displayingVC setBackgroundNotificationEnabled:true];

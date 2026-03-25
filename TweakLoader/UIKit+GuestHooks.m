@@ -4,10 +4,14 @@
 #import "../Livecontainer/utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
 #import "Localization.h"
-
+@interface LCRealIPhoneModeHelper : NSObject
++ (void)repositionAllWindows;
+@end
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
+//⭐️⭐️⭐️⤵️
+static void Real_UIKitGuestHooksInit(void);
 static NSString *const LCExternalURLBlockBypassDepthKey = @"LCExternalURLBlockBypassDepth";
 
 static BOOL LCIsExternalURLBlockBypassed(void) {
@@ -57,8 +61,54 @@ static BOOL LCShouldBlockExternalURL(NSURL *url) {
 }
 
 __attribute__((constructor))
-static void UIKitGuestHooksInit() {
+static void UIKitGuestHooksInit(void) {
+    //NSString *AppId = [NSUserDefaults lcGuestAppId];
+    //if ([AppId.lowercaseString containsString:@"sidestore"]) {
+        //dispatch_async(dispatch_get_main_queue(), ^{
+            //Real_UIKitGuestHooksInit();
+        //});
+    //} else {
+       Real_UIKitGuestHooksInit();
+    //}
+}
+
+//⭐️⭐️⭐️⤴️
+
+static void Real_UIKitGuestHooksInit(void) {
+    NSString *lcGuestAppId = NSUserDefaults.lcGuestAppId;
     if(!NSUserDefaults.lcGuestAppId) return;
+    if (!([lcGuestAppId isEqualToString:@"com.SideStore.SideStore"] || 
+          [lcGuestAppId.lowercaseString containsString:@"sidestore"] ||
+          NSUserDefaults.isSideStore)) { 
+        //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
+          swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+          swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
+
+    }
+
+
+
+//if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification
+                                                          object:nil
+                                                           queue:NSOperationQueue.mainQueue
+                                                      usingBlock:^(NSNotification *note) {
+            [LCRealIPhoneModeHelper repositionAllWindows];
+        }];
+    //}
+
+
+
+
+
+
+
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
@@ -79,7 +129,7 @@ static void UIKitGuestHooksInit() {
                 break;
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
-//            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
+            swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
             swizzle(UIViewController.class, @selector(shouldAutorotateToInterfaceOrientation:), @selector(hook_shouldAutorotateToInterfaceOrientation:));
@@ -852,6 +902,70 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 @end
+//⭐️⭐️⭐️Real iPhone mode 9:16 hook
+@implementation UIScreen (LiveContainerHook)
+- (CGRect)hook_UIScreen_bounds {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
+) {
+        CGRect nativeBounds = [self hook_UIScreen_bounds];
+        CGFloat screenH = nativeBounds.size.height;
+        CGFloat screenW = nativeBounds.size.width;
+        CGFloat targetW = MIN(screenW, screenH * (9.0 / 16.0));
+        return CGRectMake(0, 0, targetW, screenH);
+    }
+
+    CGRect nativeBounds = [self hook_UIScreen_bounds];
+        CGFloat screenH = nativeBounds.size.height;
+        CGFloat targetW = nativeBounds.size.width; 
+        return CGRectMake(0, 0, targetW, screenH);
+}
+@end
+
+
+
+@implementation LCRealIPhoneModeHelper
+//⭐️⭐️⭐️Real iPhone mode 9:16 hook
++ (void)repositionAllWindows {
+    //if (![NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) return;
+
+    UIWindowScene *scene = nil;
+    for (UIWindowScene *s in UIApplication.sharedApplication.connectedScenes) {
+        if ([s isKindOfClass:UIWindowScene.class]) {
+            scene = s;
+            break;
+        }
+    }
+    if (!scene) return;
+
+    CGRect realBounds = scene.coordinateSpace.bounds;
+    CGFloat realH = realBounds.size.height;
+    CGFloat realW = realBounds.size.width;
+
+
+BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+CGFloat targetW, offsetX;
+if (isReal) {
+
+        targetW = MIN(realH * (9.0/16.0), realW);
+        offsetX = (realW - targetW) / 2.0;
+
+    } else {
+        targetW = realW;
+        offsetX = 0;
+    }
+    CGRect targetFrame = CGRectMake(offsetX, 0, targetW, realH);
+
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    for (UIWindow *window in scene.windows) {
+        window.layer.frame = targetFrame;
+    }
+    [CATransaction commit];
+}
+
+@end
+
+//⭐️⭐️⭐️Real iPhone Mode 9:16 hook(black background)
 
 @implementation UIWindow(hook)
 - (void)hook_setAutorotates:(BOOL)autorotates forceUpdateInterfaceOrientation:(BOOL)force {
@@ -860,8 +974,45 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        self.backgroundColor = [UIColor blackColor];
+    }
     [self hook_makeKeyAndVisible];
 }
+
+
+//⭐️⭐️⭐️Real iPhone mode 9:16 hook
+- (void)hook_setFrame:(CGRect)frame {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
+
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
+
+        CGFloat targetW = MIN(realW, realH * (9.0 / 16.0));
+        CGFloat offsetX = (realW - targetW) / 2.0;
+
+        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
+    } else {
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
+        [self hook_setFrame:CGRectMake(0, 0, realW, realH)];
+        //frame];
+    }
+}
+
 - (void)hook_makeKeyWindow {
     [self updateWindowScene];
     [self hook_makeKeyWindow];
@@ -883,6 +1034,7 @@ BOOL canAppOpenItself(NSURL* url) {
     }
 }
 @end
+
 
 @implementation UIDevice(hook)
 

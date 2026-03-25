@@ -407,6 +407,27 @@ struct LCAppBanner : View {
                                    children: subMenuActions)
         sectionChildren.append(addToHomeMenu)
 
+        let exportMenu = UIMenu(
+            title: "Export as IPA",
+            image: UIImage(systemName: "archivebox"),
+            children: [
+                UIAction(
+                    title: "Export IPA (App Only)",
+                    image: UIImage(systemName: "square.and.arrow.up")
+                ) { _ in
+                    Task { await exportIPA(includeData: false) }
+                },
+                UIAction(
+                    title: "Export IPA + Data",
+                    image: UIImage(systemName: "square.and.arrow.up.on.square")
+                ) { _ in
+                    Task { await exportIPA(includeData: true) }
+                }
+            ]
+        )
+
+sectionChildren.append(exportMenu)
+
         // Settings
         let settingsAction = UIAction(title: "lc.tabView.settings".loc, image: UIImage(systemName: "gear")) { _ in
             openSettings()

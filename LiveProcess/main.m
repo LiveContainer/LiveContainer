@@ -34,12 +34,26 @@ static NSDictionary *retrievedAppInfo;
 @end
 
 extern int LiveContainerMain(int argc, char *argv[]);
+static char **_envp, **_apple = NULL;
 int LiveProcessMain(int argc, char *argv[]) {
     // Let NSExtensionContext initialize, once it's done it will call CFRunLoopStop
     CFRunLoopRun();
     // Ensure app info is delivered
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
     NSCAssert(appInfo, @"Failed to retrieve app info");
+    
+    // Check if we received a request to execute a custom payload
+    NSString *customPayloadDylib = appInfo[@"customPayloadDylib"];
+    if(customPayloadDylib) {
+        void *handle = dlopen(customPayloadDylib.fileSystemRepresentation, RTLD_LAZY);
+        NSCAssert(appInfo, @"Failed to load custom payload dylib at path: %@", customPayloadDylib);
+        
+        NSString *customPayloadEntry = appInfo[@"customPayloadEntry"];
+        NSCAssert(customPayloadEntry, @"Missing customPayloadEntry");
+        int (*payloadEntry)(int, char **, char **, char **) = dlsym(handle, customPayloadEntry.UTF8String);
+        return payloadEntry(argc, argv, _envp, _apple);
+    }
+    
     NSLog(@"Retrieved app info: %@", appInfo);
     // Set LiveContainer's home path
     setenv("LP_HOME_PATH", getenv("HOME"), 1);
@@ -106,7 +120,7 @@ static void* hook_dlopen(void* dyldApiInstancePtr, const char* path, int mode) {
 }
 
 // Extension entry point
-int NSExtensionMain(int argc, char * argv[]) {
+int NSExtensionMain(int argc, char *argv[], char *envp[], char *apple[]) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
     method_setImplementation(class_getInstanceMethod(NSClassFromString(@"NSXPCDecoder"), @selector(_validateAllowedClass:forKey:allowingInvocations:)), (IMP)hook_do_nothing);
@@ -114,6 +128,8 @@ int NSExtensionMain(int argc, char * argv[]) {
     // hook dlopen UIKit
     performHookDyldApi("dlopen", 2, (void**)&orig_dlopen, hook_dlopen);
     // call the real one
+    _envp = envp;
+    _apple = apple;
     int (*orig_NSExtensionMain)(int argc, char * argv[]) = dlsym(RTLD_NEXT, "NSExtensionMain");
     return orig_NSExtensionMain(argc, argv);
 }

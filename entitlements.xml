@@ -17,10 +17,7 @@
 	<key>com.apple.developer.team-identifier</key>
 	<string>$(DEVELOPMENT_TEAM)</string>
 	<key>com.apple.security.application-groups</key>
-	<array>
-		<string>$(APP_GROUP_SIDESTORE)</string>
-		<string>$(APP_GROUP_ALTSTORE)</string>
-	</array>
+	<array/>
 	<key>get-task-allow</key>
 	<true/>
 	<key>com.apple.developer.applesignin</key>

@@ -977,6 +977,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 if !sharedModel.hiddenApps.contains(app) {
                     sharedModel.hiddenApps.append(app)
                 }
+                UserDefaults.lcShared().mutableArrayValue(forKey: "LCGuestURLSchemes")
+                    .removeObjects(in: app.appInfo.urlSchemes() as! [Any])
             } else {
                 sharedModel.hiddenApps.removeAll { now in
                     return app == now
@@ -984,6 +986,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 if !sharedModel.apps.contains(app) {
                     sharedModel.apps.append(app)
                 }
+                UserDefaults.lcShared().mutableArrayValue(forKey: "LCGuestURLSchemes")
+                    .addObjects(from: app.appInfo.urlSchemes() as! [Any])
             }
             
         }

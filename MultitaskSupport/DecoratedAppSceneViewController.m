@@ -10,6 +10,15 @@
 #import "LiveContainerSwiftUI-Swift.h"
 
 
+@interface NSFileManager (GuestHooks)
+- (NSURL *)hook_containerURLForSecurityApplicationGroupIdentifier:(NSString *)groupIdentifier;
+- (BOOL)hook_createDirectoryAtPath:(NSString *)path withIntermediateDirectories:(BOOL)createIntermediates attributes:(NSDictionary *)attributes error:(NSError **)error;
+@end
+@interface MultitaskDockManager (Private)
+- (void)refreshMenu;
+@end
+
+
 @protocol _UISceneSettingsDiffAction <NSObject>
 @end
 

@@ -10,9 +10,16 @@
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
-
+//⭐️⭐️⭐️⤵️
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        Real_UIKitGuestHooksInit();
+    });
+}
+//⭐️⭐️⭐️⤴️
+__attribute__((constructor))
+static void Real_UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
     //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));

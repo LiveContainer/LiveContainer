@@ -44,6 +44,8 @@ void UIKitFixesInit(void) {
 
 
 @interface DecoratedAppSceneViewController () <AppSceneViewControllerDelegate>
+@property (nonatomic, strong) UIStackView *mainStackView;
+@property (nonatomic, strong) ResizeHandleView *moveHandle;
 @property (nonatomic, strong) UIBarButtonItem *maximizeButton;
 @property (nonatomic, strong) NSArray<NSLayoutConstraint *> *activatedVerticalConstraints;
 @property (nonatomic, assign) CGRect originalFrame;

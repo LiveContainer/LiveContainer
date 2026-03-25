@@ -14,10 +14,16 @@ NSUUID* idForVendorUUID = nil;
 static void Real_UIKitGuestHooksInit(void);
 __attribute__((constructor))
 static void UIKitGuestHooksInit(void) {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    NSString *guestAppId = [NSUserDefaults lcGuestAppId];
+    if ([guestAppId.lowercaseString containsString:@"sidestore"]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            Real_UIKitGuestHooksInit();
+        });
+    } else {
         Real_UIKitGuestHooksInit();
-    });
+    }
 }
+
 //⭐️⭐️⭐️⤴️
 __attribute__((constructor))
 static void Real_UIKitGuestHooksInit(void) {

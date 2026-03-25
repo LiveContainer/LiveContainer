@@ -343,8 +343,10 @@ void UIKitFixesInit(void) {
 }
 //⭐️⭐️⭐️
 - (void)maximizeWindow {
-    [MultitaskDockManager.shared refreshMenu];
+    
     if (self.isMaximized) {
+        self.isMaximized = NO;
+        [MultitaskDockManager.shared refreshMenu];
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
         CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -362,6 +364,8 @@ void UIKitFixesInit(void) {
             self.maximizeButton.image = [maximizeImage imageWithConfiguration:maximizeConfig];
         }];
     } else {
+        self.isMaximized = YES;
+        [MultitaskDockManager.shared refreshMenu];
         [self updateOriginalFrame];
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.isMaximized = YES;

@@ -22,6 +22,11 @@ static void UIKitGuestHooksInit(void) {
 __attribute__((constructor))
 static void Real_UIKitGuestHooksInit(void) {
     if(!NSUserDefaults.lcGuestAppId) return;
+    if ([guestAppId isEqualToString:@"com.SideStore.SideStore"] || 
+        [guestAppId containsString:@"sidestore"] ||
+        NSUserDefaults.isSideStore) { 
+        return; 
+    }
     //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
      swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
      swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));

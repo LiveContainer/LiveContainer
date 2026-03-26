@@ -217,10 +217,21 @@ func setMode(_ mode: AppLaunchMode) {
         }
     }
     
-    init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
-        _installOptions = State(initialValue: [])
-        _appDataFolderNames = appDataFolderNames
-        _tweakFolderNames = tweakFolderNames
+    struct LCAppListView: View {
+        @State private var installOptions: [String]
+        @Binding var appDataFolderNames: [String]
+        @Binding var tweakFolderNames: [String]
+
+        // ✅ Move the initializer here
+        init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
+            _installOptions = State(initialValue: [])
+            _appDataFolderNames = appDataFolderNames
+            _tweakFolderNames = tweakFolderNames
+        }
+
+        var body: some View {
+            // your view code
+        }
     }
     
     var body: some View {

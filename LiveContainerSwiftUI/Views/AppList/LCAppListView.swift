@@ -117,6 +117,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         // Default fallback
         return .native
     }
+}
 
 
 

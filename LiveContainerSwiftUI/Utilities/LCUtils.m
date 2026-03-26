@@ -10,6 +10,7 @@
 #import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
 #import "../../ZSign/zsigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
+#import <objc/runtime.h>
 
 // make SFSafariView happy and open data: URLs
 @implementation NSURL(hack)

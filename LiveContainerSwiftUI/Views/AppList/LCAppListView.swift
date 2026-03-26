@@ -1141,25 +1141,23 @@ func setMode(_ mode: AppLaunchMode) {
 
 
         //⭐️⭐️⭐️switch mode
-        let bundleID = appFound.appInfo.bundleIdentifier
-        let selectedApps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
+        do {
+            let bundleID = appFound.appInfo.bundleIdentifier
+            let selectedApps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
 
-        if launchInMultitaskMode {
-            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-        } else if selectedApps.contains(bundleID) {
-            // Force iPhone mode for this specific app
-            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .realIPhone)
-        } else {
-            // Default/native mode
-            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .native)
-        }
+            if launchInMultitaskMode {
+                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
+            } else if selectedApps.contains(bundleID) {
+                // Force iPhone mode for this specific app
+                try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .realIPhone)
+            } else {
+                // Default/native mode
+                 try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .native)
+              }
         } catch {
-            errorInfo = error.localizedDescription
+             errorInfo = error.localizedDescription
             errorShow = true
         }
-        
-    }
-}
     
     func authenticateUser() async {
         do {

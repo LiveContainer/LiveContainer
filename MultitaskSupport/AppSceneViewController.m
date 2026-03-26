@@ -187,26 +187,21 @@
         [weakSelf appTerminationCleanUp];
     }];
     
- [self.contentView addSubview:self.presenter.presentationView];
-self.contentView.layer.anchorPoint = CGPointMake(0, 0);
-self.contentView.layer.position = CGPointMake(0, 0);
-dispatch_async(dispatch_get_main_queue(), ^{
-    [self.view setNeedsLayout];
-    [self.view layoutIfNeeded];
-});
-self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
-self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
+    NSString *bundleID = appFound.appInfo.bundleIdentifier;
+    NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
 
-
-
-//if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-    //CGFloat viewW = self.view.bounds.size.width;
-    //CGFloat viewH = self.view.bounds.size.height;
-    //CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-    //CGFloat offsetX = (viewW - targetW) / 2.0;
-    //self.contentView.layer.position = CGPointMake(offsetX, 0);
-    //self.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
-//}
+    if ([iphoneApps containsObject:bundleID]) {
+        CGFloat viewW = self.view.bounds.size.width;
+        CGFloat viewH = self.view.bounds.size.height;
+        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+        CGFloat offsetX = (viewW - targetW) / 2.0;
+        self.contentView.layer.position = CGPointMake(offsetX, 0);
+        self.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
+    } else {
+        self.contentView.layer.anchorPoint = CGPointMake(0, 0);
+        self.contentView.layer.position = CGPointMake(0, 0);
+        self.contentView.bounds = self.view.bounds;
+    }
 
 
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
@@ -247,13 +242,19 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
     [super viewWillLayoutSubviews];
     CGFloat viewW = self.view.bounds.size.width;
     CGFloat viewH = self.view.bounds.size.height;
+
     if (self.presenter.presentationView) {
-        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+        NSString *bundleID = self.appFound.appInfo.bundleIdentifier;
+        NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
+
+        if ([iphoneApps containsObject:bundleID]) {
+            // iPhone mode only for selected apps
             CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-            CGFloat offsetX = (viewW - targetW) / 2.0;
-            self.contentView.autoresizingMask = UIViewAutoresizingNone;
+             CGFloat offsetX = (viewW - targetW) / 2.0;
+             self.contentView.autoresizingMask = UIViewAutoresizingNone;
             self.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
         } else {
+            // Fullscreen/native for other apps
             self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
             self.contentView.frame = CGRectMake(0, 0, viewW, viewH);
         }
@@ -272,15 +273,20 @@ self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
         if(currentDebounceToken != self.resizeDebounceToken) {
             return;
         }
+        NSString *bundleID = self.appFound.appInfo.bundleIdentifier;
+        NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
+
+        CGFloat frameOriginX = 0;
         CGFloat w = self.view.frame.size.width / self.scaleRatio;
         CGFloat h = self.view.frame.size.height / self.scaleRatio;
-        CGFloat frameOriginX = 0; 
-        if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
-          CGFloat targetW = MIN(h * (9.0 / 16.0), w);
-          frameOriginX = (w - targetW) / 2.0;
-          w = targetW;
+
+        if ([iphoneApps containsObject:bundleID]) {
+            CGFloat targetW = MIN(h * (9.0 / 16.0), w);
+            frameOriginX = (w - targetW) / 2.0;
+            w = targetW;
         }
-       CGRect frame = CGRectMake(frameOriginX, 0, w, h);
+
+        CGRect frame = CGRectMake(frameOriginX, 0, w, h);
 
 
         [self.presenter.scene updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {

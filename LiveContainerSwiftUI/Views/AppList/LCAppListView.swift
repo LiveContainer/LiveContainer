@@ -1332,6 +1332,12 @@ func setMode(_ mode: AppLaunchMode) {
     
 }
 
+// LCAppListView struct
+struct LCAppListView: View {
+    // properties, init, functions, body
+}
+
+// ✅ File-scope extension
 extension View {
     func apply<V: View>(@ViewBuilder _ block: (Self) -> V) -> V { block(self) }
 }

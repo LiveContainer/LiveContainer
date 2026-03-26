@@ -12,6 +12,10 @@
 #import "../../litehook/src/litehook.h"
 #include "Tweaks.h"
 #include <mach-o/dyld.h>
+#import "CloudKit/CloudKit.h"
+#import "Intents/Intents.h"
+#import <UserNotifications/UserNotifications.h>
+
 @import ObjectiveC;
 @import MachO;
 
@@ -247,6 +251,25 @@ void NUDGuestHooksInit(void) {
     Class CFPrefsPlistSourceClass = NSClassFromString(@"CFPrefsPlistSource");
 
     swizzle2(CFPrefsPlistSourceClass, @selector(initWithDomain:user:byHost:containerPath:containingPreferences:), CFPrefsPlistSource2.class, @selector(hook_initWithDomain:user:byHost:containerPath:containingPreferences:));
+
+    // 处理iCloud
+    swizzleClassMethod(CKContainer.class, @selector(defaultContainer), @selector(hook_defaultContainer));
+    swizzleClassMethod(CKContainer.class, @selector(containerWithIdentifier:),@selector(hook_containerWithIdentifier:));
+    // 处理Siri
+    swizzleClassMethod(INPreferences.class, @selector(requestSiriAuthorization:),@selector(hook_requestSiriAuthorization:));
+    swizzleClassMethod(INPreferences.class, @selector(siriAuthorizationStatus),@selector(hook_siriAuthorizationStatus));
+    swizzleClassMethod(INVocabulary.class, @selector(sharedVocabulary),@selector(hook_sharedVocabulary));
+    swizzleClassMethod(INPlayMediaIntent.class, @selector(initWithMediaItems:mediaItems:mediaContainer:playShuffled:playbackRepeatMode:resumePlayback:playbackQueueLocation:playbackSpeed:mediaSearch:),@selector(hook_initWithMediaItems:mediaItems:mediaContainer:playShuffled:playbackRepeatMode:resumePlayback:playbackQueueLocation:playbackSpeed:mediaSearch:));
+
+    // 处理通知权限
+    swizzle(UNNotificationSettings.class, @selector(authorizationStatus), @selector(hook_authorizationStatus));
+    swizzle(UNNotificationSettings.class, @selector(soundSetting), @selector(hook_soundSetting));
+    swizzle(UNNotificationSettings.class, @selector(badgeSetting), @selector(hook_badgeSetting));
+    swizzle(UNNotificationSettings.class, @selector(alertSetting), @selector(hook_alertSetting));
+    swizzle(UNNotificationSettings.class, @selector(lockScreenSetting), @selector(hook_lockScreenSetting));
+    swizzle(UNNotificationSettings.class, @selector(notificationCenterSetting), @selector(hook_notificationCenterSetting));
+    swizzle(UNNotificationSettings.class, @selector(alertStyle), @selector(hook_alertStyle));
+
 #pragma clang diagnostic pop
     
     Class CFXPreferencesClass = NSClassFromString(@"_CFXPreferences");
@@ -331,4 +354,139 @@ static bool isAppleIdentifier(NSString* identifier) {
     }
     return [self hook_initWithDomain:domain user:user byHost:host containerPath:(__bridge CFStringRef)appContainerPath containingPreferences:arg5];
 }
+@end
+
+@implementation INPreferences (hook)
++ (void)hook_requestSiriAuthorization:(void (^)(INSiriAuthorizationStatus))handler {
+    NSLog(@"Swizzled requestSiriAuthorization, denying access");
+    if (handler) {
+        handler(INSiriAuthorizationStatusDenied);
+    }
+}
++ (INSiriAuthorizationStatus)hook_siriAuthorizationStatus {
+    NSLog(@"Swizzled requestSiriAuthorization, denying access");
+    return INSiriAuthorizationStatusDenied;
+}
+@end
+
+@implementation CKContainer (hook)
+- (void)hook_accountStatusWithCompletionHandler:(void (^)(CKAccountStatus, NSError *))completionHandler {
+    NSLog(@"Swizzled accountStatusWithCompletionHandler, denying iCloud access");
+    if (completionHandler) {
+        // 返回无账户状态，模拟 iCloud 不可用
+        completionHandler(CKAccountStatusNoAccount, [NSError errorWithDomain:@"CloudKit" code:-1 userInfo:@{NSLocalizedDescriptionKey: @"iCloud access denied"}]);
+    }
+}
++ (CKContainer *)hook_defaultContainer {
+    NSLog(@"Swizzled swizzled_defaultContainer, denying iCloud access");
+    return nil;
+}
++ (CKContainer *)hook_containerWithIdentifier:(NSString *)containerIdentifier {
+    NSLog(@"Swizzled swizzled_containerWithIdentifier, denying iCloud access");
+    return nil;
+}
+// 阻止用户获取令牌
+- (void)hook_fetchUserRecordIDWithCompletionHandler:(void (^)(CKRecordID *recordID, NSError *error))completionHandler {
+    // 返回虚假信息
+    if (completionHandler) {
+        NSError *error = [NSError errorWithDomain:CKErrorDomain
+                                             code:CKErrorNotAuthenticated
+                                         userInfo:@{NSLocalizedDescriptionKey: @"User authentication failed"}];
+        completionHandler(nil, error);
+    }
+}
+// 阻止权限检查
+- (void)hook_requestApplicationPermission:(CKApplicationPermissions)permission completionHandler:(void (^)(CKApplicationPermissionStatus status, NSError *error))completion {
+    // 总是返回无权限状态
+    if (completion) {
+        NSError *error = [NSError errorWithDomain:CKErrorDomain
+                                             code:CKErrorPermissionFailure
+                                         userInfo:@{NSLocalizedDescriptionKey: @"iCloud access denied"}];
+        completion(CKApplicationPermissionStatusDenied, error);
+    }
+}
+@end
+
+@implementation NSFileManager (hook)
+// 阻止文件令牌获取访问
+- (id)alwaysDenyUbiquityIdentityToken {
+    return nil; // 返回nil阻止文件同步
+}
+@end
+
+@implementation INVocabulary (hook)
+
++ (instancetype)hook_sharedVocabulary {
+    return nil;
+}
+
+@end
+
+@implementation INPlayMediaIntent (hook)
+
+- (instancetype)hook_initWithMediaItems:(nullable NSArray<INMediaItem *> *)mediaItems
+                    mediaContainer:(nullable INMediaItem *)mediaContainer
+                      playShuffled:(nullable NSNumber *)playShuffled
+                playbackRepeatMode:(INPlaybackRepeatMode)playbackRepeatMode
+                    resumePlayback:(nullable NSNumber *)resumePlayback
+             playbackQueueLocation:(INPlaybackQueueLocation)playbackQueueLocation
+                     playbackSpeed:(nullable NSNumber *)playbackSpeed
+                       mediaSearch:(nullable INMediaSearch *)mediaSearch {
+    return nil;
+}
+
+@end
+
+@implementation CKDatabase (hook)
+- (void)hook_fetchRecordWithID:(CKRecordID *)recordID completionHandler:(void (NS_SWIFT_SENDABLE ^)(CKRecord * _Nullable record, NSError * _Nullable error))completionHandler {
+    if (completionHandler) {
+        NSError *error = [NSError errorWithDomain:CKErrorDomain
+                                             code:CKErrorPermissionFailure
+                                         userInfo:@{NSLocalizedDescriptionKey: @"iCloud access denied"}];
+        completionHandler(nil, error);
+    }
+}
+- (void)hook_performQuery:(CKQuery *)query inZoneWithID:(nullable CKRecordZoneID *)zoneID completionHandler:(void (NS_SWIFT_SENDABLE ^)(NSArray<CKRecord *> * _Nullable results, NSError * _Nullable error))completionHandler {
+    if (completionHandler) {
+        NSError *error = [NSError errorWithDomain:CKErrorDomain
+                                             code:CKErrorPermissionFailure
+                                         userInfo:@{NSLocalizedDescriptionKey: @"iCloud access denied"}];
+        completionHandler(nil, error);
+    }
+}
+@end
+
+
+@implementation UNNotificationSettings (hook)
+
+- (UNAuthorizationStatus)hook_authorizationStatus {
+    // 强制返回 Authorized (2)
+    return UNAuthorizationStatusAuthorized;
+}
+
+// 2. 伪造具体功能的开关状态 (防止应用检查细分权限)
+- (UNNotificationSetting)hook_soundSetting {
+    return UNNotificationSettingEnabled;
+}
+
+- (UNNotificationSetting)hook_badgeSetting {
+    return UNNotificationSettingEnabled;
+}
+
+- (UNNotificationSetting)hook_alertSetting {
+    return UNNotificationSettingEnabled;
+}
+
+- (UNNotificationSetting)hook_lockScreenSetting {
+    return UNNotificationSettingEnabled;
+}
+
+- (UNNotificationSetting)hook_notificationCenterSetting {
+    return UNNotificationSettingEnabled;
+}
+
+- (UNAlertStyle)hook_alertStyle {
+    return UNAlertStyleBanner;
+}
+
 @end

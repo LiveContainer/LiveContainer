@@ -1141,19 +1141,18 @@ func setMode(_ mode: AppLaunchMode) {
 
 
         //⭐️⭐️⭐️switch mode
-    if launchInMultitaskMode {
-        do {
+        let bundleID = appFound.appInfo.bundleIdentifier
+        let selectedApps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
+
+        if launchInMultitaskMode {
             try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-        } catch {
-            errorInfo = error.localizedDescription
-            errorShow = true
+        } else if selectedApps.contains(bundleID) {
+            // Force iPhone mode for this specific app
+            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .realIPhone)
+        } else {
+            // Default/native mode
+            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .native)
         }
-    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
-          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") { 
-
-
-        do {
-            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true

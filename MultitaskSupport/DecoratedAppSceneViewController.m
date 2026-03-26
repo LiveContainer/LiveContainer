@@ -432,19 +432,17 @@ void UIKitFixesInit(void) {
             }
     
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                NSString *bundleID = self.appFound.appInfo.bundleIdentifier;
-                NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
-
-                if ([iphoneApps containsObject:bundleID]) {
-                    CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
-                    CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
-                    CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-                    CGFloat offsetX = (viewW - targetW) / 2.0;
-                    _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
-                    _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
-                    [_appSceneVC updateFrameWithSettingsBlock:nil];
-                }
-            });
+                if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+                 CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+                 CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+                 CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+                 CGFloat offsetX = (viewW - targetW) / 2.0;
+                 _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
+                 _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+                 [_appSceneVC updateFrameWithSettingsBlock:nil];
+                 }
+          });
+       }
 
     });
 }
@@ -462,22 +460,28 @@ void UIKitFixesInit(void) {
         [self updateWindowedFrameWithSettings:newSettings];
     }
     
-    NSString *bundleID = self.appFound.appInfo.bundleIdentifier;
-    NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
+    CGFloat viewW = _appSceneVC.view.frame.size.width / self.scaleRatio;
+    CGFloat viewH = _appSceneVC.view.frame.size.height / self.scaleRatio;
 
-    BOOL isRealIPhoneMode = [iphoneApps containsObject:bundleID];
-
+    //CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+    //CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+    if (viewW <= 0 || viewH <= 0) {
+    [_appSceneVC.presenter.scene updateSettings:newSettings withTransitionContext:newContext completion:nil];
+    return;
+    }
+    CGRect newFrame;
+    BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
-        CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
-        CGFloat offsetX = (viewW - targetW) / 2.0;
-        newFrame = CGRectMake(0, 0, targetW, viewH);
-
-        _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
-     _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
+    CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+    CGFloat offsetX = (viewW - targetW) / 2.0;
+    newFrame = CGRectMake(0, 0, targetW, viewH);
+    
+    _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingNone;
+    _appSceneVC.contentView.frame = CGRectMake(offsetX, 0, targetW, viewH);
     } else {
-        newFrame = CGRectMake(0, 0, viewW, viewH);
-        _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
+    newFrame = CGRectMake(0, 0, viewW, viewH);
+    _appSceneVC.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
     }
 
 
@@ -607,10 +611,17 @@ void UIKitFixesInit(void) {
     self.view.frame = frame;
     [self updateOriginalFrame];
     
-    NSString *bundleID = self.appFound.appInfo.bundleIdentifier;
-    NSArray *iphoneApps = [[NSUserDefaults lcSharedDefaults] stringArrayForKey:@"LCSpecificIPhoneModeApps"];
-
-    BOOL isRealIPhoneMode = [iphoneApps containsObject:bundleID];
+    for (UIView *subview in self.view.subviews) {
+        if ([subview isKindOfClass:[ResizeHandleView class]] && subview != self.resizeHandle) {
+            subview.frame = CGRectMake(0, 0, subview.frame.size.width, subview.frame.size.height);
+        }
+    }
+    CGFloat handleSize = self.resizeHandle.frame.size.width;
+    self.resizeHandle.frame = CGRectMake(self.view.frame.size.width - handleSize, self.view.frame.size.height - handleSize, handleSize, handleSize);
+    CGFloat viewW = self.view.frame.size.width / self.scaleRatio;
+    CGFloat viewH = (self.view.frame.size.height - self.navigationBar.frame.size.height) / self.scaleRatio;
+    
+    BOOL isRealIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     if (isRealIPhoneMode) {
         CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
         CGFloat offsetX = (viewW - targetW) / 2.0;
@@ -618,8 +629,8 @@ void UIKitFixesInit(void) {
     } else {
         _appSceneVC.contentView.frame = CGRectMake(0, 0, viewW, viewH);
     }
-
     [self.appSceneVC updateFrameWithSettingsBlock:nil];
+}
 
 
 

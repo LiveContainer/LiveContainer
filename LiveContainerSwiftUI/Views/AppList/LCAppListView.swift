@@ -98,25 +98,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @ObservedObject var searchContext = SearchContext()
 
  //⭐️⭐️⭐️Switch mode
-    func launchMode(for bundleID: String) -> AppLaunchMode {
-        // Check specific iPhone mode apps first
-        let apps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
-        if apps.contains(bundleID) {
-            return .realIPhone
-        }
-
-        // Check user defaults for fullscreen/native preference
-        if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
-            return .native
-        }
-
-        if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
-            return .realIPhone
-        }
-
-        // Default fallback
+   var currentLaunchMode: AppLaunchMode {
+    if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }
+    if LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
+        return .realIPhone
+    }
+
+    return .native 
 }
 
 
@@ -223,21 +213,10 @@ func setMode(_ mode: AppLaunchMode) {
         }
     }
     
-    struct LCAppListView: View {
-        @State private var installOptions: [String]
-        @Binding var appDataFolderNames: [String]
-        @Binding var tweakFolderNames: [String]
-
-        // ✅ Move the initializer here
-        init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
-            _installOptions = State(initialValue: [])
-            _appDataFolderNames = appDataFolderNames
-            _tweakFolderNames = tweakFolderNames
-        }
-
-        var body: some View {
-            // your view code
-        }
+    init(appDataFolderNames: Binding<[String]>, tweakFolderNames: Binding<[String]>) {
+        _installOptions = State(initialValue: [])
+        _appDataFolderNames = appDataFolderNames
+        _tweakFolderNames = tweakFolderNames
     }
     
     var body: some View {
@@ -1158,23 +1137,26 @@ func setMode(_ mode: AppLaunchMode) {
 
 
         //⭐️⭐️⭐️switch mode
+    if launchInMultitaskMode {
         do {
-            let bundleID = appFound.appInfo.bundleIdentifier
-            let selectedApps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
-
-            if launchInMultitaskMode {
-                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-            } else if selectedApps.contains(bundleID) {
-                // Force iPhone mode for this specific app
-                try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .realIPhone)
-            } else {
-                // Default/native mode
-                 try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT, launchMode: .native)
-              }
+            try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
         } catch {
-             errorInfo = error.localizedDescription
+            errorInfo = error.localizedDescription
             errorShow = true
         }
+    } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
+          LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") { 
+
+
+        do {
+            try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+        }
+        
+    }
+}
     
     func authenticateUser() async {
         do {
@@ -1332,12 +1314,6 @@ func setMode(_ mode: AppLaunchMode) {
     
 }
 
-// LCAppListView struct
-struct LCAppListView: View {
-    // properties, init, functions, body
-}
-
-// ✅ File-scope extension
 extension View {
     func apply<V: View>(@ViewBuilder _ block: (Self) -> V) -> V { block(self) }
 }

@@ -98,7 +98,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @ObservedObject var searchContext = SearchContext()
 
  //⭐️⭐️⭐️Switch mode
-   var currentLaunchMode: AppLaunchMode {
+   func launchMode(for bundleID: String) -> AppLaunchMode {
+       let apps = LCUtils.appGroupUserDefault.stringArray(forKey: "LCSpecificIPhoneModeApps") ?? []
+
+       return apps.contains(bundleID) ? .realIPhone : .native
+    }
     if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") {
         return .native
     }

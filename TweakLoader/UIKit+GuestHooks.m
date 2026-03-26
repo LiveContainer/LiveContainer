@@ -905,7 +905,9 @@ BOOL canAppOpenItself(NSURL* url) {
 //⭐️⭐️⭐️Real iPhone mode 9:16 hook
 @implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]
+    NSString *appId = NSUserDefaults.lcGuestAppId;
+    BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore
 ) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
@@ -942,9 +944,11 @@ BOOL canAppOpenItself(NSURL* url) {
     CGFloat realW = realBounds.size.width;
 
 
+NSString *lcappId = NSUserDefaults.lcGuestAppId;
+BOOL isSideStore = [lcappId.lowercaseString containsString:@"sidestore"]; 
 BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
 CGFloat targetW, offsetX;
-if (isReal) {
+if (isReal && !isSideStore) {
 
         targetW = MIN(realH * (9.0/16.0), realW);
         offsetX = (realW - targetW) / 2.0;
@@ -974,7 +978,9 @@ if (isReal) {
 
 - (void)hook_makeKeyAndVisible {
     [self updateWindowScene];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+    NSString *appid = NSUserDefaults.lcGuestAppId;
+    BOOL isSideStore = [appid.lowercaseString containsString:@"sidestore"];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
@@ -983,7 +989,9 @@ if (isReal) {
 
 //⭐️⭐️⭐️Real iPhone mode 9:16 hook
 - (void)hook_setFrame:(CGRect)frame {
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+    NSString *lcappid = NSUserDefaults.lcGuestAppId;
+    BOOL isSideStore = [lcappid.lowercaseString containsString:@"sidestore"];
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
 
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;

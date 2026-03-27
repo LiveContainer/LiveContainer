@@ -11,7 +11,10 @@ static void NSFMGuestHooksInit() {
     fixFilePicker = [NSUserDefaults.guestAppInfo[@"doSymlinkInbox"] boolValue];
     
     swizzle(UIDocumentPickerViewController.class, @selector(initForOpeningContentTypes:asCopy:), @selector(hook_initForOpeningContentTypes:asCopy:));
-    swizzle(UIDocumentPickerViewController.class, @selector(initWithDocumentTypes:inMode:), @selector(hook_initWithDocumentTypes:inMode:));
+    SEL legacyInitSelector = NSSelectorFromString(@"initWithDocumentTypes:inMode:");
+    if ([UIDocumentPickerViewController instancesRespondToSelector:legacyInitSelector]) {
+        swizzle(UIDocumentPickerViewController.class, legacyInitSelector, @selector(hook_initWithDocumentTypes:inMode:));
+    }
     swizzle(UIDocumentBrowserViewController.class, @selector(initForOpeningContentTypes:), @selector(hook_initForOpeningContentTypes));
     swizzleClassMethod(UTType.class, @selector(typeWithIdentifier:), @selector(hook_typeWithIdentifier:));
     if (fixFilePicker) {
@@ -50,8 +53,32 @@ static void NSFMGuestHooksInit() {
     }
 }
 
-- (instancetype)hook_initWithDocumentTypes:(NSArray<UTType *> *)contentTypes inMode:(NSUInteger)mode {
-    return [self initForOpeningContentTypes:contentTypes asCopy:(mode == 1 ? NO : YES)];
+- (instancetype)hook_initWithDocumentTypes:(NSArray *)contentTypes inMode:(NSUInteger)mode {
+    NSMutableArray<UTType *> *resolvedTypes = [NSMutableArray array];
+    for (id item in contentTypes) {
+        if ([item isKindOfClass:UTType.class]) {
+            [resolvedTypes addObject:(UTType *)item];
+            continue;
+        }
+        if (![item isKindOfClass:NSString.class]) {
+            continue;
+        }
+        NSString *identifier = (NSString *)item;
+        UTType *resolved = [UTType typeWithIdentifier:identifier];
+        if (!resolved) {
+            resolved = [UTType exportedTypeWithIdentifier:identifier];
+        }
+        if (!resolved) {
+            resolved = [UTType importedTypeWithIdentifier:identifier];
+        }
+        if (resolved) {
+            [resolvedTypes addObject:resolved];
+        }
+    }
+    if (resolvedTypes.count == 0) {
+        [resolvedTypes addObjectsFromArray:@[UTTypeItem, UTTypeFolder]];
+    }
+    return [self initForOpeningContentTypes:resolvedTypes asCopy:(mode == 1 ? NO : YES)];
 }
 
 - (void)hook_setAllowsMultipleSelection:(BOOL)allowsMultipleSelection {

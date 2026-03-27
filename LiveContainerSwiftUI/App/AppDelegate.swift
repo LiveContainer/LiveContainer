@@ -98,6 +98,26 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
 
 
 @objc extension UIApplication {
+    private var lcActiveKeyWindow: UIWindow? {
+        let windowScenes = connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .sorted { lhs, rhs in
+                lhs.activationState == .foregroundActive && rhs.activationState != .foregroundActive
+            }
+        
+        for scene in windowScenes {
+            if let keyWindow = scene.keyWindow {
+                return keyWindow
+            }
+            if let keyWindow = scene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
+            if let firstWindow = scene.windows.first {
+                return firstWindow
+            }
+        }
+        return nil
+    }
     
     func hook_requestSceneSessionActivation(
         _ sceneSession: UISceneSession?,
@@ -109,7 +129,9 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
         if newOptions == nil {
             newOptions = UIScene.ActivationRequestOptions()
         }
-        newOptions!._setRequestFullscreen(UIScreen.main.bounds == self.keyWindow!.bounds)
+        if let keyWindow = lcActiveKeyWindow {
+            newOptions?._setRequestFullscreen(UIScreen.main.bounds == keyWindow.bounds)
+        }
         self.hook_requestSceneSessionActivation(sceneSession, userActivity: userActivity, options: newOptions, errorHandler: errorHandler)
     }
     

@@ -119,7 +119,7 @@ void* ZSignAsset::GenerateASN1Type(const string& value)
 		BIO_free(ldapbio);
 	}
 	string a = "asn1=SEQUENCE:A\n[A]\nC=OBJECT:sha256\nB=FORMAT:HEX,OCT:" + value + "\n";
-	int code = BIO_puts(ldapbio, a.c_str());
+	BIO_puts(ldapbio, a.c_str());
 	if (NCONF_load_bio(cnf, ldapbio, &errline) <= 0) {
 		BIO_free(ldapbio);
 		NCONF_free(cnf);

@@ -35,6 +35,26 @@
 @property(nonatomic) bool isAppTerminationCleanUpCalled;
 @end
 
+static UIInterfaceOrientation LCInterfaceOrientationForView(UIView *view) {
+    UIWindowScene *windowScene = view.window.windowScene;
+    if (!windowScene) {
+        for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+            if (![scene isKindOfClass:UIWindowScene.class]) {
+                continue;
+            }
+            UIWindowScene *candidateScene = (UIWindowScene *)scene;
+            if (candidateScene.activationState == UISceneActivationStateForegroundActive) {
+                windowScene = candidateScene;
+                break;
+            }
+            if (!windowScene) {
+                windowScene = candidateScene;
+            }
+        }
+    }
+    return windowScene ? windowScene.interfaceOrientation : UIInterfaceOrientationPortrait;
+}
+
 @implementation AppSceneViewController
 
 
@@ -142,7 +162,7 @@
     settings.foreground = YES;
     
     settings.deviceOrientation = UIDevice.currentDevice.orientation;
-    settings.interfaceOrientation = UIApplication.sharedApplication.statusBarOrientation;
+    settings.interfaceOrientation = LCInterfaceOrientationForView(self.view);
     if(UIInterfaceOrientationIsLandscape(settings.interfaceOrientation)) {
         settings.frame = CGRectMake(0, 0, self.view.frame.size.height, self.view.frame.size.width);
     } else {

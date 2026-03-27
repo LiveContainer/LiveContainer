@@ -65,26 +65,55 @@ bool ZMachO::OpenFile(const char* szPath)
 	m_sSize = 0;
 	m_pBase = (uint8_t*)ZFile::MapFile(szPath, 0, 0, &m_sSize, false);
 	if (NULL != m_pBase) {
+		if (m_sSize < sizeof(uint32_t)) {
+			ZLog::ErrorV(">>> Invalid mach-o file size!\n");
+			CloseFile();
+			return false;
+		}
+
 		uint32_t magic = *((uint32_t*)m_pBase);
 		if (FAT_CIGAM == magic || FAT_MAGIC == magic) {
+			if (m_sSize < sizeof(fat_header)) {
+				ZLog::ErrorV(">>> Invalid fat mach-o header!\n");
+				CloseFile();
+				return false;
+			}
+
 			fat_header* pFatHeader = (fat_header*)m_pBase;
 			int nFatArch = (FAT_MAGIC == magic) ? pFatHeader->nfat_arch : LE(pFatHeader->nfat_arch);
+			size_t archTableSize = sizeof(fat_header) + (size_t)nFatArch * sizeof(fat_arch);
+			if (nFatArch <= 0 || archTableSize > m_sSize) {
+				ZLog::ErrorV(">>> Invalid fat mach-o arch table!\n");
+				CloseFile();
+				return false;
+			}
+
 			for (int i = 0; i < nFatArch; i++) {
 				fat_arch* pFatArch = (fat_arch*)(m_pBase + sizeof(fat_header) + sizeof(fat_arch) * i);
-				uint8_t* pArchBase = m_pBase + ((FAT_MAGIC == magic) ? pFatArch->offset : LE(pFatArch->offset));
+				uint32_t archOffset = (FAT_MAGIC == magic) ? pFatArch->offset : LE(pFatArch->offset);
 				uint32_t uArchLength = (FAT_MAGIC == magic) ? pFatArch->size : LE(pFatArch->size);
+				if (archOffset >= m_sSize || uArchLength > (m_sSize - archOffset)) {
+					ZLog::ErrorV(">>> Invalid arch bounds in fat mach-o file!\n");
+					CloseFile();
+					return false;
+				}
+
+				uint8_t* pArchBase = m_pBase + archOffset;
 				if (!NewArchO(pArchBase, uArchLength)) {
 					ZLog::ErrorV(">>> Invalid arch file in fat mach-o file!\n");
+					CloseFile();
 					return false;
 				}
 			}
 		} else if (MH_MAGIC == magic || MH_CIGAM == magic || MH_MAGIC_64 == magic || MH_CIGAM_64 == magic) {
 			if (!NewArchO(m_pBase, (uint32_t)m_sSize)) {
 				ZLog::ErrorV(">>> Invalid mach-o file!\n");
+				CloseFile();
 				return false;
 			}
 		} else {
 			ZLog::ErrorV(">>> Invalid mach-o file (2)!\n");
+			CloseFile();
 			return false;
 		}
 	}

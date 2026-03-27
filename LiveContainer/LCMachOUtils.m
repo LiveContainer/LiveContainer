@@ -267,12 +267,27 @@ int LCPatchExecSlice(const char *path, struct mach_header_64 *header, bool doInj
 }
 
 NSString *LCParseMachO(const char *path, bool readOnly, LCParseMachOCallback callback) {
+    NSString *error = nil;
     int fd = open(path, readOnly ? O_RDONLY : O_RDWR, (mode_t)readOnly ? 0400 : 0600);
-    struct stat s;
-    fstat(fd, &s);
+    if (fd < 0) {
+        return [NSString stringWithFormat:@"Failed to open %s: %s", path, strerror(errno)];
+    }
+
+    struct stat s = {0};
+    if (fstat(fd, &s) != 0) {
+        error = [NSString stringWithFormat:@"Failed to stat %s: %s", path, strerror(errno)];
+        goto cleanup_fd;
+    }
+
+    if (s.st_size < sizeof(uint32_t)) {
+        error = @"Not a Mach-O file";
+        goto cleanup_fd;
+    }
+
     void *map = mmap(NULL, s.st_size, readOnly ? PROT_READ : (PROT_READ | PROT_WRITE), readOnly ? MAP_PRIVATE : MAP_SHARED, fd, 0);
     if (map == MAP_FAILED) {
-        return [NSString stringWithFormat:@"Failed to map %s: %s", path, strerror(errno)];
+        error = [NSString stringWithFormat:@"Failed to map %s: %s", path, strerror(errno)];
+        goto cleanup_fd;
     }
 
     uint32_t magic = *(uint32_t *)map;
@@ -289,13 +304,19 @@ NSString *LCParseMachO(const char *path, bool readOnly, LCParseMachOCallback cal
     } else if (magic == MH_MAGIC_64 || magic == MH_MAGIC) {
         callback(path, (struct mach_header_64 *)map, fd, map);
     } else {
-        return @"Not a Mach-O file";
+        error = @"Not a Mach-O file";
+        goto cleanup_map;
     }
 
-    msync(map, s.st_size, MS_SYNC);
+    if (!readOnly && msync(map, s.st_size, MS_SYNC) != 0) {
+        error = [NSString stringWithFormat:@"Failed to sync %s: %s", path, strerror(errno)];
+    }
+
+cleanup_map:
     munmap(map, s.st_size);
+cleanup_fd:
     close(fd);
-    return nil;
+    return error;
 }
 
 NSString *LCPatchMachOFixupARM64eSlice(const char *path) {
@@ -304,7 +325,10 @@ NSString *LCPatchMachOFixupARM64eSlice(const char *path) {
         return [NSString stringWithFormat:@"Failed to open %s: %s", path, strerror(errno)];
     }
     struct stat s = {0};
-    fstat(fd, &s);
+    if (fstat(fd, &s) != 0) {
+        close(fd);
+        return [NSString stringWithFormat:@"Failed to stat %s: %s", path, strerror(errno)];
+    }
     void *map = mmap(NULL, s.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(map == MAP_FAILED) {
         close(fd);
@@ -327,7 +351,11 @@ NSString *LCPatchMachOFixupARM64eSlice(const char *path) {
         }
     }
 
-    msync(map, s.st_size, MS_SYNC);
+    if (msync(map, s.st_size, MS_SYNC) != 0) {
+        munmap(map, s.st_size);
+        close(fd);
+        return [NSString stringWithFormat:@"Failed to sync %s: %s", path, strerror(errno)];
+    }
     munmap(map, s.st_size);
     close(fd);
     return nil;

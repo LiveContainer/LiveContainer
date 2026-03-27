@@ -193,6 +193,7 @@ extension UTType {
     static let tipa = UTType(filenameExtension: "tipa")!
     static let dylib = UTType(filenameExtension: "dylib")!
     static let deb = UTType(filenameExtension: "deb")!
+    static let zipArchive = UTType(filenameExtension: "zip")!
     static let lcFramework = UTType(filenameExtension: "framework", conformingTo: .package)!
     static let p12 = UTType(filenameExtension: "p12")!
 }

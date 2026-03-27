@@ -626,33 +626,90 @@ bool ZSign::SlotBuildCMSSignature(ZSignAsset* pSignAsset,
 	return true;
 }
 
-uint32_t ZSign::GetCodeSignatureLength(uint8_t* pCSBase)
-{
-	CS_SuperBlob* psb = (CS_SuperBlob*)pCSBase;
-	if (NULL != psb && CSMAGIC_EMBEDDED_SIGNATURE == LE(psb->magic)) {
-		return LE(psb->length);
+namespace {
+	bool ZSignSafeMulU32(uint32_t a, uint32_t b, uint32_t& out)
+	{
+		uint64_t product = (uint64_t)a * (uint64_t)b;
+		if (product > UINT32_MAX) {
+			return false;
+		}
+		out = (uint32_t)product;
+		return true;
 	}
-	return 0;
+
+	bool ZSignSafeOffsetRange(uint32_t offset, uint32_t size, uint32_t total)
+	{
+		return (offset <= total) && (size <= (total - offset));
+	}
+
+	bool ZSignReadSuperBlob(uint8_t* pCSBase, uint32_t uCSLength, CS_SuperBlob& superBlob)
+	{
+		if (NULL == pCSBase || uCSLength < sizeof(CS_SuperBlob)) {
+			return false;
+		}
+
+		memcpy(&superBlob, pCSBase, sizeof(CS_SuperBlob));
+		if (CSMAGIC_EMBEDDED_SIGNATURE != LE(superBlob.magic)) {
+			return false;
+		}
+
+		uint32_t blobLength = LE(superBlob.length);
+		if (blobLength < sizeof(CS_SuperBlob) || blobLength > uCSLength) {
+			return false;
+		}
+
+		uint32_t indexBytes = 0;
+		if (!ZSignSafeMulU32(LE(superBlob.count), (uint32_t)sizeof(CS_BlobIndex), indexBytes)) {
+			return false;
+		}
+
+		return indexBytes <= (blobLength - sizeof(CS_SuperBlob));
+	}
 }
 
-bool ZSign::ParseCodeSignature(uint8_t* pCSBase)
+uint32_t ZSign::GetCodeSignatureLength(uint8_t* pCSBase, uint32_t uCSLength)
 {
-	CS_SuperBlob* psb = (CS_SuperBlob*)pCSBase;
-	if (NULL == psb || CSMAGIC_EMBEDDED_SIGNATURE != LE(psb->magic)) {
+	CS_SuperBlob superBlob = {};
+	if (!ZSignReadSuperBlob(pCSBase, uCSLength, superBlob)) {
+		return 0;
+	}
+	return LE(superBlob.length);
+}
+
+bool ZSign::ParseCodeSignature(uint8_t* pCSBase, uint32_t uCSLength)
+{
+	CS_SuperBlob superBlob = {};
+	if (!ZSignReadSuperBlob(pCSBase, uCSLength, superBlob)) {
 		return false;
 	}
 
+	uint32_t blobLength = LE(superBlob.length);
+	uint32_t blobCount = LE(superBlob.count);
 	ZLog::PrintV("\n>>> CodeSignature Segment: \n");
-	ZLog::PrintV("\tmagic: \t\t0x%x\n", LE(psb->magic));
-	ZLog::PrintV("\tlength: \t%d\n", LE(psb->length));
-	ZLog::PrintV("\tslots: \t\t%d\n", LE(psb->count));
+	ZLog::PrintV("\tmagic: \t\t0x%x\n", LE(superBlob.magic));
+	ZLog::PrintV("\tlength: \t%d\n", blobLength);
+	ZLog::PrintV("\tslots: \t\t%d\n", blobCount);
 
 	CS_BlobIndex* pbi = (CS_BlobIndex*)(pCSBase + sizeof(CS_SuperBlob));
-	for (uint32_t i = 0; i < LE(psb->count); i++, pbi++) {
-		uint8_t* pSlotBase = pCSBase + LE(pbi->offset);
+	for (uint32_t i = 0; i < blobCount; i++, pbi++) {
+		uint32_t slotOffset = LE(pbi->offset);
+		if (!ZSignSafeOffsetRange(slotOffset, sizeof(uint32_t) * 2, blobLength)) {
+			ZLog::WarnV(">>> Skip invalid CodeSignature slot: type=0x%x, offset=%u\n", LE(pbi->type), slotOffset);
+			continue;
+		}
+
+		uint8_t* pSlotBase = pCSBase + slotOffset;
+		uint32_t slotLength = LE(*(((uint32_t*)pSlotBase) + 1));
+		if (slotLength < 8 || !ZSignSafeOffsetRange(slotOffset, slotLength, blobLength)) {
+			ZLog::WarnV(">>> Skip truncated CodeSignature slot: type=0x%x, offset=%u, length=%u\n", LE(pbi->type), slotOffset, slotLength);
+			continue;
+		}
+
 		switch (LE(pbi->type)) {
 		case CSSLOT_CODEDIRECTORY:
-			SlotParseCodeDirectory(pSlotBase, pbi);
+			if (slotLength >= sizeof(CS_CodeDirectory)) {
+				SlotParseCodeDirectory(pSlotBase, pbi);
+			}
 			break;
 		case CSSLOT_REQUIREMENTS:
 			SlotParseRequirements(pSlotBase, pbi);
@@ -664,7 +721,9 @@ bool ZSign::ParseCodeSignature(uint8_t* pCSBase)
 			SlotParseDerEntitlements(pSlotBase, pbi);
 			break;
 		case CSSLOT_ALTERNATE_CODEDIRECTORIES:
-			SlotParseCodeDirectory(pSlotBase, pbi);
+			if (slotLength >= sizeof(CS_CodeDirectory)) {
+				SlotParseCodeDirectory(pSlotBase, pbi);
+			}
 			break;
 		case CSSLOT_SIGNATURESLOT:
 			SlotParseCMSSignature(pSlotBase, pbi);
@@ -682,7 +741,7 @@ bool ZSign::ParseCodeSignature(uint8_t* pCSBase)
 	}
 
 	if (ZLog::IsDebug()) {
-		ZFile::WriteFile("./.zsign_debug/CodeSignature.blob", (const char*)pCSBase, LE(psb->length));
+		ZFile::WriteFile("./.zsign_debug/CodeSignature.blob", (const char*)pCSBase, blobLength);
 	}
 	return true;
 }
@@ -700,6 +759,7 @@ bool ZSign::SlotGetCodeSlotsData(uint8_t* pSlotBase, uint8_t*& pCodeSlots, uint3
 }
 
 bool ZSign::GetCodeSignatureExistsCodeSlotsData(uint8_t* pCSBase,
+	uint32_t uCSLength,
 	uint8_t*& pCodeSlots1Data,
 	uint32_t& uCodeSlots1DataLength,
 	uint8_t*& pCodeSlots256Data,
@@ -709,30 +769,55 @@ bool ZSign::GetCodeSignatureExistsCodeSlotsData(uint8_t* pCSBase,
 	pCodeSlots256Data = NULL;
 	uCodeSlots1DataLength = 0;
 	uCodeSlots256DataLength = 0;
-	CS_SuperBlob* psb = (CS_SuperBlob*)pCSBase;
-	if (NULL == psb || CSMAGIC_EMBEDDED_SIGNATURE != LE(psb->magic)) {
+	CS_SuperBlob superBlob = {};
+	if (!ZSignReadSuperBlob(pCSBase, uCSLength, superBlob)) {
 		return false;
 	}
 
+	uint32_t blobLength = LE(superBlob.length);
 	CS_BlobIndex* pbi = (CS_BlobIndex*)(pCSBase + sizeof(CS_SuperBlob));
-	for (uint32_t i = 0; i < LE(psb->count); i++, pbi++) {
-		uint8_t* pSlotBase = pCSBase + LE(pbi->offset);
+	for (uint32_t i = 0; i < LE(superBlob.count); i++, pbi++) {
+		uint32_t slotOffset = LE(pbi->offset);
+		if (!ZSignSafeOffsetRange(slotOffset, sizeof(uint32_t) * 2, blobLength)) {
+			continue;
+		}
+
+		uint8_t* pSlotBase = pCSBase + slotOffset;
+		uint32_t slotLength = LE(*(((uint32_t*)pSlotBase) + 1));
+		if (slotLength < sizeof(CS_CodeDirectory) || !ZSignSafeOffsetRange(slotOffset, slotLength, blobLength)) {
+			continue;
+		}
+
 		switch (LE(pbi->type)) {
 		case CSSLOT_CODEDIRECTORY:
 		{
 			CS_CodeDirectory cdHeader = *((CS_CodeDirectory*)pSlotBase);
-			if (LE(cdHeader.length) > 8) {
-				pCodeSlots1Data = pSlotBase + LE(cdHeader.hashOffset);
-				uCodeSlots1DataLength = LE(cdHeader.nCodeSlots) * cdHeader.hashSize;
+			uint32_t cdLength = LE(cdHeader.length);
+			uint32_t hashOffset = LE(cdHeader.hashOffset);
+			uint32_t codeSlotsLength = 0;
+			if (cdLength >= sizeof(CS_CodeDirectory) &&
+				cdLength <= slotLength &&
+				hashOffset <= cdLength &&
+				ZSignSafeMulU32(LE(cdHeader.nCodeSlots), cdHeader.hashSize, codeSlotsLength) &&
+				codeSlotsLength <= (cdLength - hashOffset)) {
+				pCodeSlots1Data = pSlotBase + hashOffset;
+				uCodeSlots1DataLength = codeSlotsLength;
 			}
 		}
 		break;
 		case CSSLOT_ALTERNATE_CODEDIRECTORIES:
 		{
 			CS_CodeDirectory cdHeader = *((CS_CodeDirectory*)pSlotBase);
-			if (LE(cdHeader.length) > 8) {
-				pCodeSlots256Data = pSlotBase + LE(cdHeader.hashOffset);
-				uCodeSlots256DataLength = LE(cdHeader.nCodeSlots) * cdHeader.hashSize;
+			uint32_t cdLength = LE(cdHeader.length);
+			uint32_t hashOffset = LE(cdHeader.hashOffset);
+			uint32_t codeSlotsLength = 0;
+			if (cdLength >= sizeof(CS_CodeDirectory) &&
+				cdLength <= slotLength &&
+				hashOffset <= cdLength &&
+				ZSignSafeMulU32(LE(cdHeader.nCodeSlots), cdHeader.hashSize, codeSlotsLength) &&
+				codeSlotsLength <= (cdLength - hashOffset)) {
+				pCodeSlots256Data = pSlotBase + hashOffset;
+				uCodeSlots256DataLength = codeSlotsLength;
 			}
 		}
 		break;

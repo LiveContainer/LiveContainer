@@ -60,6 +60,44 @@ static BOOL LCShouldBlockExternalURL(NSURL *url) {
     return [LCBlockedExternalURLSchemes() containsObject:scheme];
 }
 
+static UIWindowScene *LCForegroundWindowScene(void) {
+    UIWindowScene *fallbackScene = nil;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:UIWindowScene.class]) {
+            continue;
+        }
+        UIWindowScene *windowScene = (UIWindowScene *)scene;
+        if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+            return windowScene;
+        }
+        if (!fallbackScene) {
+            fallbackScene = windowScene;
+        }
+    }
+    return fallbackScene;
+}
+
+static UIWindow *LCKeyWindowForScene(UIWindowScene *scene) {
+    if (!scene) {
+        return nil;
+    }
+    UIWindow *keyWindow = scene.keyWindow;
+    if (keyWindow) {
+        return keyWindow;
+    }
+    for (UIWindow *window in scene.windows) {
+        if (window.isKeyWindow) {
+            return window;
+        }
+    }
+    return scene.windows.firstObject;
+}
+
+static UIWindowLevel LCOverlayWindowLevel(void) {
+    UIWindow *keyWindow = LCKeyWindowForScene(LCForegroundWindowScene());
+    return (keyWindow ? keyWindow.windowLevel : UIWindowLevelNormal) + 1;
+}
+
 __attribute__((constructor))
 static void UIKitGuestHooksInit(void) {
     //NSString *AppId = [NSUserDefaults lcGuestAppId];
@@ -243,8 +281,8 @@ void LCShowSwitchAppConfirmation(NSURL *url, NSString* bundleId, bool isSharedAp
     }];
     [alert addAction:cancelAction];
     window.rootViewController = [UIViewController new];
-    window.windowLevel = UIApplication.sharedApplication.windows.lastObject.windowLevel + 1;
-    window.windowScene = (id)UIApplication.sharedApplication.connectedScenes.anyObject;
+    window.windowLevel = LCOverlayWindowLevel();
+    window.windowScene = LCForegroundWindowScene();
     [window makeKeyAndVisible];
     [window.rootViewController presentViewController:alert animated:YES completion:nil];
     objc_setAssociatedObject(alert, @"window", window, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -258,8 +296,8 @@ void LCShowAlert(NSString* message) {
     }];
     [alert addAction:okAction];
     window.rootViewController = [UIViewController new];
-    window.windowLevel = UIApplication.sharedApplication.windows.lastObject.windowLevel + 1;
-    window.windowScene = (id)UIApplication.sharedApplication.connectedScenes.anyObject;
+    window.windowLevel = LCOverlayWindowLevel();
+    window.windowScene = LCForegroundWindowScene();
     [window makeKeyAndVisible];
     [window.rootViewController presentViewController:alert animated:YES completion:nil];
     objc_setAssociatedObject(alert, @"window", window, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -355,8 +393,8 @@ void LCOpenWebPage(NSString* webPageUrlString, NSString* originalUrl) {
     }];
     [alert addAction:cancelAction];
     window.rootViewController = [UIViewController new];
-    window.windowLevel = UIApplication.sharedApplication.windows.lastObject.windowLevel + 1;
-    window.windowScene = (id)UIApplication.sharedApplication.connectedScenes.anyObject;
+    window.windowLevel = LCOverlayWindowLevel();
+    window.windowScene = LCForegroundWindowScene();
     [window makeKeyAndVisible];
     [window.rootViewController presentViewController:alert animated:YES completion:nil];
     objc_setAssociatedObject(alert, @"window", window, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -385,8 +423,8 @@ void LCOpenSideStoreURL(NSURL* sidestoreUrl) {
     }];
     [alert addAction:cancelAction];
     window.rootViewController = [UIViewController new];
-    window.windowLevel = UIApplication.sharedApplication.windows.lastObject.windowLevel + 1;
-    window.windowScene = (id)UIApplication.sharedApplication.connectedScenes.anyObject;
+    window.windowLevel = LCOverlayWindowLevel();
+    window.windowScene = LCForegroundWindowScene();
     [window makeKeyAndVisible];
     [window.rootViewController presentViewController:alert animated:YES completion:nil];
     objc_setAssociatedObject(alert, @"window", window, OBJC_ASSOCIATION_RETAIN_NONATOMIC);

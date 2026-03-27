@@ -4,6 +4,40 @@
 #include <objc/runtime.h>
 #include "utils.h"
 
+static NSString *const kDisabledTweaksKey = @"disabledItems";
+
+static NSSet<NSString *> *disabledItemsForFolder(NSURL *folderURL) {
+    if (!folderURL || !folderURL.isFileURL) {
+        return [NSSet set];
+    }
+    NSDictionary *info = [NSDictionary dictionaryWithContentsOfURL:[folderURL URLByAppendingPathComponent:@"TweakInfo.plist"]];
+    NSArray<NSString *> *disabled = info[kDisabledTweaksKey];
+    if (![disabled isKindOfClass:NSArray.class]) {
+        return [NSSet set];
+    }
+    return [NSSet setWithArray:disabled];
+}
+
+static BOOL isTweakURLDisabled(NSURL *url, NSURL *rootFolderURL) {
+    if (!url || !rootFolderURL) {
+        return NO;
+    }
+    NSURL *cursor = url;
+    NSString *rootPath = [rootFolderURL.path stringByStandardizingPath];
+    while (cursor && [[cursor.path stringByStandardizingPath] hasPrefix:rootPath]) {
+        NSURL *parent = cursor.URLByDeletingLastPathComponent;
+        NSSet<NSString *> *disabled = disabledItemsForFolder(parent);
+        if ([disabled containsObject:cursor.lastPathComponent]) {
+            return YES;
+        }
+        if ([[cursor.path stringByStandardizingPath] isEqualToString:rootPath]) {
+            break;
+        }
+        cursor = parent;
+    }
+    return NO;
+}
+
 static NSString *loadTweakAtURL(NSURL *url) {
     NSString *tweakPath = url.path;
     NSString *tweak = tweakPath.lastPathComponent;
@@ -106,6 +140,10 @@ static void TweakLoaderConstructor() {
             // skip loading myself
             continue;
         }
+        if (isTweakURLDisabled(fileURL, [NSURL fileURLWithPath:globalTweakFolder])) {
+            NSLog(@"Skipped disabled tweak %@", fileURL.lastPathComponent);
+            continue;
+        }
         NSString *error = loadTweakAtURL(fileURL);
         if (error) {
             [errors addObject:error];
@@ -122,6 +160,10 @@ static void TweakLoaderConstructor() {
             return YES;
         }];
         for (NSURL *fileURL in directoryEnumerator) {
+            if (isTweakURLDisabled(fileURL, tweakFolderURL)) {
+                NSLog(@"Skipped disabled tweak %@", fileURL.lastPathComponent);
+                continue;
+            }
             NSString *error = loadTweakAtURL(fileURL);
             if (error) {
                 [errors addObject:error];

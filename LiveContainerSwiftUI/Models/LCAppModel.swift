@@ -10,7 +10,7 @@ protocol LCAppModelDelegate {
     func showRunWhenMultitaskAlert() async -> Bool?
 }
 
-class LCAppModel: ObservableObject, Hashable {
+class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
     
     @Published var appInfo : LCAppInfo
     
@@ -1245,7 +1245,11 @@ class LCAppModel: ObservableObject, Hashable {
                             continuation.resume(throwing: "Failed to obtain PID from LiveProcess")
                             return
                         }
-                        Task {
+                        Task { @MainActor [weak self] in
+                            guard let self else {
+                                continuation.resume()
+                                return
+                            }
                             if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
                                 await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData)
                             } else {

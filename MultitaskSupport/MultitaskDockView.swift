@@ -154,8 +154,9 @@ class AppInfoProvider {
         static let adaptiveWidthVerticalMargin: CGFloat = 20.0
         static let dockVerticalMargin: CGFloat = 30.0
         static let dockContentSpacing: CGFloat = 8.0
-        static let dockVerticalPadding: CGFloat = 30.0
-        // Extra padding is derived from dockVerticalPadding to match the SwiftUI layout exactly
+        static func dockVerticalPadding(for width: CGFloat) -> CGFloat {
+            return width * (1 - iconToWidthRatio)
+        }
         
         // MARK: - Ratios & Factors
         static let iconToWidthRatio: CGFloat = 0.75
@@ -248,7 +249,7 @@ class AppInfoProvider {
     private func expandedDockBaseHeight(for width: CGFloat, buttonSize: CGFloat) -> CGFloat {
         let spacingCount = max(self.apps.count + 1, 0)
         let totalSpacingHeight = CGFloat(spacingCount) * Constants.dockContentSpacing
-        return Constants.dockVerticalPadding + buttonSize * 2 + totalSpacingHeight
+        return Constants.dockVerticalPadding(for: width) + buttonSize * 2 + totalSpacingHeight
     }
 
     private func expandedDockHeight(for width: CGFloat, iconSize: CGFloat) -> CGFloat {
@@ -260,7 +261,7 @@ class AppInfoProvider {
 
     private func collapsedDockHeight(for width: CGFloat) -> CGFloat {
         let buttonSize = calculateButtonSize(for: width)
-        return Constants.dockVerticalPadding + buttonSize
+        return Constants.dockVerticalPadding(for: width) + buttonSize
     }
     
 
@@ -866,8 +867,8 @@ public struct MultitaskDockSwiftView: View {
                     }
                 }
             }
-            .padding(.vertical, 15)
             .padding(.horizontal, dynamicPadding)
+            .padding(.vertical, dockManager.dockWidth * (1 - MultitaskDockManager.Constants.iconToWidthRatio) / 2)
             .frame(width: dockManager.dockWidth)
             .modifier { content in
                 if #available(iOS 26.0, *), SharedModel.isLiquidGlassEnabled {

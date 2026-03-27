@@ -65,6 +65,23 @@ void UIKitFixesInit(void) {
 
 @end
 
+static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
+    UIWindowScene *windowScene = nil;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if (![scene isKindOfClass:UIWindowScene.class]) {
+            continue;
+        }
+        UIWindowScene *candidateScene = (UIWindowScene *)scene;
+        if (candidateScene.activationState == UISceneActivationStateForegroundActive) {
+            windowScene = candidateScene;
+            break;
+        }
+        if (!windowScene) {
+            windowScene = candidateScene;
+        }
+    }
+    return windowScene ? windowScene.interfaceOrientation : UIInterfaceOrientationPortrait;
+}
 
 //⭐️⭐️⭐️
 @implementation DecoratedAppSceneViewController
@@ -160,7 +177,7 @@ void UIKitFixesInit(void) {
     self.view = stackView; 
     self.mainStackView = stackView;
     
-    BOOL isLandscape = UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation);
+    BOOL isLandscape = UIInterfaceOrientationIsLandscape(LCCurrentInterfaceOrientation());
     CGRect frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
     
     if(_isMaximized) {
@@ -740,7 +757,7 @@ void UIKitFixesInit(void) {
 
 
     if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        UIInterfaceOrientation currentOrientation = UIApplication.sharedApplication.statusBarOrientation;
+        UIInterfaceOrientation currentOrientation = LCCurrentInterfaceOrientation();
         if (UIInterfaceOrientationIsLandscape(currentOrientation)) {
             safeAreaInsets.top = 0;
         }

@@ -1226,9 +1226,8 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
         }
     
-        do {
             try await appFound.runApp(multitask: multitask, containerFolderName: containerFolderName, forceJIT: forceJIT)
-        } finally {
+
             // MARK: Reset Real iPhone Mode
             if !self.uiForceIPhoneMode {
                 LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")

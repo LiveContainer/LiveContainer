@@ -167,12 +167,6 @@ static void Real_UIKitGuestHooksInit(void) {
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
             swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
-            // MARK: Force iPhone Mode - Hook FBSSceneParameters
-            BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
-            if (forceIPhoneMode) {
-                // This will force the scene settings to use iPhone traits
-               swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
-            }
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
             swizzle(UIViewController.class, @selector(shouldAutorotateToInterfaceOrientation:), @selector(hook_shouldAutorotateToInterfaceOrientation:));

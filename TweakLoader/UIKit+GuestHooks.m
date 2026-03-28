@@ -15,9 +15,9 @@ __attribute__((constructor))
 static void UIKitGuestHooksInit(void) {
     NSString *livecontainerappid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [livecontainerappid.lowercaseString containsString:@"sidestore"];
-    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+    
 if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && 
-    !isSideStore && isMainAppWindow) { 
+    !isSideStore) { 
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
 }
@@ -750,8 +750,8 @@ BOOL canAppOpenItself(NSURL* url) {
 - (CGRect)hook_UIScreen_bounds {
     NSString *appId = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
-    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow
+   
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore
 ) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
@@ -791,9 +791,9 @@ BOOL canAppOpenItself(NSURL* url) {
 NSString *lcappId = NSUserDefaults.lcGuestAppId;
 BOOL isSideStore = [lcappId.lowercaseString containsString:@"sidestore"];  
 BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
-BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+
 CGFloat targetW, offsetX;
-if (isReal && !isSideStore && isMainAppWindow) {
+if (isReal && !isSideStore) {
 
         targetW = MIN(realH * (9.0/16.0), realW);
         offsetX = (realW - targetW) / 2.0;

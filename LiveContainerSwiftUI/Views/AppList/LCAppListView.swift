@@ -314,10 +314,6 @@ func setMode(_ mode: AppLaunchMode) {
                 }
                 
                 }
-                //⭐️⭐️⭐️switch mode 
-                ToolbarItem(placement: .topBarLeading) {
-                    launchModeSelector
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
                         Task { await onOpenWebViewTapped() }

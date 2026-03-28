@@ -755,10 +755,6 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
         settings.peripheryInsets.right / _scaleRatio
     );
 
-    if model.appInfo.forceIPhoneMode {
-        // Force return iPhone idiom
-        return .phone
-    }
     
     if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         UIInterfaceOrientation currentOrientation = LCCurrentInterfaceOrientation();
@@ -779,6 +775,11 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
         }
     } else {
         settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.top, settings.peripheryInsets.left, settings.peripheryInsets.bottom, settings.peripheryInsets.right);
+    }
+
+    if model.appInfo.forceIPhoneMode {
+        // Force return iPhone idiom
+        return .phone
     }
     
     

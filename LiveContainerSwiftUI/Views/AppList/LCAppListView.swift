@@ -127,10 +127,6 @@ var launchModeSelector: some View {
             }
         }
 
-                if model.appInfo.forceIPhoneMode {
-                    // Force return iPhone idiom
-                    return .phone
-                }
 
         //if UIDevice.current.userInterfaceIdiom == .pad {
             Button {

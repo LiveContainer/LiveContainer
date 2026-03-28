@@ -176,6 +176,12 @@ static void Real_UIKitGuestHooksInit(void) {
         }
         if(!NSUserDefaults.isLiveProcess && LCOrientationLock != UIInterfaceOrientationUnknown) {
             swizzle(UIApplication.class, @selector(_handleDelegateCallbacksWithOptions:isSuspended:restoreState:), @selector(hook__handleDelegateCallbacksWithOptions:isSuspended:restoreState:));
+            // MARK: Force iPhone Mode - Hook FBSSceneParameters
+            BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+            if (forceIPhoneMode) {
+                // This will force the scene settings to use iPhone traits
+               swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
+            }
             swizzle(FBSSceneParameters.class, @selector(initWithXPCDictionary:), @selector(hook_initWithXPCDictionary:));
             swizzle(UIViewController.class, @selector(__supportedInterfaceOrientations), @selector(hook___supportedInterfaceOrientations));
             swizzle(UIViewController.class, @selector(shouldAutorotateToInterfaceOrientation:), @selector(hook_shouldAutorotateToInterfaceOrientation:));
@@ -922,6 +928,17 @@ BOOL canAppOpenItself(NSURL* url) {
     FBSSceneParameters* ans = [self hook_initWithXPCDictionary:dict];
     UIMutableApplicationSceneSettings* settings = [ans.settings mutableCopy];
     UIMutableApplicationSceneClientSettings* clientSettings = [ans.clientSettings mutableCopy];
+    
+    // MARK: Force iPhone Mode - Override trait collection
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        // Force iPhone trait collection
+        UITraitCollection *iphoneTraits = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
+        [settings setTraitCollection:iphoneTraits];
+        [clientSettings setTraitCollection:iphoneTraits];
+    }
+    
     [settings setInterfaceOrientation:LCOrientationLock];
     [clientSettings setInterfaceOrientation:LCOrientationLock];
     ans.settings = settings;

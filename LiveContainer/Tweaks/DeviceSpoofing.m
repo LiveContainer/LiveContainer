@@ -4509,6 +4509,13 @@ static NSString *hook_UIApplication_preferredContentSizeCategory(id self, SEL _c
 
 // MARK: - UIDevice model hooks
 static NSString *hook_UIDevice_model(id self, SEL _cmd) {
+    // MARK: Force iPhone Mode Override
+    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return @"iPhone";
+    }
+    
+    // Original device spoofing logic
     if (LCDeviceSpoofingIsActive() && g_currentProfile) {
         const char *ident = g_currentProfile->modelIdentifier;
         if (ident && strncmp(ident, "iPad", 4) == 0) return @"iPad";
@@ -4518,13 +4525,20 @@ static NSString *hook_UIDevice_model(id self, SEL _cmd) {
     return @"iPhone";
 }
 
-static NSString *hook_UIDevice_localizedModel(id self, SEL _cmd) {
+static NSString *hook_UIDevice_model(id self, SEL _cmd) {
+    // MARK: Force iPhone Mode Override
+    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return @"iPhone";
+    }
+    
+    // Original device spoofing logic
     if (LCDeviceSpoofingIsActive() && g_currentProfile) {
         const char *ident = g_currentProfile->modelIdentifier;
         if (ident && strncmp(ident, "iPad", 4) == 0) return @"iPad";
         return @"iPhone";
     }
-    if (orig_UIDevice_localizedModel) return orig_UIDevice_localizedModel(self, _cmd);
+    if (orig_UIDevice_model) return orig_UIDevice_model(self, _cmd);
     return @"iPhone";
 }
 

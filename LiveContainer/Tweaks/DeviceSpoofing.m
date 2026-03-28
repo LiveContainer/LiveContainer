@@ -4510,7 +4510,8 @@ static NSString *hook_UIApplication_preferredContentSizeCategory(id self, SEL _c
 // MARK: - UIDevice model hooks
 static NSString *hook_UIDevice_model(id self, SEL _cmd) {
     // MARK: Force iPhone Mode Override
-    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
     if (forceIPhoneMode) {
         return @"iPhone";
     }
@@ -4526,7 +4527,8 @@ static NSString *hook_UIDevice_model(id self, SEL _cmd) {
 
 static NSString *hook_UIDevice_localizedModel(id self, SEL _cmd) {
     // MARK: Force iPhone Mode Override
-    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
     if (forceIPhoneMode) {
         return @"iPhone";
     }

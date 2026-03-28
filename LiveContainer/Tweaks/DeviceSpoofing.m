@@ -4515,7 +4515,6 @@ static NSString *hook_UIDevice_model(id self, SEL _cmd) {
         return @"iPhone";
     }
     
-    // Original device spoofing logic
     if (LCDeviceSpoofingIsActive() && g_currentProfile) {
         const char *ident = g_currentProfile->modelIdentifier;
         if (ident && strncmp(ident, "iPad", 4) == 0) return @"iPad";
@@ -4525,13 +4524,19 @@ static NSString *hook_UIDevice_model(id self, SEL _cmd) {
     return @"iPhone";
 }
 
-
-static NSString *hook_UIDevice_machineName(id self, SEL _cmd) {
-    if (LCDeviceSpoofingIsActive()) {
-        const char *value = LCSpoofedMachineModel();
-        if (value) return @(value);
+static NSString *hook_UIDevice_localizedModel(id self, SEL _cmd) {
+    // MARK: Force iPhone Mode Override
+    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return @"iPhone";
     }
-    if (orig_UIDevice_machineName) return orig_UIDevice_machineName(self, _cmd);
+    
+    if (LCDeviceSpoofingIsActive() && g_currentProfile) {
+        const char *ident = g_currentProfile->modelIdentifier;
+        if (ident && strncmp(ident, "iPad", 4) == 0) return @"iPad";
+        return @"iPhone";
+    }
+    if (orig_UIDevice_localizedModel) return orig_UIDevice_localizedModel(self, _cmd);
     return @"iPhone";
 }
 

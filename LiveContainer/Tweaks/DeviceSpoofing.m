@@ -602,6 +602,12 @@ static NSInteger (*orig_UIScreen_maximumFramesPerSecond)(id self, SEL _cmd) = NU
 static CGSize (*orig_UIScreenMode_size)(id self, SEL _cmd) = NULL;
 static CGFloat (*orig_UITraitCollection_displayScale)(id self, SEL _cmd) = NULL;
 
+// Before iPad mode is applied
+if (appInfo.forceIPhoneMode) {
+    // Force iPhone mode - return Phone idiom instead of Pad
+    return UIUserInterfaceIdiomPhone;
+}
+
 static NSString *(*orig_UIDevice_model)(id self, SEL _cmd) = NULL;
 static NSString *(*orig_UIDevice_localizedModel)(id self, SEL _cmd) = NULL;
 
@@ -633,12 +639,6 @@ static BOOL (*orig_UIApplication_canOpenURL)(id self, SEL _cmd, NSURL *url) = NU
 static NSString *(*orig_UIApplication_preferredContentSizeCategory)(id self, SEL _cmd) = NULL;
 static NSString *(*orig_UITraitCollection_preferredContentSizeCategory)(id self, SEL _cmd) = NULL;
 static NSString *(*orig_NSCalendar_identifier)(id self, SEL _cmd) = NULL;
-
-// Before iPad mode is applied
-if (appInfo.forceIPhoneMode) {
-    // Force iPhone mode - return Phone idiom instead of Pad
-    return UIUserInterfaceIdiomPhone;
-}
 
 static BOOL (*orig_MFMessageComposeViewController_canSendText)(id self, SEL _cmd) = NULL;
 static BOOL (*orig_MFMessageComposeViewController_canSendAttachments)(id self, SEL _cmd) = NULL;

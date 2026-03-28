@@ -602,12 +602,6 @@ static NSInteger (*orig_UIScreen_maximumFramesPerSecond)(id self, SEL _cmd) = NU
 static CGSize (*orig_UIScreenMode_size)(id self, SEL _cmd) = NULL;
 static CGFloat (*orig_UITraitCollection_displayScale)(id self, SEL _cmd) = NULL;
 
-// Before iPad mode is applied
-if (appInfo.forceIPhoneMode) {
-    // Force iPhone mode - return Phone idiom instead of Pad
-    return UIUserInterfaceIdiomPhone;
-}
-
 static NSString *(*orig_UIDevice_model)(id self, SEL _cmd) = NULL;
 static NSString *(*orig_UIDevice_localizedModel)(id self, SEL _cmd) = NULL;
 

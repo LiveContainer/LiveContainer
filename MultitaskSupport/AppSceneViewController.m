@@ -207,9 +207,28 @@ static UIInterfaceOrientation LCInterfaceOrientationForView(UIView *view) {
         [weakSelf appTerminationCleanUp];
     }];
     
-    [self.contentView addSubview:self.presenter.presentationView];
-    self.contentView.layer.anchorPoint = CGPointMake(0, 0);
-    self.contentView.layer.position = CGPointMake(0, 0);
+ [self.contentView addSubview:self.presenter.presentationView];
+self.contentView.layer.anchorPoint = CGPointMake(0, 0);
+self.contentView.layer.position = CGPointMake(0, 0);
+dispatch_async(dispatch_get_main_queue(), ^{
+    [self.view setNeedsLayout];
+    [self.view layoutIfNeeded];
+});
+self.presenter.presentationView.autoresizingMask = UIViewAutoresizingNone;
+self.presenter.presentationView.translatesAutoresizingMaskIntoConstraints = YES;
+
+
+
+//if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
+    //CGFloat viewW = self.view.bounds.size.width;
+    //CGFloat viewH = self.view.bounds.size.height;
+    //CGFloat targetW = MIN(viewH * (9.0 / 16.0), viewW);
+    //CGFloat offsetX = (viewW - targetW) / 2.0;
+    //self.contentView.layer.position = CGPointMake(offsetX, 0);
+    //self.contentView.bounds = CGRectMake(0, 0, targetW, viewH);
+//}
+
+
     [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
 

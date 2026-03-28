@@ -634,6 +634,12 @@ static NSString *(*orig_UIApplication_preferredContentSizeCategory)(id self, SEL
 static NSString *(*orig_UITraitCollection_preferredContentSizeCategory)(id self, SEL _cmd) = NULL;
 static NSString *(*orig_NSCalendar_identifier)(id self, SEL _cmd) = NULL;
 
+// Before iPad mode is applied
+if (appInfo.forceIPhoneMode) {
+    // Force iPhone mode - return Phone idiom instead of Pad
+    return UIUserInterfaceIdiomPhone;
+}
+
 static BOOL (*orig_MFMessageComposeViewController_canSendText)(id self, SEL _cmd) = NULL;
 static BOOL (*orig_MFMessageComposeViewController_canSendAttachments)(id self, SEL _cmd) = NULL;
 static BOOL (*orig_MFMessageComposeViewController_canSendSubject)(id self, SEL _cmd) = NULL;

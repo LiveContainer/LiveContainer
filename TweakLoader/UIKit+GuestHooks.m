@@ -940,12 +940,15 @@ BOOL canAppOpenItself(NSURL* url) {
 
 @end
 //⭐️⭐️⭐️Real iPhone mode 9:16 hook
-@implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
     NSString *appId = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore
-) {
+    
+    // MARK: Check both global LCRealIPhoneMode AND per-app forceIPhoneMode
+    BOOL realIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+    BOOL forceIPhoneMode = [NSUserDefaults.standardUserDefaults boolForKey:[NSString stringWithFormat:@"LCRealIPhoneMode_%@", appId]];
+    
+    if ((realIPhoneMode || forceIPhoneMode) && !isSideStore) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
         CGFloat screenW = nativeBounds.size.width;
@@ -954,9 +957,9 @@ BOOL canAppOpenItself(NSURL* url) {
     }
 
     CGRect nativeBounds = [self hook_UIScreen_bounds];
-        CGFloat screenH = nativeBounds.size.height;
-        CGFloat targetW = nativeBounds.size.width; 
-        return CGRectMake(0, 0, targetW, screenH);
+    CGFloat screenH = nativeBounds.size.height;
+    CGFloat targetW = nativeBounds.size.width; 
+    return CGRectMake(0, 0, targetW, screenH);
 }
 @end
 
@@ -1017,7 +1020,12 @@ if (isReal && !isSideStore) {
     [self updateWindowScene];
     NSString *appid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appid.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
+    
+    // MARK: Check both global AND per-app
+    BOOL realIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+    BOOL forceIPhoneMode = [NSUserDefaults.standardUserDefaults boolForKey:[NSString stringWithFormat:@"LCRealIPhoneMode_%@", appid]];
+    
+    if ((realIPhoneMode || forceIPhoneMode) && !isSideStore) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
@@ -1028,8 +1036,12 @@ if (isReal && !isSideStore) {
 - (void)hook_setFrame:(CGRect)frame {
     NSString *lcappid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [lcappid.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
+    
+    // MARK: Check both global AND per-app force iPhone mode
+    BOOL realIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+    BOOL forceIPhoneMode = [NSUserDefaults.standardUserDefaults boolForKey:[NSString stringWithFormat:@"LCRealIPhoneMode_%@", lcappid]];
 
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
 

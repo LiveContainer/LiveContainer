@@ -143,10 +143,6 @@ static void Real_UIKitGuestHooksInit(void) {
 
 
 
-    if model.appInfo.forceIPhoneMode {
-        // Force return iPhone idiom
-        return .phone
-    }
 
 
 

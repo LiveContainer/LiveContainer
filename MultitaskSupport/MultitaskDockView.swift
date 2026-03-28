@@ -825,6 +825,12 @@ class AppInfoProvider {
         let multitaskMode = MultitaskMode(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCMultitaskMode")) ?? .virtualWindow
         return multitaskMode == .virtualWindow
     }
+    
+    // MARK: - Button Size Calculation
+    var adaptiveButtonSize: CGFloat {
+        let targetSize = dockWidth * Constants.collapsedButtonToWidthRatio
+        return max(Constants.minCollapsedButtonSize, min(Constants.maxCollapsedButtonSize, targetSize))
+    }
 }
 
 // MARK: - SwiftUI Dock View
@@ -832,6 +838,8 @@ class AppInfoProvider {
 public struct MultitaskDockSwiftView: View {
     @EnvironmentObject var dockManager: MultitaskDockManager
     @State private var dragOffset = CGSize.zero
+    @State private var showTooltip = false
+    @State private var tooltipApp: DockAppModel?
     @State private var isMoving: Bool = false
     
     // Calculate dynamic padding based on user settings
@@ -863,6 +871,14 @@ public struct MultitaskDockSwiftView: View {
     }
 
     @ViewBuilder
+    private var tooltipOverlay: some View {
+        if showTooltip, let app = tooltipApp {
+            TooltipView(app: app)
+                .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
     private func dockStyledContent(in geometry: GeometryProxy) -> some View {
 #if compiler(>=6.2)
         if #available(iOS 26.0, *), SharedModel.isLiquidGlassEnabled {
@@ -880,7 +896,9 @@ public struct MultitaskDockSwiftView: View {
 
     private func dockBaseContent(in geometry: GeometryProxy) -> some View {
         dockMainContent
-            .padding(dynamicPadding)
+            .padding(.horizontal, dynamicPadding)
+            .padding(.vertical, dockManager.dockWidth * (1 - MultitaskDockManager.Constants.iconToWidthRatio) / 2)
+            .frame(width: dockManager.dockWidth)
             .scaleEffect(dockManager.isVisible ? 1.0 : 0.8)
             .opacity(dockManager.isDockHidden ? 0.4 : 1.0)
             .offset(dragOffset)
@@ -923,7 +941,7 @@ public struct MultitaskDockSwiftView: View {
                 }
 
             ForEach(dockManager.apps) { app in
-                AppIconView(app: app)
+                AppIconView(app: app, showTooltip: $showTooltip, tooltipApp: $tooltipApp)
             }
         }
     }
@@ -1094,18 +1112,17 @@ struct CollapsedDockView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: dockManager.adaptiveIconSize, height: dockManager.adaptiveIconSize)
-
+                .frame(width: dockManager.adaptiveButtonSize, height: dockManager.adaptiveButtonSize)
             
             Group {
                 if isHidden {
                     Image(systemName: "eye.slash")
                         .foregroundColor(.white.opacity(0.8))
-                        .font(.system(size: dockManager.adaptiveIconSize * 0.35, weight: .bold))
+                        .font(.system(size: dockManager.adaptiveButtonSize * 0.35, weight: .bold))
                 } else {
                     Image(systemName: "chevron.up")
                         .foregroundColor(.white)
-                        .font(.system(size: dockManager.adaptiveIconSize * 0.4, weight: .bold))
+                        .font(.system(size: dockManager.adaptiveButtonSize * 0.4, weight: .bold))
                 }
             }
             .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
@@ -1117,7 +1134,7 @@ struct CollapsedDockView: View {
         .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
         .scaleEffect(isHidden ? 0.9 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isHidden)
-        .animation(.spring(response: MultitaskDockManager.Constants.longAnimationDuration, dampingFraction: MultitaskDockManager.Constants.standardSpringDamping), value: dockManager.adaptiveIconSize)
+        .animation(.spring(response: MultitaskDockManager.Constants.longAnimationDuration, dampingFraction: MultitaskDockManager.Constants.standardSpringDamping), value: dockManager.adaptiveButtonSize)
     }
 }
 
@@ -1130,17 +1147,17 @@ struct CollapseButtonView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)  
                 .fill(Color.gray.opacity(0.8))
-                .frame(width: dockManager.adaptiveIconSize, height: dockManager.adaptiveIconSize)
+                .frame(width: dockManager.adaptiveButtonSize, height: dockManager.adaptiveButtonSize)
             
             Image(systemName: "chevron.down")
                 .foregroundColor(.white)
-                .font(.system(size: dockManager.adaptiveIconSize * 0.4, weight: .semibold))
+                .font(.system(size: dockManager.adaptiveButtonSize * 0.4, weight: .semibold))
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)  
                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
         )
-        .animation(.spring(response: MultitaskDockManager.Constants.longAnimationDuration, dampingFraction: MultitaskDockManager.Constants.standardSpringDamping), value: dockManager.adaptiveIconSize)
+        .animation(.spring(response: MultitaskDockManager.Constants.longAnimationDuration, dampingFraction: MultitaskDockManager.Constants.standardSpringDamping), value: dockManager.adaptiveButtonSize)
     }
 }
 
@@ -1153,11 +1170,11 @@ struct MinimizeAllButtonView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.gray.opacity(0.8))
-                .frame(width: dockManager.adaptiveIconSize, height: dockManager.adaptiveIconSize)
+                .frame(width: dockManager.adaptiveButtonSize, height: dockManager.adaptiveButtonSize)
             
             Image(systemName: "rectangle.stack.badge.minus")
                 .foregroundColor(.white)
-                .font(.system(size: dockManager.adaptiveIconSize * 0.4, weight: .semibold))
+                .font(.system(size: dockManager.adaptiveButtonSize * 0.4, weight: .semibold))
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -1196,6 +1213,8 @@ class IconCacheManager {
 @available(iOS 16.0, *)
 struct AppIconView: View {
     let app: DockAppModel
+    @Binding var showTooltip: Bool
+    @Binding var tooltipApp: DockAppModel?
     @State private var isPressed = false
     @State private var appIcon: UIImage?
     @State private var isLoading = true
@@ -1211,19 +1230,16 @@ struct AppIconView: View {
             if isLoading && appIcon == nil {
                 LoadingIconView()
             } else if let icon = appIcon {
-                GeometryReader { g in
-                    Image(uiImage: icon)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: g.size.width*0.2667))
-                }
-
+                Image(uiImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
             } else {
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                 .fill(Color.gray.opacity(0.3))
             }
         }
         .frame(width: iconSize, height: iconSize)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         //⭐️⭐️⭐️⤵️
         .contextMenu {
             ControlMenuContent(app: app)
@@ -1288,6 +1304,29 @@ struct AppIconView: View {
     }
 }
 
+// MARK: - Tooltip View
+struct TooltipView: View {
+    let app: DockAppModel
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(app.appName)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+            
+            Text(String(app.appUUID.prefix(8)))
+                .font(.system(size: 10))
+                .foregroundColor(.white.opacity(0.8))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.black.opacity(0.8))
+        )
+        .offset(x: -60, y: 0)
+    }
+}
 
 // MARK: - Press Gesture Helper
 extension View {

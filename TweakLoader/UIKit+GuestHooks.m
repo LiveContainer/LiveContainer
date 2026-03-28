@@ -10,36 +10,20 @@
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 NSUUID* idForVendorUUID = nil;
-//⭐️⭐️⭐️⤵️
-static void Real_UIKitGuestHooksInit(void);
+//⭐️⭐️⭐️⤵️  
 __attribute__((constructor))
 static void UIKitGuestHooksInit(void) {
-    //NSString *AppId = [NSUserDefaults lcGuestAppId];
-    //if ([AppId.lowercaseString containsString:@"sidestore"]) {
-        //dispatch_async(dispatch_get_main_queue(), ^{
-            //Real_UIKitGuestHooksInit();
-        //});
-    //} else {
-       Real_UIKitGuestHooksInit();
-    //}
+    NSString *livecontainerappid = NSUserDefaults.lcGuestAppId;
+    BOOL isSideStore = [livecontainerappid.lowercaseString containsString:@"sidestore"];
+    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && 
+    !isSideStore && isMainAppWindow) { 
+    swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
+    swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
 }
-
 //⭐️⭐️⭐️⤴️
-
-static void Real_UIKitGuestHooksInit(void) {
-    NSString *lcGuestAppId = NSUserDefaults.lcGuestAppId;
-    if(!NSUserDefaults.lcGuestAppId) return;
-    if (!([lcGuestAppId isEqualToString:@"com.SideStore.SideStore"] || 
-          [lcGuestAppId.lowercaseString containsString:@"sidestore"] ||
-          NSUserDefaults.isSideStore)) { 
-        //⭐️⭐️⭐️Real iPhone mode 9:16 hook(swizzle)
-          swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
-          swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
-        
-    }
     
-   
-    
+//⭐️⭐️⭐️⤵️  
 //if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"]) {
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
                                                           object:nil
@@ -54,7 +38,7 @@ static void Real_UIKitGuestHooksInit(void) {
             [LCRealIPhoneModeHelper repositionAllWindows];
         }];
     //}
-
+//⭐️⭐️⭐️⤴️
 
 
     
@@ -766,7 +750,8 @@ BOOL canAppOpenItself(NSURL* url) {
 - (CGRect)hook_UIScreen_bounds {
     NSString *appId = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore
+    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow
 ) {
         CGRect nativeBounds = [self hook_UIScreen_bounds];
         CGFloat screenH = nativeBounds.size.height;
@@ -806,8 +791,9 @@ BOOL canAppOpenItself(NSURL* url) {
 NSString *lcappId = NSUserDefaults.lcGuestAppId;
 BOOL isSideStore = [lcappId.lowercaseString containsString:@"sidestore"];  
 BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
+BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
 CGFloat targetW, offsetX;
-if (isReal && !isSideStore) {
+if (isReal && !isSideStore && isMainAppWindow) {
 
         targetW = MIN(realH * (9.0/16.0), realW);
         offsetX = (realW - targetW) / 2.0;
@@ -838,7 +824,8 @@ if (isReal && !isSideStore) {
     [self updateWindowScene];
     NSString *appid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appid.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
+    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
@@ -849,7 +836,8 @@ if (isReal && !isSideStore) {
 - (void)hook_setFrame:(CGRect)frame {
     NSString *lcappid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [lcappid.lowercaseString containsString:@"sidestore"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
+    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow) {
         
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;

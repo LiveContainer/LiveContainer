@@ -153,10 +153,12 @@ static void Real_UIKitGuestHooksInit(void) {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
-    // MARK: Force iPhone Mode Hook
+    // MARK: Force iPhone Mode Hooks
     BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
     if (forceIPhoneMode) {
         swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
+        swizzle(UIDevice.class, @selector(model), @selector(hook_UIDevice_model_force));
+        swizzle(UIDevice.class, @selector(localizedModel), @selector(hook_UIDevice_localizedModel_force));
     }
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
@@ -1094,17 +1096,35 @@ if (isReal && !isSideStore) {
 
 @end
 
-// MARK: - Force iPhone Mode - Interface Idiom Hook
-@implementation UIDevice(ForceIPhoneMode)
-
+// MARK: - Force iPhone Mode Hooks
 static UIUserInterfaceIdiom (*original_userInterfaceIdiom)(id, SEL);
+static NSString *(*original_UIDevice_model)(id, SEL);
+static NSString *(*original_UIDevice_localizedModel)(id, SEL);
 
 static UIUserInterfaceIdiom hook_userInterfaceIdiom(id self, SEL _cmd) {
-    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
     if (forceIPhoneMode) {
         return UIUserInterfaceIdiomPhone;
     }
     return original_userInterfaceIdiom(self, _cmd);
 }
 
+static NSString *hook_UIDevice_model_force(id self, SEL _cmd) {
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return @"iPhone";
+    }
+    return original_UIDevice_model(self, _cmd);
+}
+
+static NSString *hook_UIDevice_localizedModel_force(id self, SEL _cmd) {
+    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
+    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return @"iPhone";
+    }
+    return original_UIDevice_localizedModel(self, _cmd);
+}
 @end

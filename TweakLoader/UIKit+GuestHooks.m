@@ -1041,7 +1041,7 @@ if (isReal && !isSideStore) {
     BOOL realIPhoneMode = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
     BOOL forceIPhoneMode = [NSUserDefaults.standardUserDefaults boolForKey:[NSString stringWithFormat:@"LCRealIPhoneMode_%@", lcappid]];
 
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore) {
+    if ((realIPhoneMode || forceIPhoneMode) && !isSideStore) {
         UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
         CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
 

@@ -82,7 +82,7 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             appInfo.orientationLock = uiOrientationLock
         }
     }
-    @Published var uiForceIPhoneMode : Bool {
+    @Published var uiForceIPhoneMode: Bool {
         didSet {
             appInfo.forceIPhoneMode = uiForceIPhoneMode
         }
@@ -1221,12 +1221,18 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
                 isAppRunning = false
             }}
         }
-        // MARK: Force iPhone Mode - Per App
+        // MARK: Force iPhone Mode
         if self.uiForceIPhoneMode {
-            // Store this ONLY for this specific app being launched
-            UserDefaults.standard.set(true, forKey: "LCRealIPhoneMode_\(self.appInfo.bundleIdentifier() ?? "")")
-        } else {
-            UserDefaults.standard.removeObject(forKey: "LCRealIPhoneMode_\(self.appInfo.bundleIdentifier() ?? "")")
+            LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
+        }
+    
+        do {
+            try await appFound.runApp(multitask: multitask, containerFolderName: containerFolderName, forceJIT: forceJIT)
+        } finally {
+            // MARK: Reset Real iPhone Mode
+            if !self.uiForceIPhoneMode {
+                LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
+            }
         }
         try await signApp(force: false)
         

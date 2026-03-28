@@ -1109,7 +1109,10 @@ static UIUserInterfaceIdiom hook_userInterfaceIdiom(id self, SEL _cmd) {
     if (forceIPhoneMode) {
         return UIUserInterfaceIdiomPhone;
     }
-    return original_userInterfaceIdiom(self, _cmd);
+    if (original_userInterfaceIdiom) {
+        return original_userInterfaceIdiom(self, _cmd);
+    }
+    return UIUserInterfaceIdiomPhone;
 }
 
 static NSString *hook_UIDevice_model_force(id self, SEL _cmd) {
@@ -1118,7 +1121,10 @@ static NSString *hook_UIDevice_model_force(id self, SEL _cmd) {
     if (forceIPhoneMode) {
         return @"iPhone";
     }
-    return original_UIDevice_model(self, _cmd);
+    if (original_UIDevice_model) {
+        return original_UIDevice_model(self, _cmd);
+    }
+    return @"iPhone";
 }
 
 static NSString *hook_UIDevice_localizedModel_force(id self, SEL _cmd) {
@@ -1127,6 +1133,8 @@ static NSString *hook_UIDevice_localizedModel_force(id self, SEL _cmd) {
     if (forceIPhoneMode) {
         return @"iPhone";
     }
-    return original_UIDevice_localizedModel(self, _cmd);
+    if (original_UIDevice_localizedModel) {
+        return original_UIDevice_localizedModel(self, _cmd);
+    }
+    return @"iPhone";
 }
-@end

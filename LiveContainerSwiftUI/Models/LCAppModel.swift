@@ -1221,9 +1221,12 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
                 isAppRunning = false
             }}
         }
-        // MARK: Force iPhone Mode
+        // MARK: Force iPhone Mode - Per App
         if self.uiForceIPhoneMode {
-            LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
+            // Store this ONLY for this specific app being launched
+            UserDefaults.standard.set(true, forKey: "LCRealIPhoneMode_\(self.appInfo.bundleIdentifier() ?? "")")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "LCRealIPhoneMode_\(self.appInfo.bundleIdentifier() ?? "")")
         }
         try await signApp(force: false)
         

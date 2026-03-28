@@ -755,7 +755,7 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
         settings.peripheryInsets.right / _scaleRatio
     );
 
-
+    
     if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         UIInterfaceOrientation currentOrientation = LCCurrentInterfaceOrientation();
         if (UIInterfaceOrientationIsLandscape(currentOrientation)) {
@@ -776,6 +776,7 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
     } else {
         settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.top, settings.peripheryInsets.left, settings.peripheryInsets.bottom, settings.peripheryInsets.right);
     }
+
     
     
     safeAreaInsets.bottom = 0;

@@ -721,6 +721,12 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             deviceProfile = @"iPhone 17";
         }
         LCSetDeviceProfile(deviceProfile);
+        // MARK: Force iPhone Mode - Use Real iPhone Mode
+        BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
+        if (forceIPhoneMode) {
+            // Automatically enable the Real iPhone Mode (9:16)
+            [lcSharedDefaults setBool:YES forKey:@"LCRealIPhoneMode"];
+        }
         // Always derive CPU core count and RAM from selected device profile.
         // Clearing custom overrides prevents stale cross-launch mismatches.
         LCSetSpoofedCPUCount(0);

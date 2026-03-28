@@ -41,19 +41,19 @@ int LiveProcessMain(int argc, char *argv[]) {
     // Ensure app info is delivered
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
     NSCAssert(appInfo, @"Failed to retrieve app info");
-    
+
     // Check if we received a request to execute a custom payload
     NSString *customPayloadDylib = appInfo[@"customPayloadDylib"];
     if(customPayloadDylib) {
         void *handle = dlopen(customPayloadDylib.fileSystemRepresentation, RTLD_LAZY);
         NSCAssert(appInfo, @"Failed to load custom payload dylib at path: %@", customPayloadDylib);
-        
+
         NSString *customPayloadEntry = appInfo[@"customPayloadEntry"];
         NSCAssert(customPayloadEntry, @"Missing customPayloadEntry");
         int (*payloadEntry)(int, char **, char **, char **) = dlsym(handle, customPayloadEntry.UTF8String);
         return payloadEntry(argc, argv, _envp, _apple);
     }
-    
+
     NSLog(@"Retrieved app info: %@", appInfo);
     // Set LiveContainer's home path
     setenv("LP_HOME_PATH", getenv("HOME"), 1);

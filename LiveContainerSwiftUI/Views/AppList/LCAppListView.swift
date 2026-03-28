@@ -113,41 +113,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
 
 
- //⭐️⭐️⭐️Switch mode
-var launchModeSelector: some View {
-    Menu {
-        Button {
-            setMode(.native)
-        } label: {
-            HStack {
-                Text("LiveContainer Mode")
-                if isNative { 
-                    Image(systemName: "checkmark") 
-                }
-            }
-        }
-
-        //if UIDevice.current.userInterfaceIdiom == .pad {
-            Button {
-                setMode(.realIPhone)
-            } label: {
-                HStack {
-                    Text("Real iPhone Mode (9:16)")
-
-                    if !isNative && LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") {
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-        //}
-    } label: {
-
-        Image(systemName: "bolt.circle")
-            .foregroundColor(
-                isNative ? .green : (LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") ? .purple : .blue)
-            )
-    }
-}
 
 
 
@@ -359,10 +324,6 @@ func setMode(_ mode: AppLaunchMode) {
                     
 
                 }
-               //⭐️⭐️⭐️switch mode 
-                ToolbarItem(placement: .topBarLeading) {
-                  launchModeSelector
-               }
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {

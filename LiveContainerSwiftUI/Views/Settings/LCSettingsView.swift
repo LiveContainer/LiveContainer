@@ -250,7 +250,7 @@ struct LCSettingsView: View {
                 } footer: {
                     Text("lc.settings.silentOpenWebPageDesc".loc)
                 }
-                
+
                 if sharedModel.isHiddenAppUnlocked {
                     Section {
                         Toggle(isOn: $strictHiding) {

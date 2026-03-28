@@ -82,6 +82,11 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             appInfo.orientationLock = uiOrientationLock
         }
     }
+    @Published var uiForceIPhoneMode: Bool {
+        didSet {
+            appInfo.forceIPhoneMode = uiForceIPhoneMode
+        }
+    }
     @Published var uiSelectedLanguage : String {
         didSet {
             appInfo.selectedLanguage = uiSelectedLanguage
@@ -681,6 +686,7 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
         self.uiIsShared = appInfo.isShared
         self.uiSelectedLanguage = appInfo.selectedLanguage ?? ""
         self.uiDefaultDataFolder = appInfo.dataUUID
+        self.uiForceIPhoneMode = appInfo.forceIPhoneMode
         self.uiContainers = appInfo.containers
         self.uiAddonSettingsContainerFolderName = appInfo.dataUUID ?? appInfo.containers.first?.folderName ?? ""
         self.uiTweakFolder = appInfo.tweakFolder
@@ -930,6 +936,7 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
         self.uiSpoofCameraTransformFlip = appInfo.spoofCameraTransformFlip
 
         // Device spoofing
+        self.uiForceIPhoneMode = appInfo.forceIPhoneMode
         self.uiDeviceSpoofingEnabled = appInfo.deviceSpoofingEnabled
         self.uiDeviceSpoofProfile = normalizedDeviceSpoofProfile(appInfo.deviceSpoofProfile)
         self.uiDeviceSpoofCustomVersion = appInfo.deviceSpoofCustomVersion ?? "26.3"
@@ -1213,6 +1220,15 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             Task { await MainActor.run {
                 isAppRunning = false
             }}
+        }
+        // MARK: Force iPhone Mode
+        if self.uiForceIPhoneMode {
+            LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
+        }
+    
+        // Reset Real iPhone Mode if force mode is off
+        if !self.uiForceIPhoneMode {
+            LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
         }
         try await signApp(force: false)
         

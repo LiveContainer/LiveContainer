@@ -777,14 +777,15 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
         settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(settings.peripheryInsets.top, settings.peripheryInsets.left, settings.peripheryInsets.bottom, settings.peripheryInsets.right);
     }
 
-    if model.appInfo.forceIPhoneMode {
-        // Force return iPhone idiom
-        return .phone
-    }
     
     
     safeAreaInsets.bottom = 0;
     return safeAreaInsets;
+
+    if model.appInfo.forceIPhoneMode {
+        // Force return iPhone idiom
+        return .phone
+    }
 }
 
 

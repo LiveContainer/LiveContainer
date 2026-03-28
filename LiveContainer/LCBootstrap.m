@@ -721,6 +721,13 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             deviceProfile = @"iPhone 17";
         }
         LCSetDeviceProfile(deviceProfile);
+        // MARK: Force iPhone Mode Override
+        BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
+        if (forceIPhoneMode) {
+            // Force device profile to be an iPhone, ignoring any iPad selection
+            LCSetDeviceProfile(@"iPhone 17");
+            LCSetDeviceSpoofingEnabled(YES);
+        }
         // Always derive CPU core count and RAM from selected device profile.
         // Clearing custom overrides prevents stale cross-launch mismatches.
         LCSetSpoofedCPUCount(0);

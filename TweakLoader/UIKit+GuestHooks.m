@@ -143,10 +143,9 @@ static void Real_UIKitGuestHooksInit(void) {
 
 
 
-    // Before iPad mode is applied
-    if (appInfo.forceIPhoneMode) {
-        // Force iPhone mode - return Phone idiom instead of Pad
-        return UIUserInterfaceIdiomPhone;
+    if model.appInfo.forceIPhoneMode {
+        // Force return iPhone idiom
+        return .phone
     }
 
 

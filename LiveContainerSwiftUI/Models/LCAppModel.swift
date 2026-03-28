@@ -936,6 +936,7 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
         self.uiSpoofCameraTransformFlip = appInfo.spoofCameraTransformFlip
 
         // Device spoofing
+        self.uiForceIPhoneMode = appInfo.forceIPhoneMode
         self.uiDeviceSpoofingEnabled = appInfo.deviceSpoofingEnabled
         self.uiDeviceSpoofProfile = normalizedDeviceSpoofProfile(appInfo.deviceSpoofProfile)
         self.uiDeviceSpoofCustomVersion = appInfo.deviceSpoofCustomVersion ?? "26.3"

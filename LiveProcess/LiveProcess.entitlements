@@ -12,8 +12,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>$(APP_GROUP_SIDESTORE)</string>
-		<string>$(APP_GROUP_ALTSTORE)</string>
+		<string>group.com.kdt.livecontainer</string>
 	</array>
 	<key>get-task-allow</key>
 	<true/>

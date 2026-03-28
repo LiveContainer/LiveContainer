@@ -82,9 +82,9 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             appInfo.orientationLock = uiOrientationLock
         }
     }
-    @Published var uiRealIPhoneMode: Bool {
+    @Published var uiForceIPhoneMode : Bool {
         didSet {
-            appInfo.forceRealIPhoneMode = uiRealIPhoneMode
+            appInfo.forceIPhoneMode = uiForceIPhoneMode
         }
     }
     @Published var uiSelectedLanguage : String {
@@ -1220,6 +1220,10 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             Task { await MainActor.run {
                 isAppRunning = false
             }}
+        }
+        // MARK: Force iPhone Mode
+        if self.uiForceIPhoneMode {
+            LCUtils.appGroupUserDefault.set(true, forKey: "LCRealIPhoneMode")
         }
         try await signApp(force: false)
         

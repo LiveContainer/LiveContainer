@@ -781,11 +781,6 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
     
     safeAreaInsets.bottom = 0;
     return safeAreaInsets;
-
-    if model.appInfo.forceIPhoneMode {
-        // Force return iPhone idiom
-        return .phone
-    }
 }
 
 

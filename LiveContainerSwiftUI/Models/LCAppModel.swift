@@ -668,6 +668,11 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             appInfo.deviceSpoofLowPowerModeValue = uiDeviceSpoofLowPowerModeValue
         }
     }
+    @Published var uiForceIPhoneMode : Bool {
+        didSet {
+            appInfo.forceIPhoneMode = uiForceIPhoneMode
+        }
+    }
 
     var delegate : LCAppModelDelegate?
     private var isApplyingAddonContainerSettings = false

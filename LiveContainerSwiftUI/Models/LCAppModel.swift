@@ -82,6 +82,11 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
             appInfo.orientationLock = uiOrientationLock
         }
     }
+    @Published var uiForceIPhoneMode : Bool {
+        didSet {
+            appInfo.forceIPhoneMode = uiForceIPhoneMode
+        }
+    }
     @Published var uiSelectedLanguage : String {
         didSet {
             appInfo.selectedLanguage = uiSelectedLanguage

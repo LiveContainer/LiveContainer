@@ -686,6 +686,7 @@ class LCAppModel: ObservableObject, Hashable, @unchecked Sendable {
         self.uiIsShared = appInfo.isShared
         self.uiSelectedLanguage = appInfo.selectedLanguage ?? ""
         self.uiDefaultDataFolder = appInfo.dataUUID
+        self.uiForceIPhoneMode = appInfo.forceIPhoneMode
         self.uiContainers = appInfo.containers
         self.uiAddonSettingsContainerFolderName = appInfo.dataUUID ?? appInfo.containers.first?.folderName ?? ""
         self.uiTweakFolder = appInfo.tweakFolder

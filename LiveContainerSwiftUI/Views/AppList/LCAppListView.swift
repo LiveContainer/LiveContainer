@@ -108,18 +108,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     return .native 
 }
-
-
-
-
-
-
-
-
-
-
-
-
  //⭐️⭐️⭐️Switch mode
 func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {

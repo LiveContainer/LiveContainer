@@ -108,6 +108,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     return .native 
 }
+
+
+
+
+
+
+
+
+
+
+
+
  //⭐️⭐️⭐️Switch mode
 func setMode(_ mode: AppLaunchMode) {
     withAnimation(.easeInOut(duration: 0.2)) {
@@ -313,7 +325,6 @@ func setMode(_ mode: AppLaunchMode) {
 
                 }
                 
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
                         Task { await onOpenWebViewTapped() }

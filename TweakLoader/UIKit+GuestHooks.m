@@ -153,6 +153,7 @@ static void Real_UIKitGuestHooksInit(void) {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
+
     // MARK: Force iPhone Mode Hooks
     BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
     if (forceIPhoneMode) {
@@ -160,6 +161,7 @@ static void Real_UIKitGuestHooksInit(void) {
         swizzle(UIDevice.class, @selector(model), @selector(hook_UIDevice_model_force));
         swizzle(UIDevice.class, @selector(localizedModel), @selector(hook_UIDevice_localizedModel_force));
     }
+    
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         switch (LCOrientationLockDirection) {

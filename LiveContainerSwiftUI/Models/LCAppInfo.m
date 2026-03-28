@@ -801,9 +801,8 @@ static BOOL LCIsContainerScopedAddonKey(NSString *key) {
 - (bool)forceIPhoneMode {
     if(_info[@"forceIPhoneMode"] != nil) {
         return [_info[@"forceIPhoneMode"] boolValue];
-    } else {
-        return NO;
     }
+    return NO;
 }
 
 - (void)setForceIPhoneMode:(bool)forceIPhoneMode {

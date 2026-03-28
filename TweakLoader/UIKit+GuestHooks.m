@@ -153,6 +153,11 @@ static void Real_UIKitGuestHooksInit(void) {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
+    // MARK: Force iPhone Mode Hook
+    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        swizzle(UIDevice.class, @selector(userInterfaceIdiom), @selector(hook_userInterfaceIdiom));
+    }
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         switch (LCOrientationLockDirection) {
@@ -1085,6 +1090,21 @@ if (isReal && !isSideStore) {
 
 - (NSUUID*)hook_identifierForVendor {
     return idForVendorUUID;
+}
+
+@end
+
+// MARK: - Force iPhone Mode - Interface Idiom Hook
+@implementation UIDevice(ForceIPhoneMode)
+
+static UIUserInterfaceIdiom (*original_userInterfaceIdiom)(id, SEL);
+
+static UIUserInterfaceIdiom hook_userInterfaceIdiom(id self, SEL _cmd) {
+    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
+    if (forceIPhoneMode) {
+        return UIUserInterfaceIdiomPhone;
+    }
+    return original_userInterfaceIdiom(self, _cmd);
 }
 
 @end

@@ -928,17 +928,6 @@ BOOL canAppOpenItself(NSURL* url) {
     FBSSceneParameters* ans = [self hook_initWithXPCDictionary:dict];
     UIMutableApplicationSceneSettings* settings = [ans.settings mutableCopy];
     UIMutableApplicationSceneClientSettings* clientSettings = [ans.clientSettings mutableCopy];
-    
-    // MARK: Force iPhone Mode - Override trait collection
-    NSDictionary *guestAppInfo = [NSUserDefaults guestAppInfo];
-    BOOL forceIPhoneMode = [guestAppInfo[@"forceIPhoneMode"] boolValue];
-    if (forceIPhoneMode) {
-        // Force iPhone trait collection
-        UITraitCollection *iphoneTraits = [UITraitCollection traitCollectionWithUserInterfaceIdiom:UIUserInterfaceIdiomPhone];
-        [settings setTraitCollection:iphoneTraits];
-        [clientSettings setTraitCollection:iphoneTraits];
-    }
-    
     [settings setInterfaceOrientation:LCOrientationLock];
     [clientSettings setInterfaceOrientation:LCOrientationLock];
     ans.settings = settings;

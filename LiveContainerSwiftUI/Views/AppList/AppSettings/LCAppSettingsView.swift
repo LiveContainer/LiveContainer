@@ -2167,6 +2167,23 @@ struct LCAppSettingsView: View {
                 }
             }
 
+            Section(header: Label("Device Mode", systemImage: "iphone")) {
+               Toggle(isOn: $model.uiForceIPhoneMode) {
+                   HStack {
+                       Image(systemName: "iphone.gen3")
+                           .foregroundColor(.blue)
+                           .frame(width: 20)
+                       Text("Force iPhone Mode")
+                   }
+               }
+    
+               if model.uiForceIPhoneMode {
+                   Text("This app will always run in iPhone layout, regardless of device type.")
+                       .font(.caption2)
+                       .foregroundColor(.secondary)
+              }
+           }
+
             Section {
                 NavigationLink {
                     if let supportedLanguage = model.supportedLanguages {

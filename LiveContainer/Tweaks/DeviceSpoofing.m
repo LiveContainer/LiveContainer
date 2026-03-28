@@ -4525,22 +4525,6 @@ static NSString *hook_UIDevice_model(id self, SEL _cmd) {
     return @"iPhone";
 }
 
-static NSString *hook_UIDevice_model(id self, SEL _cmd) {
-    // MARK: Force iPhone Mode Override
-    BOOL forceIPhoneMode = [NSUserDefaults.guestAppInfo[@"forceIPhoneMode"] boolValue];
-    if (forceIPhoneMode) {
-        return @"iPhone";
-    }
-    
-    // Original device spoofing logic
-    if (LCDeviceSpoofingIsActive() && g_currentProfile) {
-        const char *ident = g_currentProfile->modelIdentifier;
-        if (ident && strncmp(ident, "iPad", 4) == 0) return @"iPad";
-        return @"iPhone";
-    }
-    if (orig_UIDevice_model) return orig_UIDevice_model(self, _cmd);
-    return @"iPhone";
-}
 
 static NSString *hook_UIDevice_machineName(id self, SEL _cmd) {
     if (LCDeviceSpoofingIsActive()) {

@@ -797,6 +797,19 @@ static BOOL LCIsContainerScopedAddonKey(NSString *key) {
     
 }
 
+- (bool)forceIPhoneMode {
+    if(_info[@"forceIPhoneMode"] != nil) {
+        return [_info[@"forceIPhoneMode"] boolValue];
+    } else {
+        return NO;
+    }
+}
+
+- (void)setForceIPhoneMode:(bool)forceIPhoneMode {
+    _info[@"forceIPhoneMode"] = [NSNumber numberWithBool:forceIPhoneMode];
+    [self save];
+}
+
 - (UIColor*)cachedColor {
     if(_info[@"cachedColor"] != nil) {
         NSData *colorData = _info[@"cachedColor"];

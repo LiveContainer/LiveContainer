@@ -251,14 +251,6 @@ struct LCSettingsView: View {
                     Text("lc.settings.silentOpenWebPageDesc".loc)
                 }
 
-                Toggle(isOn: $model.uiRealIPhoneMode) {
-                    HStack {
-                        Image(systemName: "iphone")
-                             .foregroundColor(.blue)
-                        Text("Force iPhone Mode")
-                     }
-                }
-                
                 if sharedModel.isHiddenAppUnlocked {
                     Section {
                         Toggle(isOn: $strictHiding) {

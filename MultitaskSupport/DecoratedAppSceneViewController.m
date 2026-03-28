@@ -755,7 +755,12 @@ static UIInterfaceOrientation LCCurrentInterfaceOrientation(void) {
         settings.peripheryInsets.right / _scaleRatio
     );
 
-
+    // Before iPad mode is applied
+    if (appInfo.forceIPhoneMode) {
+        // Force iPhone mode - return Phone idiom instead of Pad
+        return UIUserInterfaceIdiomPhone;
+    }
+    
     if (UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
         UIInterfaceOrientation currentOrientation = LCCurrentInterfaceOrientation();
         if (UIInterfaceOrientationIsLandscape(currentOrientation)) {

@@ -8,12 +8,27 @@
 import Foundation
 import SwiftUI
 
-enum JITEnablerType : Int {
+enum JITEnablerType : Int, CaseIterable, Identifiable {
+    var id: Int { rawValue }
     case SideJITServer = 0
-    case StkiJIT = 1
+    case StikJIT = 1
     case JITStreamerEBLegacy = 2
     case StikJITLC = 3
     case SideStore = 4
+    case StosDebug = 5
+    case StosDebugLC = 6
+    
+    var displayName: String {
+        switch self {
+        case .StikJIT: "StikDebug"
+        case .StikJITLC: "StikDebug (Another LiveContainer)"
+        case .StosDebug: "StosDebug"
+        case .StosDebugLC: "StosDebug (Another LiveContainer)"
+        case .SideStore: "SideStore"
+        case .JITStreamerEBLegacy: "JitStreamer-EB (Relaunch)"
+        case .SideJITServer: "SideJITServer/JITStreamer 2.0"
+        }
+    }
 }
 
 struct LCSettingsView: View {
@@ -167,11 +182,9 @@ struct LCSettingsView: View {
                         }
                     }
                     Picker(selection: $JITEnabler) {
-                        Text("SideJITServer/JITStreamer 2.0").tag(JITEnablerType.SideJITServer)
-                        Text("StikDebug").tag(JITEnablerType.StkiJIT)
-                        Text("StikDebug (Another LiveContainer)").tag(JITEnablerType.StikJITLC)
-                        Text("SideStore").tag(JITEnablerType.SideStore)
-                        Text("JitStreamer-EB (Relaunch)").tag(JITEnablerType.JITStreamerEBLegacy)
+                        ForEach(JITEnablerType.allCases) { enablerType in
+                            Text(enablerType.displayName).tag(enablerType)
+                        }
                     } label: {
                         Text("lc.settings.jitEnabler".loc)
                     }

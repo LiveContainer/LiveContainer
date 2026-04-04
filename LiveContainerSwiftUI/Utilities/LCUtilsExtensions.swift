@@ -298,7 +298,7 @@ extension LCUtils {
         }
     }
     
-    public static func askForJIT(withScript script: String? = nil, onServerMessage: ((String) -> Void)? = nil) async -> Bool {
+    public static func askForJIT(withScript script: String? = nil, appName: String? = nil, onServerMessage: ((String) -> Void)? = nil) async -> Bool {
         // if LiveContainer is installed by TrollStore
         let tsPath = "\(Bundle.main.bundlePath)/../_TrollStore"
         if (access((tsPath as NSString).utf8String, 0) == 0) {
@@ -310,7 +310,6 @@ extension LCUtils {
               let jitEnabler = JITEnablerType(rawValue: groupUserDefaults.integer(forKey: "LCJITEnablerType")) else {
             return false
         }
-        
         
         if(jitEnabler == .SideJITServer){
             guard
@@ -346,7 +345,7 @@ extension LCUtils {
             onServerMessage?("Please make sure the VPN is connected if the server is not in your local network.")
             
             do {
-
+                
                 onServerMessage?("Contacting JitStreamer-EB server at \(JITStresmerEBAddress)...")
                 
                 let session = URLSession.shared
@@ -380,12 +379,73 @@ extension LCUtils {
                 }
                 return false
                 
-
+                
             } catch {
                 onServerMessage?("Failed to contact JitStreamer-EB server: \(error)")
             }
+        } else if jitEnabler == .StosDebug || jitEnabler == .StosDebugLC {
+            guard let appName else { onServerMessage?("Unable to get App Name, Please try again."); return false }
+            var launchURLStr = "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)"
             
-        } else if jitEnabler == .StkiJIT || jitEnabler == .StikJITLC {
+            if let script = script, !script.isEmpty {
+                launchURLStr += "&script=\(script)"
+            }
+            
+            if jitEnabler == .StosDebugLC {
+                let encodedStr = Data(launchURLStr.utf8).base64EncodedString()
+
+
+                var appToLaunch: LCAppModel? = nil
+                // find an app that can respond to stikjit://
+                appLoop:
+                for app in DataManager.shared.model.apps {
+                    if let schemes = app.appInfo.urlSchemes() {
+                        for scheme in schemes {
+                            if let scheme = scheme as? String, scheme == "stosdebug" {
+                                appToLaunch = app
+                                break appLoop
+                            }
+                        }
+                    }
+                }
+                guard let appToLaunch else {
+                    onServerMessage?("StosDebug is not installed in LiveContainer.")
+                    return false
+                }
+                
+                if !appToLaunch.uiIsShared {
+                    onServerMessage?("StosDebug is installed in LiveContainer, but is not a shared app. Convert it to a shared app to continue.")
+                    return false
+                }
+                // check if stosdebug is already running
+                var freeScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
+                
+                if(freeScheme == nil) {
+                    // if not, try to find a free lc
+                    forEachInstalledLC(isFree: true) { scheme, shouldBreak in
+                        freeScheme = scheme
+                        shouldBreak = true
+                    }
+                }
+                guard let freeScheme else {
+                    onServerMessage?("No free LiveContainer is available. Please either: \n(1)close one, \n(2)install a new one, \n(3)choose another method to enable JIT.")
+                    return false
+                }
+                
+                let launchURL = URL(string: "\(freeScheme)://open-url?url=\(encodedStr)")!
+                
+                LCUtils.appGroupUserDefault.set(appToLaunch.appInfo.relativeBundlePath, forKey: "LCLaunchExtensionBundleID")
+                LCUtils.appGroupUserDefault.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
+                onServerMessage?("JIT acquisition will continue in another LiveContainer.")
+                
+                await UIApplication.shared.open(launchURL)
+            } else {
+                onServerMessage?("JIT acquisition will continue in StosDebug.")
+                
+                await UIApplication.shared.open(URL(string: launchURLStr)!)
+            }
+            
+        } else if jitEnabler == .StikJIT || jitEnabler == .StikJITLC {
             var launchURLStr = "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)"
 
             if let script = script, !script.isEmpty {

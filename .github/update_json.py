@@ -243,9 +243,13 @@ def update_json_file_release_ss_lc(repo_url, json_file, latest_release, is_night
     version_date = latest_release["published_at"]
     date_obj = datetime.strptime(version_date, "%Y-%m-%dT%H:%M:%SZ")
 
-    description = latest_release["body"]
-    description = prepare_description(description)
+    commit_sha = os.environ.get("commit_sha", "")[:7]
+    commit_msg = os.environ.get("commit_msg", "").strip()
 
+    description = f"""\
+Nightly build from [{commit_sha}](https://github.com/LiveContainer/LiveContainer/commit/{commit_sha}):\
+ {commit_msg}
+    """
     assets = latest_release.get("assets", [])
     download_url = None
     size = None

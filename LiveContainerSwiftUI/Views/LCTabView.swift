@@ -13,6 +13,7 @@ struct LCTabView: View {
     @Binding var tweakFolderNames: [String]
     
     @State var errorShow = false
+    @State var crashReportShow = false
     @State var errorInfo = ""
     
     @State var previousSelectedTab : LCTabIdentifier = .apps
@@ -96,6 +97,32 @@ struct LCTabView: View {
         } message: {
             Text(errorInfo)
         }
+        .sheet(isPresented: $crashReportShow) {
+            NavigationView {
+                ScrollView {
+                    Text(errorInfo)
+                        .font(.system(size: 12).monospaced())
+                        .fixedSize(horizontal: false, vertical: false)
+                        .textSelection(.enabled)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("lc.common.copy".loc, action: {
+                            copyError()
+                        })
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("lc.common.ok".loc, action: {
+                            crashReportShow = false
+                        })
+                    }
+                }
+                .navigationTitle("lc.common.error".loc)
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
         .task {
             closeDuplicatedWindow()
             checkLastLaunchError()
@@ -176,7 +203,7 @@ struct LCTabView: View {
         }
         UserDefaults.standard.removeObject(forKey: "error")
         errorInfo = errorStr
-        errorShow = true
+        crashReportShow = true
     }
     
     func copyError() {

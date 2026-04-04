@@ -3,9 +3,9 @@ import Foundation
 protocol LCAppModelDelegate {
     func closeNavigationView()
     func changeAppVisibility(app : LCAppModel)
-    func jitLaunch() async
-    func jitLaunch(withScript script: String) async
-    func jitLaunch(withPID pid: Int, withScript script: String?) async
+    func jitLaunch(appName: String) async
+    func jitLaunch(withScript script: String, appName: String) async
+    func jitLaunch(withPID pid: Int, withScript script: String?, appName: String) async
     func showRunWhenMultitaskAlert() async -> Bool?
 }
 
@@ -262,9 +262,9 @@ class LCAppModel: ObservableObject, Hashable {
                         }
                         Task {
                             if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
-                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData)
+                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData, appName: self.appInfo.displayName())
                             } else {
-                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil)
+                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil, appName: self.appInfo.displayName())
                             }
                             continuation.resume()
                         }
@@ -273,9 +273,9 @@ class LCAppModel: ObservableObject, Hashable {
             } else {
                 // Non-multitask JIT flow remains unchanged
                 if let scriptData = jitLaunchScriptJs, !scriptData.isEmpty {
-                    await delegate?.jitLaunch(withScript: scriptData)
+                    await delegate?.jitLaunch(withScript: scriptData, appName: self.appInfo.displayName())
                 } else {
-                    await delegate?.jitLaunch()
+                    await delegate?.jitLaunch(appName: self.appInfo.displayName())
                 }
             }
         } else if multitask, #available(iOS 16.0, *) {

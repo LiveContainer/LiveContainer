@@ -18,9 +18,9 @@ class SearchContext: ObservableObject {
     @Published var query: String = ""
     @Published var debouncedQuery: String = ""
     @Published var isTyping: Bool = false
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     init() {
         $query
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
@@ -45,7 +45,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     //⭐️⭐️⭐️Switch mode
     @AppStorage("LCNativeFullscreen") var isNative = true
     @AppStorage("LCRealiPhoneMode") var isiPhone = false
-    
     @Binding var appDataFolderNames: [String]
     @Binding var tweakFolderNames: [String]
     
@@ -209,7 +208,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     isActive: $isNavigationActive,
                     label: {
                         EmptyView()
-                    })
+                })
                 .hidden()
                 
                 LazyVStack {
@@ -220,7 +219,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
                 .padding()
                 .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
-                
+
                 VStack {
                     if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                         if sharedModel.isHiddenAppUnlocked {
@@ -268,7 +267,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         .padding()
                         .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
                     }
-                    
+
                     let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
                     Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
                         .padding(.horizontal)
@@ -278,11 +277,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             Task { await authenticateUser() }
                         }
                 }.animation(searchContext.isTyping ? nil : .easeInOut, value: LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding"))
-                
+
                 if sharedModel.multiLCStatus == 2 {
                     Text("lc.appList.manageInPrimaryTip".loc).foregroundStyle(.gray).padding()
                 }
-                
+
             }
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
             .coordinateSpace(name: "scroll")
@@ -330,7 +329,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                                     }
                                 }())
                                 .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
-                            
+
                         }
                     } else {
                         Button("Help", systemImage: "questionmark") {
@@ -338,7 +337,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         }
                     }
                     
-                    
+
                 }
                 //⭐️⭐️⭐️switch mode 
                 ToolbarItem(placement: .topBarLeading) {
@@ -400,7 +399,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }, label: {
                     Text(installOption.isReplace ? installOption.nameOfFolderToInstall : "lc.appList.installAsNew".loc)
                 })
-                
+            
             }
             Button(role: .cancel, action: {
                 installReplaceAlert.close(result: nil)
@@ -519,7 +518,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 $0.searchable(text: $searchContext.query)
             }
         }
-        
+
     }
     
     var JITEnablingModal : some View {
@@ -603,7 +602,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if sharedModel.isHiddenAppUnlocked || !LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                 appListsToConsider.append(sharedModel.hiddenApps)
             }
-        appLoop:
+            appLoop:
             for appList in appListsToConsider {
                 for app in appList {
                     if let schemes = app.appInfo.urlSchemes() {
@@ -616,8 +615,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     }
                 }
             }
-            
-            
+
+
             guard let appToLaunch = appToLaunch else {
                 errorInfo = "lc.appList.schemeCannotOpenError %@".localizeWithFormat(urlToOpen.scheme!)
                 errorShow = true
@@ -656,8 +655,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             webViewOpened = true
         }
     }
-    
-    
+
+
     
     func startInstallApp(_ fileUrl:URL) async {
         do {
@@ -696,7 +695,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard await decompress(url.path, fm.temporaryDirectory.path, decompressProgress) == 0 else {
             throw "lc.appList.urlFileIsNotIpaError".loc
         }
-        
+
         let payloadContents = try fm.contentsOfDirectory(atPath: payloadPath.path)
         var appBundleName : String? = nil
         for fileName in payloadContents {
@@ -708,13 +707,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         guard let appBundleName = appBundleName else {
             throw "lc.appList.bundleNotFondError".loc
         }
-        
+
         let appFolderPath = payloadPath.appendingPathComponent(appBundleName)
         
         guard let newAppInfo = LCAppInfo(bundlePath: appFolderPath.path) else {
             throw "lc.appList.infoPlistCannotReadError".loc
         }
-        
+
         var appRelativePath = "\(newAppInfo.bundleIdentifier()!.sanitizeNonACSII()).app"
         var outputFolder = LCPath.bundlePath.appendingPathComponent(appRelativePath)
         var appToReplace : LCAppModel? = nil
@@ -752,7 +751,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             for app in sameBundleIdApp {
                 self.installOptions.append(AppReplaceOption(isReplace: true, nameOfFolderToInstall: app.appInfo.relativeBundlePath, appToReplace: app))
             }
-            
+
             guard let installOptionChosen = await installReplaceAlert.open() else {
                 // user cancelled
                 self.installprogressVisible = false
@@ -849,7 +848,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     sharedModel.apps.removeAll { $0 == appToReplace }
                     sharedModel.apps.append(newAppModel)
                 }
-                
+
             } else {
                 let newAppModel = LCAppModel(appInfo: finalNewApp, delegate: self)
                 sharedModel.apps.append(newAppModel)
@@ -860,7 +859,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         .addObjects(from: urlSchemes as! [Any])
                 }
             }
-            
+
             self.installprogressVisible = false
         }
     }
@@ -1109,26 +1108,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             errorShow = true
             return
         }
-        
-        if launchInMultitaskMode {
-            do {
+
+        do {            
+            if #available(iOS 16.0, *), launchInMultitaskMode {
                 try await appFound.runApp(multitask: true, containerFolderName: container, forceJIT: forceJIT)
-            } catch {
-                errorInfo = error.localizedDescription
-                errorShow = true
-            }
-        } else if UserDefaults.standard.bool(forKey: "LCNativeFullscreen") ||
-                    LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode") { 
-            
-            
-            do {
+            } else {
                 try await appFound.runApp(multitask: false, containerFolderName: container, forceJIT: forceJIT)
-            } catch {
-                errorInfo = error.localizedDescription
-                errorShow = true
             }
-            
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
         }
+        
     }
     
     func authenticateUser() async {
@@ -1143,16 +1134,17 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
-    func jitLaunch() async {
-        await jitLaunch(withScript: "")
+    func jitLaunch(appName: String) async {
+        await jitLaunch(withScript: "", appName: appName)
     }
-    
-    func jitLaunch(withScript script: String) async {
+
+    func jitLaunch(withScript script: String, appName: String) async {
         await MainActor.run {
             jitLog = ""
         }
         let enableJITTask = Task {
-            let _ = await LCUtils.askForJIT(withScript: script) { newMsg in
+            
+            let _ = await LCUtils.askForJIT(withScript: script, appName: appName) { newMsg in
                 Task { await MainActor.run {
                     self.jitLog += "\(newMsg)\n"
                 }}
@@ -1167,32 +1159,59 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return
         }
         LCSharedUtils.launchToGuestApp()
-        
+
     }
     
-    func jitLaunch(withPID pid: Int, withScript script: String? = nil) async {
+    func jitLaunch(withPID pid: Int, withScript script: String? = nil, appName: String) async {
         await MainActor.run {
-            let encoded = script?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-                .map { "&script-data=\($0)" } ?? ""
-            if let url = URL(string: "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)&pid=\(pid)\(encoded)") {
-                if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")), jitEnabler == .StikJITLC {
-                    if let app = sharedModel.apps.first(where: { app in
-                        return app.appInfo.urlSchemes().contains("stikjit") &&
-                        (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
-                    }) {
-                        Task { await openWebView(urlString: url.absoluteString) }
+            let encodedData = script?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+                
+            
+            if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")) {
+                if jitEnabler == .StosDebug || jitEnabler == .StosDebugLC {
+                    let encoded = encodedData.map { "&script=\($0)" } ?? ""
+                    if jitEnabler == .StosDebugLC {
+                        if let app = sharedModel.apps.first(where: { app in
+                            return app.appInfo.urlSchemes().contains("stosdebug") &&
+                            (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
+                        }) {
+                            if var url = URL(string: "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&relaunchApp=false& forcePID=true\(encoded)") {
+                                Task { await openWebView(urlString: url.absoluteString) }
+                            }
+                        } else {
+                            errorInfo = "StosDebug is not found. Please install it first and switch it to shared app."
+                            errorShow = true
+                            return
+                        }
                     } else {
-                        errorInfo = "StikDebug is not found. Please install it first and switch it to shared app."
-                        errorShow = true
-                        return
+                        if var url = URL(string: "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&forcePID=true\(encoded)") {
+                            UIApplication.shared.open(url)
+                        }
                     }
-                } else {
-                    UIApplication.shared.open(url)
+                    return
+                }
+                
+                let encoded = encodedData.map { "&script-data=\($0)" } ?? ""
+                if let url = URL(string: "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)&pid=\(pid)\(encoded)") {
+                    if jitEnabler == .StikJITLC {
+                        if let app = sharedModel.apps.first(where: { app in
+                            return app.appInfo.urlSchemes().contains("stikjit") &&
+                            (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
+                        }) {
+                            Task { await openWebView(urlString: url.absoluteString) }
+                        } else {
+                            errorInfo = "StikDebug is not found. Please install it first and switch it to shared app."
+                            errorShow = true
+                            return
+                        }
+                    } else {
+                        UIApplication.shared.open(url)
+                    }
                 }
             }
         }
     }
-    
+
     func showRunWhenMultitaskAlert() async -> Bool? {
         return await runWhenMultitaskAlert.open()
     }

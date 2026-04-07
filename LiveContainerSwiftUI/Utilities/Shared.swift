@@ -67,6 +67,7 @@ class SharedModel: ObservableObject {
     
     @Published var apps : [LCAppModel] = []
     @Published var hiddenApps : [LCAppModel] = []
+    @Published var totalUpdateableAppsCount = 0
     
     @Published var pidCallback : ((NSNumber, Error?) -> Void)? = nil
     

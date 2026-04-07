@@ -789,4 +789,16 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     [self save];
 }
 
+- (bool)enableUpdates {
+    if(_info[@"enableUpdates"] != nil) {
+        return [_info[@"enableUpdates"] boolValue];
+    }
+    return true;
+}
+
+- (void)setEnableUpdates:(bool)enableUpdates {
+    _info[@"enableUpdates"] = [NSNumber numberWithBool:enableUpdates];
+    [self save];
+}
+
 @end

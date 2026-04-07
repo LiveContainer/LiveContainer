@@ -116,6 +116,12 @@ class LCAppModel: ObservableObject, Hashable {
         }
     }
     
+    @Published var uiEnableUpdates : Bool {
+        didSet {
+            appInfo.enableUpdates = uiEnableUpdates
+        }
+    }
+    
     @Published var supportedLanguages : [String]?
     
     var delegate : LCAppModelDelegate?
@@ -150,6 +156,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
         self.uiRemark = appInfo.remark ?? ""
         self.uiAltSource = appInfo.altSource ?? ""
+        self.uiEnableUpdates = appInfo.enableUpdates
 #if is32BitSupported
         self.uiIs32bit = appInfo.is32bit
 #endif

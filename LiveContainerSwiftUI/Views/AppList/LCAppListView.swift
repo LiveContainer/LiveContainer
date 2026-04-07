@@ -755,16 +755,21 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.jitLaunchScriptJs = appToReplace.appInfo.jitLaunchScriptJs
             finalNewApp.altSource = appToReplace.appInfo.altSource
             finalNewApp.altSourceIdentifier = appToReplace.appInfo.altSourceIdentifier
+            finalNewApp.enableUpdates = appToReplace.appInfo.enableUpdates
             finalNewApp.autoSaveDisabled = false
             finalNewApp.save()
         } else {
             // enable SDK version spoof by defalut
             finalNewApp.spoofSDKVersion = true
+            finalNewApp.enableUpdates = false
         }
         finalNewApp.installationDate = Date.now
         if let altSource = altSource {
             finalNewApp.altSource = altSource.name
             finalNewApp.altSourceIdentifier = altSource.identifier ?? altSourceURL?.absoluteString
+            if appToReplace == nil {
+                finalNewApp.enableUpdates = true
+            }
         }
         
         DispatchQueue.main.async {

@@ -76,6 +76,13 @@ struct LCAppSettingsView: View {
                         .multilineTextAlignment(.trailing)
                         .textSelection(.enabled)
                 }
+                if !model.uiAltSource.isEmpty {
+                    HStack {
+                        Text("lc.appSettings.enableUpdates".loc)
+                        Spacer()
+                        Toggle("", isOn: $model.uiEnableUpdates)
+                    }
+                }
                 if !model.uiIsShared {
                     Menu {
                         Picker(selection: $model.uiTweakFolder , label: Text("")) {

@@ -41,6 +41,7 @@ typedef NS_ENUM(NSInteger, LCOrientationLock){
 @property NSString* remark;
 @property NSString* altSource;
 @property NSString* altSourceIdentifier;
+@property bool enableUpdates;
 #if is32BitSupported
 @property bool is32bit;
 #endif

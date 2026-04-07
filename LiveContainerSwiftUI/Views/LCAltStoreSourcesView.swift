@@ -517,7 +517,7 @@ struct LCSourcesView: View {
                                     isFiltering: isFiltering,
                                     isExpanded: expandedSources.contains(item.id),
                                     onRefresh: { Task { await viewModel.refreshSource(item) } },
-                                    onInstall: { app in install(app: app, source: item.source!) },
+                                    onInstall: { app in install(app: app, source: item.source!, sourceUrl: item.url) },
                                     onRemove: { sourcePendingRemoval = item },
                                     toggleExpanded: { toggleExpansion(for: item.id) }
                                 )
@@ -681,7 +681,7 @@ struct LCSourcesView: View {
     }
     
     @MainActor
-    private func install(app: AltStoreSourceApp, source: AltStoreSource) {
+    private func install(app: AltStoreSourceApp, source: AltStoreSource, sourceUrl: URL) {
         guard let downloadURL = app.latestVersion?.downloadURL else {
             errorMessage = "lc.sources.error.missingDownload".loc
             return
@@ -690,7 +690,7 @@ struct LCSourcesView: View {
             DataManager.shared.model.selectedTab = .apps
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL, "source": source])
+            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL, "source": source, "sourceURL": sourceUrl])
         }
 
 
@@ -865,6 +865,11 @@ private struct AltStoreSourceSectionView: View {
     let onRemove: () -> Void
     let toggleExpanded: () -> Void
     
+    private var hasDuplicateBundleIDs: Bool {
+        Dictionary(grouping: item.source?.apps ?? [], by: \.bundleIdentifier)
+            .contains { $1.count > 1 }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
@@ -887,6 +892,11 @@ private struct AltStoreSourceSectionView: View {
                     Menu {
                         Button("lc.sources.refresh".loc, systemImage: "arrow.clockwise", action: onRefresh)
                         Button("lc.sources.removeSource".loc, systemImage: "trash", role: .destructive, action: onRemove)
+                        if hasDuplicateBundleIDs {
+                            Text("Non-standard AltSource detected - updates not supported")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .imageScale(.large)
@@ -894,7 +904,7 @@ private struct AltStoreSourceSectionView: View {
                     }
                 }
             }
-            
+
             if let subtitle = item.source?.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
                     .font(.footnote)
@@ -904,7 +914,7 @@ private struct AltStoreSourceSectionView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            
+
             if let error = item.error {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("lc.sources.section.error".loc)
@@ -924,7 +934,7 @@ private struct AltStoreSourceSectionView: View {
             } else if let source = item.source, isExpanded || isFiltering {
                 VStack(spacing: 12) {
                     ForEach(filteredApps[0..<min(50, filteredApps.count)]) { app in
-                        LCSourceAppBanner(app: app, source: source, installAction: onInstall)
+                        LCSourceAppBanner(app: app, source: source, sourceUrl: item.url, installAction: onInstall)
                     }
                     if filteredApps.isEmpty {
                         if source.apps.isEmpty || isFiltering {
@@ -951,7 +961,39 @@ private struct AltStoreSourceSectionView: View {
 private struct LCSourceAppBanner: View {
     let app: AltStoreSourceApp
     let source: AltStoreSource
+    let sourceUrl: URL
     let installAction: (AltStoreSourceApp) -> Void
+    
+    @EnvironmentObject private var sharedModel: SharedModel
+    
+    private var sourceIdentifiers: [String] {
+        var ids: [String] = []
+        if let identifier = source.identifier {
+            ids.append(identifier)
+        }
+        ids.append(sourceUrl.absoluteString)
+        return ids
+    }
+    
+    private var hasDuplicateBundleIDs: Bool {
+        Dictionary(grouping: source.apps, by: \.bundleIdentifier)
+            .contains { $1.count > 1 }
+    }
+    
+    private var canReinstall: Bool {
+        guard !hasDuplicateBundleIDs else { return false }
+        return (sharedModel.apps + sharedModel.hiddenApps).contains { installedApp in
+            guard installedApp.appInfo.bundleIdentifier() == app.bundleIdentifier,
+                  let installedAltSource = installedApp.appInfo.altSourceIdentifier else {
+                return false
+            }
+            return sourceIdentifiers.contains(installedAltSource)
+        }
+    }
+    
+    private var actionTitle: String {
+        canReinstall ? "lc.common.reinstall".loc : "lc.common.install".loc
+    }
     
     @AppStorage("dynamicColors") private var dynamicColors = true
     @Environment(\.colorScheme) var colorScheme
@@ -1027,7 +1069,7 @@ private struct LCSourceAppBanner: View {
             Button {
                 installAction(app)
             } label: {
-                Text("lc.common.install".loc)
+                Text(actionTitle)
                     .bold()
                     .foregroundColor(.white)
                     .lineLimit(1)

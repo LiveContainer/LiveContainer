@@ -40,6 +40,7 @@ typedef NS_ENUM(NSInteger, LCOrientationLock){
 @property NSDate* installationDate;
 @property NSString* remark;
 @property NSString* altSource;
+@property NSString* altSourceIdentifier;
 #if is32BitSupported
 @property bool is32bit;
 #endif

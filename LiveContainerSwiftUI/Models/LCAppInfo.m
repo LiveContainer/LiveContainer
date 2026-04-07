@@ -776,4 +776,17 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     [self save];
 }
 
+- (NSString*)altSourceIdentifier {
+    return _info[@"altSourceIdentifier"];
+}
+
+- (void)setAltSourceIdentifier:(NSString *)altSourceIdentifier {
+    if([altSourceIdentifier isEqualToString: @""]) {
+        _info[@"altSourceIdentifier"] = nil;
+    } else {
+        _info[@"altSourceIdentifier"] = altSourceIdentifier;
+    }
+    [self save];
+}
+
 @end

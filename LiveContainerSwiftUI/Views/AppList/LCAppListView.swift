@@ -430,7 +430,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.InstallAppNotification)) { obj in
             if let obj2 = obj.object as? [String: Any], let installUrl = obj2["url"] as? URL {
-                Task { await installFromUrl(urlStr: installUrl.absoluteString) }
+                let source = obj2["source"] as? AltStoreSource
+                Task { await installFromUrl(urlStr: installUrl.absoluteString, altSource: source) }
             }
         }
         .apply {
@@ -583,7 +584,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     func startInstallApp(_ fileUrl:URL) async {
         do {
             self.installprogressVisible = true
-            try await installIpaFile(fileUrl)
+            try await installIpaFile(fileUrl, altSource: nil)
             try FileManager.default.removeItem(at: fileUrl)
         } catch {
             errorInfo = error.localizedDescription
@@ -596,7 +597,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         extract(path, destination, progress)
     }
     
-    func installIpaFile(_ url:URL) async throws {
+    func installIpaFile(_ url:URL, altSource: AltStoreSource?) async throws {
         let fm = FileManager()
         
         let installProgress = Progress.discreteProgress(totalUnitCount: 100)
@@ -751,6 +752,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.fixLocalNotification = appToReplace.appInfo.fixLocalNotification
             finalNewApp.lastLaunched = appToReplace.appInfo.lastLaunched
             finalNewApp.jitLaunchScriptJs = appToReplace.appInfo.jitLaunchScriptJs
+            finalNewApp.remark = appToReplace.appInfo.remark
+            finalNewApp.altSource = appToReplace.appInfo.altSource
             finalNewApp.autoSaveDisabled = false
             finalNewApp.save()
         } else {
@@ -758,6 +761,9 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.spoofSDKVersion = true
         }
         finalNewApp.installationDate = Date.now
+        if let altSource = altSource {
+            finalNewApp.altSource = altSource.name
+        }
         
         DispatchQueue.main.async {
             if let appToReplace {
@@ -863,7 +869,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
-    func installFromUrl(urlStr: String) async {
+    func installFromUrl(urlStr: String, altSource: AltStoreSource? = nil) async {
         // ignore any install request if we are installing another app
         if self.installprogressVisible {
             return
@@ -906,7 +912,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
             
             do {
-                try await installIpaFile(installUrl)
+                try await installIpaFile(installUrl, altSource: altSource)
             } catch {
                 errorInfo = error.localizedDescription
                 errorShow = true
@@ -942,7 +948,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             if downloadHelper.cancelled {
                 return
             }
-            try await installIpaFile(destinationURL)
+            try await installIpaFile(destinationURL, altSource: altSource)
             try fileManager.removeItem(at: destinationURL)
         } catch {
             errorInfo = error.localizedDescription

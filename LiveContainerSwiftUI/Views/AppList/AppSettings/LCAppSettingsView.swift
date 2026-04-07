@@ -68,6 +68,14 @@ struct LCAppSettingsView: View {
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.trailing)
                 }
+                HStack {
+                    Text("AltSource")
+                    Spacer()
+                    Text(model.uiAltSource.isEmpty ? "None" : model.uiAltSource)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.trailing)
+                        .textSelection(.enabled)
+                }
                 if !model.uiIsShared {
                     Menu {
                         Picker(selection: $model.uiTweakFolder , label: Text("")) {

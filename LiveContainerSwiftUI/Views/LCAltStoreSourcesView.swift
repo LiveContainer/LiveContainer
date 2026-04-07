@@ -517,7 +517,7 @@ struct LCSourcesView: View {
                                     isFiltering: isFiltering,
                                     isExpanded: expandedSources.contains(item.id),
                                     onRefresh: { Task { await viewModel.refreshSource(item) } },
-                                    onInstall: install(app:),
+                                    onInstall: { app in install(app: app, source: item.source!) },
                                     onRemove: { sourcePendingRemoval = item },
                                     toggleExpanded: { toggleExpansion(for: item.id) }
                                 )
@@ -681,7 +681,7 @@ struct LCSourcesView: View {
     }
     
     @MainActor
-    private func install(app: AltStoreSourceApp) {
+    private func install(app: AltStoreSourceApp, source: AltStoreSource) {
         guard let downloadURL = app.latestVersion?.downloadURL else {
             errorMessage = "lc.sources.error.missingDownload".loc
             return
@@ -690,7 +690,7 @@ struct LCSourcesView: View {
             DataManager.shared.model.selectedTab = .apps
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL])
+            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL, "source": source])
         }
 
 

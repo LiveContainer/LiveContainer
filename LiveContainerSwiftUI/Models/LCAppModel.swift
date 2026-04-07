@@ -110,6 +110,12 @@ class LCAppModel: ObservableObject, Hashable {
         }
     }
     
+    @Published var uiAltSource : String {
+        didSet {
+            appInfo.altSource = uiAltSource
+        }
+    }
+    
     @Published var supportedLanguages : [String]?
     
     var delegate : LCAppModelDelegate?
@@ -143,6 +149,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.jitLaunchScriptJs = appInfo.jitLaunchScriptJs
         self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
         self.uiRemark = appInfo.remark ?? ""
+        self.uiAltSource = appInfo.altSource ?? ""
 #if is32BitSupported
         self.uiIs32bit = appInfo.is32bit
 #endif

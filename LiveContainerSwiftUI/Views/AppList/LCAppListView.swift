@@ -753,9 +753,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.fixLocalNotification = appToReplace.appInfo.fixLocalNotification
             finalNewApp.lastLaunched = appToReplace.appInfo.lastLaunched
             finalNewApp.jitLaunchScriptJs = appToReplace.appInfo.jitLaunchScriptJs
-            finalNewApp.altSource = appToReplace.appInfo.altSource
-            finalNewApp.altSourceIdentifier = appToReplace.appInfo.altSourceIdentifier
-            finalNewApp.enableUpdates = appToReplace.appInfo.enableUpdates
+            if let altSource = altSource {
+                finalNewApp.altSource = altSource.name
+                finalNewApp.altSourceIdentifier = altSource.identifier ?? altSourceURL?.absoluteString
+                finalNewApp.enableUpdates = appToReplace.appInfo.enableUpdates
+            } else {
+                // IPA install, strip AltSource data
+                finalNewApp.altSource = nil
+                finalNewApp.altSourceIdentifier = nil
+                finalNewApp.enableUpdates = false
+            }
             finalNewApp.autoSaveDisabled = false
             finalNewApp.save()
         } else {

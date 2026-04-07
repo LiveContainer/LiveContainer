@@ -763,4 +763,42 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     [self save];
 }
 
+- (NSString*)altSource {
+    return _info[@"altSource"];
+}
+
+- (void)setAltSource:(NSString *)altSource {
+    if([altSource isEqualToString: @""]) {
+        _info[@"altSource"] = nil;
+    } else {
+        _info[@"altSource"] = altSource;
+    }
+    [self save];
+}
+
+- (NSString*)altSourceIdentifier {
+    return _info[@"altSourceIdentifier"];
+}
+
+- (void)setAltSourceIdentifier:(NSString *)altSourceIdentifier {
+    if([altSourceIdentifier isEqualToString: @""]) {
+        _info[@"altSourceIdentifier"] = nil;
+    } else {
+        _info[@"altSourceIdentifier"] = altSourceIdentifier;
+    }
+    [self save];
+}
+
+- (bool)enableUpdates {
+    if(_info[@"enableUpdates"] != nil) {
+        return [_info[@"enableUpdates"] boolValue];
+    }
+    return true;
+}
+
+- (void)setEnableUpdates:(bool)enableUpdates {
+    _info[@"enableUpdates"] = [NSNumber numberWithBool:enableUpdates];
+    [self save];
+}
+
 @end

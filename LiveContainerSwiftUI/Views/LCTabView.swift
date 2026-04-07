@@ -65,6 +65,7 @@ struct LCTabView: View {
                             .tabItem {
                                 Label("lc.tabView.sources".loc, systemImage: "books.vertical")
                             }
+                            .badge(sharedModel.totalUpdateableAppsCount > 0 ? String(sharedModel.totalUpdateableAppsCount) : nil)
                             .tag(LCTabIdentifier.sources)
                     }
                     appListView

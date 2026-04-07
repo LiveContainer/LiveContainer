@@ -517,7 +517,7 @@ struct LCSourcesView: View {
                                     isFiltering: isFiltering,
                                     isExpanded: expandedSources.contains(item.id),
                                     onRefresh: { Task { await viewModel.refreshSource(item) } },
-                                    onInstall: install(app:),
+                                    onInstall: { app in install(app: app, source: item.source!, sourceUrl: item.url) },
                                     onRemove: { sourcePendingRemoval = item },
                                     toggleExpanded: { toggleExpansion(for: item.id) }
                                 )
@@ -616,6 +616,7 @@ struct LCSourcesView: View {
         }
         .onAppear {
             expandedSources = []
+            updateTotalUpdateableCount()
             if !isViewAppeared {
                 guard sharedModel.selectedTab == .sources, let link = sharedModel.deepLink else { return }
                 sharedModel.deepLink = nil
@@ -626,11 +627,18 @@ struct LCSourcesView: View {
         .onChange(of: viewModel.sources) { newSources in
             let newSet = Set(newSources.map { $0.id })
             expandedSources = expandedSources.intersection(newSet)
+            updateTotalUpdateableCount()
         }
         .onChange(of: sharedModel.deepLink) { link in
             guard sharedModel.selectedTab == .sources, let link else { return }
             sharedModel.deepLink = nil
             handleURL(url: link)
+        }
+        .onChange(of: sharedModel.apps) { _ in
+            updateTotalUpdateableCount()
+        }
+        .onChange(of: sharedModel.hiddenApps) { _ in
+            updateTotalUpdateableCount()
         }
     }
     
@@ -681,7 +689,7 @@ struct LCSourcesView: View {
     }
     
     @MainActor
-    private func install(app: AltStoreSourceApp) {
+    private func install(app: AltStoreSourceApp, source: AltStoreSource, sourceUrl: URL) {
         guard let downloadURL = app.latestVersion?.downloadURL else {
             errorMessage = "lc.sources.error.missingDownload".loc
             return
@@ -690,7 +698,7 @@ struct LCSourcesView: View {
             DataManager.shared.model.selectedTab = .apps
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL])
+            NotificationCenter.default.post(name: NSNotification.InstallAppNotification, object: ["url": downloadURL, "source": source, "sourceURL": sourceUrl])
         }
 
 
@@ -704,6 +712,44 @@ struct LCSourcesView: View {
                 expandedSources.insert(id)
             }
         }
+    }
+    
+    private func updateTotalUpdateableCount() {
+        var total = 0
+        for item in viewModel.sources {
+            guard let source = item.source else { continue }
+            let sourceIds = [source.identifier, item.url.absoluteString].compactMap { $0 }
+            let hasDuplicates = Dictionary(grouping: source.apps, by: \.bundleIdentifier).contains { $1.count > 1 }
+            guard !hasDuplicates else { continue }
+            
+            for app in source.apps {
+                guard let installed = (sharedModel.apps + sharedModel.hiddenApps).first(where: { $0.appInfo.bundleIdentifier() == app.bundleIdentifier && sourceIds.contains($0.appInfo.altSourceIdentifier ?? "") }) else {
+                    continue
+                }
+                guard installed.appInfo.enableUpdates, let latestVersion = app.latestVersion?.version else { continue }
+                if let installedVersion = installed.appInfo.version() {
+                    if compareVersions(installedVersion, latestVersion) < 0 {
+                        total += 1
+                    }
+                }
+            }
+        }
+        sharedModel.totalUpdateableAppsCount = total
+    }
+    
+    private func compareVersions(_ installed: String, _ available: String) -> Int {
+        let installedParts = installed.split(separator: ".").compactMap { Int($0) }
+        let availableParts = available.split(separator: ".").compactMap { Int($0) }
+        
+        let maxLength = max(installedParts.count, availableParts.count)
+        for i in 0..<maxLength {
+            let installedPart = i < installedParts.count ? installedParts[i] : 0
+            let availablePart = i < availableParts.count ? availableParts[i] : 0
+            
+            if availablePart > installedPart { return 1 }
+            if availablePart < installedPart { return -1 }
+        }
+        return 0
     }
     
     func handleURL(url : URL) {
@@ -865,6 +911,51 @@ private struct AltStoreSourceSectionView: View {
     let onRemove: () -> Void
     let toggleExpanded: () -> Void
     
+    @EnvironmentObject private var sharedModel: SharedModel
+    
+    private var sourceIdentifiers: [String] {
+        var ids: [String] = []
+        if let identifier = item.source?.identifier {
+            ids.append(identifier)
+        }
+        ids.append(item.url.absoluteString)
+        return ids
+    }
+    
+    private var hasDuplicateBundleIDs: Bool {
+        Dictionary(grouping: item.source?.apps ?? [], by: \.bundleIdentifier)
+            .contains { $1.count > 1 }
+    }
+    
+    private var updateableAppCount: Int {
+        guard !hasDuplicateBundleIDs, let source = item.source else { return 0 }
+        return source.apps.filter { app in
+            guard let installedApp = (sharedModel.apps + sharedModel.hiddenApps).first(where: { $0.appInfo.bundleIdentifier() == app.bundleIdentifier && sourceIdentifiers.contains($0.appInfo.altSourceIdentifier ?? "") }) else {
+                return false
+            }
+            guard installedApp.appInfo.enableUpdates, let latestVersion = app.latestVersion?.version else { return false }
+            if let installedVersion = installedApp.appInfo.version() {
+                return compareVersions(installedVersion, latestVersion) < 0
+            }
+            return false
+        }.count
+    }
+    
+    private func compareVersions(_ installed: String, _ available: String) -> Int {
+        let installedParts = installed.split(separator: ".").compactMap { Int($0) }
+        let availableParts = available.split(separator: ".").compactMap { Int($0) }
+        
+        let maxLength = max(installedParts.count, availableParts.count)
+        for i in 0..<maxLength {
+            let installedPart = i < installedParts.count ? installedParts[i] : 0
+            let availablePart = i < availableParts.count ? availableParts[i] : 0
+            
+            if availablePart > installedPart { return 1 }
+            if availablePart < installedPart { return -1 }
+        }
+        return 0
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
@@ -887,14 +978,30 @@ private struct AltStoreSourceSectionView: View {
                     Menu {
                         Button("lc.sources.refresh".loc, systemImage: "arrow.clockwise", action: onRefresh)
                         Button("lc.sources.removeSource".loc, systemImage: "trash", role: .destructive, action: onRemove)
+                        if hasDuplicateBundleIDs {
+                            Text("lc.sources.error.nonStandardAltSource".loc)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .imageScale(.large)
-                            .foregroundColor(.secondary)
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "ellipsis.circle")
+                                .imageScale(.large)
+                                .foregroundColor(.secondary)
+                            
+                            if updateableAppCount > 0 {
+                                Text(String(updateableAppCount))
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 16, height: 16)
+                                    .background(Circle().fill(Color.red))
+                                    .offset(x: 6, y: -6)
+                            }
+                        }
                     }
                 }
             }
-            
+
             if let subtitle = item.source?.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
                     .font(.footnote)
@@ -904,7 +1011,7 @@ private struct AltStoreSourceSectionView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            
+
             if let error = item.error {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("lc.sources.section.error".loc)
@@ -924,7 +1031,7 @@ private struct AltStoreSourceSectionView: View {
             } else if let source = item.source, isExpanded || isFiltering {
                 VStack(spacing: 12) {
                     ForEach(filteredApps[0..<min(50, filteredApps.count)]) { app in
-                        LCSourceAppBanner(app: app, source: source, installAction: onInstall)
+                        LCSourceAppBanner(app: app, source: source, sourceUrl: item.url, installAction: onInstall)
                     }
                     if filteredApps.isEmpty {
                         if source.apps.isEmpty || isFiltering {
@@ -951,7 +1058,74 @@ private struct AltStoreSourceSectionView: View {
 private struct LCSourceAppBanner: View {
     let app: AltStoreSourceApp
     let source: AltStoreSource
+    let sourceUrl: URL
     let installAction: (AltStoreSourceApp) -> Void
+    
+    @EnvironmentObject private var sharedModel: SharedModel
+    
+    private var sourceIdentifiers: [String] {
+        var ids: [String] = []
+        if let identifier = source.identifier {
+            ids.append(identifier)
+        }
+        ids.append(sourceUrl.absoluteString)
+        return ids
+    }
+    
+    private var hasDuplicateBundleIDs: Bool {
+        Dictionary(grouping: source.apps, by: \.bundleIdentifier)
+            .contains { $1.count > 1 }
+    }
+    
+    private var installedApp: LCAppModel? {
+        (sharedModel.apps + sharedModel.hiddenApps).first { installedApp in
+            installedApp.appInfo.bundleIdentifier() == app.bundleIdentifier &&
+            (installedApp.appInfo.altSourceIdentifier != nil && sourceIdentifiers.contains(installedApp.appInfo.altSourceIdentifier))
+        }
+    }
+    
+    private func compareVersions(_ installed: String, _ available: String) -> Int {
+        let installedParts = installed.split(separator: ".").compactMap { Int($0) }
+        let availableParts = available.split(separator: ".").compactMap { Int($0) }
+        
+        let maxLength = max(installedParts.count, availableParts.count)
+        for i in 0..<maxLength {
+            let installedPart = i < installedParts.count ? installedParts[i] : 0
+            let availablePart = i < availableParts.count ? availableParts[i] : 0
+            
+            if availablePart > installedPart { return 1 }
+            if availablePart < installedPart { return -1 }
+        }
+        return 0
+    }
+    
+    private var hasUpdate: Bool {
+        guard !hasDuplicateBundleIDs, let installed = installedApp else { return false }
+        guard installed.appInfo.enableUpdates, let latestVersion = app.latestVersion?.version else { return false }
+        
+        if let installedVersion = installed.appInfo.version() {
+            return compareVersions(installedVersion, latestVersion) < 0
+        }
+        return false
+    }
+    
+    private var canReinstall: Bool {
+        guard !hasDuplicateBundleIDs else { return false }
+        return (sharedModel.apps + sharedModel.hiddenApps).contains { installedApp in
+            guard installedApp.appInfo.bundleIdentifier() == app.bundleIdentifier,
+                  let installedAltSource = installedApp.appInfo.altSourceIdentifier else {
+                return false
+            }
+            return sourceIdentifiers.contains(installedAltSource)
+        }
+    }
+    
+    private var actionTitle: String {
+        if hasUpdate {
+            return "lc.sources.update".loc
+        }
+        return canReinstall ? "lc.common.reinstall".loc : "lc.common.install".loc
+    }
     
     @AppStorage("dynamicColors") private var dynamicColors = true
     @Environment(\.colorScheme) var colorScheme
@@ -994,9 +1168,18 @@ private struct LCSourceAppBanner: View {
     var body: some View {
         HStack {
             HStack(alignment: .center, spacing: 12) {
-                SourceIconView(url: app.iconURL)
-                    .frame(width: 60, height: 60)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                ZStack(alignment: .topTrailing) {
+                    SourceIconView(url: app.iconURL)
+                        .frame(width: 60, height: 60)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    
+                    if hasUpdate && app.latestVersion != nil {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 16, height: 16)
+                            .offset(x: 2, y: -2)
+                    }
+                }
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Text(app.name)
@@ -1027,7 +1210,7 @@ private struct LCSourceAppBanner: View {
             Button {
                 installAction(app)
             } label: {
-                Text("lc.common.install".loc)
+                Text(actionTitle)
                     .bold()
                     .foregroundColor(.white)
                     .lineLimit(1)

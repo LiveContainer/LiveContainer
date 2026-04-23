@@ -1,0 +1,8 @@
+//
+//  SafariWebExtension.xcconfig
+//  LiveContainer
+//
+
+#include "Global.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = $(LIVECONTAINER_BUNDLE_IDENTIFIER).SafariWebExtension

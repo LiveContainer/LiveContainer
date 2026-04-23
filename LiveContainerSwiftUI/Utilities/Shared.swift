@@ -53,6 +53,9 @@ struct LCPath {
 }
 
 class SharedModel: ObservableObject {
+    static let guestURLSchemesKey = "LCGuestURLSchemes"
+    static let guestURLLaunchMapKey = "LCGuestURLLaunchMap"
+
     @Published var selectedTab: LCTabIdentifier = .apps
     @Published var deepLink: URL?
     
@@ -104,6 +107,38 @@ class SharedModel: ObservableObject {
     init() {
         updateMultiLCStatus()
     }
+
+    func syncSharedGuestURLIndex() {
+        guard multiLCStatus != 2 else {
+            return
+        }
+
+        let sharedDefaults = UserDefaults.lcShared() ?? .standard
+        var launchMap = [String: String]()
+        var schemes = Set<String>()
+
+        for app in apps {
+            guard let bundleName = app.appInfo.relativeBundlePath,
+                  let rawSchemes = app.appInfo.urlSchemes() as? [String] else {
+                continue
+            }
+
+            for rawScheme in rawSchemes {
+                let normalizedScheme = rawScheme.lowercased()
+                guard !normalizedScheme.isEmpty else {
+                    continue
+                }
+                schemes.insert(normalizedScheme)
+                if launchMap[normalizedScheme] == nil {
+                    launchMap[normalizedScheme] = bundleName
+                }
+            }
+        }
+
+        sharedDefaults.set(Array(schemes).sorted(), forKey: Self.guestURLSchemesKey)
+        sharedDefaults.set(launchMap, forKey: Self.guestURLLaunchMapKey)
+    }
+
 }
 
 class DataManager {

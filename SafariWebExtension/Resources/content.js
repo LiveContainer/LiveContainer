@@ -55,91 +55,28 @@
     return [...values];
   }
 
-  function resolveURL(rawValue) {
-    try {
-      return new URL(rawValue, window.location.href).href;
-    } catch (_) {
-      return null;
-    }
-  }
-
   function extractExternalScheme(rawValue) {
     for (const candidate of expandCandidates(rawValue)) {
-      const resolved = resolveURL(candidate);
-      if (!resolved) {
+      try {
+        const url = new URL(candidate, window.location.href);
+        if (url.protocol && !BLOCKED_PROTOCOLS.has(url.protocol.toLowerCase())) {
+          return url.href;
+        }
+      } catch (_) {
         continue;
       }
-
-      try {
-        const protocol = new URL(resolved).protocol.toLowerCase();
-        if (!BLOCKED_PROTOCOLS.has(protocol)) {
-          return resolved;
-        }
-      } catch (_) {}
     }
 
     return null;
   }
 
-  function encodeBase64(value) {
-    return btoa(unescape(encodeURIComponent(value)));
-  }
-
-  function buildOpenURL(rawValue) {
-    return `livecontainer://open-url?url=${encodeURIComponent(encodeBase64(rawValue))}`;
-  }
-
-  function buildDirectLaunchURL(extracted, bundleName) {
-    const query = new URLSearchParams();
-    query.set("bundle-name", bundleName);
-    query.set("open-url", encodeBase64(extracted));
-    return `livecontainer://livecontainer-launch?${query.toString()}`;
-  }
-
-  function resolveLaunchTarget(rawValue, launchMap) {
-    const extracted = extractExternalScheme(rawValue);
-    if (!extracted) {
-      return null;
-    }
-
-    let scheme = null;
-    try {
-      scheme = new URL(extracted).protocol.replace(/:$/, "").toLowerCase();
-    } catch (_) {
-      return { type: "open", extracted, url: buildOpenURL(extracted) };
-    }
-
-    const bundleName = launchMap?.[scheme];
-    if (!bundleName) {
-      return { type: "open", extracted, url: buildOpenURL(extracted) };
-    }
-
-    return {
-      type: "direct",
-      extracted,
-      bundleName,
-      url: buildDirectLaunchURL(extracted, bundleName)
-    };
-  }
-
-  async function redirectToLiveContainer(rawValue, launchMap) {
-    const target = resolveLaunchTarget(rawValue, launchMap);
-    if (!target) {
-      return false;
-    }
-
-    window.location.href = target.url;
-    return true;
-  }
-
-  function extractFromElement(element) {
+  function extractExternalSchemeFromElement(element) {
     if (!(element instanceof Element)) {
       return null;
     }
 
     for (const attribute of ATTRIBUTE_CANDIDATES) {
-      const value = element.getAttribute(attribute);
-      const extracted = extractExternalScheme(value);
+      const extracted = extractExternalScheme(element.getAttribute(attribute));
       if (extracted) {
         return extracted;
       }
@@ -148,12 +85,12 @@
     return null;
   }
 
-  function extractFromElementTree(element) {
+  function extractExternalSchemeFromTree(element) {
     let current = element;
     let depth = 0;
 
     while (current && depth < MAX_ANCESTOR_DEPTH) {
-      const directMatch = extractFromElement(current);
+      const directMatch = extractExternalSchemeFromElement(current);
       if (directMatch) {
         return directMatch;
       }
@@ -165,6 +102,19 @@
     return null;
   }
 
+  function requestLaunch(url) {
+    if (!runtimeAPI?.runtime?.sendMessage || !url) {
+      return;
+    }
+
+    runtimeAPI.runtime
+      .sendMessage({
+        command: "launchResolved",
+        url
+      })
+      .catch(() => {});
+  }
+
   function installPageLevelHooks() {
     const script = document.createElement("script");
     script.textContent = `
@@ -172,62 +122,24 @@
         const blockedProtocols = new Set(["http:", "https:", "about:", "javascript:", "data:", "blob:"]);
         const pageLaunchEvent = ${JSON.stringify(PAGE_LAUNCH_EVENT)};
 
-        function expandCandidates(rawValue) {
-          const values = new Set();
-          if (typeof rawValue !== "string") {
-            return [];
+        function hasExternalScheme(rawValue) {
+          if (typeof rawValue !== "string" || rawValue.trim() === "") {
+            return false;
           }
-
-          const trimmed = rawValue.trim();
-          if (!trimmed) {
-            return [];
-          }
-
-          values.add(trimmed);
-
           try {
-            const decoded = decodeURIComponent(trimmed);
-            if (decoded) {
-              values.add(decoded);
-            }
-          } catch (_) {}
-
-          try {
-            const decoded = atob(trimmed);
-            if (decoded) {
-              values.add(decoded);
-            }
-            try {
-              const twiceDecoded = decodeURIComponent(decoded);
-              if (twiceDecoded) {
-                values.add(twiceDecoded);
-              }
-            } catch (_) {}
-          } catch (_) {}
-
-          return [...values];
-        }
-
-        function extractExternalScheme(rawValue) {
-          for (const candidate of expandCandidates(rawValue)) {
-            try {
-              const resolved = new URL(candidate, window.location.href).href;
-              const protocol = new URL(resolved).protocol.toLowerCase();
-              if (!blockedProtocols.has(protocol)) {
-                return resolved;
-              }
-            } catch (_) {}
+            const protocol = new URL(rawValue, window.location.href).protocol.toLowerCase();
+            return protocol && !blockedProtocols.has(protocol);
+          } catch (_) {
+            return false;
           }
-          return null;
         }
 
         function dispatchLaunchRequest(rawValue) {
-          const extracted = extractExternalScheme(rawValue);
-          if (!extracted) {
+          if (!hasExternalScheme(rawValue)) {
             return false;
           }
           window.dispatchEvent(new CustomEvent(pageLaunchEvent, {
-            detail: { rawValue: extracted }
+            detail: { rawValue }
           }));
           return true;
         }
@@ -318,29 +230,29 @@
     script.remove();
   }
 
-  async function loadLaunchMap() {
-    if (!runtimeAPI?.runtime?.sendMessage) {
-      return {};
+  function attemptInitialHTTPSRedirect() {
+    if (window.top !== window) {
+      return;
     }
 
-    try {
-      const response = await runtimeAPI.runtime.sendMessage({ command: "getLaunchMap" });
-      return response?.launchMap || {};
-    } catch (_) {
-      return {};
+    if (window.location.protocol !== "https:") {
+      return;
     }
+
+    requestLaunch(window.location.href);
   }
 
-  async function init() {
-    const launchMapPromise = loadLaunchMap();
+  function init() {
     installPageLevelHooks();
 
+    attemptInitialHTTPSRedirect();
+
     window.addEventListener(PAGE_LAUNCH_EVENT, (event) => {
-      const rawValue = event?.detail?.rawValue;
-      if (!rawValue) {
+      const extracted = extractExternalScheme(event?.detail?.rawValue);
+      if (!extracted) {
         return;
       }
-      void launchMapPromise.then((launchMap) => redirectToLiveContainer(rawValue, launchMap));
+      requestLaunch(extracted);
     });
 
     document.addEventListener(
@@ -355,18 +267,18 @@
           return;
         }
 
-        const extracted = extractFromElementTree(target);
+        const extracted = extractExternalSchemeFromTree(target);
         if (!extracted) {
           return;
         }
 
         event.preventDefault();
         event.stopPropagation();
-        void launchMapPromise.then((launchMap) => redirectToLiveContainer(extracted, launchMap));
+        requestLaunch(extracted);
       },
       true
     );
   }
 
-  void init();
+  init();
 })();

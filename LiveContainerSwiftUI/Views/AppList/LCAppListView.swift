@@ -979,6 +979,12 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             self.sharedModel.syncSharedGuestURLIndex()
         }
     }
+
+    func appLaunchAvailabilityDidChange() {
+        DispatchQueue.main.async {
+            self.sharedModel.syncSharedGuestURLIndex()
+        }
+    }
     
     func launchAppWithBundleId(bundleId : String, container : String?, openURL: String? = nil, forceJIT: Bool? = nil) async {
         if bundleId == "" {

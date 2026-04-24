@@ -504,7 +504,6 @@ struct LCAppSettingsView: View {
         }
         if model.uiDefaultDataFolder == nil {
             model.uiDefaultDataFolder = newName
-            appInfo.dataUUID = newName
         }
         appInfo.containers = model.uiContainers;
         newContainer.makeLCContainerInfoPlist(appIdentifier: appInfo.bundleIdentifier()!, keychainGroupId: freeKeyChainGroup)
@@ -576,7 +575,6 @@ struct LCAppSettingsView: View {
             }
             if model.uiDefaultDataFolder == nil {
                 model.uiDefaultDataFolder = url.lastPathComponent
-                appInfo.dataUUID = url.lastPathComponent
             }
 
         } catch {
@@ -740,7 +738,6 @@ extension LCAppSettingsView : LCContainerViewDelegate {
         if model.uiContainers.isEmpty {
             model.uiSelectedContainer = nil
             model.uiDefaultDataFolder = nil
-            appInfo.dataUUID = nil
         }
         appInfo.containers = model.uiContainers
     }
@@ -750,7 +747,6 @@ extension LCAppSettingsView : LCContainerViewDelegate {
             model.uiSelectedContainer = newDefaultContainer
         }
         
-        appInfo.dataUUID = newDefaultContainer.folderName
         model.uiDefaultDataFolder = newDefaultContainer.folderName
     }
     
@@ -817,7 +813,6 @@ extension LCAppSettingsView : LCSelectContainerViewDelegate {
             }
             if model.uiDefaultDataFolder == nil {
                 model.uiDefaultDataFolder = folderName
-                appInfo.dataUUID = folderName
             }
 
 

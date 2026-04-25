@@ -53,6 +53,11 @@ struct LCPath {
 }
 
 class SharedModel: ObservableObject {
+    static let guestURLSchemesKey = "LCGuestURLSchemes"
+    static let guestURLLaunchMapKey = "LCGuestURLLaunchMap"
+    static let guestBundleLaunchMapKey = "LCGuestBundleLaunchMap"
+    static let guestDirectLaunchMapKey = "LCGuestDirectLaunchMap"
+
     @Published var selectedTab: LCTabIdentifier = .apps
     @Published var deepLink: URL?
     
@@ -104,6 +109,53 @@ class SharedModel: ObservableObject {
     init() {
         updateMultiLCStatus()
     }
+
+    func syncSharedGuestURLIndex() {
+        guard multiLCStatus != 2 else {
+            return
+        }
+
+        let sharedDefaults = UserDefaults.lcShared() ?? .standard
+        var launchMap = [String: String]()
+        var bundleLaunchMap = [String: String]()
+        var directLaunchMap = [String: String]()
+        var schemes = Set<String>()
+
+        for app in apps {
+            guard let bundleName = app.appInfo.relativeBundlePath else {
+                continue
+            }
+
+            if !app.appInfo.isHidden && !app.appInfo.isLocked && !app.appInfo.isJITNeeded {
+                directLaunchMap[bundleName] = app.appInfo.dataUUID ?? ""
+            }
+
+            if let bundleIdentifier = app.appInfo.bundleIdentifier(), !bundleIdentifier.isEmpty {
+                bundleLaunchMap[bundleIdentifier] = bundleName
+            }
+
+            guard let rawSchemes = app.appInfo.urlSchemes() as? [String] else {
+                continue
+            }
+
+            for rawScheme in rawSchemes {
+                let normalizedScheme = rawScheme.lowercased()
+                guard !normalizedScheme.isEmpty else {
+                    continue
+                }
+                schemes.insert(normalizedScheme)
+                if launchMap[normalizedScheme] == nil {
+                    launchMap[normalizedScheme] = bundleName
+                }
+            }
+        }
+
+        sharedDefaults.set(Array(schemes).sorted(), forKey: Self.guestURLSchemesKey)
+        sharedDefaults.set(launchMap, forKey: Self.guestURLLaunchMapKey)
+        sharedDefaults.set(bundleLaunchMap, forKey: Self.guestBundleLaunchMapKey)
+        sharedDefaults.set(directLaunchMap, forKey: Self.guestDirectLaunchMapKey)
+    }
+
 }
 
 class DataManager {
@@ -253,23 +305,21 @@ struct SiteAssociationDetailItem : Codable {
     var appIDs: [String]?
     
     func getBundleIds() -> [String] {
-        var ans : [String] = []
-        // get rid of developer id
-        if let appID = appID, appID.count > 11 {
-            let index = appID.index(appID.startIndex, offsetBy: 11)
-            let modifiedString = String(appID[index...])
-            ans.append(modifiedString)
+        var ans: [String] = []
+        if let appID {
+            ans.append(bundleIdentifier(from: appID))
         }
-        if let appIDs = appIDs {
-            for appID in appIDs {
-                if appID.count > 11 {
-                    let index = appID.index(appID.startIndex, offsetBy: 11)
-                    let modifiedString = String(appID[index...])
-                    ans.append(modifiedString)
-                }
-            }
+        if let appIDs {
+            ans.append(contentsOf: appIDs.map { bundleIdentifier(from: $0) })
         }
-        return ans
+        return ans.filter { !$0.isEmpty }
+    }
+
+    private func bundleIdentifier(from appID: String) -> String {
+        guard let separator = appID.firstIndex(of: ".") else {
+            return ""
+        }
+        return String(appID[appID.index(after: separator)...])
     }
 }
 

@@ -3,6 +3,7 @@ import Foundation
 protocol LCAppModelDelegate {
     func closeNavigationView()
     func changeAppVisibility(app : LCAppModel)
+    func appLaunchAvailabilityDidChange()
     func jitLaunch(appName: String) async
     func jitLaunch(withScript script: String, appName: String) async
     func jitLaunch(withPID pid: Int, withScript script: String?, appName: String) async
@@ -21,12 +22,18 @@ class LCAppModel: ObservableObject, Hashable {
     @Published var uiIsJITNeeded : Bool {
         didSet {
             appInfo.isJITNeeded = uiIsJITNeeded
+            delegate?.appLaunchAvailabilityDidChange()
         }
     }
     @Published var uiIsHidden : Bool
     @Published var uiIsLocked : Bool
     @Published var uiIsShared : Bool
-    @Published var uiDefaultDataFolder : String?
+    @Published var uiDefaultDataFolder : String? {
+        didSet {
+            appInfo.dataUUID = uiDefaultDataFolder
+            delegate?.appLaunchAvailabilityDidChange()
+        }
+    }
     @Published var uiContainers : [LCContainer]
     @Published var uiSelectedContainer : LCContainer?
 #if is32BitSupported
@@ -213,7 +220,6 @@ class LCAppModel: ObservableObject, Hashable {
             }
             appInfo.containers = uiContainers;
             newContainer.makeLCContainerInfoPlist(appIdentifier: appInfo.bundleIdentifier()!, keychainGroupId: Int.random(in: 0..<SharedModel.keychainAccessGroupCount))
-            appInfo.dataUUID = newName
             uiDefaultDataFolder = newName
         }
         if let containerFolderName {
@@ -415,6 +421,7 @@ class LCAppModel: ObservableObject, Hashable {
         
         if newLockState {
             appInfo.isLocked = true
+            delegate?.appLaunchAvailabilityDidChange()
         } else {
             // authenticate before cancelling locked state
             do {
@@ -433,6 +440,7 @@ class LCAppModel: ObservableObject, Hashable {
             if appInfo.isHidden {
                 await toggleHidden()
             }
+            delegate?.appLaunchAvailabilityDidChange()
         }
     }
     

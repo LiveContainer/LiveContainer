@@ -335,6 +335,26 @@ void DyldHookLoadableIntoProcess(void) {
 }
 #endif
 
+static bool IDFVHooked = YES;
+NSUUID* idForVendorUUID = nil;
+
+NSUUID* getIDFV_hook(NSObject* cur) {
+    return idForVendorUUID;
+}
+
+void static waitAndHookIDFV(const struct mach_header *mh, intptr_t vmaddr_slide) {
+    if(IDFVHooked) {
+        return;
+    }
+    Class UIDeviceClass;
+    
+    if((UIDeviceClass = objc_getClass("UIDevice"))) {
+        Method getIDFVOrig = class_getInstanceMethod(UIDeviceClass, @selector(identifierForVendor));
+        method_setImplementation(getIDFVOrig, (IMP)getIDFV_hook);
+        IDFVHooked = YES;
+    }
+}
+
 void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVersion) {
     // iterate through loaded images and find LiveContainer it self
     int imageCount = _dyld_image_count();
@@ -382,6 +402,19 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
 #if TARGET_OS_MACCATALYST || TARGET_OS_SIMULATOR
     DyldHookLoadableIntoProcess();
 #endif
+    
+    NSDictionary* guestContainerInfo = [NSUserDefaults guestContainerInfo];
+    if([guestContainerInfo[@"spoofIdentifierForVendor"] boolValue]) {
+        NSString* idForVendorStr = guestContainerInfo[@"spoofedIdentifierForVendor"];
+        if([idForVendorStr isKindOfClass:NSString.class]) {
+            idForVendorUUID = [[NSUUID UUID] initWithUUIDString:idForVendorStr];
+            if(idForVendorUUID) {
+                _dyld_register_func_for_add_image(waitAndHookIDFV);
+                IDFVHooked = false;
+            }
+        }
+    }
+
 }
 
 void* getGuestAppHeader(void) {

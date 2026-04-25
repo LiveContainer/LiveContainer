@@ -21,6 +21,7 @@
 
   function expandCandidates(rawValue) {
     const values = new Set();
+
     if (typeof rawValue !== "string") {
       return [];
     }
@@ -44,6 +45,7 @@
       if (decoded) {
         values.add(decoded);
       }
+
       try {
         const twiceDecoded = decodeURIComponent(decoded);
         if (twiceDecoded) {
@@ -62,9 +64,7 @@
         if (url.protocol && !BLOCKED_PROTOCOLS.has(url.protocol.toLowerCase())) {
           return url.href;
         }
-      } catch (_) {
-        continue;
-      }
+      } catch (_) {}
     }
 
     return null;
@@ -122,24 +122,65 @@
         const blockedProtocols = new Set(["http:", "https:", "about:", "javascript:", "data:", "blob:"]);
         const pageLaunchEvent = ${JSON.stringify(PAGE_LAUNCH_EVENT)};
 
-        function hasExternalScheme(rawValue) {
-          if (typeof rawValue !== "string" || rawValue.trim() === "") {
-            return false;
+        function expandCandidates(rawValue) {
+          const values = new Set();
+
+          if (typeof rawValue !== "string") {
+            return [];
           }
+
+          const trimmed = rawValue.trim();
+          if (!trimmed) {
+            return [];
+          }
+
+          values.add(trimmed);
+
           try {
-            const protocol = new URL(rawValue, window.location.href).protocol.toLowerCase();
-            return protocol && !blockedProtocols.has(protocol);
-          } catch (_) {
-            return false;
+            const decoded = decodeURIComponent(trimmed);
+            if (decoded) {
+              values.add(decoded);
+            }
+          } catch (_) {}
+
+          try {
+            const decoded = atob(trimmed);
+            if (decoded) {
+              values.add(decoded);
+            }
+
+            try {
+              const twiceDecoded = decodeURIComponent(decoded);
+              if (twiceDecoded) {
+                values.add(twiceDecoded);
+              }
+            } catch (_) {}
+          } catch (_) {}
+
+          return [...values];
+        }
+
+        function extractExternalScheme(rawValue) {
+          for (const candidate of expandCandidates(rawValue)) {
+            try {
+              const url = new URL(candidate, window.location.href);
+              if (url.protocol && !blockedProtocols.has(url.protocol.toLowerCase())) {
+                return url.href;
+              }
+            } catch (_) {}
           }
+
+          return null;
         }
 
         function dispatchLaunchRequest(rawValue) {
-          if (!hasExternalScheme(rawValue)) {
+          const extracted = extractExternalScheme(rawValue);
+          if (!extracted) {
             return false;
           }
+
           window.dispatchEvent(new CustomEvent(pageLaunchEvent, {
-            detail: { rawValue }
+            detail: { rawValue: extracted }
           }));
           return true;
         }
@@ -185,9 +226,9 @@
             get: iframeSrcDescriptor.get,
             set(value) {
               if (dispatchLaunchRequest(value)) {
-                return value;
+                return;
               }
-              return iframeSrcDescriptor.set.call(this, value);
+              iframeSrcDescriptor.set.call(this, value);
             }
           });
         }

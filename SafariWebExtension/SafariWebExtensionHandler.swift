@@ -35,20 +35,13 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
 
     private func handleMessage(_ message: Any?) async -> [String: Any] {
         guard let body = message as? [String: Any],
-              let command = body["command"] as? String else {
-            return ["ok": true]
+              body["command"] as? String == "launchResolved",
+              let urlString = body["url"] as? String,
+              let url = URL(string: urlString) else {
+            return ["ok": false]
         }
 
-        switch command {
-        case "launchResolved":
-            guard let urlString = body["url"] as? String,
-                  let url = URL(string: urlString) else {
-                return ["ok": false]
-            }
-            return ["ok": await launchResolved(url)]
-        default:
-            return ["ok": true]
-        }
+        return ["ok": await launchResolved(url)]
     }
 
     private func sharedMap(forKey key: String) -> [String: String] {
@@ -87,8 +80,8 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
     }
 
     private func resolveUniversalLink(_ url: URL) async -> String? {
-        guard url.scheme == "https",
-              let host = url.host,
+        guard url.scheme?.lowercased() == "https",
+              let host = url.host?.lowercased(),
               let siteAssociation = await loadSiteAssociation(host: host),
               let details = siteAssociation.applinks?.details else {
             return nil
@@ -157,12 +150,15 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         guard let helper = launchHelper() else {
             return false
         }
+
         let item = NSExtensionItem()
         item.userInfo = ["url": url]
+
         let selector = NSSelectorFromString("beginExtensionRequestWithInputItems:completion:")
         guard helper.responds(to: selector) else {
             return false
         }
+
         _ = helper.perform(selector, with: [item], with: nil)
         return true
     }
@@ -175,39 +171,45 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         let parentBundleIdentifier = (Bundle.main.bundleIdentifier! as NSString).deletingPathExtension
         let helperIdentifier = (parentBundleIdentifier as NSString).appendingPathExtension("LaunchAppExtensionHelper")
         let selector = NSSelectorFromString("extensionWithIdentifier:error:")
+
         guard let extensionClass = NSClassFromString("NSExtension") as? NSObject.Type,
               extensionClass.responds(to: selector),
               let helper = extensionClass.perform(selector, with: helperIdentifier, with: nil)?.takeUnretainedValue() else {
             return nil
         }
+
         Self.launchHelperExtension = helper
         return helper
     }
 
     private func loadSiteAssociation(host: String) async -> SiteAssociation? {
-        if let cached = Self.siteAssociationCache[host] {
+        let normalizedHost = host.lowercased()
+
+        if let cached = Self.siteAssociationCache[normalizedHost] {
             return cached
         }
-        if Self.failedSiteAssociationHosts.contains(host) {
+
+        if Self.failedSiteAssociationHosts.contains(normalizedHost) {
             return nil
         }
 
         let urls = [
-            URL(string: "https://\(host)/apple-app-site-association"),
-            URL(string: "https://\(host)/.well-known/apple-app-site-association")
+            URL(string: "https://\(normalizedHost)/apple-app-site-association"),
+            URL(string: "https://\(normalizedHost)/.well-known/apple-app-site-association")
         ].compactMap { $0 }
 
         for url in urls {
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 let siteAssociation = try JSONDecoder().decode(SiteAssociation.self, from: data)
-                Self.siteAssociationCache[host] = siteAssociation
+                Self.siteAssociationCache[normalizedHost] = siteAssociation
                 return siteAssociation
             } catch {
                 continue
             }
         }
-        Self.failedSiteAssociationHosts.insert(host)
+
+        Self.failedSiteAssociationHosts.insert(normalizedHost)
         return nil
     }
 
@@ -239,6 +241,7 @@ private struct AppLinks: Decodable {
 
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
         if let arrayDetails = try? container.decode([SiteAssociationDetailItem].self, forKey: .details) {
             details = arrayDetails
             return
@@ -282,20 +285,16 @@ private struct SiteAssociationDetailItem: Decodable {
 
     func getBundleIds() -> [String] {
         var identifiers = [String]()
+
         if let appID {
             identifiers.append(bundleIdentifier(from: appID))
         }
+
         if let appIDs {
             identifiers.append(contentsOf: appIDs.map { bundleIdentifier(from: $0) })
         }
-        return identifiers.filter { !$0.isEmpty }
-    }
 
-    private func bundleIdentifier(from appID: String) -> String {
-        guard let separator = appID.firstIndex(of: ".") else {
-            return ""
-        }
-        return String(appID[appID.index(after: separator)...])
+        return identifiers.filter { !$0.isEmpty }
     }
 
     func matches(url: URL) -> Bool {
@@ -312,22 +311,31 @@ private struct SiteAssociationDetailItem: Decodable {
 
     private func matches(url: URL, paths: [String]) -> Bool {
         let path = url.path.isEmpty ? "/" : url.path
-        var didMatchInclude = false
 
         for rule in paths {
             let trimmedRule = rule.trimmingCharacters(in: .whitespacesAndNewlines)
-            let isExclude = trimmedRule.hasPrefix("NOT ")
-            let pattern = isExclude ? String(trimmedRule.dropFirst(4)) : trimmedRule
-            guard matchAASAPath(path, pattern: pattern) else {
+            guard !trimmedRule.isEmpty else {
                 continue
             }
-            if isExclude {
-                return false
+
+            let isExclude = trimmedRule.hasPrefix("NOT ")
+            let pattern = isExclude
+                ? String(trimmedRule.dropFirst(4)).trimmingCharacters(in: .whitespacesAndNewlines)
+                : trimmedRule
+
+            if matchWildcard(value: path, pattern: pattern) {
+                return !isExclude
             }
-            didMatchInclude = true
         }
 
-        return didMatchInclude
+        return false
+    }
+
+    private func bundleIdentifier(from appID: String) -> String {
+        guard let separator = appID.firstIndex(of: ".") else {
+            return ""
+        }
+        return String(appID[appID.index(after: separator)...])
     }
 }
 
@@ -367,6 +375,7 @@ private struct SiteAssociationComponent: Decodable {
                 guard let actualValue = queryItems.first(where: { $0.name == key })?.value else {
                     return false
                 }
+
                 if !expectedValue.matches(value: actualValue) {
                     return false
                 }
@@ -383,10 +392,12 @@ private enum StringOrBool: Decodable {
 
     init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
+
         if let stringValue = try? container.decode(String.self) {
             self = .string(stringValue)
             return
         }
+
         self = .bool(try container.decode(Bool.self))
     }
 
@@ -401,7 +412,7 @@ private enum StringOrBool: Decodable {
 }
 
 private func matchWildcard(value: String, pattern: String) -> Bool {
-    if pattern == "*" {
+    if pattern == "*" || pattern == "/*" {
         return true
     }
 
@@ -410,16 +421,4 @@ private func matchWildcard(value: String, pattern: String) -> Bool {
     }
 
     return value == pattern
-}
-
-private func matchAASAPath(_ path: String, pattern: String) -> Bool {
-    if pattern == "*" || pattern == "/*" {
-        return true
-    }
-
-    if pattern.hasSuffix("*") {
-        return path.hasPrefix(String(pattern.dropLast()))
-    }
-
-    return path == pattern
 }

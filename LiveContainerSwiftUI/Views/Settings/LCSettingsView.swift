@@ -8,6 +8,46 @@
 import Foundation
 import SwiftUI
 
+struct LCRealIPhoneModeSettingRow: View {
+    @AppStorage("LCNativeFullscreen") var isNative = true
+    @AppStorage("LCRealIPhoneMode", store: LCUtils.appGroupUserDefault) var isiPhone = false
+    
+    var onUpdate: (() -> Void)?
+
+    var body: some View {
+        Toggle(isOn: Binding(
+            get: { !isNative },
+            set: { _ in toggleMode() }
+        )) {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("lc.settings.realIPhoneMode".loc) 
+                        .font(.body)
+                    Text("lc.settings.realIPhoneMode.desc".loc)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            } icon: {
+                Image(systemName: isNative ? "square.dashed" : "iphone.gen3")
+                    .foregroundColor(isNative ? .blue : .purple)
+                    .imageScale(.large)
+            }
+        }
+    }
+
+    private func toggleMode() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            let newNativeStatus = !isNative
+            isNative = newNativeStatus
+            let newIPhoneStatus = !newNativeStatus
+            isiPhone = newIPhoneStatus
+            UserDefaults.standard.set(newNativeStatus, forKey: "LCNativeFullscreen")
+            LCUtils.appGroupUserDefault.set(newIPhoneStatus, forKey: "LCRealIPhoneMode")
+            onUpdate?()
+        }
+    }
+}
+
 enum JITEnablerType : Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
     case SideJITServer = 0
@@ -151,7 +191,12 @@ struct LCSettingsView: View {
                         Text("lc.settings.multiLCDesc".loc)
                     }
                 }
-                
+                Section(header: Text("lc.settings.displaySection".loc)) {
+                     LCRealIPhoneModeSettingRow {
+                         sharedModel.objectWillChange.send()
+                     }
+                }
+
                 if #available(iOS 16.1, *) {
                     Section {
                         NavigationLink {

@@ -28,7 +28,7 @@ struct LCRealIPhoneModeSettingRow: View {
                         .foregroundColor(.gray)
                 }
             } icon: {
-                Image(systemName: isNative ? "square.dashed" : "iphone.gen3")
+                Image(systemName: isNative ? "ipad" : "iphone")
                     .foregroundColor(isNative ? .blue : .purple)
                     .imageScale(.large)
             }

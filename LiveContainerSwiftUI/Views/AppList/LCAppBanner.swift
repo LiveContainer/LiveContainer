@@ -314,25 +314,33 @@ struct LCAppBanner : View {
     }
     
     func runApp(multitask: Bool? = nil) async {
-        if appInfo.isLocked && !sharedModel.isHiddenAppUnlocked {
-            do {
-                if !(try await LCUtils.authenticateUser()) {
-                    return
-                }
-            } catch {
-                errorInfo = error.localizedDescription
-                errorShow = true
+    if appInfo.isLocked && !sharedModel.isHiddenAppUnlocked {
+        do {
+            if !(try await LCUtils.authenticateUser()) {
                 return
             }
-        }
-
-        do {
-            try await model.runApp(multitask: multitask)
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
+            return
         }
     }
+
+    do {
+        let isMultitaskActive = multitask ?? model.shouldLaunchInMultitaskMode
+        if isMultitaskActive {
+            LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
+            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+        }
+
+        try await model.runApp(multitask: multitask)
+        
+    } catch {
+        errorInfo = error.localizedDescription
+        errorShow = true
+    }
+}
+
 
     
     func openSettings() {

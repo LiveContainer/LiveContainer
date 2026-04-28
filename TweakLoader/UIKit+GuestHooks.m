@@ -16,13 +16,15 @@ __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     NSString *livecontainerappid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [livecontainerappid.lowercaseString containsString:@"sidestore"];
-    BOOL isMultitask = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCLaunchInMultitaskMode"];
+    
 if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && 
-    !isSideStore && !isMultitask) { 
+    !isSideStore) { 
     swizzle(UIWindow.class, @selector(setFrame:), @selector(hook_setFrame:));
     swizzle(UIScreen.class, @selector(bounds), @selector(hook_UIScreen_bounds));
 }
 //⭐️⭐️⭐️⤴️
+    
+
     if(!NSUserDefaults.lcGuestAppId) return;
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
@@ -718,20 +720,22 @@ BOOL canAppOpenItself(NSURL* url) {
 //⭐️⭐️⭐️Real iPhone mode 9:16 hook
 @implementation UIScreen (LiveContainerHook)
 - (CGRect)hook_UIScreen_bounds {
-    BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
-    BOOL isMultitask = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCLaunchInMultitaskMode"];
     NSString *appId = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
-
-    if (!isReal || isMultitask || isSideStore) {
-        return [self hook_UIScreen_bounds];
+   
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore
+) {
+        CGRect nativeBounds = [self hook_UIScreen_bounds];
+        CGFloat screenH = nativeBounds.size.height;
+        CGFloat screenW = nativeBounds.size.width;
+        CGFloat targetW = MIN(screenW, screenH * (9.0 / 16.0));
+        return CGRectMake(0, 0, targetW, screenH);
     }
-
+     
     CGRect nativeBounds = [self hook_UIScreen_bounds];
-    CGFloat screenH = nativeBounds.size.height;
-    CGFloat screenW = nativeBounds.size.width;
-    CGFloat targetW = MIN(screenW, screenH * (9.0 / 16.0));
-    return CGRectMake(0, 0, targetW, screenH);
+        CGFloat screenH = nativeBounds.size.height;
+        CGFloat targetW = nativeBounds.size.width; 
+        return CGRectMake(0, 0, targetW, screenH);
 }
 @end
 
@@ -759,9 +763,9 @@ BOOL canAppOpenItself(NSURL* url) {
 NSString *lcappId = NSUserDefaults.lcGuestAppId;
 BOOL isSideStore = [lcappId.lowercaseString containsString:@"sidestore"];  
 BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
-BOOL isMultitask = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCLaunchInMultitaskMode"];
+
 CGFloat targetW, offsetX;
-if (isReal && !isSideStore && !isMultitask) {
+if (isReal && !isSideStore) {
 
         targetW = MIN(realH * (9.0/16.0), realW);
         offsetX = (realW - targetW) / 2.0;
@@ -793,8 +797,7 @@ if (isReal && !isSideStore && !isMultitask) {
     NSString *appid = NSUserDefaults.lcGuestAppId;
     BOOL isSideStore = [appid.lowercaseString containsString:@"sidestore"];
     BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
-    BOOL isMultitask = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCLaunchInMultitaskMode"];
-    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow && !isMultitask) {
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow) {
         self.backgroundColor = [UIColor blackColor];
     }
     [self hook_makeKeyAndVisible];
@@ -803,35 +806,37 @@ if (isReal && !isSideStore && !isMultitask) {
 
 //⭐️⭐️⭐️Real iPhone mode 9:16 hook
 - (void)hook_setFrame:(CGRect)frame {
-    BOOL isReal = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"];
-    BOOL isMultitask = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCLaunchInMultitaskMode"];
-    NSString *appId = NSUserDefaults.lcGuestAppId;
-    BOOL isSideStore = [appId.lowercaseString containsString:@"sidestore"];
- 
-    if (!isReal || isMultitask || isSideStore || self.windowLevel != UIWindowLevelNormal) {
-        [self hook_setFrame:frame];
-        return;
+    NSString *lcappid = NSUserDefaults.lcGuestAppId;
+    BOOL isSideStore = [lcappid.lowercaseString containsString:@"sidestore"];
+    BOOL isMainAppWindow = (self.windowLevel == UIWindowLevelNormal);
+    if ([NSUserDefaults.lcSharedDefaults boolForKey:@"LCRealIPhoneMode"] && !isSideStore && isMainAppWindow) {
+        
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
+        
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
+        
+        CGFloat targetW = MIN(realW, realH * (9.0 / 16.0));
+        CGFloat offsetX = (realW - targetW) / 2.0;
+        
+        [self hook_setFrame:CGRectMake(offsetX, 0, targetW, realH)];
+    } else {
+        UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+        CGRect screenBounds = scene ? scene.coordinateSpace.bounds : frame;
+        CGFloat realH = screenBounds.size.height;
+        CGFloat realW = screenBounds.size.width;
+        if (realH == 0 || realW == 0) {
+            [self hook_setFrame:frame];
+            return;
+        }
+        [self hook_setFrame:CGRectMake(0, 0, realW, realH)];
+        //frame];
     }
-
-    UIWindowScene *scene = (UIWindowScene *)self.windowScene;
-    if (!scene && [UIApplication.sharedApplication.connectedScenes.anyObject isKindOfClass:[UIWindowScene class]]) {
-        scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
-    }
-    
-    CGRect screenBounds = scene ? scene.coordinateSpace.bounds : [[UIScreen mainScreen] bounds];
-    CGFloat realW = screenBounds.size.width;
-    CGFloat realH = screenBounds.size.height;
-
-    if (realH == 0 || realW == 0) {
-        [self hook_setFrame:frame];
-        return;
-    }
-
-    CGFloat targetW = MIN(realW, realH * (9.0 / 16.0));
-    CGFloat offsetX = (realW - targetW) / 2.0;
-    
-    CGRect centeredFrame = CGRectMake(offsetX, 0, targetW, realH);
-    [self hook_setFrame:centeredFrame];
 }
 
 - (void)hook_makeKeyWindow {

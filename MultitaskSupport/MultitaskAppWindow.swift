@@ -48,6 +48,7 @@ struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     let bundleId: String
     let dataUUID: String
     let initSize: CGSize
+    let hostScene: UIWindowScene?
     let onAppInitialize: (Int32, Error?) -> Void
     
     class Coordinator: NSObject, AppSceneViewControllerDelegate {
@@ -77,7 +78,7 @@ struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     }
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return AppSceneViewController(bundleId: bundleId, dataUUID: dataUUID, delegate: context.coordinator)
+        return AppSceneViewController(bundleId: bundleId, dataUUID: dataUUID, hostScene: hostScene, delegate: context.coordinator)
     }
     
     func updateUIViewController(_ vc: UIViewController, context _: Context) {
@@ -114,6 +115,7 @@ struct MultitaskAppWindow: View {
         if show, let appInfo {
             GeometryReader { geometry in
                 AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
+                                    hostScene: sceneDelegate.window?.windowScene,
                                     onAppInitialize: { pid, error in
                     DispatchQueue.main.async {
                         if error == nil {

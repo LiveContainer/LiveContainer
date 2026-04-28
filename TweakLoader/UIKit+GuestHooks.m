@@ -4,6 +4,8 @@
 #import "utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
 #import "Localization.h"
+#import "../LiveProcess/LiveProcessHandler.h"
+#import "../MultitaskSupport/UIKitPrivate+MultitaskSupport.h"
 
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
@@ -38,6 +40,11 @@ static void UIKitGuestHooksInit() {
             swizzle(UIWindow.class, @selector(setAutorotates:forceUpdateInterfaceOrientation:), @selector(hook_setAutorotates:forceUpdateInterfaceOrientation:));
         }
 
+    }
+    if(@available(iOS 17.0, *)) {
+        if(NSUserDefaults.isLiveProcess) {
+            swizzle(_UIRemoteKeyboards.class, @selector(startConnection), @selector(hook_startConnection));
+        }
     }
 }
 
@@ -730,5 +737,44 @@ BOOL canAppOpenItself(NSURL* url) {
             break;
         }
     }
+}
+@end
+
+static id<LCMultitaskXPCServiceProtocol> server;
+@implementation _UIRemoteKeyboards(hook)
+// from UIKeyboardArbitration proxy
+- (void)hook_focusApplicationWithProcessIdentifier:(int)pid context:(UIKBArbiterClientFocusContext *)context stealingKeyboard:(BOOL)steal onCompletion:(void (^)(BOOL success))completion {
+    // Fix #524: destroy LiveProcessHandler monitor such that it will pass focus check
+    // See https://gist.github.com/khanhduytran0/504b16d86a2091e676c412bd0a517306 for more info
+    /// Visibility graph search found root scene (null) and ultimate host <none>
+    [server destroyEndpointInjector];
+    
+    void(*orig)(id, SEL, int, id, BOOL, void (^)(BOOL)) = (void *)_objc_msgForward;
+    orig(self, _cmd, pid, context, steal, ^(BOOL success){
+        completion(success);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            // Fix #844, #870: re-init "com.apple.frontboard.visibility" monitor back otherwise things will break because runningboardd falsely see us as background process
+            NSString *selfEnv = [@"UIScene:" stringByAppendingString:context.sceneIdentity.stringRepresentation];
+            [server createEndpointInjectorWithSelfToken:selfEnv sourceToken:NSUserDefaults.lcAppIdentityToken];
+        });
+    });
+}
+
+- (void)hook_startConnection {
+    if (!server) server = [[NSClassFromString(@"LiveProcessHandler") sharedInstance] server];
+    [server destroyEndpointInjector];
+    
+    [self hook_startConnection];
+    
+    // Initialize LiveProcessHandler XPC and perform first init of "com.apple.frontboard.visibility" monitor
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        NSString *selfEnv = [@"UIScene:" stringByAppendingString:UIApplication.sharedApplication.connectedScenes.anyObject._FBSScene.identityToken.stringRepresentation];
+        [server createEndpointInjectorWithSelfToken:selfEnv sourceToken:NSUserDefaults.lcAppIdentityToken];
+    });
+    
+    Method method = class_getInstanceMethod(self.class, @selector(hook_focusApplicationWithProcessIdentifier:context:stealingKeyboard:onCompletion:));
+    Class proxyClass = self.proxy.class;
+    class_replaceMethod(proxyClass, @selector(focusApplicationWithProcessIdentifier:context:stealingKeyboard:onCompletion:),
+                        method_getImplementation(method), method_getTypeEncoding(method));
 }
 @end

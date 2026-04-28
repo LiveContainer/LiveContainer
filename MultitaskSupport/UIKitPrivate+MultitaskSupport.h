@@ -46,7 +46,7 @@
 
 // FrontBoard
 
-@class RBSProcessIdentity, FBProcessExecutableSlice, UIMutableApplicationSceneClientSettings, UIMutableScenePresentationContext, UIScenePresentationManager, _UIScenePresenter;
+@class RBSProcessIdentity, FBProcessExecutableSlice, UIMutableApplicationSceneClientSettings, UIMutableScenePresentationContext, UIScenePresentationManager, _UIScenePresenter, _UIScenePresenterOwner;
 
 @interface FBApplicationProcessLaunchTransaction : BSTransaction
 - (instancetype) initWithProcessIdentity:(RBSProcessIdentity *)identity executionContextProvider:(id)providerBlock;
@@ -74,11 +74,21 @@
 -(id)copyWithZone:(NSZone*)arg1 ;
 @end
 
+@interface FBSSceneIdentityToken : NSObject
+- (NSString *)stringRepresentation;
+@end
+
+@interface FBSScene : NSObject
+- (FBSSceneIdentityToken *)identityToken;
+@end
+
 @interface FBProcess : NSObject
 - (id)name;
 @end
 
 @interface FBScene : NSObject
+- (NSString *)identifier;
+- (FBSSceneIdentityToken *)identityToken;
 - (FBProcess *)clientProcess;
 - (UIScenePresentationManager *)uiPresentationManager;
 - (void)updateSettings:(UIMutableApplicationSceneSettings *)settings withTransitionContext:(id)context completion:(id)completion;
@@ -124,6 +134,7 @@
 @end
 
 @interface RBSTarget : NSObject
++ (instancetype)targetWithPid:(pid_t)pid environmentIdentifier:(NSString *)identifier;
 @end
 
 @interface UIApplicationSceneSpecification : FBSSceneSpecification
@@ -186,6 +197,7 @@
 + (instancetype)sharedInstance;
 - (FBScene *)createSceneWithDefinition:(id)def initialParameters:(id)params;
 -(void)destroyScene:(id)arg1 withTransitionContext:(id)arg2 ;
+- (FBScene *)sceneFromIdentityTokenStringRepresentation:(NSString *)token;
 @end
 
 @interface FBSSceneSettingsDiff : NSObject
@@ -219,13 +231,19 @@
 - (void)addScene:(id)scene;
 @end
 
-@interface UIScenePresentationManager : NSObject
+@interface UIScenePresentationManager : NSObject {
+    id _keyboardProxyLayerManager;
+    id _scene;
+    _UIScenePresenterOwner *_scenePresenterOwner;
+};
 - (instancetype)_initWithScene:(FBScene *)scene;
 - (_UIScenePresenter *)createPresenterWithIdentifier:(NSString *)identifier;
+- (_UIScenePresenter *)_presenterWithIdentifier:(NSString *)identifier;
 @end
 
 @interface _UIScenePresenterOwner : NSObject
 - (instancetype)initWithScenePresentationManager:(UIScenePresentationManager *)manager context:(FBScene *)scene;
+- (_UIScenePresenter *)activePrioritizedPresenter;
 @end
 
 @interface _UIScenePresentationView : UIView
@@ -267,7 +285,64 @@
 @interface UIMutableScenePresentationContext : UIScenePresentationContext
 @property(nonatomic, assign) NSUInteger appearanceStyle;
 @end
+@interface UIMutableScenePresentationContext(LiveContainerHooks)
+- (void)_setVisibilityPropagationEnabled:(BOOL)enabled;
+@end
 
 @interface UIViewController(Private)
 - (void)viewDidMoveToWindow:(UIWindow *)window shouldAppearOrDisappear:(BOOL)appear;
+@end
+
+@protocol BSServiceConnectionEndpointInjectorConfiguring
+@required
+- (void)setAdditionalAttributes:(NSArray *)arg1;
+- (void)setDomain:(NSString *)arg1;
+- (void)setInheritingEnvironment:(NSString *)arg1;
+- (void)setInstance:(NSString *)arg1;
+- (void)setService:(NSString *)arg1;
+- (void)setTarget:(id)arg1;
+@end
+
+@interface BSServiceConnectionEndpointInjector : NSObject
++ (instancetype)injectorWithConfigurator:(void (^)(id<BSServiceConnectionEndpointInjectorConfiguring>))configurator;
+- (void)invalidate;
+@end
+
+@interface RBSEndowmentGrant : NSObject
++ (instancetype)grantWithNamespace:(NSString *)ns endowment:(id)endowment;
+@end
+@interface RBSHereditaryGrant : NSObject
++ (instancetype)grantWithNamespace:(NSString *)ns sourceEnvironment:(NSString *)source attributes:(id)attrs;
+@end
+
+@interface UIKBArbiterClientFocusContext : NSObject
+- (FBSSceneIdentityToken *)sceneIdentity;
+@end
+
+@protocol UIKeyboardArbitration <NSObject>
+- (void)focusApplicationWithProcessIdentifier:(int)pid context:(UIKBArbiterClientFocusContext *)context stealingKeyboard:(BOOL)steal onCompletion:(void (^)(BOOL success))completion;
+@end
+
+@interface _UIRemoteKeyboards : NSObject
++ (instancetype)sharedRemoteKeyboards;
+- (id<UIKeyboardArbitration>)proxy;
+- (void)startConnection;
+@end
+
+@interface UIScene(Private2)
+- (FBSScene *)_FBSScene;
+@end
+
+@interface _UIVisibilityPropagationInteraction : NSObject
++ (instancetype)interactionWithPID:(pid_t)pid environmentIdentifier:(id)identifier;
+- (void)_setVisibilityPropagationEnabled:(uint64_t)enabled;
+@end
+
+@interface _UIKeyboardChangedInformation : NSObject
+- (NSString *)sourceSceneIdentityString;
+@end
+
+@interface _UISceneRelationshipManagementHostComponent : NSObject {
+    @public _UIScenePresenter *_prioritizedPresenter;
+};
 @end

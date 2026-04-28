@@ -250,6 +250,8 @@
 				AppSceneViewController.m,
 				DecoratedAppSceneViewController.h,
 				DecoratedAppSceneViewController.m,
+				LCMultitaskXPCService.h,
+				LCMultitaskXPCService.m,
 				LCStatusBarManager.h,
 				LCStatusBarManager.m,
 				MultitaskAppWindow.swift,
@@ -302,6 +304,13 @@
 				XPCServer.h,
 			);
 		};
+		E1B5D1532FA1C971001E78B0 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 17413FB32D9C0BAE00F3F928 /* Resources */;
+			membershipExceptions = (
+				LCMultitaskXPCService.m,
+			);
+		};
 		E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 17413FB02D9C0BAE00F3F928 /* Headers */;
@@ -325,7 +334,7 @@
 		17E23DE02F443A9300C55733 /* LaunchAppExtensionHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17E23DED2F443A9300C55733 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LaunchAppExtensionHelper; sourceTree = "<group>"; };
 		E1292AE72DCA3A660065E12D /* LiveProcess */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveProcess; sourceTree = "<group>"; };
 		E1292C1A2DCA48F00065E12D /* Tweaks */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C202DCA48F00065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Tweaks; sourceTree = "<group>"; };
-		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
+		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, E1B5D1532FA1C971001E78B0 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1248,6 +1257,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_DOCConfiguration",
+					"-Wl,-U,_OBJC_CLASS_$_RBSHereditaryGrant",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1272,6 +1282,7 @@
 					"-Wl,-U,_OBJC_CLASS_$_FBSSceneParameters",
 					"-Wl,-U,_OBJC_CLASS_$_LSApplicationWorkspace",
 					"-Wl,-U,_OBJC_CLASS_$_DOCConfiguration",
+					"-Wl,-U,_OBJC_CLASS_$_RBSHereditaryGrant",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

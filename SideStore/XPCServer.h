@@ -22,7 +22,7 @@
 @property (class, readonly, strong) LiveProcessSideStoreHandler* shared;
 @property NSXPCConnection* connection;
 @property NSObject<RefreshServer>* server;
-
++ (void)initializeWithEndpoint:(NSXPCListenerEndpoint *)endpoint;
 @end
 
 NSXPCListener* startAnonymousListener(NSObject<RefreshServer>* reporter);

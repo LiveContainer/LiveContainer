@@ -8,12 +8,12 @@
 #import <dlfcn.h>
 #import <UIKit/UIKit.h>
 #import <mach-o/dyld.h>
+#import "LiveProcessHandler.h"
 #import "../LiveContainer/utils.h"
 #import "../LiveContainer/Tweaks/Tweaks.h"
+#import "../MultitaskSupport/LCMultitaskXPCService.h"
 #import "../SideStore/XPCServer.h"
 
-@interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
-@end
 @implementation LiveProcessHandler
 static NSExtensionContext *extensionContext;
 static NSDictionary *retrievedAppInfo;
@@ -25,11 +25,28 @@ static NSDictionary *retrievedAppInfo;
     return retrievedAppInfo;
 }
 
++ (LiveProcessHandler *)sharedInstance {
+    return extensionContext._principalObject;
+}
+
 - (void)beginRequestWithExtensionContext:(NSExtensionContext *)context {
     extensionContext = context;
     retrievedAppInfo = [context.inputItems.firstObject userInfo];
     // Return control to LiveContainerMain
     CFRunLoopStop(CFRunLoopGetMain());
+}
+
+- (void)initializeMultitaskEndpoint:(NSXPCListenerEndpoint *)endpoint {
+    NSXPCConnection* connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
+    connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(LCMultitaskXPCServiceProtocol)];
+    connection.interruptionHandler = ^{
+        NSLog(@"LiveProcessHandler+Multitask: interrupted!!!");
+    };
+    [connection activate];
+    self.server = [connection synchronousRemoteObjectProxyWithErrorHandler:^(NSError * _Nonnull error) {
+        NSLog(@"synchronousRemoteObjectProxyWithErrorHandler encountered an error: %@", error.localizedDescription);
+    }];
+    self.connection = connection;
 }
 @end
 
@@ -47,6 +64,7 @@ int LiveProcessMain(int argc, char *argv[]) {
     if(overrideHomePath) setenv("LC_HOME_PATH", overrideHomePath, 1);
     // Pass selected app info to user defaults
     NSUserDefaults *lcUserDefaults = NSUserDefaults.standardUserDefaults;
+    [lcUserDefaults setObject:appInfo[@"hostFBSIdentityToken"] forKey:@"hostFBSIdentityToken"];
     [lcUserDefaults setObject:appInfo[@"hostUrlScheme"] forKey:@"hostUrlScheme"];
     [lcUserDefaults setObject:appInfo[@"selected"] forKey:@"selected"];
     [lcUserDefaults setObject:appInfo[@"selectedContainer"] forKey:@"selectedContainer"];
@@ -65,20 +83,9 @@ int LiveProcessMain(int argc, char *argv[]) {
         if(access && bookmarkedUrls.count > 0) {
             [lcUserDefaults setObject:bookmarkedUrls.firstObject.path forKey:@"specifiedSideStoreContainerPath"];
         }
-        NSXPCListenerEndpoint* endpoint = appInfo[@"endpoint"];
-
-        NSXPCConnection* connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
-        connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(RefreshServer)];
-        connection.interruptionHandler = ^{
-            NSLog(@"interrupted!!!");
-        };
-        
-        [connection activate];
-        
-        NSObject<RefreshServer>* proxy = [connection remoteObjectProxy];
-        LiveProcessSideStoreHandler.shared.server = proxy;
-        LiveProcessSideStoreHandler.shared.connection = connection;
-        
+        [LiveProcessSideStoreHandler initializeWithEndpoint:appInfo[@"endpoint"]];
+    } else {
+        [LiveProcessHandler.sharedInstance initializeMultitaskEndpoint:appInfo[@"endpoint"]];
     }
 
     

@@ -1,6 +1,7 @@
 @import Foundation;
 @import ObjectiveC;
 
+#define PrivClass(name) ((Class)objc_lookUpClass(#name))
 void swizzle(Class class, SEL originalAction, SEL swizzledAction);
 void swizzleClassMethod(Class class, SEL originalAction, SEL swizzledAction);
 
@@ -9,6 +10,7 @@ void swizzleClassMethod(Class class, SEL originalAction, SEL swizzledAction);
 + (instancetype)lcUserDefaults;
 + (instancetype)lcSharedDefaults;
 + (NSString *)lcAppGroupPath;
++ (NSString *)lcAppIdentityToken;
 + (NSString *)lcAppUrlScheme;
 + (NSBundle *)lcMainBundle;
 + (NSDictionary *)guestAppInfo;

@@ -212,11 +212,13 @@ public var shouldLaunchInRealIPhoneMode: Bool {
     }
     
     // You should let LCAppModel.runApp to decide whether to run in multitask mode, but you may override the multitask parameter if necessary
-    func runApp(multitask: Bool? = nil, containerFolderName : String? = nil, bundleIdOverride : String? = nil, forceJIT: Bool? = nil) async throws{
+        
+    func runApp(multitask: Bool? = nil, forceiPhone: Bool? = nil, containerFolderName : String? = nil, bundleIdOverride : String? = nil, forceJIT: Bool? = nil) async throws {
         if isAppRunning {
             return
         }
         
+       
         if uiContainers.isEmpty {
             let newName = NSUUID().uuidString
             let newContainer = LCContainer(folderName: newName, name: newName, isShared: uiIsShared)
@@ -229,31 +231,39 @@ public var shouldLaunchInRealIPhoneMode: Bool {
             appInfo.dataUUID = newName
             uiDefaultDataFolder = newName
         }
+        
         if let containerFolderName {
             uiSelectedContainer = uiContainers.first { $0.folderName == containerFolderName } ?? uiSelectedContainer
         }
         let currentDataFolder = containerFolderName ?? uiSelectedContainer?.folderName
         
-        let multitask = multitask ?? shouldLaunchInMultitaskMode;
         
-        if multitask,
+        let finalMultitask = multitask ?? shouldLaunchInMultitaskMode
+        let finaliPhone: Bool
+        
+      
+        if finalMultitask {
+            finaliPhone = false
+        } else {
+            finaliPhone = forceiPhone ?? shouldLaunchInRealIPhoneMode
+        }
+        
+       
+        LCUtils.appGroupUserDefault.set(finaliPhone, forKey: "LCRealIPhoneMode")
+       
+        UserDefaults.standard.set(!finaliPhone, forKey: "LCNativeFullscreen")
+
+        
+        if finalMultitask,
            let currentDataFolder,
            await bringExistingMultitaskWindowIfNeeded(dataUUID: currentDataFolder) {
             return
         }
         
-        // this is rerouted to bringing app to front, so not needed here?
-//        if(MultitaskManager.isUsing(container: uiSelectedContainer!.folderName)) {
-//            throw "lc.container.inUse".loc + "\n MultiTask"
-//        }
         
-        // if the selected container is in use (either other lc or multitask), open the host lc associated with it
-        if
-            let fn = uiSelectedContainer?.folderName,
-            var runningLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: fn)
-        {
+        if let fn = uiSelectedContainer?.folderName,
+           var runningLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: fn) {
             runningLC = (runningLC as NSString).deletingPathExtension
-            
             let openURL = URL(string: "\(runningLC)://")!
             if await UIApplication.shared.canOpenURL(openURL) {
                 await UIApplication.shared.open(openURL)
@@ -261,26 +271,23 @@ public var shouldLaunchInRealIPhoneMode: Bool {
             }
         }
         
-        // ask user if they want to terminate all multitasking apps
-        if MultitaskManager.isMultitasking() && !multitask {
+        
+        if MultitaskManager.isMultitasking() && !finalMultitask {
             if let currentDataFolder,
                await bringExistingMultitaskWindowIfNeeded(dataUUID: currentDataFolder) {
                 return
             }
-            
             guard let ans = await delegate?.showRunWhenMultitaskAlert(), ans else {
                 return
             }
         }
         
-        await MainActor.run {
-            isAppRunning = true
-        }
+        await MainActor.run { isAppRunning = true }
         defer {
-            Task { await MainActor.run {
-                isAppRunning = false
-            }}
+            Task { await MainActor.run { isAppRunning = false } }
         }
+
+        
         try await signApp(force: false)
         
         if let bundleIdOverride {
@@ -288,66 +295,42 @@ public var shouldLaunchInRealIPhoneMode: Bool {
         } else {
             UserDefaults.standard.set(self.appInfo.relativeBundlePath, forKey: "selected")
         }
-        
-
         UserDefaults.standard.set(uiSelectedContainer?.folderName, forKey: "selectedContainer")
+
+    
         var is32bit = false
-        
         #if is32BitSupported
         is32bit = appInfo.is32bit
         #endif
+        
         var jitNeeded = appInfo.isJITNeeded
-        if let forceJIT {
-            jitNeeded = forceJIT
-        }
+        if let forceJIT { jitNeeded = forceJIT }
+        
         if jitNeeded || is32bit {
-            if multitask, #available(iOS 17.4, *) {
-                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                    LCUtils.launchMultitaskGuestApp(appInfo.displayName()) { pidNumber, error in
-                        if let error {
-                            continuation.resume(throwing: error)
-                            return
-                        }
-                        guard let pidNumber = pidNumber else {
-                            continuation.resume(throwing: "Failed to obtain PID from LiveProcess")
-                            return
-                        }
-                        Task {
-                            if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
-                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData, appName: self.appInfo.displayName())
-                            } else {
-                                await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil, appName: self.appInfo.displayName())
-                            }
-                            continuation.resume()
-                        }
-                    }
-                }
+            if finalMultitask, #available(iOS 17.4, *) {
+                try await launchWithJITMultitask()
             } else {
-                // Non-multitask JIT flow remains unchanged
                 if let scriptData = jitLaunchScriptJs, !scriptData.isEmpty {
                     await delegate?.jitLaunch(withScript: scriptData, appName: self.appInfo.displayName())
                 } else {
                     await delegate?.jitLaunch(appName: self.appInfo.displayName())
                 }
             }
-        } else if multitask, #available(iOS 16.0, *) {
+        } else if finalMultitask, #available(iOS 16.0, *) {
             try await LCUtils.launchMultitaskGuestApp(appInfo.displayName())
         } else {
+            
             if #available(iOS 26.0, *), FileManager.default.fileExists(atPath: "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE") {
-                let fileContents = "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE".data(using: .utf8)
                 let fileURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("preloadLibraries.txt")
-                try fileContents?.write(to: fileURL)
+                try "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE".data(using: .utf8)?.write(to: fileURL)
             }
             LCSharedUtils.launchToGuestApp()
         }
         
-        // Record the launch time
+        
         appInfo.lastLaunched = Date()
-
-        await MainActor.run {
-            isAppRunning = false
-        }
     }
+
     
     func forceResign() async throws {
         if isAppRunning {

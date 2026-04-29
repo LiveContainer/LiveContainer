@@ -16,37 +16,28 @@ struct LCRealIPhoneModeSettingRow: View {
 
     var body: some View {
         Toggle(isOn: Binding(
-            get: { !isNative },
-            set: { _ in toggleMode() }
+            get: { isiPhone }, 
+            set: { _ in toggle() }
         )) {
-            Label {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("lc.settings.realIPhoneMode".loc) 
-                        .font(.body)
-                    Text("lc.settings.realIPhoneMode.desc".loc)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+            Label(
+                title: { Text("lc.settings.realIPhoneMode".loc) },
+                icon: { 
+                    Image(systemName: isNative ? "ipad" : "iphone")
+                        .foregroundColor(isNative ? .green : .purple)
                 }
-            } icon: {
-                Image(systemName: isNative ? "ipad" : "iphone")
-                    .foregroundColor(isNative ? .blue : .purple)
-                    .imageScale(.large)
-            }
+            )
         }
     }
 
-    private func toggleMode() {
+    private func toggle() {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            let newNativeStatus = !isNative
-            isNative = newNativeStatus
-            let newIPhoneStatus = !newNativeStatus
-            isiPhone = newIPhoneStatus
-            UserDefaults.standard.set(newNativeStatus, forKey: "LCNativeFullscreen")
-            LCUtils.appGroupUserDefault.set(newIPhoneStatus, forKey: "LCRealIPhoneMode")
+            isNative.toggle()
+            isiPhone = !isNative
             onUpdate?()
         }
     }
 }
+
 
 enum JITEnablerType : Int, CaseIterable, Identifiable {
     var id: Int { rawValue }

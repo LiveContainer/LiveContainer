@@ -599,6 +599,18 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     _info[@"MultitaskSpecified"] = [NSNumber numberWithInt:(int) multitaskSpecified];
     [self save];
 }
+- (MultitaskSpecified)realIPhoneModeSpecified {
+   
+    if (_info[@"RealIPhoneModeSpecified"]) {
+        return (MultitaskSpecified)[_info[@"RealIPhoneModeSpecified"] intValue];
+    }
+    return MultitaskSpecifiedDefault;
+}
+
+- (void)setRealIPhoneModeSpecified:(MultitaskSpecified)realIPhoneModeSpecified {
+    _info[@"RealIPhoneModeSpecified"] = [NSNumber numberWithInt:(int)realIPhoneModeSpecified];
+    [self save];
+}
 
 - (UIColor*)cachedColor {
     if(_info[@"cachedColor"] != nil) {

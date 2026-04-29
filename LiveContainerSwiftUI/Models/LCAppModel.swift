@@ -150,11 +150,7 @@ class LCAppModel: ObservableObject, Hashable {
             }
         }
     }
-    @Published var uiIsRealIPhoneModeSpecified: MultitaskSpecified {
-    didSet {
-        appInfo.realIPhoneModeSpecified = uiIsRealIPhoneModeSpecified 
-    }
-}
+    
 
 public var shouldLaunchInRealIPhoneMode: Bool {
     get {

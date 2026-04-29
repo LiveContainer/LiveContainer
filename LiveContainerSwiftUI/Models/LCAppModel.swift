@@ -144,7 +144,20 @@ class LCAppModel: ObservableObject, Hashable {
             }
         }
     }
-    
+    @Published var uiIsRealIPhoneModeSpecified: MultitaskSpecified {
+    didSet {
+        appInfo.realIPhoneModeSpecified = uiIsRealIPhoneModeSpecified 
+    }
+}
+
+public var shouldLaunchInRealIPhoneMode: Bool {
+    get {
+        
+        if uiIsRealIPhoneModeSpecified == .yes { return true }
+        if uiIsRealIPhoneModeSpecified == .no { return false }
+        return LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
+    }
+}
     @Published var supportedLanguages : [String]?
     
     var delegate : LCAppModelDelegate?

@@ -313,7 +313,7 @@ struct LCAppBanner : View {
         return UIMenu(title: "", children: menuChildren)
     }
     
-    func runApp(multitask: Bool? = nil) async {
+    func runApp(multitask: Bool? = nil, forceiPhone: Bool? = nil) async {
     if appInfo.isLocked && !sharedModel.isHiddenAppUnlocked {
         do {
             if !(try await LCUtils.authenticateUser()) {
@@ -328,9 +328,13 @@ struct LCAppBanner : View {
 
     do {
         let isMultitaskActive = multitask ?? model.shouldLaunchInMultitaskMode
+        let finaliPhoneMode: Bool
         if isMultitaskActive {
-            LCUtils.appGroupUserDefault.set(false, forKey: "LCRealIPhoneMode")
-            UserDefaults.standard.set(true, forKey: "LCNativeFullscreen")
+            finaliPhoneMode = false
+        } else if let force = forceiPhone {
+            finaliPhoneMode = force
+        } else {
+            finaliPhoneMode = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
         }
 
         try await model.runApp(multitask: multitask)

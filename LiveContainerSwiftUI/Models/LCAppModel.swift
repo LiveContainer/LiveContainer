@@ -116,6 +116,12 @@ class LCAppModel: ObservableObject, Hashable {
         }
     }
     
+@Published var uiIsRealIPhoneModeSpecified: MultitaskSpecified {
+    didSet {
+        appInfo.realIPhoneModeSpecified = uiIsRealIPhoneModeSpecified
+    }
+}
+
     public var bundleIdentifier: String {
         get {
             return appInfo.bundleIdentifier() ?? "?"
@@ -163,45 +169,54 @@ public var shouldLaunchInRealIPhoneMode: Bool {
     var delegate : LCAppModelDelegate?
     
     init(appInfo : LCAppInfo, delegate: LCAppModelDelegate? = nil) {
-        self.appInfo = appInfo
-        self.delegate = delegate
+    self.appInfo = appInfo
+    self.delegate = delegate
 
-        if !appInfo.isLocked && appInfo.isHidden {
-            appInfo.isLocked = true
-        }
-        
-        self.uiIsJITNeeded = appInfo.isJITNeeded
-        self.uiIsHidden = appInfo.isHidden
-        self.uiIsLocked = appInfo.isLocked
-        self.uiIsShared = appInfo.isShared
-        self.uiSelectedLanguage = appInfo.selectedLanguage ?? ""
-        self.uiDefaultDataFolder = appInfo.dataUUID
-        self.uiContainers = appInfo.containers
-        self.uiTweakFolder = appInfo.tweakFolder
-        self.uiDoSymlinkInbox = appInfo.doSymlinkInbox
-        self.uiOrientationLock = appInfo.orientationLock
-        self.uiIsMultitaskModeSpecificed = appInfo.multitaskSpecified
-        self.uiUseLCBundleId = appInfo.doUseLCBundleId
-        self.uiFixFilePickerNew = appInfo.fixFilePickerNew
-        self.uiFixLocalNotification = appInfo.fixLocalNotification
-        self.uiHideLiveContainer = appInfo.hideLiveContainer
-        self.uiDontInjectTweakLoader = appInfo.dontInjectTweakLoader
-        self.uiTweakLoaderInjectFailed = appInfo.info()["LCTweakLoaderCantInject"] as? Bool ?? false
-        self.uiDontLoadTweakLoader = appInfo.dontLoadTweakLoader
-        self.uiDontSign = appInfo.dontSign
-        self.jitLaunchScriptJs = appInfo.jitLaunchScriptJs
-        self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
-        self.uiRemark = appInfo.remark ?? ""
+    if !appInfo.isLocked && appInfo.isHidden {
+        appInfo.isLocked = true
+    }
+    
+    
+    self.uiIsJITNeeded = appInfo.isJITNeeded
+    self.uiIsHidden = appInfo.isHidden
+    self.uiIsLocked = appInfo.isLocked
+    self.uiIsShared = appInfo.isShared
+    self.uiSelectedLanguage = appInfo.selectedLanguage ?? ""
+    self.uiDefaultDataFolder = appInfo.dataUUID
+    self.uiContainers = appInfo.containers
+    self.uiTweakFolder = appInfo.tweakFolder
+    self.uiDoSymlinkInbox = appInfo.doSymlinkInbox
+    self.uiOrientationLock = appInfo.orientationLock
+    self.uiIsMultitaskModeSpecificed = appInfo.multitaskSpecified
+    
+  
+    self.uiIsRealIPhoneModeSpecified = appInfo.realIPhoneModeSpecified
+    
+    self.uiUseLCBundleId = appInfo.doUseLCBundleId
+    self.uiFixFilePickerNew = appInfo.fixFilePickerNew
+    self.uiFixLocalNotification = appInfo.fixLocalNotification
+    self.uiHideLiveContainer = appInfo.hideLiveContainer
+    self.uiDontInjectTweakLoader = appInfo.dontInjectTweakLoader
+    self.uiTweakLoaderInjectFailed = appInfo.info()["LCTweakLoaderCantInject"] as? Bool ?? false
+    self.uiDontLoadTweakLoader = appInfo.dontLoadTweakLoader
+    self.uiDontSign = appInfo.dontSign
+    self.jitLaunchScriptJs = appInfo.jitLaunchScriptJs
+    self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
+    self.uiRemark = appInfo.remark ?? ""
+    
 #if is32BitSupported
-        self.uiIs32bit = appInfo.is32bit
+    self.uiIs32bit = appInfo.is32bit
 #endif
-        for container in uiContainers {
-            if container.folderName == uiDefaultDataFolder {
-                self.uiSelectedContainer = container;
-                break
-            }
+
+    
+    for container in self.uiContainers {
+        if container.folderName == self.uiDefaultDataFolder {
+            self.uiSelectedContainer = container
+            break
         }
     }
+}
+
     
     static func == (lhs: LCAppModel, rhs: LCAppModel) -> Bool {
         return lhs === rhs

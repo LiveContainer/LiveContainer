@@ -273,14 +273,19 @@ struct LCAppBanner : View {
             sectionChildren.append(multitaskAction)
         }
         //⭐️⭐️⭐️ iPhone mode
-        let isCurrentlyIPhone = LCUtils.appGroupUserDefault.bool(forKey: "LCRealIPhoneMode")
-        let iphoneTitle = isCurrentlyIPhone ? "lc.appBanner.runFullscreen".loc : "lc.appBanner.runIPhoneMode".loc
-        let iphoneImage = isCurrentlyIPhone ? "arrow.up.left.and.arrow.down.right" : "iphone"
+        let willRunIPhone = model.shouldLaunchInRealIPhoneMode
+    
+   
+    let iphoneTitle = willRunIPhone ? "lc.appBanner.runFullscreen".loc : "lc.appBanner.runIPhoneMode".loc
+    let iphoneImage = willRunIPhone ? "arrow.up.left.and.arrow.down.right" : "iphone"
 
-        let iphoneAction = UIAction(title: iphoneTitle, image: UIImage(systemName: iphoneImage)) { _ in
-        Task { await runApp(multitask: false, forceiPhone: !isCurrentlyIPhone) }
+    let iphoneAction = UIAction(title: iphoneTitle, image: UIImage(systemName: iphoneImage)) { _ in
+        Task { 
+            
+            await runApp(multitask: false, forceiPhone: !willRunIPhone) 
         }
-        sectionChildren.append(iphoneAction)
+    }
+    sectionChildren.append(iphoneAction)
         // Submenu: Add to Home Screen
         let subMenuActions = [
             UIAction(title: "lc.appBanner.copyLaunchUrl".loc, image: UIImage(systemName: "link")) { _ in

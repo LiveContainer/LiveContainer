@@ -330,6 +330,30 @@ public var shouldLaunchInRealIPhoneMode: Bool {
         
         appInfo.lastLaunched = Date()
     }
+       
+    @available(iOS 17.4, *)
+        func launchWithJITMultitask() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            LCUtils.launchMultitaskGuestApp(appInfo.displayName()) { pidNumber, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let pidNumber = pidNumber else {
+                    continuation.resume(throwing: "Failed to obtain PID from LiveProcess")
+                    return
+                }
+                Task {
+                    if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
+                        await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData, appName: self.appInfo.displayName())
+                    } else {
+                        await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil, appName: self.appInfo.displayName())
+                    }
+                    continuation.resume()
+                }
+            }
+        }
+    }
 
     
     func forceResign() async throws {

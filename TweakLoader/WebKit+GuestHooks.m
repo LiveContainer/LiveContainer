@@ -32,11 +32,22 @@
 //   reports paused=false readyState=4 but currentTime=0).
 //
 // Fix:
-//   On every new WKWebView, clear _mediaCapabilityGrantsEnabled
-//   before init. That sends WebKit down the pre-17.4 code path,
-//   which always registers the presenting PID and takes the
-//   MediaPlayback assertion — the path that has been working
-//   in extensions all along.
+//   Clear _mediaCapabilityGrantsEnabled before any WKWebView is
+//   bound to a WebContent process. That sends WebKit down the
+//   pre-17.4 code path, which always registers the presenting
+//   PID and takes the MediaPlayback assertion — the path that
+//   has been working in extensions all along.
+//
+//   We hook three points so the fix takes effect even if a
+//   WKWebView is created very early (before this constructor
+//   runs) or if a WKWebViewConfiguration is built without going
+//   through WKWebView init:
+//     1. WKWebViewConfiguration init   (catches early configs)
+//     2. WKWebView initWithFrame:configuration: (covers the
+//        common path and any config not built via plain init)
+//     3. On load, walk live windows and patch any existing
+//        WKWebView's preferences (recovers if the constructor
+//        ran after Firefox already created its first WKWebView)
 //
 // References:
 //   Source/WebKit/UIProcess/API/Cocoa/WKPreferencesPrivate.h
@@ -53,6 +64,12 @@
 - (void)_setMediaCapabilityGrantsEnabled:(BOOL)enabled;
 @end
 
+static void disableMediaCapabilityGrantsOnPrefs(WKPreferences *prefs) {
+    if ([prefs respondsToSelector:@selector(_setMediaCapabilityGrantsEnabled:)]) {
+        [prefs _setMediaCapabilityGrantsEnabled:NO];
+    }
+}
+
 @interface WKWebView (LCMediaCapabilityFix)
 - (instancetype)hook_initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration;
 @end
@@ -61,25 +78,66 @@
 
 - (instancetype)hook_initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
     if (configuration) {
-        WKPreferences *prefs = configuration.preferences;
-        if ([prefs respondsToSelector:@selector(_setMediaCapabilityGrantsEnabled:)]) {
-            // Disable the iOS 17.4+ capability-grant shortcut so WebKit
-            // takes the pre-17.4 path that actually registers the
-            // presenting app PID and takes the MediaPlayback assertion.
-            [prefs _setMediaCapabilityGrantsEnabled:NO];
-        }
+        disableMediaCapabilityGrantsOnPrefs(configuration.preferences);
     }
     return [self hook_initWithFrame:frame configuration:configuration];
 }
 
 @end
 
+@interface WKWebViewConfiguration (LCMediaCapabilityFix)
+- (instancetype)hook_init;
+@end
+
+@implementation WKWebViewConfiguration (LCMediaCapabilityFix)
+
+- (instancetype)hook_init {
+    WKWebViewConfiguration *cfg = [self hook_init];
+    if (cfg) {
+        disableMediaCapabilityGrantsOnPrefs(cfg.preferences);
+    }
+    return cfg;
+}
+
+@end
+
+static void patchWebViewsInView(UIView *view) {
+    if ([view isKindOfClass:[WKWebView class]]) {
+        disableMediaCapabilityGrantsOnPrefs(((WKWebView *)view).configuration.preferences);
+    }
+    for (UIView *sub in view.subviews) {
+        patchWebViewsInView(sub);
+    }
+}
+
+static void patchExistingWebViews(void) {
+    UIApplication *app = [UIApplication sharedApplication];
+    if (!app) return;
+    for (UIScene *scene in app.connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+            patchWebViewsInView(window);
+        }
+    }
+}
+
 __attribute__((constructor))
 static void WebKitGuestHooksInit(void) {
     if (!NSUserDefaults.lcGuestAppId) return;
     if (@available(iOS 17.4, *)) {
+        swizzle(WKWebViewConfiguration.class,
+                @selector(init),
+                @selector(hook_init));
         swizzle(WKWebView.class,
                 @selector(initWithFrame:configuration:),
                 @selector(hook_initWithFrame:configuration:));
+
+        // If our constructor ran after the host already created its
+        // first WKWebView (e.g. during state restoration), patch live
+        // ones now so they pick up the corrected preference before
+        // their next media load.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            patchExistingWebViews();
+        });
     }
 }

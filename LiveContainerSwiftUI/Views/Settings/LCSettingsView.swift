@@ -8,6 +8,42 @@
 import Foundation
 import SwiftUI
 
+struct LCRealIPhoneModeSettingRow: View {
+    
+    @AppStorage("LCNativeFullscreen") var isNative = true
+    @AppStorage("LCRealIPhoneMode", store: LCUtils.appGroupUserDefault) var isiPhone = false
+    
+    var onUpdate: (() -> Void)?
+
+    var body: some View {
+        Toggle(isOn: Binding(
+            get: { isiPhone }, 
+            set: { newValue in 
+                updateMode(isiPhoneMode: newValue)
+            }
+        )) {
+            Label(
+                title: { Text("lc.settings.realIPhoneMode".loc) },
+                icon: { 
+                    
+                    Image(systemName: isiPhone ? "iphone" : "ipad")
+                        .foregroundColor(isiPhone ? .purple : .green)
+                }
+            )
+        }
+    }
+
+    private func updateMode(isiPhoneMode: Bool) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            isiPhone = isiPhoneMode
+            isNative = !isiPhoneMode 
+            onUpdate?()
+        }
+    }
+}
+
+
+
 enum JITEnablerType : Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
     case SideJITServer = 0
@@ -151,7 +187,12 @@ struct LCSettingsView: View {
                         Text("lc.settings.multiLCDesc".loc)
                     }
                 }
-                
+                Section(header: Text("lc.settings.displaySection".loc)) {
+                     LCRealIPhoneModeSettingRow {
+                         sharedModel.objectWillChange.send()
+                     }
+                }
+
                 if #available(iOS 16.1, *) {
                     Section {
                         NavigationLink {

@@ -467,7 +467,12 @@ BOOL canAppOpenItself(NSURL* url) {
                 NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
                 NSString *decodedUrlStr = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
                 NSURL* decodedUrl = [NSURL URLWithString:decodedUrlStr];
-                if(!canAppOpenItself(decodedUrl)) {
+                if(!decodedUrl) break;
+
+                // Universal link: hand off to UIActivityContinuationManager and drop the launch URL,
+                // matching hook_scene:didReceiveActions: behavior.
+                if([decodedUrlStr hasPrefix:@"https"]) {
+                    openUniversalLink(decodedUrlStr);
                     break;
                 }
                 urlDecodeSuccess = YES;

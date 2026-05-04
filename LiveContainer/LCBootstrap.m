@@ -736,20 +736,34 @@ int LiveContainerMain(int argc, char *argv[]) {
         NSString *launchUrl = [lcUserDefaults stringForKey:@"launchAppUrlScheme"];
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
-        // wait for app to launch so that it can receive the url
+        // Deliver the wrapped URL once the guest's UIApplication has become active,
+        // so its URL handlers are wired up before openURL fires.
         if(launchUrl) {
             [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
-            dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC));
-            dispatch_after(delay, dispatch_get_main_queue(), ^{
-                // Base64 encode the data
-                NSData *data = [launchUrl dataUsingEncoding:NSUTF8StringEncoding];
-                NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
-                
                 NSString* finalUrl = [NSString stringWithFormat:@"%@://open-url?url=%@", lcAppUrlScheme, encodedUrl];
-                NSURL* url = [NSURL URLWithString: finalUrl];
-                
-                [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
-            });
+
+            NSData *data = [launchUrl dataUsingEncoding:NSUTF8StringEncoding];
+            NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
+            NSString *finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", lcAppUrlScheme, encodedUrl];
+            NSURL *finalUrl = [NSURL URLWithString:finalUrlStr];
+
+            // One-shot: the observer removes itself the first (and only) time it fires.
+            // String literal is used because UIKit isn't linked into LCBootstrap directly.
+            __block id observer = [[NSNotificationCenter defaultCenter]
+                addObserverForName:@"UIApplicationDidBecomeActiveNotification"
+                            object:nil
+                             queue:[NSOperationQueue mainQueue]
+                        usingBlock:^(NSNotification *_) {
+                if (!observer) return;
+                [[NSNotificationCenter defaultCenter] removeObserver:observer];
+                observer = nil;
+                // Small grace period to let the scene settle after didBecomeActive.
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{
+                    [[NSClassFromString(@"UIApplication") sharedApplication]
+                        openURL:finalUrl options:@{} completionHandler:nil];
+                });
+            }];
         }
         NSSetUncaughtExceptionHandler(&exceptionHandler);
         NSString *appError = invokeAppMain(selectedApp, selectedContainer, argc, argv);

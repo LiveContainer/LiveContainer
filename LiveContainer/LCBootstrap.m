@@ -740,7 +740,6 @@ int LiveContainerMain(int argc, char *argv[]) {
         // so its URL handlers are wired up before openURL fires.
         if(launchUrl) {
             [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
-                NSString* finalUrl = [NSString stringWithFormat:@"%@://open-url?url=%@", lcAppUrlScheme, encodedUrl];
 
             NSData *data = [launchUrl dataUsingEncoding:NSUTF8StringEncoding];
             NSString *encodedUrl = [data base64EncodedStringWithOptions:0];

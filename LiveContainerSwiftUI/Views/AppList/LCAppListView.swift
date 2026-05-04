@@ -1190,7 +1190,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 var bundleId : String? = nil
                 var containerName : String? = nil
                 var forceJIT: Bool? = nil
-                var openUrl: String? = nil
                 for queryItem in components.queryItems ?? [] {
                     if queryItem.name == "bundle-name", let bundleId1 = queryItem.value {
                         bundleId = bundleId1
@@ -1202,17 +1201,9 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         } else if forceJIT1 == "false" {
                             forceJIT = false
                         }
-                    } else if queryItem.name == "open-url",
-                              let encoded = queryItem.value,
-                              let decodedData = Data(base64Encoded: encoded),
-                              let decodedUrl = String(data: decodedData, encoding: .utf8) {
-                        openUrl = decodedUrl
                     }
                 }
                 if let bundleId, bundleId != "ui"{
-                    if let openUrl {
-                        UserDefaults.standard.setValue(openUrl, forKey: "launchAppUrlScheme")
-                    }
                     Task { await launchAppWithBundleId(bundleId: bundleId, container: containerName, forceJIT: forceJIT) }
                 }
             }

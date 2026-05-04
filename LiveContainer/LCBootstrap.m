@@ -760,6 +760,22 @@ int LiveContainerMain(int argc, char *argv[]) {
                 });
             }];
         }
+        // Fixes cold-start multitask losing URL-Shortcut deep links.
+        if (isLiveProcess && selectedContainer.length) {
+            NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:selectedContainer];
+            __block id observer = [[NSNotificationCenter defaultCenter]
+                addObserverForName:@"UIApplicationDidBecomeActiveNotification"
+                            object:nil
+                             queue:[NSOperationQueue mainQueue]
+                        usingBlock:^(NSNotification *_) {
+                if (!observer) return;
+                [[NSNotificationCenter defaultCenter] removeObserver:observer];
+                observer = nil;
+                CFNotificationCenterPostNotification(
+                    CFNotificationCenterGetDarwinNotifyCenter(),
+                    (__bridge CFStringRef)readyName, NULL, NULL, true);
+            }];
+        }
         NSSetUncaughtExceptionHandler(&exceptionHandler);
         NSString *appError = invokeAppMain(selectedApp, selectedContainer, argc, argv);
         if (appError) {

@@ -18,22 +18,6 @@ static void UIKitGuestHooksInit() {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
-
-    // Fixes cold-start multitask losing URL-Shortcut deep links.
-    if (NSUserDefaults.isLiveProcess) {
-        [[NSNotificationCenter defaultCenter]
-            addObserverForName:@"UIApplicationDidBecomeActiveNotification"
-                        object:nil
-                         queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(NSNotification *_) {
-                NSString *dataUUID = [NSUserDefaults.standardUserDefaults stringForKey:@"selectedContainer"];
-                if (dataUUID.length == 0) return;
-                NSString *name = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:dataUUID];
-                CFNotificationCenterPostNotification(
-                    CFNotificationCenterGetDarwinNotifyCenter(),
-                    (__bridge CFStringRef)name, NULL, NULL, true);
-            }];
-    }
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         switch (LCOrientationLockDirection) {

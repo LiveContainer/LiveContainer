@@ -70,6 +70,9 @@ struct LCSettingsView: View {
     @AppStorage("LCWaitForDebugger") var waitForDebugger = false
     @AppStorage("LCSharePrivateDataWithLiveProcess") var sharePrivateDataWithLiveProcess = false
     @AppStorage("BKNoWatchdogs") var disableLiveProcessWatchdog = false
+
+    @AppStorage("LCNativeFullscreen") var isNative = true
+    @AppStorage("LCRealIPhoneMode", store: LCUtils.appGroupUserDefault) var isiPhone = false
     
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -194,6 +197,18 @@ struct LCSettingsView: View {
                 } footer: {
                     Text("lc.settings.JitDesc".loc)
                 }
+
+                Section {
+                    Toggle("lc.settings.iPhoneMode".loc, isOn: $isiPhone)
+                      .onChange(of: isiPhone) { newValue in
+                        isNative = !newValue
+                      }
+                } header: {
+                    Text("lc.common.miscellaneous".loc)
+                } footer: {
+                    Text("lc.settings.iPhoneMode.desc".loc)
+                }
+
                 
                 Section{
                     Toggle(isOn: $dynamicColors) {

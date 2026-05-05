@@ -760,7 +760,7 @@ int LiveContainerMain(int argc, char *argv[]) {
                 });
             }];
         }
-        // Fixes cold-start multitask losing URL-Shortcut deep links.
+        // Fixes cold-start native-window multitask losing URL-Shortcut deep links.
         if (isLiveProcess && selectedContainer.length) {
             NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:selectedContainer];
             __block id observer = [[NSNotificationCenter defaultCenter]

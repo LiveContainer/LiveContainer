@@ -221,9 +221,14 @@ class LCAppModel: ObservableObject, Hashable {
         }
         let currentDataFolder = containerFolderName ?? uiSelectedContainer?.folderName
         
-        let multitask = multitask ?? shouldLaunchInMultitaskMode;
+        var shouldMultitask = multitask ?? shouldLaunchInMultitaskMode
+        let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType"))
+        let supportsPIDJIT = jitEnabler == .StikJIT || jitEnabler == .StikJITLC || jitEnabler == .StosDebug || jitEnabler == .StosDebugLC
+        if (appInfo.isJITNeeded || is32bit) && !supportsPIDJIT {
+            shouldMultitask = false
+        }
         
-        if multitask,
+        if shouldMultitask,
            let currentDataFolder,
            await bringExistingMultitaskWindowIfNeeded(dataUUID: currentDataFolder) {
             return
@@ -249,7 +254,7 @@ class LCAppModel: ObservableObject, Hashable {
         }
         
         // ask user if they want to terminate all multitasking apps
-        if MultitaskManager.isMultitasking() && !multitask {
+        if MultitaskManager.isMultitasking() && !shouldMultitask {
             if let currentDataFolder,
                await bringExistingMultitaskWindowIfNeeded(dataUUID: currentDataFolder) {
                 return
@@ -288,7 +293,7 @@ class LCAppModel: ObservableObject, Hashable {
             jitNeeded = forceJIT
         }
         if jitNeeded || is32bit {
-            if multitask, #available(iOS 17.4, *) {
+            if shouldMultitask, #available(iOS 17.4, *) {
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                     LCUtils.launchMultitaskGuestApp(appInfo.displayName()) { pidNumber, error in
                         if let error {
@@ -317,7 +322,7 @@ class LCAppModel: ObservableObject, Hashable {
                     await delegate?.jitLaunch(appName: self.appInfo.displayName())
                 }
             }
-        } else if multitask, #available(iOS 16.0, *) {
+        } else if shouldMultitask, #available(iOS 16.0, *) {
             try await LCUtils.launchMultitaskGuestApp(appInfo.displayName())
         } else {
             if #available(iOS 26.0, *), FileManager.default.fileExists(atPath: "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE") {

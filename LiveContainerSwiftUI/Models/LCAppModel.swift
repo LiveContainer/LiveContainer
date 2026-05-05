@@ -220,6 +220,11 @@ class LCAppModel: ObservableObject, Hashable {
             uiSelectedContainer = uiContainers.first { $0.folderName == containerFolderName } ?? uiSelectedContainer
         }
         let currentDataFolder = containerFolderName ?? uiSelectedContainer?.folderName
+        var is32bit = false
+        
+        #if is32BitSupported
+        is32bit = appInfo.is32bit
+        #endif
         
         var shouldMultitask = multitask ?? shouldLaunchInMultitaskMode
         let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType"))
@@ -283,11 +288,6 @@ class LCAppModel: ObservableObject, Hashable {
         
 
         UserDefaults.standard.set(uiSelectedContainer?.folderName, forKey: "selectedContainer")
-        var is32bit = false
-        
-        #if is32BitSupported
-        is32bit = appInfo.is32bit
-        #endif
         var jitNeeded = appInfo.isJITNeeded
         if let forceJIT {
             jitNeeded = forceJIT

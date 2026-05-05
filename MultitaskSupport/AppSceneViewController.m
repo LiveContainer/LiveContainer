@@ -99,7 +99,7 @@
             strongSelf.guestReadyToken = 0;
             NSString *url = strongSelf.pendingLaunchUrl;
             strongSelf.pendingLaunchUrl = nil;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
                 [strongSelf openURLScheme:url];
             });

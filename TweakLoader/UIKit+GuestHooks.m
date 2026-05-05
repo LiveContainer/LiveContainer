@@ -454,6 +454,14 @@ BOOL canAppOpenItself(NSURL* url) {
 }
 
 - (void)hook__connectUISceneFromFBSScene:(id)scene transitionContext:(UIApplicationSceneTransitionContext*)context {
+    // Fixes cold-start multitask losing URL-Shortcut deep links.
+    NSString *guestDataUUID = [NSUserDefaults.standardUserDefaults stringForKey:@"multitaskGuestDataUUID"];
+    if (guestDataUUID.length) {
+        NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:guestDataUUID];
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            (__bridge CFStringRef)readyName, NULL, NULL, true);
+    }
 #if !TARGET_OS_MACCATALYST
     NSString* urlStr;
     if(context.payload && (urlStr = context.payload[UIApplicationLaunchOptionsURLKey])) {

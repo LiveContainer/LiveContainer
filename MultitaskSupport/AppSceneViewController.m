@@ -217,7 +217,20 @@
         [self appTerminationCleanUp];
     }
     if(!diff) return;
-    
+
+    // Fixes cold-start virtual-window multitask losing URL-Shortcut deep links.
+    if (!self.isNativeWindow && self.pendingLaunchUrl) {
+        NSString *url = self.pendingLaunchUrl;
+        self.pendingLaunchUrl = nil;
+        if (self.guestReadyToken) {
+            notify_cancel(self.guestReadyToken);
+            self.guestReadyToken = 0;
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self openURLScheme:url];
+        });
+    }
+
     UIMutableApplicationSceneSettings *baseSettings = [diff settingsByApplyingToMutableCopyOfSettings:settings];
     UIApplicationSceneTransitionContext *newContext = [context copy];
     newContext.actions = nil;

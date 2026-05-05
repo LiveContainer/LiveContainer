@@ -736,7 +736,7 @@ int LiveContainerMain(int argc, char *argv[]) {
         NSString *launchUrl = [lcUserDefaults stringForKey:@"launchAppUrlScheme"];
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
-        // Fixes cold-start losing URL-Shortcut deep links.
+        // wait for app to launch so that it can receive the url
         if(launchUrl) {
             [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
 
@@ -760,7 +760,7 @@ int LiveContainerMain(int argc, char *argv[]) {
                 });
             }];
         }
-        // Fixes cold-start multitask losing URL-Shortcut deep links.
+        // wait for app to launch so that it can receive the url
         if (isLiveProcess && selectedContainer.length) {
             NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:selectedContainer];
             __block id observer = [[NSNotificationCenter defaultCenter]

@@ -86,7 +86,7 @@
     
     __weak typeof(self) weakSelf = self;
 
-    // Fixes cold-start multitask losing URL-Shortcut deep links.
+    // wait for app to launch so that it can receive the url
     NSString *pendingUrl = [NSUserDefaults.standardUserDefaults stringForKey:@"launchAppUrlScheme"];
     if (pendingUrl.length) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
@@ -218,7 +218,7 @@
     }
     if(!diff) return;
 
-    // Fixes cold-start virtual-window multitask losing URL-Shortcut deep links.
+    // wait for app to launch so that it can receive the url
     if (!self.isNativeWindow && self.pendingLaunchUrl) {
         NSString *url = self.pendingLaunchUrl;
         self.pendingLaunchUrl = nil;

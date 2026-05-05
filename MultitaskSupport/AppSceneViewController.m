@@ -26,7 +26,6 @@
 @property(nonatomic) NSString *sceneID;
 @property(nonatomic) NSExtension* extension;
 @property(nonatomic) bool isAppTerminationCleanUpCalled;
-@property(nonatomic, copy) NSString *pendingLaunchUrl;
 @property(nonatomic, assign) int guestReadyToken;
 @end
 
@@ -90,18 +89,15 @@
     NSString *pendingUrl = [NSUserDefaults.standardUserDefaults stringForKey:@"launchAppUrlScheme"];
     if (pendingUrl.length) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
-        self.pendingLaunchUrl = pendingUrl;
         NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:dataUUID];
         notify_register_dispatch(readyName.UTF8String, &_guestReadyToken, dispatch_get_main_queue(), ^(int _) {
             __strong typeof(self) strongSelf = weakSelf;
-            if (!strongSelf || !strongSelf.pendingLaunchUrl) return;
+            if (!strongSelf || strongSelf->_isAppTerminationCleanUpCalled) return;
             notify_cancel(strongSelf.guestReadyToken);
             strongSelf.guestReadyToken = 0;
-            NSString *url = strongSelf.pendingLaunchUrl;
-            strongSelf.pendingLaunchUrl = nil;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
-                [strongSelf openURLScheme:url];
+                [strongSelf openURLScheme:pendingUrl];
             });
         });
     }
@@ -218,20 +214,6 @@
     }
     if(!diff) return;
 
-    // wait for app to launch so that it can receive the url
-    if (!self.isNativeWindow && self.pendingLaunchUrl) {
-        NSString *url = self.pendingLaunchUrl;
-        self.pendingLaunchUrl = nil;
-        if (self.guestReadyToken) {
-            notify_cancel(self.guestReadyToken);
-            self.guestReadyToken = 0;
-        }
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            [self openURLScheme:url];
-        });
-    }
-
     UIMutableApplicationSceneSettings *baseSettings = [diff settingsByApplyingToMutableCopyOfSettings:settings];
     UIApplicationSceneTransitionContext *newContext = [context copy];
     newContext.actions = nil;
@@ -287,7 +269,6 @@
         notify_cancel(_guestReadyToken);
         _guestReadyToken = 0;
     }
-    self.pendingLaunchUrl = nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         if(self.sceneID) {
             [[PrivClass(FBSceneManager) sharedInstance] destroyScene:self.sceneID withTransitionContext:nil];

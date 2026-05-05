@@ -1078,15 +1078,31 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         LCSharedUtils.launchToGuestApp()
 
     }
-    
-    private func openJITInAnotherLC(encodedURL: String, appToLaunch: LCAppModel, errorMessage: String) async -> Bool {
-        var freeScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
-        if freeScheme == nil {
-            LCUtils.forEachInstalledLC(isFree: true) { scheme, shouldBreak in
+
+    private func multitaskPIDJITBundleId(for appToLaunch: LCAppModel) -> String {
+        appToLaunch.appInfo.relativeBundlePath ?? appToLaunch.bundleIdentifier
+    }
+
+    private func multitaskPIDJITRelayScheme(for appToLaunch: LCAppModel) -> String? {
+        let currentScheme = LCUtils.appUrlScheme()?.lowercased()
+        let runningScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
+        if let runningScheme,
+           runningScheme.lowercased() != currentScheme {
+            return runningScheme
+        }
+
+        var freeScheme: String?
+        LCUtils.forEachInstalledLC(isFree: true) { scheme, shouldBreak in
+            if scheme.lowercased() != currentScheme {
                 freeScheme = scheme
                 shouldBreak = true
             }
         }
+        return freeScheme
+    }
+    
+    private func openJITInAnotherLC(encodedURL: String, appToLaunch: LCAppModel, errorMessage: String) async -> Bool {
+        let freeScheme = multitaskPIDJITRelayScheme(for: appToLaunch)
         guard let freeScheme else {
             errorInfo = errorMessage
             errorShow = true
@@ -1099,7 +1115,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             return false
         }
 
-        LCUtils.appGroupUserDefault.set(appToLaunch.appInfo.relativeBundlePath, forKey: "LCLaunchExtensionBundleID")
+        LCUtils.appGroupUserDefault.set(multitaskPIDJITBundleId(for: appToLaunch), forKey: "LCLaunchExtensionBundleID")
         LCUtils.appGroupUserDefault.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
         await UIApplication.shared.open(launchURL)
         return true
@@ -1117,7 +1133,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             return app.appInfo.urlSchemes().contains("stosdebug") &&
                             (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
                         }) {
-                            let urlString = "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)"
+                            let urlString = "stosdebug://enableJIT?bundleId=\(multitaskPIDJITBundleId(for: app))&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)"
                             let encodedStr = Data(urlString.utf8).base64EncodedString().addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
                             Task { _ = await openJITInAnotherLC(encodedURL: encodedStr, appToLaunch: app, errorMessage: "No free LiveContainer is available. Please either: \n(1)close one, \n(2)install a new one, \n(3)choose another method to enable JIT.") }
                         } else {
@@ -1126,7 +1142,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             return
                         }
                     } else {
-                        if let url = URL(string: "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&forcePID=true\(encoded)") {
+                        if let url = URL(string: "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
                             UIApplication.shared.open(url)
                         }
                     }
@@ -1134,23 +1150,21 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
 
                 let encoded = encodedData.map { "&script-data=\($0)" } ?? ""
-                if let url = URL(string: "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)&pid=\(pid)\(encoded)") {
-                    if jitEnabler == .StikJITLC {
-                        if let app = sharedModel.apps.first(where: { app in
-                            return app.appInfo.urlSchemes().contains("stikjit") &&
-                            (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
-                        }) {
-                            let urlString = url.absoluteString
-                            let encodedStr = Data(urlString.utf8).base64EncodedString().addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
-                            Task { _ = await openJITInAnotherLC(encodedURL: encodedStr, appToLaunch: app, errorMessage: "No free LiveContainer is available. Please either: \n(1)close one, \n(2)install a new one, \n(3)choose another method to enable JIT.") }
-                        } else {
-                            errorInfo = "StikDebug is not found. Please install it first and switch it to shared app."
-                            errorShow = true
-                            return
-                        }
+                if jitEnabler == .StikJITLC {
+                    if let app = sharedModel.apps.first(where: { app in
+                        return app.appInfo.urlSchemes().contains("stikjit") &&
+                        (sharedModel.multiLCStatus != 2 || app.appInfo.isShared)
+                    }) {
+                        let urlString = "stikjit://enable-jit?bundle-id=\(multitaskPIDJITBundleId(for: app))&pid=\(pid)\(encoded)"
+                        let encodedStr = Data(urlString.utf8).base64EncodedString().addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+                        Task { _ = await openJITInAnotherLC(encodedURL: encodedStr, appToLaunch: app, errorMessage: "No free LiveContainer is available. Please either: \n(1)close one, \n(2)install a new one, \n(3)choose another method to enable JIT.") }
                     } else {
-                        UIApplication.shared.open(url)
+                        errorInfo = "StikDebug is not found. Please install it first and switch it to shared app."
+                        errorShow = true
+                        return
                     }
+                } else if let url = URL(string: "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)&pid=\(pid)\(encoded)") {
+                    UIApplication.shared.open(url)
                 }
             }
         }

@@ -736,33 +736,32 @@ int LiveContainerMain(int argc, char *argv[]) {
         NSString *launchUrl = [lcUserDefaults stringForKey:@"launchAppUrlScheme"];
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
-        // wait for app to launch so that it can receive the url
-        if(launchUrl) {
-            [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
 
+        void (^onSceneReady)(void) = nil;
+        if (launchUrl) {
+            [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
             NSData *data = [launchUrl dataUsingEncoding:NSUTF8StringEncoding];
             NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
             NSString *finalUrlStr = [NSString stringWithFormat:@"%@://open-url?url=%@", lcAppUrlScheme, encodedUrl];
             NSURL *finalUrl = [NSURL URLWithString:finalUrlStr];
-
-            __block id observer = [[NSNotificationCenter defaultCenter]
-                addObserverForName:@"UIApplicationDidBecomeActiveNotification"
-                            object:nil
-                             queue:[NSOperationQueue mainQueue]
-                        usingBlock:^(NSNotification *_) {
-                if (!observer) return;
-                [[NSNotificationCenter defaultCenter] removeObserver:observer];
-                observer = nil;
+            onSceneReady = ^{
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
                                dispatch_get_main_queue(), ^{
                     [[NSClassFromString(@"UIApplication") sharedApplication]
                         openURL:finalUrl options:@{} completionHandler:nil];
                 });
-            }];
-        }
-        // wait for app to launch so that it can receive the url
-        if (isLiveProcess && selectedContainer.length) {
+            };
+        } else if (isLiveProcess && selectedContainer.length) {
             NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:selectedContainer];
+            onSceneReady = ^{
+                CFNotificationCenterPostNotification(
+                    CFNotificationCenterGetDarwinNotifyCenter(),
+                    (__bridge CFStringRef)readyName, NULL, NULL, true);
+            };
+        }
+
+        // wait for app to launch so that it can receive the url
+        if (onSceneReady) {
             __block id observer = [[NSNotificationCenter defaultCenter]
                 addObserverForName:@"UISceneWillEnterForegroundNotification"
                             object:nil
@@ -771,9 +770,7 @@ int LiveContainerMain(int argc, char *argv[]) {
                 if (!observer) return;
                 [[NSNotificationCenter defaultCenter] removeObserver:observer];
                 observer = nil;
-                CFNotificationCenterPostNotification(
-                    CFNotificationCenterGetDarwinNotifyCenter(),
-                    (__bridge CFStringRef)readyName, NULL, NULL, true);
+                onSceneReady();
             }];
         }
         NSSetUncaughtExceptionHandler(&exceptionHandler);

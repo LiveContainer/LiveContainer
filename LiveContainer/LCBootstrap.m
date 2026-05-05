@@ -760,38 +760,21 @@ int LiveContainerMain(int argc, char *argv[]) {
                 });
             }];
         }
-        // Fixes cold-start native-window multitask losing URL-Shortcut deep links.
+        // Fixes cold-start multitask losing URL-Shortcut deep links.
         if (isLiveProcess && selectedContainer.length) {
             NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:selectedContainer];
-            __block id activeObserver = [[NSNotificationCenter defaultCenter]
-                addObserverForName:@"UIApplicationDidBecomeActiveNotification"
+            __block id observer = [[NSNotificationCenter defaultCenter]
+                addObserverForName:@"UISceneWillEnterForegroundNotification"
                             object:nil
                              queue:[NSOperationQueue mainQueue]
                         usingBlock:^(NSNotification *_) {
-                if (!activeObserver) return;
-                [[NSNotificationCenter defaultCenter] removeObserver:activeObserver];
-                activeObserver = nil;
+                if (!observer) return;
+                [[NSNotificationCenter defaultCenter] removeObserver:observer];
+                observer = nil;
                 CFNotificationCenterPostNotification(
                     CFNotificationCenterGetDarwinNotifyCenter(),
                     (__bridge CFStringRef)readyName, NULL, NULL, true);
             }];
-
-            // Fixes cold-start virtual-window multitask losing URL-Shortcut deep links.
-            // UIApplicationDidBecomeActive does not fire in virtual mode; UISceneWillEnterForeground does.
-            if ([lcSharedDefaults integerForKey:@"LCMultitaskMode"] == 0) {
-                __block id fgObserver = [[NSNotificationCenter defaultCenter]
-                    addObserverForName:@"UISceneWillEnterForegroundNotification"
-                                object:nil
-                                 queue:[NSOperationQueue mainQueue]
-                            usingBlock:^(NSNotification *_) {
-                    if (!fgObserver) return;
-                    [[NSNotificationCenter defaultCenter] removeObserver:fgObserver];
-                    fgObserver = nil;
-                    CFNotificationCenterPostNotification(
-                        CFNotificationCenterGetDarwinNotifyCenter(),
-                        (__bridge CFStringRef)readyName, NULL, NULL, true);
-                }];
-            }
         }
         NSSetUncaughtExceptionHandler(&exceptionHandler);
         NSString *appError = invokeAppMain(selectedApp, selectedContainer, argc, argv);

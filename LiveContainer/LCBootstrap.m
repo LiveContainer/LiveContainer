@@ -27,6 +27,7 @@ NSBundle* lcMainBundle;
 NSDictionary* guestAppInfo;
 NSDictionary* guestContainerInfo;
 NSString* lcGuestAppId;
+NSString* lcLaunchURL;
 bool isLiveProcess = false;
 bool isSharedBundle = false;
 bool isSideStore = false;
@@ -71,6 +72,9 @@ bool sideStoreExist = false;
 
 + (NSString*)lcGuestAppId {
     return lcGuestAppId;
+}
++ (NSString*)lcLaunchURL {
+    return lcLaunchURL;
 }
 @end
 
@@ -736,20 +740,9 @@ int LiveContainerMain(int argc, char *argv[]) {
         NSString *launchUrl = [lcUserDefaults stringForKey:@"launchAppUrlScheme"];
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
-        // wait for app to launch so that it can receive the url
         if(launchUrl) {
+            lcLaunchURL = launchUrl;
             [lcUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
-            dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC));
-            dispatch_after(delay, dispatch_get_main_queue(), ^{
-                // Base64 encode the data
-                NSData *data = [launchUrl dataUsingEncoding:NSUTF8StringEncoding];
-                NSString *encodedUrl = [data base64EncodedStringWithOptions:0];
-                
-                NSString* finalUrl = [NSString stringWithFormat:@"%@://open-url?url=%@", lcAppUrlScheme, encodedUrl];
-                NSURL* url = [NSURL URLWithString: finalUrl];
-                
-                [[NSClassFromString(@"UIApplication") sharedApplication] openURL:url options:@{} completionHandler:nil];
-            });
         }
         NSSetUncaughtExceptionHandler(&exceptionHandler);
         NSString *appError = invokeAppMain(selectedApp, selectedContainer, argc, argv);

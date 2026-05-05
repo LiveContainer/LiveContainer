@@ -7,6 +7,7 @@
 
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
+BOOL launchURLProcessed = NO;
 
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
@@ -455,9 +456,11 @@ BOOL canAppOpenItself(NSURL* url) {
 
 - (void)hook__connectUISceneFromFBSScene:(id)scene transitionContext:(UIApplicationSceneTransitionContext*)context {
 #if !TARGET_OS_MACCATALYST
+    NSString* decodedUrlStr = launchURLProcessed ? nil : NSUserDefaults.lcLaunchURL;
+    launchURLProcessed = YES;
     NSString* urlStr;
-    if(context.payload && (urlStr = context.payload[UIApplicationLaunchOptionsURLKey])) {
-        BOOL urlDecodeSuccess = NO;
+        
+    if(!decodedUrlStr && context.payload && (urlStr = context.payload[UIApplicationLaunchOptionsURLKey])) {
         do {
             if([urlStr hasPrefix:[NSString stringWithFormat: @"%@://open-url", NSUserDefaults.lcAppUrlScheme]]) {
                 NSURLComponents* lcUrl = [NSURLComponents componentsWithString:urlStr];
@@ -465,44 +468,43 @@ BOOL canAppOpenItself(NSURL* url) {
                 if(!realUrlEncoded) break;
                 // Convert the base64 encoded url into String
                 NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:realUrlEncoded options:0];
-                NSString *decodedUrlStr = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
-                NSURL* decodedUrl = [NSURL URLWithString:decodedUrlStr];
-                if(!canAppOpenItself(decodedUrl)) {
-                    break;
-                }
-                urlDecodeSuccess = YES;
-                
-                NSMutableDictionary* newDict = [context.payload mutableCopy];
-                newDict[UIApplicationLaunchOptionsURLKey] = decodedUrl;
-                context.payload = newDict;
-                
-                if(context.actions) {
-                    UIOpenURLAction *urlAction = nil;
-                    for (id obj in context.actions.allObjects) {
-                        if ([obj isKindOfClass:UIOpenURLAction.class]) {
-                            urlAction = obj;
-                            break;
-                        }
-                    }
-                    if(!urlAction) {
-                        break;
-                    }
-                    NSMutableSet *newActions = context.actions.mutableCopy;
-                    [newActions removeObject:urlAction];
-
-                    UIOpenURLAction *newUrlAction = [[UIOpenURLAction alloc] initWithURL:decodedUrl];
-                    [newActions addObject:newUrlAction];
-                    context.actions = newActions;
-                }
-
+                decodedUrlStr = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
+            } else if([urlStr hasPrefix:NSUserDefaults.lcAppUrlScheme]) {
+                context.payload = nil;
+                context.actions = nil;
             }
-        } while(0);
-
-        if(!urlDecodeSuccess) {
-            context.payload = nil;
-            context.actions = nil;
-        }
+        } while (0);
     }
+    
+    do {
+        if(!decodedUrlStr) break;
+        NSURL* decodedUrl = [NSURL URLWithString:decodedUrlStr];
+        
+        NSMutableDictionary* newDict = [context.payload mutableCopy];
+        if(!newDict) newDict = [NSMutableDictionary new];
+        newDict[UIApplicationLaunchOptionsURLKey] = decodedUrlStr;
+        context.payload = newDict;
+        
+        
+        UIOpenURLAction *urlAction = nil;
+        for (id obj in context.actions.allObjects) {
+            if ([obj isKindOfClass:UIOpenURLAction.class]) {
+                urlAction = obj;
+                break;
+            }
+        }
+        
+        NSMutableSet *newActions = context.actions.mutableCopy;
+        if(newActions && urlAction) {
+            [newActions removeObject:urlAction];
+        }
+        if(!newActions) newActions = [NSMutableSet new];
+        
+        UIOpenURLAction *newUrlAction = [[UIOpenURLAction alloc] initWithURL:decodedUrl];
+        [newActions addObject:newUrlAction];
+        context.actions = newActions;
+        
+    } while(0);
     
 #endif
     [self hook__connectUISceneFromFBSScene:scene transitionContext:context];

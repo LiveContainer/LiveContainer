@@ -12,6 +12,7 @@
 #import "Localization.h"
 #import "LCSharedUtils.h"
 #import "utils.h"
+#import <notify.h>
 
 @interface AppSceneViewController()
 @property int resizeDebounceToken;
@@ -26,6 +27,7 @@
 @property(nonatomic) NSExtension* extension;
 @property(nonatomic) bool isAppTerminationCleanUpCalled;
 @property(nonatomic, copy) NSString *pendingLaunchUrl;
+@property(nonatomic, assign) int guestReadyToken;
 @end
 
 @implementation AppSceneViewController
@@ -89,6 +91,19 @@
     if (pendingUrl.length) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"launchAppUrlScheme"];
         self.pendingLaunchUrl = pendingUrl;
+        NSString *readyName = [@"com.kdt.livecontainer.guestSceneReady." stringByAppendingString:dataUUID];
+        notify_register_dispatch(readyName.UTF8String, &_guestReadyToken, dispatch_get_main_queue(), ^(int _) {
+            __strong typeof(self) strongSelf = weakSelf;
+            if (!strongSelf || !strongSelf.pendingLaunchUrl) return;
+            notify_cancel(strongSelf.guestReadyToken);
+            strongSelf.guestReadyToken = 0;
+            NSString *url = strongSelf.pendingLaunchUrl;
+            strongSelf.pendingLaunchUrl = nil;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                [strongSelf openURLScheme:url];
+            });
+        });
     }
 
     [_extension setRequestCancellationBlock:^(NSUUID *uuid, NSError *error) {
@@ -174,17 +189,18 @@
     [self.presenter modifyPresentationContext:^(UIMutableScenePresentationContext *context) {
         context.appearanceStyle = 2;
     }];
-    [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
     [self.presenter activate];
 
     __weak typeof(self) weakSelf = self;
     [self.extension setRequestInterruptionBlock:^(NSUUID *uuid) {
         [weakSelf appTerminationCleanUp];
     }];
-
+    
     [self.contentView addSubview:self.presenter.presentationView];
     self.contentView.layer.anchorPoint = CGPointMake(0, 0);
     self.contentView.layer.position = CGPointMake(0, 0);
+    
+    [self.view.window.windowScene _registerSettingsDiffActionArray:@[self] forKey:self.sceneID];
 }
 
 - (void)terminate {
@@ -201,14 +217,7 @@
         [self appTerminationCleanUp];
     }
     if(!diff) return;
-
-    // Fixes cold-start multitask losing URL-Shortcut deep links.
-    if (self.pendingLaunchUrl) {
-        NSString *url = self.pendingLaunchUrl;
-        self.pendingLaunchUrl = nil;
-        [self openURLScheme:url];
-    }
-
+    
     UIMutableApplicationSceneSettings *baseSettings = [diff settingsByApplyingToMutableCopyOfSettings:settings];
     UIApplicationSceneTransitionContext *newContext = [context copy];
     newContext.actions = nil;
@@ -260,6 +269,10 @@
         return;
     }
     _isAppTerminationCleanUpCalled = true;
+    if (_guestReadyToken) {
+        notify_cancel(_guestReadyToken);
+        _guestReadyToken = 0;
+    }
     self.pendingLaunchUrl = nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         if(self.sceneID) {

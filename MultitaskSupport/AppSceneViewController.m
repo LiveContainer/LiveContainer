@@ -97,7 +97,9 @@
             strongSelf.guestReadyToken = 0;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
                            dispatch_get_main_queue(), ^{
-                [strongSelf openURLScheme:pendingUrl];
+                __strong typeof(self) s = weakSelf;
+                if (!s || s->_isAppTerminationCleanUpCalled) return;
+                [s openURLScheme:pendingUrl];
             });
         });
     }
@@ -119,6 +121,7 @@
                 [self setUpAppPresenter];
             });
         } else {
+            [self appTerminationCleanUp];
             NSError* error = [NSError errorWithDomain:@"LiveProcess" code:2 userInfo:@{NSLocalizedDescriptionKey: @"Failed to start app. Child process has unexpectedly crashed"}];
             [delegate appSceneVC:self didInitializeWithError:error];
         }
@@ -308,7 +311,6 @@
 
 - (void)openURLScheme:(NSString *)urlString {
     [self.presenter.scene updateSettingsWithTransitionBlock:^(id settings) {
-        // pull from UserDefaults.standard.setValue(launchURLStr, forKey: "launchAppUrlScheme")
         UIApplicationSceneTransitionContext *context = [UIApplicationSceneTransitionContext new];
         NSURL *url = [NSURL URLWithString:urlString];
         context.payload = @{UIApplicationLaunchOptionsURLKey: urlString};

@@ -1139,7 +1139,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
             if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")) {
                 if jitEnabler == .StosDebug || jitEnabler == .StosDebugLC {
-                    let encoded = encodedData.map { "&scriptData=\($0)" } ?? ""
+                    let encoded = encodedData.map { "&script=\($0)" } ?? ""
                     if jitEnabler == .StosDebugLC {
                         if let app = sharedModel.apps.first(where: { app in
                             return app.appInfo.urlSchemes().contains("stosdebug") &&
@@ -1154,8 +1154,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             return
                         }
                     } else {
-                        let targetBundleId = targetGuestBundleIdForPIDJIT()
-                        if let url = URL(string: "stosdebug://enableJIT?bundleId=\(targetBundleId)&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
+                        let targetBundleId = UserDefaults.standard.string(forKey: "selected") ?? targetGuestBundleIdForPIDJIT()
+                        let encodedAppName = appName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? appName
+                        var urlString = "stosdebug://enableJIT?bundleId=\(targetBundleId)&appName=\(encodedAppName)&pid=\(pid)&relaunchApp=false&forcePID=true"
+                        if let encodedData, !encodedData.isEmpty {
+                            urlString += "&script=\(encodedData)"
+                        }
+                        if let url = URL(string: urlString) {
                             UIApplication.shared.open(url)
                         }
                     }

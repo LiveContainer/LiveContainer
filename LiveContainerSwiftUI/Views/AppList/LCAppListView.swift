@@ -1127,7 +1127,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
             if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")) {
                 if jitEnabler == .StosDebug || jitEnabler == .StosDebugLC {
-                    let encoded = encodedData.map { "&script=\($0)" } ?? ""
+                    let encoded = encodedData.map { "&scriptData=\($0)" } ?? ""
                     if jitEnabler == .StosDebugLC {
                         if let app = sharedModel.apps.first(where: { app in
                             return app.appInfo.urlSchemes().contains("stosdebug") &&

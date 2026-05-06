@@ -388,7 +388,7 @@ extension LCUtils {
             var launchURLStr = "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)"
             
             if let script = script, !script.isEmpty {
-                launchURLStr += "&script=\(script)"
+                launchURLStr += "&scriptData=\(script)"
             }
             
             if jitEnabler == .StosDebugLC {

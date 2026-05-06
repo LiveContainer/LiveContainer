@@ -1142,7 +1142,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             return
                         }
                     } else {
-                        if let url = URL(string: "stosdebug://enableJIT?bundleId=\(Bundle.main.bundleIdentifier!)&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
+                        if let url = URL(string: "stosdebug://enableJIT?appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
                             UIApplication.shared.open(url)
                         }
                     }

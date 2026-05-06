@@ -1083,6 +1083,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         appToLaunch.appInfo.relativeBundlePath ?? appToLaunch.bundleIdentifier
     }
 
+    private func targetGuestBundleIdForPIDJIT() -> String {
+        if let selectedBundlePath = UserDefaults.standard.string(forKey: "selected") {
+            let appListsToConsider: [[LCAppModel]] = [sharedModel.apps, sharedModel.hiddenApps]
+            for appList in appListsToConsider {
+                if let app = appList.first(where: { $0.appInfo.relativeBundlePath == selectedBundlePath }) {
+                    return app.bundleIdentifier
+                }
+            }
+        }
+        return Bundle.main.bundleIdentifier ?? ""
+    }
+
     private func multitaskPIDJITRelayScheme(for appToLaunch: LCAppModel) -> String? {
         let currentScheme = LCUtils.appUrlScheme()?.lowercased()
         let runningScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
@@ -1142,7 +1154,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             return
                         }
                     } else {
-                        if let url = URL(string: "stosdebug://enableJIT?appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
+                        let targetBundleId = targetGuestBundleIdForPIDJIT()
+                        if let url = URL(string: "stosdebug://enableJIT?bundleId=\(targetBundleId)&appName=\(appName)&pid=\(pid)&relaunchApp=false&forcePID=true\(encoded)") {
                             UIApplication.shared.open(url)
                         }
                     }

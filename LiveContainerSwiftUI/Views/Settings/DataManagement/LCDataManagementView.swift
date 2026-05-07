@@ -76,7 +76,16 @@ struct LCDataManagementView : View {
                 } label: {
                     Text("lc.settings.cleanKeychain".loc)
                 }
-
+                Button(role: .destructive) { 
+                    Task { await clearMainAppTmp() } 
+                } label: {
+                    Text("lc.settings.cleanMainTmp".loc)
+                }
+                Button(role: .destructive) { 
+                    Task { await clearMainAppCache() } 
+                } label: {
+                    Text("lc.settings.cleanMainCache".loc)
+                }
                 Button(role:.destructive) {
                     Task { await clearTemporaryFiles() }
                 } label: {
@@ -267,7 +276,35 @@ struct LCDataManagementView : View {
           }
         }
     }
+ func clearMainAppTmp() async {
+    guard let result = await tmpRemovalAlert.open(), result else { return }
+    let fm = FileManager.default
+    let tmpDir = fm.temporaryDirectory
+    do {
+        let items = try fm.contentsOfDirectory(at: tmpDir, includingPropertiesForKeys: nil)
+        for item in items { try fm.removeItem(at: item) }
+        successInfo = "lc.settings.cleanMainTmpComplete".loc
+        successShow = true
+    } catch {
+        errorInfo = error.localizedDescription
+        errorShow = true
+    }
+}
 
+func clearMainAppCache() async {
+    guard let result = await cacheRemovalAlert.open(), result else { return }
+    let fm = FileManager.default
+    guard let cacheDir = fm.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
+    do {
+        let items = try fm.contentsOfDirectory(at: cacheDir, includingPropertiesForKeys: nil)
+        for item in items { try fm.removeItem(at: item) }
+        successInfo = "lc.settings.cleanMainCacheComplete".loc
+        successShow = true
+    } catch {
+        errorInfo = error.localizedDescription
+        errorShow = true
+    }
+}
     func clearTemporaryFiles() async {
         guard let result = await tmpRemovalAlert.open(), result else {
             return

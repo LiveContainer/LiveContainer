@@ -298,46 +298,65 @@ struct LCDataManagementView : View {
     }
 
     func clearCacheFiles() async {
-        guard let result = await cacheRemovalAlert.open(), result else {
-            return
+    guard let result = await cacheRemovalAlert.open(), result else {
+        return
+    }
+
+    let fm = FileManager.default
+    var cleanedCount = 0
+
+    do {
+        
+        if let mainCacheURL = fm.urls(for: .cachesDirectory, in: .userDomainMask).first {
+            if fm.fileExists(atPath: mainCacheURL.path) {
+                let mainCacheItems = try fm.contentsOfDirectory(at: mainCacheURL, includingPropertiesForKeys: nil)
+                for item in mainCacheItems {
+                    try fm.removeItem(at: item)
+                }
+                
+                if !mainCacheItems.isEmpty {
+                    cleanedCount += 1
+                }
+            }
         }
 
-        let fm = FileManager.default
-       
+        
         var allApps = sharedModel.apps + sharedModel.hiddenApps
         if UserDefaults.sideStoreExist() {
             allApps.append(LCAppModel(appInfo: BuiltInSideStoreAppInfo()))
         }
         
-        var cleanedCount = 0
-
-        do {
-            for app in allApps {
-                for container in app.uiContainers {
-                    let containerPath = container.containerURL
-                    let guestCachePath = containerPath.appendingPathComponent("Library/Caches")
+        for app in allApps {
+            for container in app.uiContainers {
+                let containerPath = container.containerURL
+                let guestCachePath = containerPath.appendingPathComponent("Library/Caches")
+                
+                if fm.fileExists(atPath: guestCachePath.path) {
+                    let cacheItems = try fm.contentsOfDirectory(at: guestCachePath, includingPropertiesForKeys: nil)
+                    for item in cacheItems {
+                        try fm.removeItem(at: item)
+                    }
                     
-                    if fm.fileExists(atPath: guestCachePath.path) {
-                        let cacheItems = try fm.contentsOfDirectory(at: guestCachePath, includingPropertiesForKeys: nil)
-                        for item in cacheItems {
-                            try fm.removeItem(at: item)
-                        }
+                    if !cacheItems.isEmpty {
                         cleanedCount += 1
                     }
                 }
             }
-
-            if cleanedCount == 0 {
-                successInfo = "lc.settings.noCacheToClean".loc
-            } else {
-                successInfo = "lc.settings.cleanCacheComplete".loc
-            }
-            successShow = true
-        } catch {
-            errorInfo = error.localizedDescription
-            errorShow = true
         }
+
+        
+        if cleanedCount == 0 {
+            successInfo = "lc.settings.noCacheToClean".loc
+        } else {
+            successInfo = "lc.settings.cleanCacheComplete".loc
+        }
+        successShow = true
+    } catch {
+        errorInfo = error.localizedDescription
+        errorShow = true
     }
+}
+
 
 
     func moveDanglingFolders() async {

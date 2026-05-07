@@ -307,51 +307,37 @@ func clearMainAppCache() async {
 }
     func clearTemporaryFiles() async {
     guard let result = await tmpRemovalAlert.open(), result else { return }
-
     let fm = FileManager.default
-
     let dataPaths = [LCPath.dataPath, LCPath.lcGroupDataPath]
-    var cleanedCount = 0
-
+    
     do {
-        for rootPath in dataPaths {
-            
-            let containers = try fm.contentsOfDirectory(at: rootPath, includingPropertiesForKeys: nil)
-            
-            for containerPath in containers {
-                
-                let guestTmpPath = containerPath.appendingPathComponent("tmp")
+        for root in dataPaths {
+            let containers = try fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+            for folder in containers {
+                let guestTmpPath = folder.appendingPathComponent("tmp")
                 var isDir: ObjCBool = false
                 
-                
                 if fm.fileExists(atPath: guestTmpPath.path, isDirectory: &isDir) {
-                    if isDir.boolValue {
-                        
-                        let tmpItems = try fm.contentsOfDirectory(at: guestTmpPath, includingPropertiesForKeys: nil)
-                        for item in tmpItems {
-                            try fm.removeItem(at: item)
-                        }
+                    
+                    if !isDir.boolValue {
+                        try fm.removeItem(at: guestTmpPath) 
+                        try fm.createDirectory(at: guestTmpPath, withIntermediateDirectories: true)
                     } else {
                         
-                        try fm.removeItem(at: guestTmpPath)
-                        try fm.createDirectory(at: guestTmpPath, withIntermediateDirectories: true)
+                        let items = try fm.contentsOfDirectory(at: guestTmpPath, includingPropertiesForKeys: nil)
+                        for item in items { try fm.removeItem(at: item) }
                     }
-                    cleanedCount += 1
                 }
             }
         }
-
-        if cleanedCount == 0 {
-            successInfo = "lc.settings.noTmpToClean".loc
-        } else {
-            successInfo = "lc.settings.cleanGuestTmpComplete".loc
-        }
+        successInfo = "lc.settings.repairTmpSuccess".loc
         successShow = true
     } catch {
         errorInfo = error.localizedDescription
         errorShow = true
     }
 }
+
 
 
     func clearCacheFiles() async {

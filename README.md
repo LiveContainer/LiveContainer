@@ -196,7 +196,25 @@ Open Xcode, edit `DEVELOPMENT_TEAM[config=Debug]` in `xcconfigs/Global.xcconfig`
 - Use ChOma instead of custom MachO parser
 
 ## License
-[Apache License 2.0](https://github.com/khanhduytran0/LiveContainer/blob/main/LICENSE)
+LiveContainer is licensed under [**AGPL-3.0-or-later**](LICENSE.AGPL).
+
+In addition, an explicitly enumerated subset of the repository — the
+runtime, signing, and related support components — is **also**
+available under [**LGPL-3.0-or-later WITH a Linking Exception**](LICENSE.LGPL),
+to permit embedding those components as a library inside closed-source
+applications, including distribution via the Apple App Store.
+
+The exact list of dual-licensed paths, the text of the Linking
+Exception, and the ZSign provenance caveats are in [LICENSE](LICENSE).
+The application shell (LiveContainerSwiftUI/App, LiveContainerSwiftUI/Views,
+SideStore integration, and other user-facing app code) remains
+AGPL-only.
+
+If you modify LiveContainer itself, those modifications must be made
+available under the same license you used to receive the code, as
+required by the copyleft terms. See [CONTRIBUTING.md](CONTRIBUTING.md)
+for how contributions are licensed and [RELICENSING.md](RELICENSING.md)
+for the contributor consent record.
 
 ## Credits
 - [xpn's blogpost: Restoring Dyld Memory Loading](https://blog.xpnsec.com/restoring-dyld-memory-loading)

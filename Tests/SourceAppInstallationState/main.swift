@@ -45,4 +45,27 @@ expect(
     "missing installed app should offer install"
 )
 
+let multiVersionInstalledApps = [
+    SourceAppInstalledApp(
+        bundleIdentifier: "com.example.demo",
+        version: "1.2.2",
+        relativeBundlePath: "com.example.demo-older.app"
+    ),
+    SourceAppInstalledApp(
+        bundleIdentifier: "com.example.demo",
+        version: "1.2.3",
+        relativeBundlePath: "com.example.demo-latest.app"
+    )
+]
+
+let multiVersionState = SourceAppInstallStateResolver.state(
+    forSourceBundleIdentifier: "com.example.demo",
+    latestVersion: "1.2.3",
+    installedApps: multiVersionInstalledApps
+)
+expect(
+    multiVersionState == .run(relativeBundlePath: "com.example.demo-latest.app"),
+    "multi-version installs should run the installed app that matches the latest source version"
+)
+
 print("SourceAppInstallationStateTests passed")

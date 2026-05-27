@@ -22,14 +22,17 @@ enum SourceAppInstallStateResolver {
             return .install
         }
 
-        guard let installedApp = installedApps.first(where: { $0.bundleIdentifier == bundleIdentifier }) else {
-            return .install
+        // LiveContainer supports installing multiple copies with the same bundle ID.
+        // Only switch to Run when one of those copies is already at the source's latest version.
+        for installedApp in installedApps where installedApp.bundleIdentifier == bundleIdentifier {
+            let installedVersion = installedApp.version.trimmingCharacters(in: .whitespacesAndNewlines)
+            if installedVersion == latestVersion {
+                return .run(relativeBundlePath: installedApp.relativeBundlePath)
+            }
         }
 
-        if installedApp.version.trimmingCharacters(in: .whitespacesAndNewlines) == latestVersion {
-            return .run(relativeBundlePath: installedApp.relativeBundlePath)
-        }
-
+        // Keep Install available for different versions so users can add another copy
+        // or choose the existing replace flow themselves.
         return .install
     }
 }

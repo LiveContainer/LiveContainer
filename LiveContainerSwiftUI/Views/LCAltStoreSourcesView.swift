@@ -652,6 +652,8 @@ struct LCSourcesView: View {
             apps.append(contentsOf: sharedModel.hiddenApps)
         }
 
+        // Build a lightweight snapshot from every visible install so sources can
+        // distinguish "already installed at latest version" from "install another copy".
         return apps.compactMap { app in
             guard let bundleIdentifier = app.appInfo.bundleIdentifier(),
                   let relativeBundlePath = app.appInfo.relativeBundlePath else {

@@ -517,7 +517,9 @@ struct LCSourcesView: View {
                                     isFiltering: isFiltering,
                                     isExpanded: expandedSources.contains(item.id),
                                     onRefresh: { Task { await viewModel.refreshSource(item) } },
+                                    installState: installState(for:),
                                     onInstall: install(app:),
+                                    onRun: runInstalledApp(relativeBundlePath:),
                                     onRemove: { sourcePendingRemoval = item },
                                     toggleExpanded: { toggleExpansion(for: item.id) }
                                 )
@@ -643,6 +645,26 @@ struct LCSourcesView: View {
             partialResult + filteredApps(for: item).count
         }
     }
+
+    private var installedSourceApps: [SourceAppInstalledApp] {
+        var apps = sharedModel.apps
+        if sharedModel.isHiddenAppUnlocked {
+            apps.append(contentsOf: sharedModel.hiddenApps)
+        }
+
+        return apps.compactMap { app in
+            guard let bundleIdentifier = app.appInfo.bundleIdentifier(),
+                  let relativeBundlePath = app.appInfo.relativeBundlePath else {
+                return nil
+            }
+
+            return SourceAppInstalledApp(
+                bundleIdentifier: bundleIdentifier,
+                version: app.appInfo.version(),
+                relativeBundlePath: relativeBundlePath
+            )
+        }
+    }
     
     private func filteredApps(for item: AltStoreSourcesViewModel.SourceItem) -> [AltStoreSourceApp] {
         guard let source = item.source else { return [] }
@@ -666,6 +688,14 @@ struct LCSourcesView: View {
             }
             return false
         }
+    }
+
+    private func installState(for app: AltStoreSourceApp) -> SourceAppInstallState {
+        SourceAppInstallStateResolver.state(
+            forSourceBundleIdentifier: app.bundleIdentifier,
+            latestVersion: app.latestVersion?.version,
+            installedApps: installedSourceApps
+        )
     }
     
     @MainActor
@@ -694,6 +724,27 @@ struct LCSourcesView: View {
         }
 
 
+    }
+
+    @MainActor
+    private func runInstalledApp(relativeBundlePath: String) {
+        var components = URLComponents()
+        components.scheme = "livecontainer"
+        components.host = "livecontainer-launch"
+        components.queryItems = [
+            URLQueryItem(name: "bundle-name", value: relativeBundlePath)
+        ]
+
+        guard let launchURL = components.url else {
+            return
+        }
+
+        withAnimation {
+            sharedModel.selectedTab = .apps
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            sharedModel.deepLink = launchURL
+        }
     }
     
     private func toggleExpansion(for id: URL) {
@@ -861,7 +912,9 @@ private struct AltStoreSourceSectionView: View {
     let isFiltering: Bool
     let isExpanded: Bool
     let onRefresh: () -> Void
+    let installState: (AltStoreSourceApp) -> SourceAppInstallState
     let onInstall: (AltStoreSourceApp) -> Void
+    let onRun: (String) -> Void
     let onRemove: () -> Void
     let toggleExpanded: () -> Void
     
@@ -924,7 +977,13 @@ private struct AltStoreSourceSectionView: View {
             } else if let source = item.source, isExpanded || isFiltering {
                 VStack(spacing: 12) {
                     ForEach(filteredApps[0..<min(50, filteredApps.count)]) { app in
-                        LCSourceAppBanner(app: app, source: source, installAction: onInstall)
+                        LCSourceAppBanner(
+                            app: app,
+                            source: source,
+                            installState: installState(app),
+                            installAction: onInstall,
+                            runAction: onRun
+                        )
                     }
                     if filteredApps.isEmpty {
                         if source.apps.isEmpty || isFiltering {
@@ -951,7 +1010,9 @@ private struct AltStoreSourceSectionView: View {
 private struct LCSourceAppBanner: View {
     let app: AltStoreSourceApp
     let source: AltStoreSource
+    let installState: SourceAppInstallState
     let installAction: (AltStoreSourceApp) -> Void
+    let runAction: (String) -> Void
     
     @AppStorage("dynamicColors") private var dynamicColors = true
     @Environment(\.colorScheme) var colorScheme
@@ -990,6 +1051,15 @@ private struct LCSourceAppBanner: View {
         }
         return ""
     }
+
+    private var actionTitle: String {
+        switch installState {
+        case .install:
+            return "lc.common.install".loc
+        case .run:
+            return "lc.appBanner.run".loc
+        }
+    }
     
     var body: some View {
         HStack {
@@ -1025,9 +1095,14 @@ private struct LCSourceAppBanner: View {
             .allowsHitTesting(false)
             Spacer()
             Button {
-                installAction(app)
+                switch installState {
+                case .install:
+                    installAction(app)
+                case .run(let relativeBundlePath):
+                    runAction(relativeBundlePath)
+                }
             } label: {
-                Text("lc.common.install".loc)
+                Text(actionTitle)
                     .bold()
                     .foregroundColor(.white)
                     .lineLimit(1)

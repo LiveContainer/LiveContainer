@@ -1,13 +1,17 @@
-# copy lc
-wget https://github.com/LiveContainer/SideStore/releases/download/dylibify/dylibify
+set -eu
+
+rm -rf Payload tmp .zsign_cache dylibify "$scheme.ipa" "$scheme+SideStore.ipa"
+
+# compile local patcher
+clang -o dylibify .github/sidelc/lc_dylibify.c
 chmod +x dylibify
 brew install ldid
 
-# move lc to working folder
-mv "$archive_path.xcarchive/Products/Applications" Payload
+# copy lc to working folder
+cp -R "$archive_path.xcarchive/Products/Applications" Payload
 
 # temporarily move sidestore support framrwork to tmp before zip
-mkdir tmp
+mkdir -p tmp
 mv Payload/LiveContainer.app/Frameworks/SideStore.framework ./tmp
 
 zip -r "$scheme.ipa" "Payload" -x "._*" -x ".DS_Store" -x "__MACOSX"
@@ -47,9 +51,7 @@ cd ..
 
 # SideStore
 mv ./tmp/Payload/SideStore.app ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework
-./dylibify ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore.dylib
-rm ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore
-mv ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore.dylib ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore
+./dylibify ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore
 ldid -S"" ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore
 cp ./.github/sidelc/LCAppInfo.plist ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/
 
@@ -66,8 +68,10 @@ cp -r ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/Frameworks .
 mv ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/AltWidgetExtension ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/LiveWidgetExtension
 
 # Sign
-rm -r .zsign_cache
-find payloadlc/Payload -type d -name "_CodeSignature" -exec rm -r {} +
+rm -rf .zsign_cache
+if [ -d payloadlc/Payload ]; then
+    find payloadlc/Payload -type d -name "_CodeSignature" -exec rm -r {} +
+fi
 
 ldid -S.github/sidelc/LiveWidgetExtension_adhoc.xml ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/LiveWidgetExtension
 

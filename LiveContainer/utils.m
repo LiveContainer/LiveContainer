@@ -1,8 +1,43 @@
 #import "utils.h"
+#include <mach/mach.h>
 
 void __assert_rtn(const char* func, const char* file, int line, const char* failedexpr) {
     [NSException raise:NSInternalInconsistencyException format:@"Assertion failed: (%s), file %s, line %d.\n", failedexpr, file, line];
     abort(); // silent compiler warning
+}
+
+bool LCAddressRangeIsReadable(const void *address, size_t length) {
+    if(!address || length == 0) {
+        return false;
+    }
+
+    uintptr_t start = (uintptr_t)address;
+    if(start < 0x4000 || UINTPTR_MAX - start < length - 1) {
+        return false;
+    }
+
+    mach_vm_address_t region = (mach_vm_address_t)start;
+    mach_vm_size_t regionLength = 0;
+    struct vm_region_submap_short_info_64 info;
+    mach_msg_type_number_t infoCount = VM_REGION_SUBMAP_SHORT_INFO_COUNT_64;
+    natural_t depth = 99999;
+    kern_return_t kr = vm_region_recurse_64(mach_task_self(), &region, &regionLength, &depth, (vm_region_recurse_info_t)&info, &infoCount);
+    if(kr != KERN_SUCCESS || !(info.protection & VM_PROT_READ)) {
+        return false;
+    }
+
+    uintptr_t end = start + length;
+    uintptr_t regionEnd = (uintptr_t)region + (uintptr_t)regionLength;
+    return start >= (uintptr_t)region && end <= regionEnd;
+}
+
+bool LCReadPointer(const void *address, void **value) {
+    if(!value || !LCAddressRangeIsReadable(address, sizeof(void *))) {
+        return false;
+    }
+
+    *value = *(void * const *)address;
+    return true;
 }
 
 uint64_t aarch64_get_tbnz_jump_address(uint32_t instruction, uint64_t pc) {

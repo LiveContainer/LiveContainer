@@ -7,3 +7,10 @@ packages/
 xcuserdata
 Resources/Frameworks/OpenSSL.framework
 apps_nightly.json
+Payload/
+tmp/
+.zsign_cache/
+*.ipa
+dylibify*
+patch_*.py
+test_patch/

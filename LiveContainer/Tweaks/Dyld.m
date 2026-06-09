@@ -183,11 +183,248 @@ uint32_t hook_dyld_get_program_sdk_version(void* dyldApiInstancePtr) {
     return guestAppSdkVersion;
 }
 
+static bool LCDecodeLdrUnsigned64(uint32_t instruction, uint32_t expectedBaseReg, uint32_t *targetReg, uint32_t *offset) {
+    if((instruction & 0xFFC00000) != 0xF9400000) {
+        return false;
+    }
+
+    uint32_t baseReg = (instruction >> 5) & 0x1F;
+    if(expectedBaseReg != UINT32_MAX && baseReg != expectedBaseReg) {
+        return false;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(offset) {
+        *offset = ((instruction >> 10) & 0xFFF) << 3;
+    }
+    return true;
+}
+
+static bool LCDecodeLdrPreIndex64(uint32_t instruction, uint32_t expectedBaseReg, uint32_t *targetReg, int32_t *offset) {
+    if((instruction & 0xFFE00C00) != 0xF8400C00) {
+        return false;
+    }
+
+    uint32_t baseReg = (instruction >> 5) & 0x1F;
+    if(expectedBaseReg != UINT32_MAX && baseReg != expectedBaseReg) {
+        return false;
+    }
+
+    int32_t imm9 = (instruction >> 12) & 0x1FF;
+    if(imm9 & 0x100) {
+        imm9 |= ~0x1FF;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(offset) {
+        *offset = imm9;
+    }
+    return true;
+}
+
+static bool LCDecodeMovWideImmediate(uint32_t instruction, uint32_t *targetReg, uint64_t *value) {
+    if((instruction & 0x7F800000) != 0x52800000) {
+        return false;
+    }
+
+    uint64_t imm16 = (instruction & 0x1FFFE0) >> 5;
+    uint32_t shift = ((instruction >> 21) & 0x3) * 16;
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(value) {
+        *value = imm16 << shift;
+    }
+    return true;
+}
+
+static bool LCDecodeAddRegister64(uint32_t instruction, uint32_t *targetReg, uint32_t *leftReg, uint32_t *rightReg) {
+    if((instruction & 0xFF200000) != 0x8B000000) {
+        return false;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(leftReg) {
+        *leftReg = (instruction >> 5) & 0x1F;
+    }
+    if(rightReg) {
+        *rightReg = (instruction >> 16) & 0x1F;
+    }
+    return true;
+}
+
+static uint32_t *LCFollowUnconditionalBranch(uint32_t *baseAddr) {
+    uint32_t *target = baseAddr;
+    for(int i = 0; i < 4 && LCAddressRangeIsReadable(target, sizeof(uint32_t)); i++) {
+        uint32_t instruction = *target;
+        if((instruction & 0x7C000000) != 0x14000000) {
+            break;
+        }
+
+        int32_t imm26 = instruction & 0x03FFFFFF;
+        if(imm26 & 0x02000000) {
+            imm26 |= ~0x03FFFFFF;
+        }
+        target += imm26;
+    }
+    return target;
+}
+
+static void *LCFindDyldApiSlotFromStub(uint32_t *baseAddr, uint32_t scanStart, uint32_t scanEnd, uint32_t instanceReg, void *vtablePtr) {
+    bool isVtableReg[32] = { false };
+    bool hasImmediate[32] = { false };
+    bool hasSlotOffset[32] = { false };
+    uint64_t immediateByReg[32] = { 0 };
+    uint64_t slotOffsetByReg[32] = { 0 };
+    void *fallbackSlot = NULL;
+
+    for(uint32_t i = scanStart; i < scanEnd && LCAddressRangeIsReadable(baseAddr + i, sizeof(uint32_t)); i++) {
+        uint32_t instruction = baseAddr[i];
+        uint32_t targetReg = 0;
+        uint32_t offset = 0;
+
+        if(LCDecodeLdrUnsigned64(instruction, instanceReg, &targetReg, &offset) && offset == 0 && targetReg != 31) {
+            isVtableReg[targetReg] = true;
+            continue;
+        }
+
+        for(uint32_t reg = 0; reg < 32; reg++) {
+            if(!isVtableReg[reg]) {
+                continue;
+            }
+
+            if(LCDecodeLdrUnsigned64(instruction, reg, &targetReg, &offset) && offset != 0) {
+                return (uint8_t *)vtablePtr + offset;
+            }
+
+            int32_t signedOffset = 0;
+            if(LCDecodeLdrPreIndex64(instruction, reg, &targetReg, &signedOffset) && signedOffset > 0) {
+                return (uint8_t *)vtablePtr + signedOffset;
+            }
+
+            uint32_t addDst = 0;
+            uint32_t addSrc = 0;
+            uint32_t addImm = 0;
+            if(aarch64_emulate_add_imm(instruction, &addDst, &addSrc, &addImm) && addSrc == reg && addImm != 0) {
+                fallbackSlot = (uint8_t *)vtablePtr + addImm;
+                hasSlotOffset[addDst] = true;
+                slotOffsetByReg[addDst] = addImm;
+                continue;
+            }
+
+            uint32_t addLeft = 0;
+            uint32_t addRight = 0;
+            if(LCDecodeAddRegister64(instruction, &addDst, &addLeft, &addRight) && addLeft == reg && addRight < 32 && hasImmediate[addRight]) {
+                uint64_t slotOffset = immediateByReg[addRight];
+                if(slotOffset != 0) {
+                    fallbackSlot = (uint8_t *)vtablePtr + slotOffset;
+                    hasSlotOffset[addDst] = true;
+                    slotOffsetByReg[addDst] = slotOffset;
+                }
+                continue;
+            }
+        }
+
+        uint32_t immediateReg = 0;
+        uint64_t immediateValue = 0;
+        if(LCDecodeMovWideImmediate(instruction, &immediateReg, &immediateValue) && immediateReg != 31) {
+            hasImmediate[immediateReg] = true;
+            immediateByReg[immediateReg] = immediateValue;
+            continue;
+        }
+
+        for(uint32_t reg = 0; reg < 32; reg++) {
+            if(!hasSlotOffset[reg]) {
+                continue;
+            }
+
+            if(LCDecodeLdrUnsigned64(instruction, reg, &targetReg, &offset) && offset == 0) {
+                return (uint8_t *)vtablePtr + slotOffsetByReg[reg];
+            }
+        }
+    }
+
+    return fallbackSlot;
+}
+
+static bool LCFindDyldApiSlotAtAdrpOffset(uint32_t *baseAddr, uint32_t adrpOffset, void **vtableFunctionPtr) {
+    if(!LCAddressRangeIsReadable(baseAddr + adrpOffset, sizeof(uint32_t[2]))) {
+        return false;
+    }
+
+    uint32_t adrpInst = baseAddr[adrpOffset];
+    if((adrpInst & 0x9F000000) != 0x90000000) {
+        return false;
+    }
+
+    uint32_t adrpReg = adrpInst & 0x1F;
+    for(uint32_t ldrOffset = adrpOffset + 1; ldrOffset < adrpOffset + 5; ldrOffset++) {
+        if(!LCAddressRangeIsReadable(baseAddr + ldrOffset, sizeof(uint32_t))) {
+            return false;
+        }
+
+        uint32_t instanceReg = 0;
+        uint32_t ignoredOffset = 0;
+        if(!LCDecodeLdrUnsigned64(baseAddr[ldrOffset], adrpReg, &instanceReg, &ignoredOffset)) {
+            continue;
+        }
+
+        void *gdyldStorage = (void *)aarch64_emulate_adrp_ldr(adrpInst, baseAddr[ldrOffset], (uint64_t)(baseAddr + adrpOffset));
+        void *gdyldInstance = NULL;
+        void *vtablePtr = NULL;
+        if(!gdyldStorage ||
+           !LCReadPointer(gdyldStorage, &gdyldInstance) ||
+           !gdyldInstance ||
+           !LCReadPointer(gdyldInstance, &vtablePtr) ||
+           !vtablePtr) {
+            continue;
+        }
+
+        void *slot = LCFindDyldApiSlotFromStub(baseAddr, ldrOffset + 1, ldrOffset + 48, instanceReg, vtablePtr);
+        if(slot && LCAddressRangeIsReadable(slot, sizeof(void *))) {
+            *vtableFunctionPtr = slot;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool LCFindDyldApiSlot(uint32_t *baseAddr, uint32_t preferredAdrpOffset, void **vtableFunctionPtr) {
+    uint32_t preferredOffsets[] = { preferredAdrpOffset, preferredAdrpOffset + 20 };
+    for(size_t i = 0; i < sizeof(preferredOffsets) / sizeof(preferredOffsets[0]); i++) {
+        if(LCFindDyldApiSlotAtAdrpOffset(baseAddr, preferredOffsets[i], vtableFunctionPtr)) {
+            return true;
+        }
+    }
+
+    for(uint32_t i = 0; i < 96; i++) {
+        if(i == preferredOffsets[0] || i == preferredOffsets[1]) {
+            continue;
+        }
+        if(LCFindDyldApiSlotAtAdrpOffset(baseAddr, i, vtableFunctionPtr)) {
+            NSLog(@"[LC] Found dyld API slot using fallback scan at instruction offset %u", i);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction) {
     
     uint32_t* baseAddr = dlsym(RTLD_DEFAULT, functionName);
-    assert(baseAddr != 0);
+    if(!baseAddr) {
+        NSLog(@"[LC] Failed to find dyld API function %s", functionName);
+        return false;
+    }
+    baseAddr = LCFollowUnconditionalBranch(baseAddr);
     /*
      arm64e 26.4b1+ has extra 20 instructions between adrpOffset and adrp
      arm64e
@@ -214,49 +451,31 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
      00000001ac934c90         ldr        x2, [x8, #0x258]
      00000001ac934c94         br         x2
      */
-    uint32_t* adrpInstPtr = baseAddr + adrpOffset;
-    if ((*adrpInstPtr & 0x9f000000) != 0x90000000) {
-        adrpOffset += 20;
-        adrpInstPtr = baseAddr + adrpOffset;
-    }
-    assert ((*adrpInstPtr & 0x9f000000) == 0x90000000);
-    void* gdyldPtr = (void*)aarch64_emulate_adrp_ldr(*adrpInstPtr, *(baseAddr + adrpOffset + 1), (uint64_t)(baseAddr + adrpOffset));
-    
-    assert(gdyldPtr != 0);
-    assert(*(void**)gdyldPtr != 0);
-    void* vtablePtr = **(void***)gdyldPtr;
-    
     void* vtableFunctionPtr = 0;
-    uint32_t* movInstPtr = baseAddr + adrpOffset + 6;
+    if(!LCFindDyldApiSlot(baseAddr, adrpOffset, &vtableFunctionPtr)) {
+        NSLog(@"[LC] Failed to resolve dyld API vtable slot for %s", functionName);
+        return false;
+    }
 
-    if((*movInstPtr & 0x7F800000) == 0x52800000) {
-        // arm64e, mov imm + add + ldr
-        uint32_t imm16 = (*movInstPtr & 0x1FFFE0) >> 5;
-        vtableFunctionPtr = vtablePtr + imm16;
-    } else if ((*movInstPtr & 0xFFE00C00) == 0xF8400C00) {
-        // arm64e, ldr immediate Pre-index 64bit
-        uint32_t imm9 = (*movInstPtr & 0x1FF000) >> 12;
-        vtableFunctionPtr = vtablePtr + imm9;
-    } else {
-        // arm64
-        uint32_t* ldrInstPtr2 = baseAddr + adrpOffset + 3;
-        assert((*ldrInstPtr2 & 0xBFC00000) == 0xB9400000);
-        uint32_t size2 = (*ldrInstPtr2 & 0xC0000000) >> 30;
-        uint32_t imm12_2 = (*ldrInstPtr2 & 0x3FFC00) >> 10;
-        vtableFunctionPtr = vtablePtr + (imm12_2 << size2);
+    void *currentFunction = NULL;
+    if(!LCReadPointer(vtableFunctionPtr, &currentFunction) || !currentFunction) {
+        NSLog(@"[LC] Refusing to hook %s because the resolved vtable slot is not readable", functionName);
+        return false;
     }
 
     
     kern_return_t ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
     if(ret != KERN_SUCCESS) {
-        assert(os_tpro_is_supported());
+        if(!os_tpro_is_supported()) {
+            NSLog(@"[LC] Failed to make dyld API vtable slot writable for %s: %d", functionName, ret);
+            return false;
+        }
         os_thread_self_restrict_tpro_to_rw();
     }
-    *origFunction = (void*)*(void**)vtableFunctionPtr;
+    *origFunction = currentFunction;
     *(uint64_t*)vtableFunctionPtr = (uint64_t)hookFunction;
     builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ);
     if(ret != KERN_SUCCESS) {
-        assert(os_tpro_is_supported());
         os_thread_self_restrict_tpro_to_ro();
     }
     return true;

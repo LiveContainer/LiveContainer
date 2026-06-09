@@ -7,6 +7,11 @@
   <h1><b>LiveContainer</b></h1>
   <p><i>An app launcher that runs iOS apps without actually installing them! </i></p>
 </div>
+
+> [!WARNING]
+> **UNOFFICIAL FORK**
+> AI was used to update this! This is NOT an official release from the real LiveContainer page.
+> For the official, supported version of LiveContainer, please visit the real project page: [https://github.com/LiveContainer/LiveContainer](https://github.com/LiveContainer/LiveContainer)
 <h6 align="center">
 
 Crowdin Project: [![Crowdin](https://badges.crowdin.net/livecontainer/localized.svg)](https://crowdin.com/project/livecontainer) &nbsp;| &nbsp; Documentation:[liveconainer.github.io](https://livecontainer.github.io/docs/intro)
@@ -113,6 +118,15 @@ Some apps may experience issues with their file pickers or not be able to apply 
 
 ## Compatibility
 Unfortunately, not all apps work in LiveContainer, so we have a [compatibility list](https://github.com/LiveContainer/LiveContainer/labels/compatibility) to tell if there is apps that have issues. If they aren't on this list, then it's likely going run. However, if it doesn't work, please make an [issue](https://github.com/LiveContainer/LiveContainer/issues/new/choose) about it.
+
+### iOS 27 Compatibility Notice
+We have implemented several reverse-engineering fixes to support iOS 27!
+Apple introduced massive changes to memory structures and dyld shared caches in iOS 27, which broke the JIT bypass mechanisms. LiveContainer now dynamically scans instructions (handling the new `ldur` logic) to properly patch `NSBundle` and `CFBundle`.
+The standalone and built-in SideStore versions have both been tested working on iOS 27 Beta 1.
+
+> [!WARNING]
+> **Spoof SDK Version is BROKEN on iOS 27!**
+> Apple completely removed or renamed the internal data structures (`sVersionMap`) inside the system frameworks that LiveContainer uses to spoof the SDK version. If you enable the "Spoof SDK Version" toggle on iOS 27, the app will search for a piece of code that no longer exists and crash instantly upon opening. **Please leave this toggle DISABLED on iOS 27 until a workaround is found.**
 
 ## Building
 Open Xcode, edit `DEVELOPMENT_TEAM[config=Debug]` in `xcconfigs/Global.xcconfig` to your team id and compile.

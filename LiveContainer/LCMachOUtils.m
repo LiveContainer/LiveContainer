@@ -345,9 +345,13 @@ uint64_t LCFindSymbolOffset(const char *basePath, const char *symbol) {
     LCParseMachO(path, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
         if(header->cputype != CPU_TYPE_ARM64) return;
         void *result = litehook_find_symbol_file(header, symbol);
-        offset = (uint64_t)result - (uint64_t)header;
+        if (result) {
+            offset = (uint64_t)result - (uint64_t)header;
+        }
     });
-    NSCAssert(offset != 0, @"Failed to find symbol %s in %s", symbol, path);
+    if (offset == 0) {
+        NSLog(@"[LC] Failed to find symbol %s in %s", symbol, path);
+    }
     return offset;
 }
 

@@ -23,6 +23,9 @@ typedef struct {
     uint32_t        version;
 } dyld_build_version_t;
 
+static const dyld_platform_t kLCPlatformIOS = 2;
+static const dyld_platform_t kLCPlatformVersionSet = 0xffffffff;
+
 uint32_t lcImageIndex = 0;
 uint32_t appMainImageIndex = 0;
 void* appExecutableHandle = 0;
@@ -43,6 +46,7 @@ uint32_t guestAppSdkVersion = 0;
 uint32_t guestAppSdkVersionSet = 0;
 bool (*orig_dyld_program_sdk_at_least)(void* dyldPtr, dyld_build_version_t version);
 uint32_t (*orig_dyld_get_program_sdk_version)(void* dyldPtr);
+uint64_t (*orig_dyld_get_program_sdk_version_token)(void* dyldPtr);
 
 static void overwriteAppExecutableFileType(void) {
     struct mach_header_64* appImageMachOHeader = (struct mach_header_64*) orig_dyld_get_image_header(appMainImageIndex);
@@ -169,10 +173,10 @@ void saveCachedSymbol(NSString* symbolName, mach_header_u* header, uint64_t offs
 }
 
 bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr, dyld_build_version_t version) {
-    // we are targeting ios, so we hard code 2
-    if(version.platform == 0xffffffff){
+    (void)dyldApiInstancePtr;
+    if(version.platform == kLCPlatformVersionSet){
         return version.version <= guestAppSdkVersionSet;
-    } else if (version.platform == 2){
+    } else if(version.platform == kLCPlatformIOS){
         return version.version <= guestAppSdkVersion;
     } else {
         return false;
@@ -180,14 +184,288 @@ bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr, dyld_build_version
 }
 
 uint32_t hook_dyld_get_program_sdk_version(void* dyldApiInstancePtr) {
+    (void)dyldApiInstancePtr;
     return guestAppSdkVersion;
 }
 
+uint64_t hook_dyld_get_program_sdk_version_token(void* dyldApiInstancePtr) {
+    (void)dyldApiInstancePtr;
+    dyld_build_version_t token = {
+        .platform = kLCPlatformIOS,
+        .version = guestAppSdkVersion,
+    };
+    uint64_t result = 0;
+    memcpy(&result, &token, sizeof(token));
+    return result;
+}
+
+static bool LCDecodeLdrUnsigned64(uint32_t instruction, uint32_t expectedBaseReg, uint32_t *targetReg, uint32_t *offset) {
+    if((instruction & 0xFFC00000) != 0xF9400000) {
+        return false;
+    }
+
+    uint32_t baseReg = (instruction >> 5) & 0x1F;
+    if(expectedBaseReg != UINT32_MAX && baseReg != expectedBaseReg) {
+        return false;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(offset) {
+        *offset = ((instruction >> 10) & 0xFFF) << 3;
+    }
+    return true;
+}
+
+static bool LCDecodeLdrPreIndex64(uint32_t instruction, uint32_t expectedBaseReg, uint32_t *targetReg, int32_t *offset) {
+    if((instruction & 0xFFE00C00) != 0xF8400C00) {
+        return false;
+    }
+
+    uint32_t baseReg = (instruction >> 5) & 0x1F;
+    if(expectedBaseReg != UINT32_MAX && baseReg != expectedBaseReg) {
+        return false;
+    }
+
+    int32_t imm9 = (instruction >> 12) & 0x1FF;
+    if(imm9 & 0x100) {
+        imm9 |= ~0x1FF;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(offset) {
+        *offset = imm9;
+    }
+    return true;
+}
+
+static bool LCDecodeMovWideImmediate(uint32_t instruction, uint32_t *targetReg, uint64_t *value, uint32_t *shift, bool *isMovK) {
+    // Ignore sf but require a move-wide immediate opcode: MOVZ (opc=10) or MOVK (opc=11).
+    uint32_t opcode = instruction & 0x7F800000;
+    bool decodedMovZ = opcode == 0x52800000;
+    bool decodedMovK = opcode == 0x72800000;
+    if(!decodedMovZ && !decodedMovK) {
+        return false;
+    }
+
+    uint32_t immediateShift = ((instruction >> 21) & 0x3) * 16;
+    if((instruction & 0x80000000) == 0 && immediateShift >= 32) {
+        return false;
+    }
+
+    uint64_t imm16 = (instruction & 0x1FFFE0) >> 5;
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(value) {
+        *value = imm16 << immediateShift;
+    }
+    if(shift) {
+        *shift = immediateShift;
+    }
+    if(isMovK) {
+        *isMovK = decodedMovK;
+    }
+    return true;
+}
+
+static bool LCDecodeAddRegister64(uint32_t instruction, uint32_t *targetReg, uint32_t *leftReg, uint32_t *rightReg) {
+    if((instruction & 0xFF200000) != 0x8B000000) {
+        return false;
+    }
+
+    if(targetReg) {
+        *targetReg = instruction & 0x1F;
+    }
+    if(leftReg) {
+        *leftReg = (instruction >> 5) & 0x1F;
+    }
+    if(rightReg) {
+        *rightReg = (instruction >> 16) & 0x1F;
+    }
+    return true;
+}
+
+static uint32_t *LCFollowUnconditionalBranch(uint32_t *baseAddr) {
+    uint32_t *target = baseAddr;
+    for(int i = 0; i < 4 && LCAddressRangeIsReadable(target, sizeof(uint32_t)); i++) {
+        uint32_t instruction = *target;
+        if((instruction & 0x7C000000) != 0x14000000) {
+            break;
+        }
+
+        int32_t imm26 = instruction & 0x03FFFFFF;
+        if(imm26 & 0x02000000) {
+            imm26 |= ~0x03FFFFFF;
+        }
+        target += imm26;
+    }
+    return target;
+}
+
+static void *LCFindDyldApiSlotFromStub(uint32_t *baseAddr, uint32_t scanStart, uint32_t scanEnd, uint32_t instanceReg, void *vtablePtr) {
+    bool isVtableReg[32] = { false };
+    bool hasImmediate[32] = { false };
+    bool hasSlotOffset[32] = { false };
+    uint64_t immediateByReg[32] = { 0 };
+    uint64_t slotOffsetByReg[32] = { 0 };
+    void *fallbackSlot = NULL;
+
+    for(uint32_t i = scanStart; i < scanEnd && LCAddressRangeIsReadable(baseAddr + i, sizeof(uint32_t)); i++) {
+        uint32_t instruction = baseAddr[i];
+        uint32_t targetReg = 0;
+        uint32_t offset = 0;
+
+        if(LCDecodeLdrUnsigned64(instruction, instanceReg, &targetReg, &offset) && offset == 0 && targetReg != 31) {
+            isVtableReg[targetReg] = true;
+            continue;
+        }
+
+        for(uint32_t reg = 0; reg < 32; reg++) {
+            if(!isVtableReg[reg]) {
+                continue;
+            }
+
+            if(LCDecodeLdrUnsigned64(instruction, reg, &targetReg, &offset) && offset != 0) {
+                return (uint8_t *)vtablePtr + offset;
+            }
+
+            int32_t signedOffset = 0;
+            if(LCDecodeLdrPreIndex64(instruction, reg, &targetReg, &signedOffset) && signedOffset > 0) {
+                return (uint8_t *)vtablePtr + signedOffset;
+            }
+
+            uint32_t addDst = 0;
+            uint32_t addSrc = 0;
+            uint32_t addImm = 0;
+            if(aarch64_emulate_add_imm(instruction, &addDst, &addSrc, &addImm) && addSrc == reg && addImm != 0) {
+                fallbackSlot = (uint8_t *)vtablePtr + addImm;
+                hasSlotOffset[addDst] = true;
+                slotOffsetByReg[addDst] = addImm;
+                continue;
+            }
+
+            uint32_t addLeft = 0;
+            uint32_t addRight = 0;
+            if(LCDecodeAddRegister64(instruction, &addDst, &addLeft, &addRight) && addLeft == reg && addRight < 32 && hasImmediate[addRight]) {
+                uint64_t slotOffset = immediateByReg[addRight];
+                if(slotOffset != 0) {
+                    fallbackSlot = (uint8_t *)vtablePtr + slotOffset;
+                    hasSlotOffset[addDst] = true;
+                    slotOffsetByReg[addDst] = slotOffset;
+                }
+                continue;
+            }
+        }
+
+        uint32_t immediateReg = 0;
+        uint64_t immediateValue = 0;
+        uint32_t immediateShift = 0;
+        bool isMovK = false;
+        if(LCDecodeMovWideImmediate(instruction, &immediateReg, &immediateValue, &immediateShift, &isMovK) && immediateReg != 31) {
+            if(isMovK) {
+                if(hasImmediate[immediateReg]) {
+                    uint64_t immediateMask = 0xFFFFULL << immediateShift;
+                    immediateByReg[immediateReg] = (immediateByReg[immediateReg] & ~immediateMask) | immediateValue;
+                } else {
+                    hasImmediate[immediateReg] = false;
+                }
+            } else {
+                hasImmediate[immediateReg] = true;
+                immediateByReg[immediateReg] = immediateValue;
+            }
+            continue;
+        }
+
+        for(uint32_t reg = 0; reg < 32; reg++) {
+            if(!hasSlotOffset[reg]) {
+                continue;
+            }
+
+            if(LCDecodeLdrUnsigned64(instruction, reg, &targetReg, &offset) && offset == 0) {
+                return (uint8_t *)vtablePtr + slotOffsetByReg[reg];
+            }
+        }
+    }
+
+    return fallbackSlot;
+}
+
+static bool LCFindDyldApiSlotAtAdrpOffset(uint32_t *baseAddr, uint32_t adrpOffset, void **vtableFunctionPtr) {
+    if(!LCAddressRangeIsReadable(baseAddr + adrpOffset, sizeof(uint32_t[2]))) {
+        return false;
+    }
+
+    uint32_t adrpInst = baseAddr[adrpOffset];
+    if((adrpInst & 0x9F000000) != 0x90000000) {
+        return false;
+    }
+
+    uint32_t adrpReg = adrpInst & 0x1F;
+    for(uint32_t ldrOffset = adrpOffset + 1; ldrOffset < adrpOffset + 5; ldrOffset++) {
+        if(!LCAddressRangeIsReadable(baseAddr + ldrOffset, sizeof(uint32_t))) {
+            return false;
+        }
+
+        uint32_t instanceReg = 0;
+        uint32_t ignoredOffset = 0;
+        if(!LCDecodeLdrUnsigned64(baseAddr[ldrOffset], adrpReg, &instanceReg, &ignoredOffset)) {
+            continue;
+        }
+
+        void *gdyldStorage = (void *)aarch64_emulate_adrp_ldr(adrpInst, baseAddr[ldrOffset], (uint64_t)(baseAddr + adrpOffset));
+        void *gdyldInstance = NULL;
+        void *vtablePtr = NULL;
+        if(!gdyldStorage ||
+           !LCReadPointer(gdyldStorage, &gdyldInstance) ||
+           !gdyldInstance ||
+           !LCReadPointer(gdyldInstance, &vtablePtr) ||
+           !vtablePtr) {
+            continue;
+        }
+
+        void *slot = LCFindDyldApiSlotFromStub(baseAddr, ldrOffset + 1, ldrOffset + 48, instanceReg, vtablePtr);
+        if(slot && LCAddressRangeIsReadable(slot, sizeof(void *))) {
+            *vtableFunctionPtr = slot;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool LCFindDyldApiSlot(uint32_t *baseAddr, uint32_t preferredAdrpOffset, void **vtableFunctionPtr) {
+    uint32_t preferredOffsets[] = { preferredAdrpOffset, preferredAdrpOffset + 20 };
+    for(size_t i = 0; i < sizeof(preferredOffsets) / sizeof(preferredOffsets[0]); i++) {
+        if(LCFindDyldApiSlotAtAdrpOffset(baseAddr, preferredOffsets[i], vtableFunctionPtr)) {
+            return true;
+        }
+    }
+
+    for(uint32_t i = 0; i < 96; i++) {
+        if(i == preferredOffsets[0] || i == preferredOffsets[1]) {
+            continue;
+        }
+        if(LCFindDyldApiSlotAtAdrpOffset(baseAddr, i, vtableFunctionPtr)) {
+            NSLog(@"[LC] Found dyld API slot using fallback scan at instruction offset %u", i);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction) {
     
     uint32_t* baseAddr = dlsym(RTLD_DEFAULT, functionName);
-    assert(baseAddr != 0);
+    if(!baseAddr) {
+        NSLog(@"[LC] Failed to find dyld API function %s", functionName);
+        return false;
+    }
+    baseAddr = LCFollowUnconditionalBranch(baseAddr);
     /*
      arm64e 26.4b1+ has extra 20 instructions between adrpOffset and adrp
      arm64e
@@ -214,86 +492,105 @@ bool performHookDyldApi(const char* functionName, uint32_t adrpOffset, void** or
      00000001ac934c90         ldr        x2, [x8, #0x258]
      00000001ac934c94         br         x2
      */
-    uint32_t* adrpInstPtr = baseAddr + adrpOffset;
-    if ((*adrpInstPtr & 0x9f000000) != 0x90000000) {
-        adrpOffset += 20;
-        adrpInstPtr = baseAddr + adrpOffset;
-    }
-    assert ((*adrpInstPtr & 0x9f000000) == 0x90000000);
-    void* gdyldPtr = (void*)aarch64_emulate_adrp_ldr(*adrpInstPtr, *(baseAddr + adrpOffset + 1), (uint64_t)(baseAddr + adrpOffset));
-    
-    assert(gdyldPtr != 0);
-    assert(*(void**)gdyldPtr != 0);
-    void* vtablePtr = **(void***)gdyldPtr;
-    
     void* vtableFunctionPtr = 0;
-    uint32_t* movInstPtr = baseAddr + adrpOffset + 6;
+    if(!LCFindDyldApiSlot(baseAddr, adrpOffset, &vtableFunctionPtr)) {
+        NSLog(@"[LC] Failed to resolve dyld API vtable slot for %s", functionName);
+        return false;
+    }
 
-    if((*movInstPtr & 0x7F800000) == 0x52800000) {
-        // arm64e, mov imm + add + ldr
-        uint32_t imm16 = (*movInstPtr & 0x1FFFE0) >> 5;
-        vtableFunctionPtr = vtablePtr + imm16;
-    } else if ((*movInstPtr & 0xFFE00C00) == 0xF8400C00) {
-        // arm64e, ldr immediate Pre-index 64bit
-        uint32_t imm9 = (*movInstPtr & 0x1FF000) >> 12;
-        vtableFunctionPtr = vtablePtr + imm9;
-    } else {
-        // arm64
-        uint32_t* ldrInstPtr2 = baseAddr + adrpOffset + 3;
-        assert((*ldrInstPtr2 & 0xBFC00000) == 0xB9400000);
-        uint32_t size2 = (*ldrInstPtr2 & 0xC0000000) >> 30;
-        uint32_t imm12_2 = (*ldrInstPtr2 & 0x3FFC00) >> 10;
-        vtableFunctionPtr = vtablePtr + (imm12_2 << size2);
+    void *currentFunction = NULL;
+    if(!LCReadPointer(vtableFunctionPtr, &currentFunction) || !currentFunction) {
+        NSLog(@"[LC] Refusing to hook %s because the resolved vtable slot is not readable", functionName);
+        return false;
     }
 
     
     kern_return_t ret = builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ | PROT_WRITE | VM_PROT_COPY);
     if(ret != KERN_SUCCESS) {
-        assert(os_tpro_is_supported());
+        if(!os_tpro_is_supported()) {
+            NSLog(@"[LC] Failed to make dyld API vtable slot writable for %s: %d", functionName, ret);
+            return false;
+        }
         os_thread_self_restrict_tpro_to_rw();
     }
-    *origFunction = (void*)*(void**)vtableFunctionPtr;
+    *origFunction = currentFunction;
     *(uint64_t*)vtableFunctionPtr = (uint64_t)hookFunction;
     builtin_vm_protect(mach_task_self(), (mach_vm_address_t)vtableFunctionPtr, sizeof(uintptr_t), false, PROT_READ);
     if(ret != KERN_SUCCESS) {
-        assert(os_tpro_is_supported());
         os_thread_self_restrict_tpro_to_ro();
     }
     return true;
 }
 
+static bool performOptionalHookDyldApi(const char* functionName, uint32_t adrpOffset, void** origFunction, void* hookFunction) {
+    if(!dlsym(RTLD_DEFAULT, functionName)) {
+        return false;
+    }
+    return performHookDyldApi(functionName, adrpOffset, origFunction, hookFunction);
+}
+
 bool initGuestSDKVersionInfo(void) {
     void* dyldBase = getDyldBase();
-    // it seems Apple is constantly changing findVersionSetEquivalent's signature so we directly search sVersionMap instead
-    uint32_t* versionMapPtr = getCachedSymbol(@"__ZN5dyld3L11sVersionMapE", dyldBase);
+    if(!dyldBase) {
+        NSLog(@"[LC] Cannot spoof SDK version: dyld base was not found");
+        return false;
+    }
+
+    NSString *versionMapSymbol = @"__ZN5dyld3L11sVersionMapE";
+    const uint32_t firstVersionSet = 0x07db0901;
+    const uint32_t firstIOSVersion = 0x00050000;
+    uint32_t* versionMapPtr = getCachedSymbol(versionMapSymbol, dyldBase);
+    if(versionMapPtr && (!LCAddressRangeIsReadable(versionMapPtr, sizeof(uint32_t) * 3) ||
+                         versionMapPtr[0] != firstVersionSet ||
+                         versionMapPtr[2] != firstIOSVersion)) {
+        NSLog(@"[LC] Ignoring stale SDK version map cache entry");
+        versionMapPtr = NULL;
+    }
+
     if(!versionMapPtr) {
+        uint64_t offset = 0;
 #if !TARGET_OS_SIMULATOR
         const char* dyldPath = "/usr/lib/dyld";
-        uint64_t offset = LCFindSymbolOffset(dyldPath, "__ZN5dyld3L11sVersionMapE");
+        offset = LCFindSymbolOffset(dyldPath, "__ZN5dyld3L11sVersionMapE");
 #else
         void *result = litehook_find_symbol(dyldBase, "__ZN5dyld3L11sVersionMapE");
-        uint64_t offset = (uint64_t)result - (uint64_t)dyldBase;
+        if(result) {
+            offset = (uint64_t)result - (uint64_t)dyldBase;
+        }
 #endif
-        versionMapPtr = dyldBase + offset;
-        saveCachedSymbol(@"__ZN5dyld3L11sVersionMapE", dyldBase, offset);
+        if(offset == 0) {
+            NSLog(@"[LC] Cannot spoof SDK version: dyld SDK version map symbol was not found");
+            return false;
+        }
+
+        versionMapPtr = (uint32_t *)((uint8_t *)dyldBase + offset);
+        if(!LCAddressRangeIsReadable(versionMapPtr, sizeof(uint32_t) * 3) ||
+           versionMapPtr[0] != firstVersionSet ||
+           versionMapPtr[2] != firstIOSVersion) {
+            NSLog(@"[LC] Cannot spoof SDK version: dyld SDK version map has an unsupported layout");
+            return false;
+        }
+        saveCachedSymbol(versionMapSymbol, dyldBase, offset);
     }
-    
-    assert(versionMapPtr);
-    // however sVersionMap's struct size is also unknown, but we can figure it out
-    // we assume the size is 10K so we won't need to change this line until maybe iOS 40
-    uint32_t* versionMapEnd = versionMapPtr + 2560;
-    // ensure the first is versionSet and the third is iOS version (5.0.0)
-    assert(versionMapPtr[0] == 0x07db0901 && versionMapPtr[2] == 0x00050000);
-    // get struct size. we assume size is smaller then 128. appearently Apple won't have so many platforms
+
+    // sVersionMap's struct size is private, so infer it by finding the next
+    // known version set entry. Keep every probe bounds-checked so newer dyld
+    // layouts disable spoofing instead of crashing the process.
     uint32_t size = 0;
     for(int i = 1; i < 128; ++i) {
-        // find the next versionSet (for 6.0.0)
+        if(!LCAddressRangeIsReadable(&versionMapPtr[i], sizeof(uint32_t))) {
+            NSLog(@"[LC] Cannot spoof SDK version: SDK version map is not readable");
+            return false;
+        }
         if(versionMapPtr[i] == 0x07dc0901) {
             size = i;
             break;
         }
     }
-    assert(size);
+    if(size == 0) {
+        NSLog(@"[LC] Cannot spoof SDK version: SDK version map entry size was not found");
+        return false;
+    }
     
     NSOperatingSystemVersion currentVersion = [[NSProcessInfo processInfo] operatingSystemVersion];
     uint32_t maxVersion = ((uint32_t)currentVersion.majorVersion << 16) | ((uint32_t)currentVersion.minorVersion << 8);
@@ -301,16 +598,25 @@ bool initGuestSDKVersionInfo(void) {
     uint32_t candidateVersion = 0;
     uint32_t candidateVersionEquivalent = 0;
     uint32_t newVersionSetVersion = 0;
+    uint32_t* versionMapEnd = versionMapPtr + 2560;
     for(uint32_t* nowVersionMapItem = versionMapPtr; nowVersionMapItem < versionMapEnd; nowVersionMapItem += size) {
+        if(!LCAddressRangeIsReadable(nowVersionMapItem, sizeof(uint32_t) * 3)) {
+            break;
+        }
         newVersionSetVersion = nowVersionMapItem[2];
-        if (newVersionSetVersion > guestAppSdkVersion) { break; }
+        if(newVersionSetVersion > guestAppSdkVersion) { break; }
         candidateVersion = newVersionSetVersion;
         candidateVersionEquivalent = nowVersionMapItem[0];
         if(newVersionSetVersion >= maxVersion) { break; }
     }
     
-    if (newVersionSetVersion == 0xffffffff && candidateVersion == 0) {
+    if(newVersionSetVersion == 0xffffffff && candidateVersion == 0) {
         candidateVersionEquivalent = newVersionSetVersion;
+    }
+
+    if(candidateVersionEquivalent == 0) {
+        NSLog(@"[LC] Cannot spoof SDK version: no suitable SDK version mapping was found");
+        return false;
     }
 
     guestAppSdkVersionSet = candidateVersionEquivalent;
@@ -367,10 +673,29 @@ void DyldHooksInit(bool hideLiveContainer, bool hookDlopen, uint32_t spoofSDKVer
     
     if(spoofSDKVersion) {
         guestAppSdkVersion = spoofSDKVersion;
-        if(!initGuestSDKVersionInfo() ||
-           !performHookDyldApi("dyld_program_sdk_at_least", 1, (void**)&orig_dyld_program_sdk_at_least, hook_dyld_program_sdk_at_least) ||
-           !performHookDyldApi("dyld_get_program_sdk_version", 0, (void**)&orig_dyld_get_program_sdk_version, hook_dyld_get_program_sdk_version)) {
-            return;
+        bool hasVersionSetMap = initGuestSDKVersionInfo();
+        if(!hasVersionSetMap) {
+            // This only affects dyld's private cross-platform version-set constants.
+            // Concrete iOS SDK checks and token callers can still be spoofed.
+            guestAppSdkVersionSet = 0;
+        }
+
+        bool hookedSdkAtLeast = performHookDyldApi("dyld_program_sdk_at_least", 1, (void**)&orig_dyld_program_sdk_at_least, hook_dyld_program_sdk_at_least);
+        bool hookedSdkVersion = performHookDyldApi("dyld_get_program_sdk_version", 0, (void**)&orig_dyld_get_program_sdk_version, hook_dyld_get_program_sdk_version);
+        if(!hookedSdkAtLeast || !hookedSdkVersion) {
+            if(hookedSdkAtLeast) {
+                void *ignoredOriginal = NULL;
+                performHookDyldApi("dyld_program_sdk_at_least", 1, &ignoredOriginal, orig_dyld_program_sdk_at_least);
+            }
+            if(hookedSdkVersion) {
+                void *ignoredOriginal = NULL;
+                performHookDyldApi("dyld_get_program_sdk_version", 0, &ignoredOriginal, orig_dyld_get_program_sdk_version);
+            }
+            NSLog(@"[LC] SDK version spoofing is unavailable on this iOS version; continuing without it");
+            guestAppSdkVersion = 0;
+            guestAppSdkVersionSet = 0;
+        } else {
+            performOptionalHookDyldApi("dyld_get_program_sdk_version_token", 0, (void**)&orig_dyld_get_program_sdk_version_token, hook_dyld_get_program_sdk_version_token);
         }
     }
     

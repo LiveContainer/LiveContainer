@@ -161,7 +161,7 @@ bool ZMachO::ReallocCodeSignSpace()
 	vector<uint32_t> arrMachOesSizes;
 	for (size_t i = 0; i < m_arrArchOes.size(); i++) {
 		string strNewArchOFile;
-		ZUtil::StringFormatV(strNewArchOFile, "%s.archo.%d", m_strFile.c_str(), i);
+		ZUtil::StringFormatV(strNewArchOFile, "%s.archo.%zu", m_strFile.c_str(), i);
 		uint32_t uNewLength = m_arrArchOes[i]->ReallocCodeSignSpace(strNewArchOFile);
 		if (uNewLength <= 0) {
 			ZLog::Error(">>> Failed!\n");

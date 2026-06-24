@@ -152,3 +152,8 @@ void ZLog::writeToLogFile(const std::string& message) {
     std::lock_guard<std::mutex> lock(logsMutex);
     logs.push_back(message);
 }
+
+void ZLog::clearLogs() {
+    std::lock_guard<std::mutex> lock(logsMutex);
+    logs.clear();
+}

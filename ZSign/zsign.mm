@@ -43,12 +43,12 @@ int checkCert(NSData *key,
 
     string strPassword = [pass cStringUsingEncoding:NSUTF8StringEncoding];
     
-    ZLog::logs.clear();
+    ZLog::clearLogs();
 
     __block ZSignAsset zSignAsset;
     
     if (!zSignAsset.InitSimple(strPKeyFileData, (int)[key length], nil, 0, strPassword)) {
-        ZLog::logs.clear();
+        ZLog::clearLogs();
         completionHandler(2, nil, nil, @"Unable to initialize certificate. Please check your password.");
         return -1;
     }
@@ -189,7 +189,7 @@ int checkCert(NSData *key,
 + (NSProgress*)signMachOPathArr:(NSArray<NSString*>*)machoPathArr bundleId:(NSString *)bundleId cert:(NSData *)key
                             pass:(NSString *)pass completionHandler:(void(^)(BOOL success, NSError *error))completionHandler {
     NSProgress* progress = [NSProgress progressWithTotalUnitCount:(int64_t)machoPathArr.count];
-    ZLog::logs.clear();
+    ZLog::clearLogs();
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         ZSignAsset* pSignAsset = new ZSignAsset();
         const char* strPKeyFileData = (const char*)[key bytes];
@@ -285,7 +285,7 @@ int checkCert(NSData *key,
 }
 
 + (BOOL)adhocSignMachOAtPath:(NSString *)path bundleId:(NSString*)bundleId entitlementData:(NSData *)entitlementData {
-    ZLog::logs.clear();
+    ZLog::clearLogs();
     
     ZSignAsset zSignAsset;
     zSignAsset.InitAdhoc([entitlementData bytes], (int)[entitlementData length]);
@@ -312,12 +312,12 @@ int checkCert(NSData *key,
 
     strPassword = [pass cStringUsingEncoding:NSUTF8StringEncoding];
     
-    ZLog::logs.clear();
+    ZLog::clearLogs();
 
     __block ZSignAsset zSignAsset;
     
     if (!zSignAsset.InitSimple(strPKeyFileData, (int)[cert length], nil, 0, strPassword)) {
-        ZLog::logs.clear();
+        ZLog::clearLogs();
         return nil;
     }
     NSString* teamId = [NSString stringWithUTF8String:zSignAsset.m_strTeamId.c_str()];

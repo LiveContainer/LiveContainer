@@ -162,9 +162,16 @@
         config.sceneSpecification = specification;
         if (@available(iOS 27.0, *)) {} else {
             // on 27 manually adding this is not need, also setAdditionalExtensions: doesn't exist for some reason
-            config.additionalExtensions = [NSOrderedSet orderedSetWithArray:@[
-                PrivClass(_UISceneHostingEventDeferringExtension),
-            ]];
+            // Guard against a nil class: PrivClass()/NSClassFromString returns nil when the private
+            // class is unavailable or renamed on a given iOS version. Inserting nil into the array
+            // literal throws NSInvalidArgumentException, which crashed every multitask launch on
+            // iOS < 27 (#1422).
+            Class eventDeferringExtension = PrivClass(_UISceneHostingEventDeferringExtension);
+            if (eventDeferringExtension) {
+                config.additionalExtensions = [NSOrderedSet orderedSetWithObject:eventDeferringExtension];
+            } else {
+                NSLog(@"[LiveContainer] _UISceneHostingEventDeferringExtension unavailable on this iOS version; skipping additionalExtensions (was crashing #1422)");
+            }
         }
         self.hostingController = [[_UISceneHostingController alloc] initWithAdvancedConfiguration:config];
         FBScene *scene = [self.hostingController valueForKey:@"_fbScene"];

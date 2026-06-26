@@ -270,7 +270,7 @@ class AppInfoProvider {
     }
 
     public var keyWindow: UIWindow? {
-        (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first
+        SceneDelegate.shared?.window
     }
 
     public var safeAreaInsets: UIEdgeInsets {

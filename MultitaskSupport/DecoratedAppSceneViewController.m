@@ -5,6 +5,7 @@
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "PiPManager.h"
 #import "VirtualWindowsHostView.h"
+#import "ExternalSceneDelegate.h"
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 
@@ -33,6 +34,9 @@
     
     [MultitaskDockManager.shared addRunningApp:windowName appUUID:dataUUID view:self.view];
     
+    UIAction *actionSwitchToExternalDisplay = [UIAction actionWithTitle:@"lc.multitask.enterExternalDisplay".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
+        [self moveWindowToExternalDisplay];
+    }];
     NSArray *menuItems = @[
         [UIAction actionWithTitle:@"lc.multitask.copyPid".loc image:[UIImage systemImageNamed:@"doc.on.doc"] identifier:nil handler:^(UIAction * _Nonnull action) {
             UIPasteboard.generalPasteboard.string = @(self.appSceneVC.pid).stringValue;
@@ -44,6 +48,7 @@
                 [PiPManager.shared startPiPWithVC:self.appSceneVC];
             }
         }],
+        actionSwitchToExternalDisplay,
         [UICustomViewMenuElement elementWithViewProvider:^UIView *(UICustomViewMenuElement *element) {
             return [self scaleSliderViewWithTitle:@"lc.multitask.scale".loc min:0.5 max:2.0 value:self.scaleRatio stepInterval:0.01];
         }]
@@ -55,6 +60,9 @@
         if(!weakSelf.appSceneVC.isAppRunning) {
             return [UIMenu menuWithTitle:NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", nil) children:@[]];
         } else {
+            if(!ExternalSceneDelegate.available) {
+                actionSwitchToExternalDisplay.attributes = UIMenuElementAttributesDisabled;
+            }
             NSString *pidText = [NSString stringWithFormat:@"PID: %d", weakSelf.pid];
             return [UIMenu menuWithTitle:pidText children:menuItems];
         }
@@ -321,6 +329,20 @@
             self.maximizeButton.image = [restoreImage imageWithConfiguration:restoreConfig];
         }];
     }
+}
+
+- (void)moveWindowToExternalDisplay {
+    UIViewController *newVC = ExternalSceneDelegate.keyWindow.rootViewController;
+    [newVC addChildViewController:self];
+    [newVC.view addSubview:self.view];
+    [self appSceneVC:self.appSceneVC didUpdateFromSettings:self.appSceneVC.presenter.scene.settings.mutableCopy transitionContext:nil lifecycleActionType:0];
+}
+
+- (void)moveWindowToMainDisplay {
+    UIViewController *newVC = MultitaskDockManager.shared.windowHostingView._viewDelegate;
+    [newVC addChildViewController:self];
+    [newVC.view addSubview:self.view];
+    [self appSceneVC:self.appSceneVC didUpdateFromSettings:self.appSceneVC.presenter.scene.settings.mutableCopy transitionContext:nil lifecycleActionType:0];
 }
 
 - (void)appSceneVCAppDidExit:(AppSceneViewController*)vc {

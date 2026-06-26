@@ -50,12 +50,13 @@ import Intents
 }
 
 class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make SceneDelegate conform ObservableObject
+    @objc static var shared: SceneDelegate?
+    
     var window: UIWindow?
-
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         self.window = (scene as? UIWindowScene)?.keyWindow
+        SceneDelegate.shared = self
     }
-    
 }
 
 
@@ -71,7 +72,7 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
         if newOptions == nil {
             newOptions = UIScene.ActivationRequestOptions()
         }
-        newOptions!._setRequestFullscreen(UIScreen.main.bounds == self.keyWindow!.bounds)
+        newOptions!._setRequestFullscreen(UIScreen.main.bounds == SceneDelegate.shared?.window!.bounds)
         self.hook_requestSceneSessionActivation(sceneSession, userActivity: userActivity, options: newOptions, errorHandler: errorHandler)
     }
     

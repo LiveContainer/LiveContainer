@@ -14,6 +14,7 @@
         [self.nativeWindowViewController handleStatusBarTapAction:action];
         return;
     }
+    // TODO: handle external displays.
     BOOL handledByVirtualWindow = [MultitaskDockManager.shared.windowHostingView handleStatusBarTapAction:action];
     if(!handledByVirtualWindow) {
         [super handleTapAction:action];

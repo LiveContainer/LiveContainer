@@ -258,6 +258,8 @@
 				AppSceneViewController.m,
 				DecoratedAppSceneViewController.h,
 				DecoratedAppSceneViewController.m,
+				ExternalSceneDelegate.h,
+				ExternalSceneDelegate.m,
 				LCStatusBarManager.h,
 				LCStatusBarManager.m,
 				MultitaskAppWindow.swift,

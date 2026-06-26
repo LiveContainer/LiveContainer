@@ -78,7 +78,7 @@
             }
         }
         
-        UIViewController *rootVC = ((UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject).keyWindow.rootViewController;
+        UIViewController *rootVC = SceneDelegate.shared.window.rootViewController;
         DecoratedAppSceneViewController *launcherView = [[DecoratedAppSceneViewController alloc] initWindowName:displayName bundleId:bundleId dataUUID:dataUUID rootVC:rootVC];
         // Wire PID callback
         launcherView.pidAvailableHandler = completionHandler;

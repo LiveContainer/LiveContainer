@@ -17,6 +17,8 @@ API_AVAILABLE(ios(16.0))
 - (void)minimizeWindowPiP;
 - (void)unminimizeWindowPiP;
 - (void)updateVerticalConstraints;
+- (void)moveWindowToExternalDisplay;
+- (void)moveWindowToMainDisplay;
 @property(nonatomic, copy) void (^pidAvailableHandler)(NSNumber *pid, NSError *error);
 @end
 

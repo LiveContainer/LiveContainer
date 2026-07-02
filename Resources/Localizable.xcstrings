@@ -93,6 +93,12 @@
             "state" : "translated",
             "value" : "加至主畫面"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir a la pantalla de inicio"
+          }
         }
       }
     },
@@ -189,6 +195,12 @@
             "state" : "translated",
             "value" : "尚有應用程式在多任務模式執行。執行此App將停止那些應用程式。要繼續嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunas apps se están ejecutando en modo multitarea. Ejecutar esta app cerrará esas apps. ¿Continuar?"
+          }
         }
       }
     },
@@ -283,6 +295,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解除安裝%@？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Seguro que quieres desinstalar %@?"
           }
         }
       }
@@ -379,6 +397,12 @@
             "state" : "translated",
             "value" : "確認解除安裝"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmar desinstalación"
+          }
         }
       }
     },
@@ -473,6 +497,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製啟動網址"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar URL de inicio"
           }
         }
       }
@@ -569,6 +599,12 @@
             "state" : "translated",
             "value" : "建立AppClip"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear App Clip"
+          }
         }
       }
     },
@@ -663,6 +699,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您也想刪除%@的資料資料夾嗎？ 你可以保留它以備將來使用。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿También quieres eliminar la carpeta de datos de %@? Puedes conservarla para uso futuro."
           }
         }
       }
@@ -759,6 +801,12 @@
             "state" : "translated",
             "value" : "刪除資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar carpeta de datos"
+          }
         }
       }
     },
@@ -853,6 +901,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在沒有JIT的情況下執行"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar sin JIT"
           }
         }
       }
@@ -949,6 +1003,12 @@
             "state" : "translated",
             "value" : "多任務"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multitarea"
+          }
         }
       }
     },
@@ -1043,6 +1103,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚未建立資料資料夾"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carpeta de datos aún no creada"
           }
         }
       }
@@ -1139,6 +1205,12 @@
             "state" : "translated",
             "value" : "打開資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir carpeta de datos"
+          }
         }
       }
     },
@@ -1233,6 +1305,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar"
           }
         }
       }
@@ -1329,6 +1407,12 @@
             "state" : "translated",
             "value" : "儲存應用程式圖像"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar icono de la app"
+          }
         }
       }
     },
@@ -1423,6 +1507,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "解除安裝"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desinstalar"
           }
         }
       }
@@ -1519,6 +1609,12 @@
             "state" : "translated",
             "value" : "請選用喜愛的方式啟用JIT。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa tu método favorito para habilitar JIT para el LiveContainer actual."
+          }
         }
       }
     },
@@ -1614,6 +1710,12 @@
             "state" : "translated",
             "value" : "正在等待JIT"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando JIT"
+          }
         }
       }
     },
@@ -1708,6 +1810,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "終止安裝"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar instalación"
           }
         }
       }
@@ -2002,6 +2110,24 @@
               }
             }
           }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld App en total"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Apps en total"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2096,6 +2222,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "初始化AppInfo失敗！"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Error al inicializar AppInfo!"
           }
         }
       }
@@ -2192,6 +2324,12 @@
             "state" : "translated",
             "value" : "未找到應用程式。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App no encontrada."
+          }
         }
       }
     },
@@ -2286,6 +2424,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未找到應用程式捆綁包。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquete de la app no encontrado."
           }
         }
       }
@@ -2382,6 +2526,12 @@
             "state" : "translated",
             "value" : "將應用程式轉換為共享應用程式，以便在LiveContainer2中使用"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convierte las apps en Apps Compartidas para usarlas en LiveContainer2"
+          }
         }
       }
     },
@@ -2477,6 +2627,12 @@
             "state" : "translated",
             "value" : "輸入網址或網址方案"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce la URL o el esquema de URL"
+          }
         }
       }
     },
@@ -2529,6 +2685,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "深色"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oscuro"
           }
         }
       }
@@ -2583,6 +2745,12 @@
             "state" : "translated",
             "value" : "淺色"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claro"
+          }
         }
       }
     },
@@ -2636,6 +2804,12 @@
             "state" : "translated",
             "value" : "原版"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original"
+          }
         }
       }
     },
@@ -2688,6 +2862,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請選取一個圖示樣式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona un estilo de icono"
           }
         }
       }
@@ -2784,6 +2964,12 @@
             "state" : "translated",
             "value" : "隱藏的應用程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps ocultas"
+          }
         }
       }
     },
@@ -2878,6 +3064,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從設定隱藏應用程式。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oculta la app en los ajustes de la app."
           }
         }
       }
@@ -2974,6 +3166,12 @@
             "state" : "translated",
             "value" : "讀取應用程式的Info.plist失敗。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo leer el Info.plist de la app."
+          }
         }
       }
     },
@@ -3068,6 +3266,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝為新的App"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar como nueva"
           }
         }
       }
@@ -3164,6 +3368,12 @@
             "state" : "translated",
             "value" : "安裝"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalación"
+          }
         }
       }
     },
@@ -3258,6 +3468,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝IPA檔"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar archivo IPA"
           }
         }
       }
@@ -3354,6 +3570,12 @@
             "state" : "translated",
             "value" : "從網址安裝"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar desde URL"
+          }
         }
       }
     },
@@ -3448,6 +3670,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有一個具有相同捆綁識別符號的現有應用程式。 更換一個或安裝為新的。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya existe una aplicación con el mismo identificador de paquete. Reemplázala o instala como nueva."
           }
         }
       }
@@ -3544,6 +3772,12 @@
             "state" : "translated",
             "value" : "按下+安裝應用程式。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulsa el botón Más para instalar apps."
+          }
         }
       }
     },
@@ -3638,6 +3872,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入安裝網址"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce la URL de instalación"
           }
         }
       }
@@ -3734,6 +3974,12 @@
             "state" : "translated",
             "value" : "訪問IPA失敗"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al acceder al IPA"
+          }
         }
       }
     },
@@ -3828,6 +4074,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在主LiveContainer中管理應用程式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestiona las apps en el LiveContainer principal"
           }
         }
       }
@@ -3924,6 +4176,12 @@
             "state" : "translated",
             "value" : "我的應用程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mis apps"
+          }
         }
       }
     },
@@ -4019,6 +4277,12 @@
             "state" : "translated",
             "value" : "開啟連結"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir enlace"
+          }
         }
       }
     },
@@ -4095,6 +4359,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無效的itms-services連結格式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato de URL itms-services no válido"
           }
         }
       }
@@ -4173,6 +4443,12 @@
             "state" : "translated",
             "value" : "在plist中找不到IPA下載連結"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró URL de descarga de IPA en el plist"
+          }
         }
       }
     },
@@ -4249,6 +4525,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法解析plist檔案"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al analizar el archivo plist"
           }
         }
       }
@@ -4345,6 +4627,12 @@
             "state" : "translated",
             "value" : "安裝在LiveContainer中的任何應用程式都無法開啟方案「%@」。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El esquema \"%@\" no puede ser abierto por ninguna app instalada en LiveContainer."
+          }
         }
       }
     },
@@ -4440,6 +4728,12 @@
             "state" : "translated",
             "value" : "應用程式已成功簽名，但LiveContainer無法簽署以下檔案。 您可能能夠使用該應用程式，但可能會崩潰。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La app se firmó correctamente, pero LiveContainer no pudo firmar los siguientes archivos. Es posible que puedas usar la app, pero espera fallos."
+          }
         }
       }
     },
@@ -4529,6 +4823,12 @@
             "state" : "translated",
             "value" : "名稱 (A-Z)"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre (A-Z)"
+          }
         }
       }
     },
@@ -4617,6 +4917,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自訂"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizado"
           }
         }
       }
@@ -4708,6 +5014,12 @@
             "state" : "translated",
             "value" : "重新排列"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reorganizar"
+          }
         }
       }
     },
@@ -4796,6 +5108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這將重設排列順序為升序。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto restablecerá el orden personalizado al orden alfabético."
           }
         }
       }
@@ -4886,6 +5204,12 @@
             "state" : "translated",
             "value" : "安裝日期"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fecha de instalación"
+          }
         }
       }
     },
@@ -4974,6 +5298,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上次開啟"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Última apertura"
           }
         }
       }
@@ -5064,6 +5394,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "名字 (Z-A)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre (Z-A)"
           }
         }
       }
@@ -5160,6 +5496,12 @@
             "state" : "translated",
             "value" : "請提供一個IPA檔案進行安裝。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proporciona un archivo IPA para instalar."
+          }
         }
       }
     },
@@ -5254,6 +5596,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入網址無效。 請檢查並重試"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La URL introducida no es válida. Compruébala e inténtalo de nuevo"
           }
         }
       }
@@ -5350,6 +5698,12 @@
             "state" : "translated",
             "value" : "方向鎖定"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueo de orientación"
+          }
         }
       }
     },
@@ -5444,6 +5798,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "橫向螢幕"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horizontal"
           }
         }
       }
@@ -5540,6 +5900,12 @@
             "state" : "translated",
             "value" : "垂直螢幕"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertical"
+          }
         }
       }
     },
@@ -5617,6 +5983,12 @@
             "state" : "translated",
             "value" : "新增非本地容器"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadiendo contenedor no local"
+          }
         }
       }
     },
@@ -5693,6 +6065,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增不位於本地存儲的資料夾不被大多數應用程式支援，且會導致包含當機等自訂行為，要繼續嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir un contenedor en un almacenamiento no local no es compatible con la mayoría de las apps y provocará un comportamiento indefinido, incluyendo fallos. ¿Continuar?"
           }
         }
       }
@@ -5789,6 +6167,12 @@
             "state" : "translated",
             "value" : "此應用程式的資料目前在%@。 開啟%@，將其啟動到「我的應用程式」螢幕，然後重試。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los datos de esta app están actualmente en %@. Abre %@ y lánzala desde la pantalla 'Mis apps' e inténtalo de nuevo."
+          }
         }
       }
     },
@@ -5883,6 +6267,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bundle資料夾"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carpeta del paquete"
           }
         }
       }
@@ -5979,6 +6369,12 @@
             "state" : "translated",
             "value" : "不要加載補丁"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No inyectar TweakLoader"
+          }
         }
       }
     },
@@ -6073,6 +6469,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不要載入TweakLoader"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No cargar TweakLoader"
           }
         }
       }
@@ -6169,6 +6571,12 @@
             "state" : "translated",
             "value" : "修復"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correcciones"
+          }
         }
       }
     },
@@ -6263,6 +6671,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "（過棄）修復檔案選擇器"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Antiguo) Corregir selector de archivos"
           }
         }
       }
@@ -6359,6 +6773,12 @@
             "state" : "translated",
             "value" : "透過強制此應用程式將選定的檔案複製到其收件箱，修復檔案選擇器在點選「開啟」時沒有響應的問題。 您可以在應用程式資料資料夾中的「Inbox」資料夾中檢視匯入的檔案。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corrige el problema del selector de archivos que no responde al pulsar 'abrir', forzando a esta app a copiar los archivos seleccionados en su bandeja de entrada. Puedes ver los archivos importados en la carpeta 'Inbox' dentro de la carpeta de datos de la app."
+          }
         }
       }
     },
@@ -6449,6 +6869,12 @@
             "state" : "translated",
             "value" : "修復檔案匯入"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corregir selector de archivos"
+          }
         }
       }
     },
@@ -6537,6 +6963,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "修復本地通知"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corregir notificaciones locales"
           }
         }
       }
@@ -6633,6 +7065,12 @@
             "state" : "translated",
             "value" : "強制簽名"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forzar firma"
+          }
         }
       }
     },
@@ -6727,6 +7165,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如果此應用程式無法啟動並出現「簽名無效」等錯誤，請再次嘗試簽名。 如果這仍然不起作用，請續訂JIT-Less證書。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intenta firmar de nuevo si esta app falla al iniciarse con un error como 'Firma no válida'. Si esto sigue sin funcionar, renueva el certificado JIT-Less."
           }
         }
       }
@@ -6823,6 +7267,12 @@
             "state" : "translated",
             "value" : "偽裝 SDK 版本使系統庫以應用程式建置時的 SDK 版本運行。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falsear la versión del SDK obliga a las bibliotecas del sistema a operar en la versión del SDK con la que se compiló la app."
+          }
         }
       }
     },
@@ -6917,6 +7367,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隱藏應用程式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar app"
           }
         }
       }
@@ -7013,6 +7469,12 @@
             "state" : "translated",
             "value" : "要完全隱藏應用程式，請在設定中啟用嚴格隱藏模式。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para ocultar completamente las apps, activa el modo de ocultación estricta en los ajustes."
+          }
         }
       }
     },
@@ -7107,6 +7569,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從Dyld Api隱藏LiveContainer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar LiveContainer de la API de Dyld"
           }
         }
       }
@@ -7203,6 +7671,12 @@
             "state" : "translated",
             "value" : "可能有助於繞過一些應用程式的注入檢測。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puede ayudar a evitar la detección de inyección de algunas apps."
+          }
         }
       }
     },
@@ -7291,6 +7765,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "JIT啟動腳本"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Script de lanzamiento JIT"
           }
         }
       }
@@ -7382,6 +7862,12 @@
             "state" : "translated",
             "value" : "在JIT啟動時傳遞給StikDebug的腳本"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un archivo JavaScript que se pasa a StikDebug al lanzar la app con JIT."
+          }
         }
       }
     },
@@ -7470,6 +7956,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已選擇腳本"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Script cargado"
           }
         }
       }
@@ -7566,6 +8058,12 @@
             "state" : "translated",
             "value" : "以JIT啟動"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lanzar con JIT"
+          }
         }
       }
     },
@@ -7660,6 +8158,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在啟動應用程式之前，LiveContainer將嘗試獲取JIT許可權。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer intentará obtener permiso JIT antes de lanzar la app."
           }
         }
       }
@@ -7756,6 +8260,12 @@
             "state" : "translated",
             "value" : "鎖定 App"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloquear app"
+          }
         }
       }
     },
@@ -7851,6 +8361,12 @@
             "state" : "translated",
             "value" : "新資料資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nueva carpeta de datos"
+          }
         }
       }
     },
@@ -7927,6 +8443,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "備註"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota"
           }
         }
       }
@@ -8005,6 +8527,12 @@
             "state" : "translated",
             "value" : "輸入備註..."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una nota..."
+          }
         }
       }
     },
@@ -8082,6 +8610,12 @@
             "state" : "translated",
             "value" : "選取外部資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar carpeta de datos externa"
+          }
         }
       }
     },
@@ -8128,6 +8662,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "签名工具"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmante"
           }
         }
       }
@@ -8224,6 +8764,12 @@
             "state" : "translated",
             "value" : "這個應用程式沒有簽名，你還是想簽名嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta app no está firmada, ¿quieres firmarla de todos modos?"
+          }
         }
       }
     },
@@ -8318,6 +8864,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偽裝SDK版本"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falsear versión del SDK"
           }
         }
       }
@@ -8414,6 +8966,12 @@
             "state" : "translated",
             "value" : "轉換為私人應用程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convertir en app privada"
+          }
         }
       }
     },
@@ -8508,6 +9066,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "將此應用程式移動到私人文件資料夾允許您在檔案應用程式中訪問其資料和補訂，但其他LiveContainers無法執行它。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover esta app a la carpeta de documentos privada te permite acceder a sus datos y tweaks en la app Archivos, pero no podrá ser ejecutada por otros LiveContainers."
           }
         }
       }
@@ -8604,6 +9168,12 @@
             "state" : "translated",
             "value" : "轉換為共享應用程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convertir en app compartida"
+          }
         }
       }
     },
@@ -8698,6 +9268,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "將此應用程式移動到應用程式組允許其他LiveContainers執行此應用程式，並保留其所有資料和補訂。 如果您想訪問其資料並從檔案應用程式中再次調整，請將其移回。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover esta app al grupo de apps permite que otros LiveContainers la ejecuten conservando todos sus datos y tweaks. Si quieres volver a acceder a sus datos y tweaks desde la app Archivos, muévela de nuevo."
           }
         }
       }
@@ -8794,6 +9370,12 @@
             "state" : "translated",
             "value" : "補丁資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carpeta de tweaks"
+          }
         }
       }
     },
@@ -8882,6 +9464,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用LiveContainer的包名"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar el ID de paquete de LiveContainer"
           }
         }
       }
@@ -8978,6 +9566,12 @@
             "state" : "translated",
             "value" : "在覆蓋主捆綁包時，透過使用LiveContainer的捆綁包識別符號來修復這些問題。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corrige estos problemas usando el identificador de paquete de LiveContainer al sobrescribir el paquete principal."
+          }
         }
       }
     },
@@ -9072,6 +9666,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開發者證書"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certificado ADP"
           }
         }
       }
@@ -9168,6 +9768,12 @@
             "state" : "translated",
             "value" : "自動"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
         }
       }
     },
@@ -9262,6 +9868,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
           }
         }
       }
@@ -9358,6 +9970,12 @@
             "state" : "translated",
             "value" : "關閉"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
         }
       }
     },
@@ -9452,6 +10070,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "容器"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenedores"
           }
         }
       }
@@ -9548,6 +10172,12 @@
             "state" : "translated",
             "value" : "繼續"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
         }
       }
     },
@@ -9642,6 +10272,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar"
           }
         }
       }
@@ -9738,6 +10374,12 @@
             "state" : "translated",
             "value" : "正確"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correcto"
+          }
         }
       }
     },
@@ -9833,6 +10475,12 @@
             "state" : "translated",
             "value" : "資料"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos"
+          }
         }
       }
     },
@@ -9921,6 +10569,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predeterminado"
           }
         }
       }
@@ -10017,6 +10671,12 @@
             "state" : "translated",
             "value" : "刪除"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar"
+          }
         }
       }
     },
@@ -10111,6 +10771,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已禁用"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deshabilitado"
           }
         }
       }
@@ -10207,6 +10873,12 @@
             "state" : "translated",
             "value" : "完成"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hecho"
+          }
         }
       }
     },
@@ -10301,6 +10973,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入新資料夾的名稱"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el nombre de la nueva carpeta"
           }
         }
       }
@@ -10397,6 +11075,12 @@
             "state" : "translated",
             "value" : "輸入新名稱"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el nuevo nombre"
+          }
         }
       }
     },
@@ -10492,6 +11176,12 @@
             "state" : "translated",
             "value" : "錯誤"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
         }
       }
     },
@@ -10581,6 +11271,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar"
           }
         }
       }
@@ -10677,6 +11373,12 @@
             "state" : "translated",
             "value" : "語言"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
         }
       }
     },
@@ -10771,6 +11473,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在載入…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando…"
           }
         }
       }
@@ -10867,6 +11575,12 @@
             "state" : "translated",
             "value" : "雜項"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varios"
+          }
         }
       }
     },
@@ -10961,6 +11675,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移動"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover"
           }
         }
       }
@@ -11057,6 +11777,12 @@
             "state" : "translated",
             "value" : "否"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
+          }
         }
       }
     },
@@ -11145,6 +11871,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未選取檔案"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún archivo seleccionado"
           }
         }
       }
@@ -11241,6 +11973,12 @@
             "state" : "translated",
             "value" : "無"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguno"
+          }
         }
       }
     },
@@ -11336,6 +12074,12 @@
             "state" : "translated",
             "value" : "OK"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceptar"
+          }
         }
       }
     },
@@ -11425,6 +12169,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar"
           }
         }
       }
@@ -11521,6 +12271,12 @@
             "state" : "translated",
             "value" : "重新命名"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renombrar"
+          }
         }
       }
     },
@@ -11609,6 +12365,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重設"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablecer"
           }
         }
       }
@@ -11699,6 +12461,12 @@
             "state" : "translated",
             "value" : "選擇"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar"
+          }
         }
       }
     },
@@ -11787,6 +12555,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "統計資料"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estadísticas"
           }
         }
       }
@@ -11883,6 +12657,12 @@
             "state" : "translated",
             "value" : "成功"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éxito"
+          }
         }
       }
     },
@@ -11977,6 +12757,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未知"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconocido"
           }
         }
       }
@@ -12073,6 +12859,12 @@
             "state" : "translated",
             "value" : "確認"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí"
+          }
         }
       }
     },
@@ -12168,6 +12960,12 @@
             "state" : "translated",
             "value" : "這是預設的容器"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este es el contenedor predeterminado"
+          }
         }
       }
     },
@@ -12244,6 +13042,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在解析容器書籤…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolviendo marcador del contenedor..."
           }
         }
       }
@@ -12340,6 +13144,12 @@
             "state" : "translated",
             "value" : "容器資料夾名稱"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre de la carpeta del contenedor"
+          }
         }
       }
     },
@@ -12434,6 +13244,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "容器名稱"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del contenedor"
           }
         }
       }
@@ -12530,6 +13346,12 @@
             "state" : "translated",
             "value" : "當沒有指定時，LiveContainer將使用預設容器。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer usará el contenedor predeterminado cuando no se especifique ninguno."
+          }
         }
       }
     },
@@ -12624,6 +13446,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除資料"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar datos"
           }
         }
       }
@@ -12720,6 +13548,12 @@
             "state" : "translated",
             "value" : "你想刪除這個容器的所有資料嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quieres eliminar todos los datos de este contenedor?"
+          }
         }
       }
     },
@@ -12796,6 +13630,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此容器當前不可用"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este contenedor no está disponible en este momento"
           }
         }
       }
@@ -12892,6 +13732,12 @@
             "state" : "translated",
             "value" : "這個容器目前正在使用中"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este contenedor está actualmente en uso"
+          }
         }
       }
     },
@@ -12987,6 +13833,12 @@
             "state" : "translated",
             "value" : "容器目前由%@使用。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El contenedor está siendo usado actualmente por %@."
+          }
         }
       }
     },
@@ -13004,6 +13856,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无效的 IDFV"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IDFV no válido"
           }
         }
       }
@@ -13100,6 +13958,12 @@
             "state" : "translated",
             "value" : "隔離應用程式組"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aislar grupo de apps"
+          }
         }
       }
     },
@@ -13194,6 +14058,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有足夠的的鑰匙串存取群組。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay suficientes grupos de acceso del llavero."
           }
         }
       }
@@ -13290,6 +14160,12 @@
             "state" : "translated",
             "value" : "容器偏好"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferencias del contenedor"
+          }
         }
       }
     },
@@ -13384,6 +14260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除容器"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar contenedor"
           }
         }
       }
@@ -13480,6 +14362,12 @@
             "state" : "translated",
             "value" : "你想把這個容器移除嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quieres eliminar este contenedor?"
+          }
         }
       }
     },
@@ -13574,6 +14462,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你想刪除這個容器的鑰匙圈嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quieres eliminar el llavero de este contenedor?"
           }
         }
       }
@@ -13670,6 +14564,12 @@
             "state" : "translated",
             "value" : "選擇未使用的容器"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar contenedores sin usar"
+          }
         }
       }
     },
@@ -13764,6 +14664,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無未使用的數據資料夾。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay carpetas de datos sin usar."
           }
         }
       }
@@ -13860,6 +14766,12 @@
             "state" : "translated",
             "value" : "不明的程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App desconocida"
+          }
         }
       }
     },
@@ -13955,6 +14867,12 @@
             "state" : "translated",
             "value" : "設定為預設容器"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Establecer como contenedor predeterminado"
+          }
         }
       }
     },
@@ -14043,6 +14961,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偽裝identifierForVendor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falsear identifierForVendor"
           }
         }
       }
@@ -14139,6 +15063,12 @@
             "state" : "translated",
             "value" : "不能增加超過3個容器。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pueden añadir más de 3 contenedores."
+          }
         }
       }
     },
@@ -14233,6 +15163,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "與App解除綁定"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desvincular de la app"
           }
         }
       }
@@ -14329,6 +15265,12 @@
             "state" : "translated",
             "value" : "下載中"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargando"
+          }
         }
       }
     },
@@ -14423,6 +15365,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到%@會停止目前App，要繼續嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Seguro que quieres cambiar a %@? Hacerlo cerrará esta app."
           }
         }
       }
@@ -14519,6 +15467,12 @@
             "state" : "translated",
             "value" : "未找到App %@。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App %@ no encontrada."
+          }
         }
       }
     },
@@ -14613,6 +15567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在目前的App上打開"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App actual"
           }
         }
       }
@@ -14709,6 +15669,12 @@
             "state" : "translated",
             "value" : "在%@中打開"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir en %@"
+          }
         }
       }
     },
@@ -14803,6 +15769,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您確定要開啟網頁並啟動App嗎？這樣做將停止此應用程式。您可以嘗試在目前應用程式中開啟它（如果App支援通用連結）。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Seguro que quieres abrir la página web y lanzar una app? Hacerlo cerrará esta app. Puedes intentar abrirla en la app actual si es compatible con enlaces universales."
           }
         }
       }
@@ -14899,6 +15871,12 @@
             "state" : "translated",
             "value" : "請重新啟動LiveContainer 來安裝App。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinicia LiveContainer para instalar apps."
+          }
         }
       }
     },
@@ -14993,6 +15971,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在設定中設定免JIT模式來使得LiveContainer無需JIT即可使用。\n\n**如果在設定免JIT模式時遇到問題，請查看免JIT模式診斷頁面。 **\n\n點選加號按鈕來安裝App。\n\n長按App可以查看App設置、修復App問題、和將App添加至主畫面。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura el modo JITLess en los ajustes para usar LiveContainer sin JIT.\n\n**Consulta la página de diagnóstico JITLess en los ajustes si tienes problemas para activar el modo JITLess.**\n\nPulsa el botón más para instalar apps.\n\nMantén pulsado el banner de la app para acceder a los ajustes específicos, correcciones y añadirla a la pantalla de inicio."
           }
         }
       }
@@ -15089,6 +16073,12 @@
             "state" : "translated",
             "value" : "                         **遇到問題時請先查看[LiveContainer常見問題（英文）](https://github.com/khanhduytran0/LiveContainer/issues/265)。 **\n                         \n如果您遇到Bug或是App相容性問題，請至[GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)提交錯誤。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "**Consulta las [preguntas frecuentes de LiveContainer](https://github.com/khanhduytran0/LiveContainer/issues/265) para problemas comunes.**\n                         \nSi encuentras un error o un problema de compatibilidad, repórtalo en [GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)."
+          }
         }
       }
     },
@@ -15183,6 +16173,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LiveContainer 協助"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayuda de LiveContainer"
           }
         }
       }
@@ -15279,6 +16275,12 @@
             "state" : "translated",
             "value" : "Entitlement 文件"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivo de entitlements"
+          }
         }
       }
     },
@@ -15373,6 +16375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App Group可訪問"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grupo de apps accesible"
           }
         }
       }
@@ -15469,6 +16477,12 @@
             "state" : "translated",
             "value" : "App Group名"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID del grupo de apps"
+          }
         }
       }
     },
@@ -15563,6 +16577,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "包名"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identificador del paquete"
           }
         }
       }
@@ -15659,6 +16679,12 @@
             "state" : "translated",
             "value" : "期望包名"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identificador de paquete esperado"
+          }
         }
       }
     },
@@ -15753,6 +16779,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "收到的證書數據"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos del certificado encontrados"
           }
         }
       }
@@ -15849,6 +16881,12 @@
             "state" : "translated",
             "value" : "已撤銷"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revocado"
+          }
         }
       }
     },
@@ -15944,6 +16982,12 @@
             "state" : "translated",
             "value" : "證書狀態"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estado del certificado"
+          }
         }
       }
     },
@@ -16038,6 +17082,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "有效"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Válido"
           }
         }
       }
@@ -16135,6 +17185,12 @@
             "state" : "translated",
             "value" : "證書無效時間"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certificado válido hasta"
+          }
         }
       }
     },
@@ -16229,6 +17285,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "證書上次更新時間"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fecha de última actualización del certificado"
           }
         }
       }
@@ -16325,6 +17387,12 @@
             "state" : "translated",
             "value" : "檢測到證書密碼"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraseña del certificado encontrada"
+          }
         }
       }
     },
@@ -16395,6 +17463,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "证书团队名"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de equipo del certificado"
           }
         }
       }
@@ -16491,6 +17565,12 @@
             "state" : "translated",
             "value" : "檢查中"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobando"
+          }
         }
       }
     },
@@ -16561,6 +17641,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "预期团队ID"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de equipo esperado"
           }
         }
       }
@@ -16657,6 +17743,12 @@
             "state" : "translated",
             "value" : "尋求幫助"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obtener ayuda"
+          }
         }
       }
     },
@@ -16751,6 +17843,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝方式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tienda"
           }
         }
       }
@@ -16847,6 +17945,12 @@
             "state" : "translated",
             "value" : "團隊編號"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID de equipo"
+          }
         }
       }
     },
@@ -16911,6 +18015,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法載入測試動態連結庫，這可能是由於證書出現問題。請嘗試：1. 重新打開%@；2. 刷新%@；3. 如果仍有問題，請嘗試重新修補%@。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cargar la biblioteca de prueba. Esto significa que tu certificado puede tener un problema. Prueba a: 1. Reabrir %@; 2. Actualizar todas las apps en %@; 3. Volver a parchear %@ e inténtalo de nuevo."
           }
         }
       }
@@ -17007,6 +18117,12 @@
             "state" : "translated",
             "value" : "免JIT模式測試通過"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba del modo JIT-Less superada"
+          }
         }
       }
     },
@@ -17102,6 +18218,12 @@
             "state" : "translated",
             "value" : "複製進程ID"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar PID"
+          }
         }
       }
     },
@@ -17196,6 +18318,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用畫中畫"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar PIP"
           }
         }
       }
@@ -17293,6 +18421,12 @@
             "state" : "translated",
             "value" : "縮放"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escala"
+          }
         }
       }
     },
@@ -17387,6 +18521,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此應用程式已被停止。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta app ha sido cerrada."
           }
         }
       }
@@ -17483,6 +18623,12 @@
             "state" : "translated",
             "value" : "關於"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de mí"
+          }
         }
       }
     },
@@ -17577,6 +18723,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移動完成。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Movido correctamente."
           }
         }
       }
@@ -17673,6 +18825,12 @@
             "state" : "translated",
             "value" : "共享 AppGroup 資料夾有文件。移出文件並重試。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay archivos en la carpeta compartida del grupo de apps. Muévelos primero e inténtalo de nuevo."
+          }
         }
       }
     },
@@ -17767,6 +18925,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "私人 AppGroup 資料夾有文件。移出文件並重試。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay archivos en la carpeta privada del grupo de apps. Muévelos primero e inténtalo de nuevo."
           }
         }
       }
@@ -17863,6 +19027,12 @@
             "state" : "translated",
             "value" : "移動私人AppGroup檔案到共享資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover grupo de apps privado a carpeta de documentos compartida"
+          }
         }
       }
     },
@@ -17958,6 +19128,12 @@
             "state" : "translated",
             "value" : "移動共享AppGroup檔案到私人資料夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover archivos del grupo de apps compartido a carpeta de documentos privada"
+          }
         }
       }
     },
@@ -18046,6 +19222,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自動離開 PiP 模式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finalizar automáticamente el modo PiP"
           }
         }
       }
@@ -18142,6 +19324,12 @@
             "state" : "translated",
             "value" : "默認以多任務模式啟動"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lanzar en modo multitarea por defecto"
+          }
         }
       }
     },
@@ -18230,6 +19418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "底部視窗列"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barra de ventana inferior"
           }
         }
       }
@@ -18327,6 +19521,12 @@
             "state" : "translated",
             "value" : "LiveContainer 的套裝識別碼「%@」與權限中的 application-Identifier 不匹配，權限預期的套裝識別碼為「%@」。某些功能可能無法使用。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El ID de paquete de LiveContainer, \"%@\", no coincide con el application-Identifier en los entitlements, que espera que el ID de paquete sea \"%@\". Es posible que algunas funciones no estén disponibles."
+          }
         }
       }
     },
@@ -18343,6 +19543,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "缓存清理完成"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caché eliminada."
           }
         }
       }
@@ -18361,6 +19567,12 @@
             "state" : "translated",
             "value" : "确认清除缓存？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quieres borrar la caché?"
+          }
         }
       }
     },
@@ -18377,6 +19589,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清理缓存"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiar caché"
           }
         }
       }
@@ -18472,6 +19690,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清理未使用的數據資料夾"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiar carpetas de datos sin usar"
           }
         }
       }
@@ -18766,6 +19990,24 @@
               }
             }
           }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "¿Quieres eliminar %lld carpeta de datos sin usar?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "¿Quieres eliminar %lld carpetas de datos sin usar?"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -18860,6 +20102,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清理鑰匙圈"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiar llavero"
           }
         }
       }
@@ -18956,6 +20204,12 @@
             "state" : "translated",
             "value" : "某些 App 的帳號無法在 LiveContainer 間同步的原因可能是其鑰匙圈還儲存在本地。清理鑰匙圈可能可以解決此問題，但這可能導致你登出某些帳號。要繼續嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si la cuenta de alguna app no se puede sincronizar entre LiveContainers, puede deberse a que la cuenta sigue almacenada en el llavero privado del LiveContainer actual. Eliminar el llavero puede solucionar este problema, pero puede cerrar la sesión de algunas de tus cuentas. ¿Continuar?"
+          }
         }
       }
     },
@@ -18973,6 +20227,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清理 tmp 内容"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiar archivos temporales"
           }
         }
       }
@@ -18992,6 +20252,12 @@
             "state" : "translated",
             "value" : "已清理 tmp 内容。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos temporales eliminados."
+          }
         }
       }
     },
@@ -19009,6 +20275,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要删除 tmp 内容吗？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quieres eliminar los archivos temporales?"
           }
         }
       }
@@ -19087,6 +20359,12 @@
             "state" : "translated",
             "value" : "清除圖示快取"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar caché de iconos"
+          }
         }
       }
     },
@@ -19104,6 +20382,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除通知"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar notificaciones"
           }
         }
       }
@@ -19181,6 +20465,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "深色模式圖示"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icono en modo oscuro"
           }
         }
       }
@@ -19277,6 +20567,12 @@
             "state" : "translated",
             "value" : "資料管理"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestión de datos"
+          }
         }
       }
     },
@@ -19335,6 +20631,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設簽署工具"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firmante predeterminado"
           }
         }
       }
@@ -19424,6 +20726,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dock欄寬度"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ancho del dock"
           }
         }
       }
@@ -19520,6 +20828,12 @@
             "state" : "translated",
             "value" : "不簽署新的App"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No firmar apps nuevas"
+          }
         }
       }
     },
@@ -19614,6 +20928,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開此選項時LiveContainer不會簽署新App。啟用此選項期間安裝的App會保持未簽署狀態。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer no firmará apps nuevas mientras esta opción esté activada. Con esta opción activada, la app instalada permanecerá sin firmar."
           }
         }
       }
@@ -19710,6 +21030,12 @@
             "state" : "translated",
             "value" : "動態顏色"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colores dinámicos"
+          }
         }
       }
     },
@@ -19804,6 +21130,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App橫幅的顏色隨著圖標變化"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa los colores dinámicos para las casillas de las apps"
           }
         }
       }
@@ -19900,6 +21232,12 @@
             "state" : "translated",
             "value" : "在測試免JIT模式前，你需要先匯入開發者證書。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debes importar el certificado ADP antes de probar el modo JIT-Less."
+          }
         }
       }
     },
@@ -19994,6 +21332,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在App圖示加上邊框"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enmarcar icono de acceso directo"
           }
         }
       }
@@ -20090,6 +21434,12 @@
             "state" : "translated",
             "value" : "在App圖示外加上LiveContainer圖示邊框。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enmarca los iconos de acceso directo con el icono de LiveContainer."
+          }
         }
       }
     },
@@ -20107,6 +21457,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隐藏折叠 Dock"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar dock colapsado"
           }
         }
       }
@@ -20197,6 +21553,12 @@
             "state" : "translated",
             "value" : "從內建SideStore匯入證書"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar certificado desde SideStore integrado"
+          }
         }
       }
     },
@@ -20286,6 +21648,12 @@
             "state" : "translated",
             "value" : "未找到證書，你在內建SideStore中登入了嗎？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certificado no encontrado. ¿Iniciaste sesión en el SideStore integrado?"
+          }
         }
       }
     },
@@ -20374,6 +21742,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偵測到內建Sideload，你想要從中匯入證書嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se detectó SideStore integrado. ¿Quieres importar el certificado desde él?"
           }
         }
       }
@@ -20470,6 +21844,12 @@
             "state" : "translated",
             "value" : "匯入證書"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar certificado"
+          }
         }
       }
     },
@@ -20564,6 +21944,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "若不透過SideStore/AltStore使用免JIT模式，你需要匯入用於簽署LiveContainer的證書。要繼續嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para usar el modo JITLess sin AltStore/SideStore, debes importar el certificado usado para firmar LiveContainer. ¿Continuar?"
           }
         }
       }
@@ -20660,6 +22046,12 @@
             "state" : "translated",
             "value" : "從%@載入證書"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar certificado desde %@"
+          }
         }
       }
     },
@@ -20755,6 +22147,12 @@
             "state" : "translated",
             "value" : "請輸入證書的密碼"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce la contraseña del certificado"
+          }
         }
       }
     },
@@ -20813,6 +22211,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "向LiveContainer加載模組"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargar tweaks en el propio LiveContainer"
           }
         }
       }
@@ -20878,6 +22282,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LiveContainer 會載入放入全域模組資料夾的模組。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coloca tus tweaks en la carpeta global \"Tweaks\" y LiveContainer los detectará."
           }
         }
       }
@@ -20974,6 +22384,12 @@
             "state" : "translated",
             "value" : "外觀"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interfaz"
+          }
         }
       }
     },
@@ -21068,6 +22484,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "證書認證失敗。請檢查簽該證書的密碼。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al validar el certificado. Comprueba la contraseña y verifica que el certificado seleccionado se usa para firmar LiveContainer."
           }
         }
       }
@@ -21164,6 +22586,12 @@
             "state" : "translated",
             "value" : "地址"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección"
+          }
         }
       }
     },
@@ -21258,6 +22686,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定JIT啟動器。可能需要本地網絡權限。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura tu activador JIT. Puede requerirse el permiso de red local."
           }
         }
       }
@@ -21354,6 +22788,12 @@
             "state" : "translated",
             "value" : "JIT啟動器"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activador JIT"
+          }
         }
       }
     },
@@ -21448,6 +22888,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "免JIT"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JIT-Less"
           }
         }
       }
@@ -21544,6 +22990,12 @@
             "state" : "translated",
             "value" : "免JIT模式能讓您在沒有JIT的情況下使用LiveContainer。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JIT-Less te permite usar LiveContainer sin necesidad de activar JIT."
+          }
         }
       }
     },
@@ -21638,6 +23090,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "免JIT模式診斷"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnóstico del modo JIT-Less"
           }
         }
       }
@@ -21734,6 +23192,12 @@
             "state" : "translated",
             "value" : "UDID"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UDID"
+          }
         }
       }
     },
@@ -21822,6 +23286,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設全螢幕多任務視窗"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximizar ventana multitarea por defecto"
           }
         }
       }
@@ -22584,6 +24054,12 @@
               }
             }
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se movieron %#@arg1@ y %#@arg2@."
+          }
         }
       }
     },
@@ -22678,6 +24154,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "將未使用的資料夾移出AppGroup"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover carpetas huérfanas fuera del grupo de apps"
           }
         }
       }
@@ -22774,6 +24256,12 @@
             "state" : "translated",
             "value" : "多個LiveContainer"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Múltiples LiveContainers"
+          }
         }
       }
     },
@@ -22868,6 +24356,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LiveContainer2使用與LiveContainer不同的證書簽名，因此它將無法工作。 請使用您用於安裝LiveContainer的同一帳戶安裝LiveContainer2。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer2 está firmado con un certificado distinto al de LiveContainer, por lo que no funcionará. Instala LiveContainer2 con la misma cuenta que usaste para instalar LiveContainer."
           }
         }
       }
@@ -22964,6 +24458,12 @@
             "state" : "translated",
             "value" : "透過安裝多個LiveContainer，並將App變成共享App，你可以在這些LiveContainer間共享安裝的App和其數據，並同時執行多個App。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalando múltiples LiveContainers y convirtiendo las apps en Apps Compartidas, puedes abrir una app entre todos los LiveContainers conservando la mayoría de sus datos y ajustes."
+          }
         }
       }
     },
@@ -23059,6 +24559,12 @@
             "state" : "translated",
             "value" : "下載另一個LiveContainer"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar otro LiveContainer"
+          }
         }
       }
     },
@@ -23147,6 +24653,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許遊戲模式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir modo juego"
           }
         }
       }
@@ -23237,6 +24749,12 @@
             "state" : "translated",
             "value" : "使用內建SideStore安裝"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar con SideStore integrado"
+          }
         }
       }
     },
@@ -23325,6 +24843,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "設定類別為遊戲"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Establecer categoría como juego"
           }
         }
       }
@@ -23421,6 +24945,12 @@
             "state" : "translated",
             "value" : "LiveContainer會產生IPA來安裝另一個LiveContainer。如要安裝請分享至%@。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer generará el ipa para otro LiveContainer. Compártelo con %@ para instalarlo. ¿Continuar?"
+          }
         }
       }
     },
@@ -23516,6 +25046,12 @@
             "state" : "translated",
             "value" : "這是第二個LiveContainer"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este es el segundo LiveContainer"
+          }
         }
       }
     },
@@ -23534,6 +25070,12 @@
             "state" : "translated",
             "value" : "启动优先级"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prioridad de lanzamiento"
+          }
         }
       }
     },
@@ -23551,6 +25093,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拖动 LiveContainer 来设置启动共享 App 时的尝试顺序。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra los LiveContainers para elegir cuál se intenta primero al lanzar apps compartidas."
           }
         }
       }
@@ -23647,6 +25195,12 @@
             "state" : "translated",
             "value" : "重新下載另一個LiveContainer"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinstalar otro LiveContainer"
+          }
         }
       }
     },
@@ -23735,6 +25289,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "多任務模式允許你同時使用多個應用程式。將應用程式轉換為共享應用程式以在多任務模式中使用。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El modo multitarea te permite abrir varias apps al mismo tiempo. Convierte tus apps en Apps Compartidas para usarlas en este modo."
           }
         }
       }
@@ -23831,6 +25391,12 @@
             "state" : "translated",
             "value" : "多任務模式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo multitarea"
+          }
         }
       }
     },
@@ -23925,6 +25491,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "原生視窗"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ventana nativa"
           }
         }
       }
@@ -24021,6 +25593,12 @@
             "state" : "translated",
             "value" : "虛擬視窗"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ventana virtual"
+          }
         }
       }
     },
@@ -24038,6 +25616,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有可清理的缓存。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay caché que limpiar."
           }
         }
       }
@@ -24134,6 +25718,12 @@
             "state" : "translated",
             "value" : "無可刪除的資料夾。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay carpetas de datos que eliminar. Todas están en uso."
+          }
         }
       }
     },
@@ -24223,6 +25813,12 @@
             "state" : "translated",
             "value" : "LiveContainer未使用開發證書簽名，因此無法正常運作。請使用開發證書簽名LiveContainer。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer no está firmado con un certificado de desarrollo, por lo que no funcionará en absoluto. Firma LiveContainer con un certificado de desarrollo."
+          }
         }
       }
     },
@@ -24239,6 +25835,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有可清理的 tmp 内容。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay archivos temporales que eliminar."
           }
         }
       }
@@ -24317,6 +25919,12 @@
             "state" : "translated",
             "value" : "單視窗模式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de ventana única"
+          }
         }
       }
     },
@@ -24369,6 +25977,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重導向網址到LiveContainer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redirigir esquemas de URL al LiveContainer anfitrión"
           }
         }
       }
@@ -24465,6 +26079,12 @@
             "state" : "translated",
             "value" : "從%@重新整理證書"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar certificado desde %@"
+          }
         }
       }
     },
@@ -24559,6 +26179,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除證書"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar certificado"
           }
         }
       }
@@ -24655,6 +26281,12 @@
             "state" : "translated",
             "value" : "移除證書後不能安裝應用程式。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No podrás instalar apps después de eliminar el certificado. ¿Continuar?"
+          }
         }
       }
     },
@@ -24732,6 +26364,12 @@
             "state" : "translated",
             "value" : "終結後自動重啟"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar app automáticamente tras cerrarse"
+          }
         }
       }
     },
@@ -24784,6 +26422,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "若AltSign签名遇到问题，可尝试使用ZSign，反之亦然。切换签名工具后请重启LiveContainer。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si AltSign reporta un error, prueba con ZSign y viceversa. Reinicia LiveContainer después de cambiar de firmante."
           }
         }
       }
@@ -24880,6 +26524,12 @@
             "state" : "translated",
             "value" : "總是在目前的App上打開鏈接"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir siempre la URL en la app actual"
+          }
         }
       }
     },
@@ -24974,6 +26624,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LiveContainer 默認詢問如何打開連結。開啟後會自動在當前app開啟連結。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto, LiveContainer te pregunta cómo abrir una URL. Activa esto para abrir la URL automáticamente en la app actual."
           }
         }
       }
@@ -25070,6 +26726,12 @@
             "state" : "translated",
             "value" : "直接切換App"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar de app sin preguntar"
+          }
         }
       }
     },
@@ -25165,6 +26827,12 @@
             "state" : "translated",
             "value" : "LiveContainer在切換App時預設會向你確認。啟用此選項來直接切換，所有未儲存的資料將會遺失。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por defecto, LiveContainer te pregunta antes de cambiar de app. Activa esto para cambiar de app inmediatamente. Se perderán los datos no guardados."
+          }
         }
       }
     },
@@ -25242,6 +26910,12 @@
             "state" : "translated",
             "value" : "略過終止提示"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omitir pantalla de cierre"
+          }
         }
       }
     },
@@ -25258,6 +26932,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "存储管理"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestión de almacenamiento"
           }
         }
       }
@@ -25354,6 +27034,12 @@
             "state" : "translated",
             "value" : "嚴格隱藏模式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de ocultación estricta"
+          }
         }
       }
     },
@@ -25448,6 +27134,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用後，將只能從App選擇介面啟動App。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar este modo solo permitirá lanzar apps ocultas pulsando tres veces el contador de apps instaladas."
           }
         }
       }
@@ -25544,6 +27236,12 @@
             "state" : "translated",
             "value" : "測試免JIT模式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probar modo JIT-Less"
+          }
         }
       }
     },
@@ -25638,6 +27336,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝方式不受支援。請使用SideStore或AltStore安裝來使用此功能。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Método de instalación no compatible. Usa AltStore o SideStore para configurar esta función."
           }
         }
       }
@@ -25734,6 +27438,12 @@
             "state" : "translated",
             "value" : "請勿將LiveContainer用於盜版。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por favor, no uses LiveContainer para piratería."
+          }
         }
       }
     },
@@ -25828,6 +27538,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LiveContainer似乎在上次的App簽署時崩潰了，App可能已經損壞，請考慮重新安裝或切換到另一個簽名工具。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parece que LiveContainer falló durante la última firma de la app, y esta podría estar dañada. Considera reinstalar la app o cambiar a otro firmante."
           }
         }
       }
@@ -25924,6 +27640,12 @@
             "state" : "translated",
             "value" : "已經使用最新的憑證簽署此App，但其簽章仍然無效，這可能是憑證無效導致的。請查看「免JIT診斷」頁面以檢查免JIT模式設定有問題。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La app está firmada con el certificado más reciente, pero su firma de código no es válida. Revisa la página de diagnóstico JIT-Less para ver si hay problemas con tu configuración JIT-Less."
+          }
         }
       }
     },
@@ -26019,6 +27741,12 @@
             "state" : "translated",
             "value" : "無法找到用於簽章的證書。請查看「免JIT診斷」頁面以檢查免JIT模式設定的問題。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró el certificado de firma. Revisa la página de diagnóstico JIT-Less para ver si hay problemas con tu configuración JIT-Less."
+          }
         }
       }
     },
@@ -26108,6 +27836,12 @@
             "state" : "translated",
             "value" : "新增來源"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir fuente"
+          }
         }
       }
     },
@@ -26190,6 +27924,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加源頭"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir fuente"
           }
         }
       }
@@ -26280,6 +28020,12 @@
             "state" : "translated",
             "value" : "測試版"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
         }
       }
     },
@@ -26368,6 +28114,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增一個來源以瀏覽應用程式。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade una fuente para empezar a explorar apps."
           }
         }
       }
@@ -26458,6 +28210,12 @@
             "state" : "translated",
             "value" : "此源頭已被添加。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta fuente ya ha sido añadida."
+          }
         }
       }
     },
@@ -26546,6 +28304,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網址無效。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La URL no es válida."
           }
         }
       }
@@ -26636,6 +28400,12 @@
             "state" : "translated",
             "value" : "來源的檔案無效。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo de la fuente no es válido."
+          }
         }
       }
     },
@@ -26724,6 +28494,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本項目不包含下載網址。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta entrada no incluye una URL de descarga."
           }
         }
       }
@@ -26814,6 +28590,12 @@
             "state" : "translated",
             "value" : "載入中…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando..."
+          }
         }
       }
     },
@@ -26902,6 +28684,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Current Sources"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes actuales"
           }
         }
       }
@@ -26992,6 +28780,12 @@
             "state" : "translated",
             "value" : "手動新增"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir manualmente"
+          }
         }
       }
     },
@@ -27021,6 +28815,12 @@
             "state" : "translated",
             "value" : "推荐源"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes recomendadas"
+          }
         }
       }
     },
@@ -27049,6 +28849,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无可用的推荐源。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay fuentes recomendadas disponibles."
           }
         }
       }
@@ -27139,6 +28945,12 @@
             "state" : "translated",
             "value" : "刷新"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar"
+          }
         }
       }
     },
@@ -27227,6 +29039,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "全部刷新"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar todo"
           }
         }
       }
@@ -27317,6 +29135,12 @@
             "state" : "translated",
             "value" : "將 \"%@\" 從源頭中移除？"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quitar \"%@\" de tus fuentes?"
+          }
         }
       }
     },
@@ -27405,6 +29229,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "移除源頭"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar fuente"
           }
         }
       }
@@ -27495,6 +29325,12 @@
             "state" : "translated",
             "value" : "移除來源"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar fuente"
+          }
         }
       }
     },
@@ -27583,6 +29419,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法刷新源頭。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo actualizar esta fuente."
           }
         }
       }
@@ -27673,6 +29515,12 @@
             "state" : "translated",
             "value" : "此來源無應用程式。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay apps disponibles en esta fuente."
+          }
         }
       }
     },
@@ -27750,6 +29598,12 @@
             "state" : "translated",
             "value" : "當前儲存庫包含過多應用程式，請使用搜尋功能。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay demasiadas apps en el repositorio actual, usa la búsqueda en su lugar."
+          }
         }
       }
     },
@@ -27766,6 +29620,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "应用本体"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquete de la app"
           }
         }
       }
@@ -27785,6 +29645,12 @@
             "state" : "translated",
             "value" : "App Group 数据"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos del grupo de apps"
+          }
         }
       }
     },
@@ -27803,6 +29669,12 @@
             "state" : "translated",
             "value" : "计算中…"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculando…"
+          }
         }
       }
     },
@@ -27819,6 +29691,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "容器"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenedores"
           }
         }
       }
@@ -27837,6 +29715,12 @@
             "state" : "translated",
             "value" : "已安装应用"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps instaladas"
+          }
         }
       }
     },
@@ -27853,6 +29737,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "没有应用存储数据"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay datos de almacenamiento de la app"
           }
         }
       }
@@ -27872,6 +29762,12 @@
             "state" : "translated",
             "value" : "其他"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otro"
+          }
         }
       }
     },
@@ -27888,6 +29784,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "临时文件"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos temporales"
           }
         }
       }
@@ -27906,6 +29808,12 @@
             "state" : "translated",
             "value" : "总存储"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Almacenamiento total"
+          }
         }
       }
     },
@@ -27919,6 +29827,12 @@
           }
         },
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tweaks"
+          }
+        },
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tweaks"
@@ -28018,6 +29932,12 @@
             "state" : "translated",
             "value" : "App"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
         }
       }
     },
@@ -28113,6 +30033,12 @@
             "state" : "translated",
             "value" : "設定"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
         }
       }
     },
@@ -28202,6 +30128,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "來源"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes"
           }
         }
       }
@@ -28298,6 +30230,12 @@
             "state" : "translated",
             "value" : "補丁"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tweaks"
+          }
         }
       }
     },
@@ -28392,6 +30330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這是特定於應用程式的資料夾。 設定補丁資料夾，來賓應用程式將遞迴地拾取它們。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta es la carpeta específica de la app. Configura la carpeta de tweaks y la app invitada los detectará recursivamente."
           }
         }
       }
@@ -28488,6 +30432,12 @@
             "state" : "translated",
             "value" : "這是全域性資料夾。 這裡的所有補丁都將注入到所有來賓應用程式中。 如果您使用特定於應用程式的補訂，請建立一個新資料夾。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta es la carpeta global. Todos los tweaks colocados aquí se inyectarán en todas las apps invitadas. Crea una nueva carpeta si usas tweaks específicos de una app."
+          }
         }
       }
     },
@@ -28582,6 +30532,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "載入補丁"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar tweak"
           }
         }
       }
@@ -28678,6 +30634,12 @@
             "state" : "translated",
             "value" : "新增文件夾"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nueva carpeta"
+          }
         }
       }
     },
@@ -28772,6 +30734,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@不是一個檔案。"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no es un archivo."
           }
         }
       }
@@ -28868,6 +30836,12 @@
             "state" : "translated",
             "value" : "Bundle 簽名失敗。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al iniciar la firma del paquete."
+          }
         }
       }
     },
@@ -28963,6 +30937,12 @@
             "state" : "translated",
             "value" : "需要認證。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se requiere autenticación."
+          }
         }
       }
     },
@@ -29040,6 +31020,12 @@
             "state" : "translated",
             "value" : "安裝應用程式"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar app"
+          }
         }
       }
     },
@@ -29116,6 +31102,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此頁面想要安裝一個應用程式，要繼續嗎？"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página web desea instalar una app. ¿Continuar?"
           }
         }
       }
@@ -29212,6 +31204,12 @@
             "state" : "translated",
             "value" : "這網址能從%@中開啟。"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página web se puede abrir en \"%@\", ¿continuar?"
+          }
         }
       }
     },
@@ -29307,6 +31305,12 @@
             "state" : "translated",
             "value" : "該網址正嘗試啟動「%@」"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página web está intentando lanzar \"%@\", ¿continuar?"
+          }
         }
       }
     },
@@ -29401,6 +31405,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行程式"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar app"
           }
         }
       }

@@ -11,25 +11,33 @@ enum MultitaskMode : Int {
 }
 
 @objc class MultitaskManager : NSObject {
-    static private var usingMultitaskContainers : [String] = []
+    static private var runningApps: [String: UIViewController] = [:]
+    static private var terminationWaiters: [String: [CheckedContinuation<Void, Never>]] = [:]
     
-    @objc class func registerMultitaskContainer(container: String) {
-        usingMultitaskContainers.append(container)
+    @objc class func registerMultitaskContainer(container: String, controller: UIViewController) {
+        runningApps[container] = controller
     }
     
     @objc class func unregisterMultitaskContainer(container: String) {
-        usingMultitaskContainers.removeAll(where: { c in
-            return c == container
-        })
+        runningApps.removeValue(forKey: container)
+        terminationWaiters.removeValue(forKey: container)?.forEach { $0.resume() }
     }
     
     @objc class func isUsing(container: String) -> Bool {
-        return usingMultitaskContainers.contains { c in
-            return c == container
-        }
+        return runningApps[container] != nil
     }
     
     @objc class func isMultitasking() -> Bool {
-        return usingMultitaskContainers.count > 0
+        return !runningApps.isEmpty
+    }
+
+    @MainActor class func terminate(container: String) async {
+        guard #available(iOS 16.0, *), let controller = runningApps[container] as? AppSceneViewController else {
+            return
+        }
+        await withCheckedContinuation { continuation in
+            terminationWaiters[container, default: []].append(continuation)
+            controller.terminate()
+        }
     }
 }

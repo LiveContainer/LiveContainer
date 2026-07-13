@@ -18,46 +18,10 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         var tempAppDataFolderNames : [String] = []
         var tempTweakFolderNames : [String] = []
         
-        var tempApps: [LCAppModel] = []
-        var tempHiddenApps: [LCAppModel] = []
-        var tempURLSchemes: Set<String>? = DataManager.shared.model.multiLCStatus != 2 ? Set() : nil
+        let installedURLSchemes = AppManagementService.shared.reloadInstalledApps()
+        let tempURLSchemes: Set<String>? = DataManager.shared.model.multiLCStatus != 2 ? installedURLSchemes : nil
 
         do {
-            // load apps
-            try fm.createDirectory(at: LCPath.bundlePath, withIntermediateDirectories: true)
-            let appDirs = try fm.contentsOfDirectory(atPath: LCPath.bundlePath.path)
-            for appDir in appDirs {
-                if !appDir.hasSuffix(".app") {
-                    continue
-                }
-                let newApp = LCAppInfo(bundlePath: "\(LCPath.bundlePath.path)/\(appDir)")!
-                newApp.relativeBundlePath = appDir
-                newApp.isShared = false
-                if newApp.isHidden {
-                    tempHiddenApps.append(LCAppModel(appInfo: newApp))
-                } else {
-                    tempApps.append(LCAppModel(appInfo: newApp))
-                    tempURLSchemes?.formUnion(newApp.urlSchemes() as! [String])
-                }
-            }
-            if LCPath.lcGroupDocPath != LCPath.docPath {
-                try fm.createDirectory(at: LCPath.lcGroupBundlePath, withIntermediateDirectories: true)
-                let appDirsShared = try fm.contentsOfDirectory(atPath: LCPath.lcGroupBundlePath.path)
-                for appDir in appDirsShared {
-                    if !appDir.hasSuffix(".app") {
-                        continue
-                    }
-                    let newApp = LCAppInfo(bundlePath: "\(LCPath.lcGroupBundlePath.path)/\(appDir)")!
-                    newApp.relativeBundlePath = appDir
-                    newApp.isShared = true
-                    if newApp.isHidden {
-                        tempHiddenApps.append(LCAppModel(appInfo: newApp))
-                    } else {
-                        tempApps.append(LCAppModel(appInfo: newApp))
-                        tempURLSchemes?.formUnion(newApp.urlSchemes() as! [String])
-                    }
-                }
-            }
             // load document folders
             try fm.createDirectory(at: LCPath.dataPath, withIntermediateDirectories: true)
             let dataDirs = try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)
@@ -83,8 +47,14 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             NSLog("[LC] error:\(error)")
         }
         
-        DataManager.shared.model.apps = tempApps
-        DataManager.shared.model.hiddenApps = tempHiddenApps
+        if UserDefaults.standard.bool(forKey: RemoteAPISettings.enabledKey) {
+            let configuredPort = UserDefaults.standard.integer(forKey: RemoteAPISettings.portKey)
+            let port = configuredPort == 0 ? RemoteAPISettings.defaultPort : configuredPort
+            _ = RemoteAPITokenStore.tokenCreatingIfNeeded()
+            try? RemoteAPIServer.shared.start(port: port)
+            RemoteAPIServer.shared.restoreLastJobIfNeeded()
+            RemoteAPIServer.shared.resumePendingUpdateIfNeeded()
+        }
         if let tempURLSchemes {
             UserDefaults.lcShared().set(Array(tempURLSchemes), forKey: "LCGuestURLSchemes")
         }

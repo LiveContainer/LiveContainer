@@ -804,6 +804,13 @@ int LiveContainerMain(int argc, char *argv[]) {
     }
     
     if (selectedApp || isSideStore) {
+        if(selectedApp && [lcUserDefaults boolForKey:@"LCRemoteAPIEnabled"]) {
+            void *remoteAPIHandle = dlopen("@executable_path/Frameworks/LiveContainerSwiftUI.framework/LiveContainerSwiftUI", RTLD_LAZY);
+            void (*startRemoteAPI)(void) = remoteAPIHandle ? dlsym(remoteAPIHandle, "LCStartRemoteAPI") : NULL;
+            if(startRemoteAPI) {
+                startRemoteAPI();
+            }
+        }
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
         if(launchUrl) {

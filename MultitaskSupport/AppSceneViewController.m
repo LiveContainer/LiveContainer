@@ -96,7 +96,7 @@
     }];
     [_extension beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *identifier) {
         if(identifier) {
-            [MultitaskManager registerMultitaskContainerWithContainer:self.dataUUID];
+            [MultitaskManager registerMultitaskContainerWithContainer:self.dataUUID controller:self];
             self.identifier = identifier;
             self.pid = [self.extension pidForRequestIdentifier:self.identifier];
             [delegate appSceneVC:self didInitializeWithError:nil];

@@ -54,10 +54,11 @@ extern NSBundle *lcMainBundle;
     static dispatch_once_t once;
     static NSString *appGroupID = @"Unknown";
     dispatch_once(&once, ^{
-        NSArray* possibleAppGroups = @[
-            [@"group.com.SideStore.SideStore." stringByAppendingString:[self teamIdentifier]],
-            [@"group.com.rileytestut.AltStore." stringByAppendingString:[self teamIdentifier]]
-        ];
+        NSString *teamIdentifier = [self teamIdentifier];
+        NSArray* possibleAppGroups = teamIdentifier ? @[
+            [@"group.com.SideStore.SideStore." stringByAppendingString:teamIdentifier],
+            [@"group.com.rileytestut.AltStore." stringByAppendingString:teamIdentifier]
+        ] : @[];
         
         // we prefer app groups with "Apps" in it, which indicate this app group is actually used by the store.
         for (NSString *group in possibleAppGroups) {

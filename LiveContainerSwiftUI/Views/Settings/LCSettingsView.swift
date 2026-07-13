@@ -55,6 +55,10 @@ struct LCSettingsView: View {
     @AppStorage("LCStrictHiding", store: LCUtils.appGroupUserDefault) var strictHiding = false
     @AppStorage("dynamicColors", store: LCUtils.appGroupUserDefault) var dynamicColors = true
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
+    @AppStorage(RemoteAPISettings.enabledKey) private var remoteAPIEnabled = false
+    @AppStorage(RemoteAPISettings.portKey) private var remoteAPIPort = RemoteAPISettings.defaultPort
+    @AppStorage(RemoteAPISettings.maximumUploadMegabytesKey) private var remoteAPIMaximumUploadMegabytes = RemoteAPISettings.defaultMaximumUploadMegabytes
+    @State private var remoteAPIToken = RemoteAPITokenStore.token() ?? ""
     
     @AppStorage("LCSideJITServerAddress", store: LCUtils.appGroupUserDefault) var sideJITServerAddress : String = ""
     @AppStorage("LCDeviceUDID", store: LCUtils.appGroupUserDefault) var deviceUDID: String = ""
@@ -277,6 +281,54 @@ struct LCSettingsView: View {
                         Text("lc.settings.dataManagement".loc)
                     }
                 }
+
+                Section {
+                    Toggle("Enable Remote API", isOn: $remoteAPIEnabled)
+                    HStack {
+                        Text("Address")
+                        Spacer()
+                        Text("http://" + RemoteAPIServer.localAddress + ":" + String(remoteAPIPort))
+                            .foregroundStyle(.secondary)
+                            .textSelection(.enabled)
+                    }
+                    HStack {
+                        Text("Port")
+                        Spacer()
+                        TextField("8080", value: $remoteAPIPort, format: .number.grouping(.never))
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Maximum upload")
+                        Spacer()
+                        TextField("512", value: $remoteAPIMaximumUploadMegabytes, format: .number.grouping(.never))
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                        Text("MB")
+                    }
+                    HStack {
+                        Text("Authentication Token")
+                        Spacer()
+                        Text(remoteAPIToken.isEmpty ? "Not generated" : remoteAPIToken)
+                            .lineLimit(1)
+                            .redacted(reason: remoteAPIToken.isEmpty ? [] : .privacy)
+                    }
+                    Button("Copy Token") {
+                        UIPasteboard.general.string = remoteAPIToken
+                        successInfo = "Authentication token copied."
+                        successShow = true
+                    }
+                    .disabled(remoteAPIToken.isEmpty)
+                    Button("Regenerate Token") {
+                        remoteAPIToken = RemoteAPITokenStore.regenerate()
+                        successInfo = "Authentication token regenerated."
+                        successShow = true
+                    }
+                } header: {
+                    Text("Remote API")
+                } footer: {
+                    Text("The API is available to devices on your local network. Keep the authentication token private.")
+                }
                 
                 Section {
                     HStack {
@@ -459,6 +511,30 @@ struct LCSettingsView: View {
             guard sharedModel.selectedTab == .settings, let link else { return }
             sharedModel.deepLink = nil
             handleURL(url: link)
+        }
+        .onChange(of: remoteAPIEnabled) { enabled in
+            if enabled {
+                remoteAPIToken = RemoteAPITokenStore.tokenCreatingIfNeeded()
+                do {
+                    try RemoteAPIServer.shared.start(port: remoteAPIPort)
+                } catch {
+                    errorInfo = error.localizedDescription
+                    errorShow = true
+                    remoteAPIEnabled = false
+                }
+            } else {
+                RemoteAPIServer.shared.stop()
+            }
+        }
+        .onChange(of: remoteAPIPort) { port in
+            guard remoteAPIEnabled else { return }
+            do {
+                try RemoteAPIServer.shared.start(port: port)
+            } catch {
+                errorInfo = error.localizedDescription
+                errorShow = true
+                remoteAPIEnabled = false
+            }
         }
     }
     

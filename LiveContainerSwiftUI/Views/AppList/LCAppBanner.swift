@@ -11,7 +11,6 @@ import UniformTypeIdentifiers
 import UIKit
 
 protocol LCAppBannerDelegate {
-    func removeApp(app: LCAppModel)
     func installMdm(data: Data)
     func openNavigationView(view: AnyView)
     func promptForGeneratedIconStyle() async -> GeneratedIconStyle?
@@ -363,16 +362,10 @@ struct LCAppBanner : View {
                 
             }
             
-            let fm = FileManager()
-            try fm.removeItem(atPath: self.appInfo.bundlePath()!)
-            self.delegate.removeApp(app: self.model)
+            try AppManagementService.shared.removeApp(bundleIdentifier: model.bundleIdentifier, removeData: doRemoveAppFolder)
             if doRemoveAppFolder {
                 for container in containers {
                     let dataUUID = container.folderName
-                    let dataFolderPath = LCPath.dataPath.appendingPathComponent(dataUUID)
-                    try fm.removeItem(at: dataFolderPath)
-                    LCUtils.removeAppKeychain(dataUUID: dataUUID)
-                    
                     DispatchQueue.main.async {
                         self.appDataFolders.removeAll(where: { f in
                             return f == dataUUID

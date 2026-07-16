@@ -9,6 +9,30 @@
 
 uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 
+static BOOL LCAppContainsEmbeddedTweakRuntime(NSString *bundlePath) {
+    if (bundlePath.length == 0) {
+        return NO;
+    }
+
+    static NSArray<NSString *> *runtimePaths;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        runtimePaths = @[
+            @"Frameworks/CydiaSubstrate.framework/CydiaSubstrate",
+            @"Frameworks/ElleKit.framework/ElleKit",
+            @"Frameworks/libsubstrate.dylib"
+        ];
+    });
+
+    NSFileManager *fileManager = NSFileManager.defaultManager;
+    for (NSString *runtimePath in runtimePaths) {
+        if ([fileManager fileExistsAtPath:[bundlePath stringByAppendingPathComponent:runtimePath]]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 @implementation LCAppInfo
 
 - (instancetype)initWithBundlePath:(NSString*)bundlePath {
@@ -67,6 +91,21 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         }
 
         _autoSaveDisabled = false;
+
+        // Pre-injected apps already initialize their own hook runtime and tweaks while
+        // the guest executable is being loaded. Injecting TweakLoader as another direct
+        // dependency changes that initializer order and can make the two hook stacks
+        // interfere with each other. Load TweakLoader after the guest initializers
+        // instead, while keeping LiveContainer's UIKit compatibility hooks available.
+        if (_info[@"dontInjectTweakLoader"] == nil && LCAppContainsEmbeddedTweakRuntime(bundlePath)) {
+            _info[@"dontInjectTweakLoader"] = @YES;
+            if (_info[@"dontLoadTweakLoader"] == nil) {
+                _info[@"dontLoadTweakLoader"] = @NO;
+            }
+            _info[@"LCPatchRevision"] = @(-1);
+            NSLog(@"[LCAppInfo] Embedded tweak runtime detected in %@; TweakLoader will be loaded after guest initializers.", bundlePath.lastPathComponent);
+            [self save];
+        }
     }
     return self;
 }

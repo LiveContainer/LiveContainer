@@ -15,6 +15,7 @@ API_AVAILABLE(ios(16.0))
 @property(nonatomic, strong) AVPictureInPictureVideoCallViewController *pipVideoCallViewController;
 @property(nonatomic, strong) AVPictureInPictureController *pipController;
 @property(nonatomic) AppSceneViewController* displayingVC;
+@property(nonatomic) BOOL ownsAudioSession;
 @end
 
 
@@ -45,10 +46,46 @@ static PiPManager* sharedInstance = nil;
 }
 
 - (instancetype)init {
-    NSError* error = nil;
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&error];
-    [[AVAudioSession sharedInstance] setActive:YES withOptions:1 error:&error];
+    self = [super init];
     return self;
+}
+
+- (void)activateAudioSessionForLiveContainerPiP {
+    // AVAudioSession is process-global. Configuring it when the singleton is merely
+    // accessed can interrupt media owned by a guest process (for example YouPiP or
+    // background playback). Only take an audio session while LC's own window PiP is
+    // actually running, and mix with the guest's audio instead of replacing it.
+    AVAudioSession *audioSession = AVAudioSession.sharedInstance;
+    NSError *error = nil;
+    BOOL categoryConfigured = [audioSession setCategory:AVAudioSessionCategoryPlayback
+                                                    mode:AVAudioSessionModeMoviePlayback
+                                                 options:AVAudioSessionCategoryOptionMixWithOthers
+                                                   error:&error];
+    if (!categoryConfigured) {
+        NSLog(@"[PiPManager] Unable to configure the LiveContainer PiP audio session: %@", error);
+        return;
+    }
+
+    error = nil;
+    self.ownsAudioSession = [audioSession setActive:YES error:&error];
+    if (!self.ownsAudioSession) {
+        NSLog(@"[PiPManager] Unable to activate the LiveContainer PiP audio session: %@", error);
+    }
+}
+
+- (void)deactivateAudioSessionForLiveContainerPiP {
+    if (!self.ownsAudioSession) {
+        return;
+    }
+
+    NSError *error = nil;
+    [AVAudioSession.sharedInstance setActive:NO
+                                 withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                                       error:&error];
+    if (error) {
+        NSLog(@"[PiPManager] Unable to deactivate the LiveContainer PiP audio session: %@", error);
+    }
+    self.ownsAudioSession = NO;
 }
 
 - (void)startPiPWithVC:(AppSceneViewController*)vc {
@@ -58,6 +95,7 @@ static PiPManager* sharedInstance = nil;
         [self pictureInPictureControllerDidStopPictureInPicture:self.pipController];
     }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)([self.pipController isPictureInPictureActive] * 0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self activateAudioSessionForLiveContainerPiP];
         self.displayingVC = vc;
         self.pipVideoCallViewController = [AVPictureInPictureVideoCallViewController new];
         self.pipVideoCallViewController.preferredContentSize = vc.view.bounds.size;
@@ -84,6 +122,9 @@ static PiPManager* sharedInstance = nil;
 
 - (void)stopPiP {
     [self.pipController stopPictureInPicture];
+    if (!self.pipController.isPictureInPictureActive) {
+        [self deactivateAudioSessionForLiveContainerPiP];
+    }
 }
 
 // PIP delegate
@@ -128,11 +169,13 @@ static PiPManager* sharedInstance = nil;
         self.pipController = nil;
         self.pipVideoCallViewController = nil;
     }
+    [self deactivateAudioSessionForLiveContainerPiP];
     // FIXME: HostingController path causes a tiny flicker during transition to and from PiP.
 }
 
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController failedToStartPictureInPictureWithError:(NSError *)error {
     NSLog(@"%@", error.description);
+    [self deactivateAudioSessionForLiveContainerPiP];
 }
 
 - (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(NSObject*)object change:(NSDictionary<NSString *,id> *) change context:(void *) context {

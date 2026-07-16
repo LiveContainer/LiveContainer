@@ -12,6 +12,7 @@
 #import "Localization.h"
 #import "LCSharedUtils.h"
 #import "utils.h"
+#import "UIKitPrivate+MultitaskSupport.h"
 
 @interface AppSceneViewController()
 @property int resizeDebounceToken;
@@ -39,6 +40,11 @@
     self.scaleRatio = 1.0;
     self.isAppTerminationCleanUpCalled = false;
     self.isNativeWindow = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskMode" ] == 1;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        UIKitFixesInit();
+    });
     
     // init extension
     NSError* error = nil;

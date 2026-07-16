@@ -325,3 +325,4 @@ API_AVAILABLE(ios(17.4)) // 17.0
 
 // Not really private ones
 UIEdgeInsets LCUIEdgeInsetsRotateToOrientation(UIEdgeInsets insets, UIInterfaceOrientation orientation);
+void UIKitFixesInit(void);

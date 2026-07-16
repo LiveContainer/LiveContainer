@@ -1193,10 +1193,7 @@
 					"-DCONFIG_BRANCH=\\\"$(CONFIG_BRANCH)\\\"",
 					"-DCONFIG_COMMIT=\\\"$(CONFIG_COMMIT)\\\"",
 				);
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBScene",
-				);
+				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kdtLiveContainerSwiftUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1239,10 +1236,7 @@
 					"-DCONFIG_BRANCH=\\\"$(CONFIG_BRANCH)\\\"",
 					"-DCONFIG_COMMIT=\\\"$(CONFIG_COMMIT)\\\"",
 				);
-				OTHER_LDFLAGS = (
-					"-Wl,-U,_OBJC_CLASS_$_RBSTarget",
-					"-Wl,-U,_OBJC_CLASS_$_FBScene",
-				);
+				OTHER_LDFLAGS = "-Wl,-U,_OBJC_CLASS_$_RBSTarget";
 				PRODUCT_BUNDLE_IDENTIFIER = com.kdtLiveContainerSwiftUI;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

@@ -29,10 +29,14 @@ API_AVAILABLE(ios(17.0))
 }
 @end
 
+@interface FBScene(hooks)
+- (void)hook__performUpdateWithoutActivation:(void (^)(UIMutableApplicationSceneSettings *settings, FBSSceneTransitionContext *context))updateBlock;
+@end
+
 /// Hook to fix safe area scaling and orientation. We use superview's safeAreaInsets because self one tends to bug out with certain scaling, and also allows us to customize safe area while in PiP mode later on.
 /// This hook applies across 18.0-27.0. 17.4+ is uncertain.
-@implementation FBScene(Hook)
-- (void)hook__performUpdateWithoutActivation:(void (^)(UIMutableApplicationSceneSettings *, FBSSceneTransitionContext *))updateBlock API_AVAILABLE(ios(17.0)) {
+API_AVAILABLE(ios(17.0))
+void hook_FBScene_performUpdateWithoutActivation(FBScene* self, SEL _cmd, void (^updateBlock)(UIMutableApplicationSceneSettings *, FBSSceneTransitionContext *)) {
     // We don't wanna mess up system extensions on iOS 26+
     if(LCHasRemoteSheetProviderSelector && self.ui_viewServiceComponent) {
         [self hook__performUpdateWithoutActivation:updateBlock];
@@ -60,12 +64,12 @@ API_AVAILABLE(ios(17.0))
     };
     [self hook__performUpdateWithoutActivation:wrappedBlock];
 }
-@end
 
-__attribute__((constructor))
 void UIKitFixesInit(void) {
     if (@available(iOS 17.0, *)) {
-        LCHasRemoteSheetProviderSelector = [PrivClass(FBScene) instancesRespondToSelector:@selector(ui_viewServiceComponent)];
-        swizzle(FBScene.class, @selector(_performUpdateWithoutActivation:), @selector(hook__performUpdateWithoutActivation:));
+        Class FBSceneClass = PrivClass(FBScene);
+        LCHasRemoteSheetProviderSelector = [FBSceneClass instancesRespondToSelector:@selector(ui_viewServiceComponent)];
+        class_addMethod(FBSceneClass, @selector(hook__performUpdateWithoutActivation:), (IMP)hook_FBScene_performUpdateWithoutActivation, "v@:@");
+        swizzle(FBSceneClass, @selector(_performUpdateWithoutActivation:), @selector(hook__performUpdateWithoutActivation:));
     }
 }

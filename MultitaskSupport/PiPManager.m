@@ -16,6 +16,7 @@ API_AVAILABLE(ios(16.0))
 @property(nonatomic, strong) AVPictureInPictureController *pipController;
 @property(nonatomic) AppSceneViewController* displayingVC;
 @property(nonatomic) BOOL ownsAudioSession;
+@property(nonatomic) NSUInteger pipStartGeneration;
 @end
 
 
@@ -88,7 +89,35 @@ static PiPManager* sharedInstance = nil;
     self.ownsAudioSession = NO;
 }
 
+- (void)startPictureInPictureWhenPossibleWithAttempt:(NSUInteger)attempt generation:(NSUInteger)generation {
+    AVPictureInPictureController *controller = self.pipController;
+    if (!controller || generation != self.pipStartGeneration) {
+        return;
+    }
+
+    if (controller.isPictureInPictureActive) {
+        return;
+    }
+
+    if (controller.isPictureInPicturePossible) {
+        NSLog(@"[PiPManager] Starting LiveContainer PiP.");
+        [controller startPictureInPicture];
+        return;
+    }
+
+    if (attempt >= 10) {
+        NSLog(@"[PiPManager] LiveContainer PiP is not possible after waiting; giving up.");
+        [self deactivateAudioSessionForLiveContainerPiP];
+        return;
+    }
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self startPictureInPictureWhenPossibleWithAttempt:attempt + 1 generation:generation];
+    });
+}
+
 - (void)startPiPWithVC:(AppSceneViewController*)vc {
+    self.pipStartGeneration++;
     [self.pipController stopPictureInPicture];
     if(self.displayingVC) {
         [self.displayingDecoratedVC unminimizeWindowPiP];
@@ -113,14 +142,13 @@ static PiPManager* sharedInstance = nil;
         self.pipController.canStartPictureInPictureAutomaticallyFromInline = YES;
         self.pipController.delegate = self;
         [self.pipController setValue:@1 forKey:@"controlsStyle"];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self.pipController startPictureInPicture];
-        });
+        [self startPictureInPictureWhenPossibleWithAttempt:0 generation:self.pipStartGeneration];
     });
 
 }
 
 - (void)stopPiP {
+    self.pipStartGeneration++;
     [self.pipController stopPictureInPicture];
     if (!self.pipController.isPictureInPictureActive) {
         [self deactivateAudioSessionForLiveContainerPiP];

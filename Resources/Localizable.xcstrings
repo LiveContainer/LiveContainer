@@ -629,6 +629,12 @@
             "value" : "Do you also want to delete data folder of %@? You can keep it for future use."
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿También quieres eliminar la carpeta de datos de %@? Puedes conservarla para usarla más adelante."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9181,6 +9187,12 @@
             "value" : "Convert to Shared App"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convertir en aplicación compartida"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9375,6 +9387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tweak Folder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carpeta de Tweak"
           }
         },
         "fr" : {
@@ -12741,10 +12759,46 @@
     "lc.common.suggested" : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorgeschlagen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suggested"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sugerido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggéré"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sugerowane"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önerildi"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gợi ý"
           }
         },
         "zh-Hans" : {
@@ -13975,6 +14029,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Неверный IDFV"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçersiz IDFV"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IDFV không hợp lệ"
           }
         },
         "zh-Hans" : {
@@ -16119,6 +16185,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "**Check [LiveContainer FAQ](https://github.com/khanhduytran0/LiveContainer/issues/265) for common issues.**\n                         \nIf you encounter a bug or compatibility issue please submit on [GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "**Comprueba [LiveContainer FAQ](https://github.com/khanhduytran0/LiveContainer/issues/265) para problemas comunes.**\n                         \nSi encuentras un error o un problema de compatibilidad, por favor envíalo en [GitHub issues](https://github.com/khanhduytran0/LiveContainer/issues)."
           }
         },
         "fr" : {
@@ -19682,6 +19754,18 @@
             "value" : "Кэш очищен."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önbellekler temizlendi."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã dọn bộ nhớ đệm."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19735,6 +19819,18 @@
             "value" : "Хотите очистить кэш?"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önbellekleri silmek ister misiniz?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có muốn xoá bộ nhớ đệm?"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -19786,6 +19882,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Очистить кэш"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önbellekleri Temizle"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xóa bộ nhớ Đệm"
           }
         },
         "zh-Hans" : {
@@ -20456,6 +20564,18 @@
             "value" : "Очистить временные файлы"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici Dosyaları Temizle"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dọn những Tệp tạm"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20510,6 +20630,18 @@
             "value" : "Временные файлы очищены."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici dosyalar kaldırıldı."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã xoá các tệp tạm."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -20562,6 +20694,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вы хотите очистить временные файлы?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici dosyaları silmek ister misiniz?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bạn có muốn xoá các tệp tạm?"
           }
         },
         "zh-Hans" : {
@@ -20699,6 +20843,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Очистить уведомления"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildirimleri Temizle"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xoá Thông báo"
           }
         },
         "zh-Hans" : {
@@ -21800,6 +21956,12 @@
             "value" : "Полностью прятать док"
           }
         },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn Dock khi thu gọn"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22112,6 +22274,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Import Certificate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar certificado"
           }
         },
         "fr" : {
@@ -24954,6 +25122,12 @@
             "value" : "Allow Game Mode"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir modo de juego"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25460,6 +25634,18 @@
             "value" : "Приоритет запуска"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başlatma Önceliği"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thứ tự Khởi chạy"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -25512,6 +25698,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Перетаскивайте LiveContainer'ы, чтобы выбрать, какой из них будет использован при запуске общих приложений."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşılan uygulamalar başlatılırken önce hangisinin deneneceğini belirlemek için LiveContainer’ları sürükleyin."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kéo các LiveContainer để chọn cái nào được thử trước khi chạy app được chia sẻ."
           }
         },
         "zh-Hans" : {
@@ -26061,6 +26259,18 @@
             "value" : "Кэш уже очищен."
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temizlenecek önbellek yok."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có bộ nhớ đệm để xoá."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26308,6 +26518,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Временные файлы уже отсутствуют."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaldırılacak geçici dosya yok."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có tệp tạm để xoá."
           }
         },
         "zh-Hans" : {
@@ -27455,6 +27677,18 @@
             "value" : "Управление хранилищем"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depolama Yönetimi"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quản lý Dung lượng"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27971,10 +28205,46 @@
     "lc.shareExtension.error.noContainer" : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diese App ist kein Container verfügbar."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No container is available for this app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay ningún contenedor disponible para esta aplicación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun conteneur n'est disponible pour cette application."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dostępnego kontenera dla tej aplikacji."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu uygulama için uygun konteyner yok."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có thùng chứa nào cho app này."
           }
         },
         "zh-Hans" : {
@@ -30166,6 +30436,18 @@
             "value" : "Наборы приложений"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama Paketi"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gói Ứng dụng"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30218,6 +30500,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Данные App Group"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Group Verileri"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dữ liệu App Group"
           }
         },
         "zh-Hans" : {
@@ -30274,6 +30568,18 @@
             "value" : "Идёт расчёт…"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesaplanıyor…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang tính…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30325,6 +30631,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Контейнеры"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konteynerler"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thùng chứa"
           }
         },
         "zh-Hans" : {
@@ -30380,6 +30698,18 @@
             "value" : "Приложения"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yüklenmiş Uygulamalar"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng đã cài đặt"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30431,6 +30761,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Нет данных о хранилище приложения"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama depolama verisi bulunmuyor"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có dữ liệu về dung lượng app"
           }
         },
         "zh-Hans" : {
@@ -30487,6 +30829,18 @@
             "value" : "Прочее"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diğer"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khác"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30538,6 +30892,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Временные файлы"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici Dosyalar"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tệp tạm"
           }
         },
         "zh-Hans" : {
@@ -30593,6 +30959,18 @@
             "value" : "Хранилище"
           }
         },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam Depolama"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tổng Dung lượng"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -30644,6 +31022,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Твики"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tweak'ler"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tweak"
           }
         },
         "zh-Hans" : {
@@ -30774,6 +31164,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
           }
         },
         "fr" : {
@@ -32040,6 +32436,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This web page is trying to launch \"%@\", continue?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página web está intentando lanzar \"%@\", ¿continuar?"
           }
         },
         "fr" : {

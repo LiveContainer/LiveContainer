@@ -11,6 +11,7 @@
 #include <mach-o/nlist.h>
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_images.h>
+#include <mach/mach.h>
 #include <sys/syscall.h>
 
 #include "dyld_bypass_validation.h"
@@ -38,14 +39,31 @@ static bool redirectFunction(char *name, void *patchAddr, void *target) {
     return kr == KERN_SUCCESS;
 }
 
+static bool hasProtection(vm_address_t regionAddress, vm_prot_t requiredProtection) {
+    vm_size_t regionSize = 0;
+    natural_t depth = 0;
+    vm_region_submap_short_info_data_64_t regionInfo;
+    mach_msg_type_number_t infoCount = VM_REGION_SUBMAP_SHORT_INFO_COUNT_64;
+    kern_return_t kr = vm_region_recurse_64(mach_task_self(), &regionAddress, &regionSize,
+                                            &depth, (vm_region_recurse_info_t)&regionInfo,
+                                            &infoCount);
+    if (kr != KERN_SUCCESS || regionSize == 0 ||
+        (regionInfo.protection & requiredProtection) != requiredProtection ||
+        (regionInfo.max_protection & requiredProtection) != requiredProtection) {
+        return false;
+    }
+    return true;
+}
+
 static void* hooked_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset) {
     void *map = __mmap(addr, len, prot, flags, fd, offset);
-    if (map == MAP_FAILED && fd && (prot & PROT_EXEC)) {
+    if (fd && (prot & PROT_EXEC) && (map == MAP_FAILED || !hasProtection((vm_address_t)map, PROT_EXEC))) {
         map = __mmap(addr, len, PROT_READ | PROT_WRITE, flags | MAP_PRIVATE | MAP_ANON, 0, 0);
         void *memoryLoadedFile = __mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, offset);
         memcpy(map, memoryLoadedFile, len);
         munmap(memoryLoadedFile, len);
         mprotect(map, len, prot);
+        assert(hasProtection((vm_address_t)map, PROT_EXEC));
     }
     return map;
 }
@@ -99,8 +117,12 @@ void init_bypassDyldLibValidation(void) {
     orig_fcntl = __fcntl;
     //redirectFunction("mmap", mmap, hooked_mmap);
     //redirectFunction("fcntl", fcntl, hooked_fcntl);
-    
+
     searchDyldFunctions();
+
+    assert(orig_dyld_mmap);
+    assert(orig_dyld_fcntl);
+
     redirectFunction("dyld_fcntl", orig_dyld_fcntl, hooked___fcntl);
     redirectFunction("dyld_mmap", orig_dyld_mmap, hooked_mmap);
 }

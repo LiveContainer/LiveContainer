@@ -275,7 +275,8 @@ bool initGuestSDKVersionInfo(void) {
     void* dyldBase = getDyldBase();
     // it seems Apple is constantly changing findVersionSetEquivalent's signature so we directly search sVersionMap instead
     uint32_t* versionMapPtr = getCachedSymbol(@"__ZN5dyld3L11sVersionMapE", dyldBase);
-    if(!versionMapPtr) {
+    // check if the cached pointer is valid in case dyld is swapped by Dopamine. #1454
+    if(!versionMapPtr || versionMapPtr[0] != 0x07db0901) {
 #if !TARGET_OS_SIMULATOR
         const char* dyldPath = "/usr/lib/dyld";
         uint64_t offset = 0;

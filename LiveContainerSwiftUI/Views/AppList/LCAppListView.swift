@@ -67,6 +67,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @StateObject private var runWhenMultitaskAlert = YesNoHelper()
     
     @StateObject private var generatedIconStyleSelector = AlertHelper<GeneratedIconStyle>()
+    @State private var generatedIconStyleHasCustom = false
+    @State private var generatedIconStyleShowVariants = false
     
     @State var safariViewOpened = false
     @State var safariViewURL = URL(string: "https://google.com")!
@@ -341,15 +343,24 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             } label: {
                 Text("lc.appList.generatedIconStyleSelector.light".loc)
             }
-            Button {
-                generatedIconStyleSelector.close(result: .Dark)
-            } label: {
-                Text("lc.appList.generatedIconStyleSelector.dark".loc)
+            if generatedIconStyleShowVariants {
+                Button {
+                    generatedIconStyleSelector.close(result: .Dark)
+                } label: {
+                    Text("lc.appList.generatedIconStyleSelector.dark".loc)
+                }
+                Button {
+                    generatedIconStyleSelector.close(result: .Original)
+                } label: {
+                    Text("lc.appList.generatedIconStyleSelector.original".loc)
+                }
             }
-            Button {
-                generatedIconStyleSelector.close(result: .Original)
-            } label: {
-                Text("lc.appList.generatedIconStyleSelector.original".loc)
+            if generatedIconStyleHasCustom {
+                Button {
+                    generatedIconStyleSelector.close(result: .Custom)
+                } label: {
+                    Text("lc.appList.generatedIconStyleSelector.custom".loc)
+                }
             }
             Button("lc.common.cancel".loc, role: .cancel) {
                 generatedIconStyleSelector.close(result: nil)
@@ -1164,13 +1175,17 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         isNavigationActive = true
     }
     
-    func promptForGeneratedIconStyle() async -> GeneratedIconStyle? {
+    func promptForGeneratedIconStyle(hasCustomIcon: Bool) async -> GeneratedIconStyle? {
+        generatedIconStyleHasCustom = hasCustomIcon
         if #available(iOS 18.0, *) {
+            generatedIconStyleShowVariants = true
             return await generatedIconStyleSelector.open()
         } else {
-            return .Light
+            // pre-iOS 18 has no light/dark/original variants, so only prompt
+            // (light vs custom) when there's a custom icon to choose
+            generatedIconStyleShowVariants = false
+            return hasCustomIcon ? await generatedIconStyleSelector.open() : .Light
         }
-        
     }
     
     func closeNavigationView() {

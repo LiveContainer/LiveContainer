@@ -220,7 +220,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             .navigationTitle("lc.appList.myApps".loc)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    if sharedModel.multiLCStatus != 2 {
+                    //if sharedModel.multiLCStatus != 2 {
                         if !installprogressVisible {
                             Menu {
                                 
@@ -237,7 +237,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         } else {
                             ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)
                         }
-                    }
+                    //}
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if(UserDefaults.sideStoreExist()) {

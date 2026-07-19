@@ -27,6 +27,7 @@
 @property(nonatomic) NSString *sceneID;
 @property(nonatomic) NSExtension* extension;
 @property(nonatomic) bool isAppTerminationCleanUpCalled;
+@property(nonatomic) bool isSwitchToLiveContainerRequested;
 @end
 
 @implementation AppSceneViewController
@@ -240,6 +241,20 @@
     }
 }
 
+- (void)switchToLiveContainer {
+    if(self.isSwitchToLiveContainerRequested) {
+        return;
+    }
+
+    self.isSwitchToLiveContainerRequested = true;
+    NSLog(@"[LC][LaunchModeSwitch] stopping LiveProcess guest %@ to relaunch container %@ in LiveContainer", self.bundleId, self.dataUUID);
+    if(self.isAppRunning) {
+        [self terminate];
+    } else {
+        [self appTerminationCleanUp];
+    }
+}
+
 - (void)_performActionsForUIScene:(UIScene *)scene withUpdatedFBSScene:(id)fbsScene settingsDiff:(FBSSceneSettingsDiff *)diff fromSettings:(UIApplicationSceneSettings *)settings transitionContext:(id)context lifecycleActionType:(uint32_t)actionType {
     if(!self.isAppRunning) {
         [self appTerminationCleanUp];
@@ -352,8 +367,19 @@
         }
         self.presenter = nil;
         
-        [self.delegate appSceneVCAppDidExit:self];
         [MultitaskManager unregisterMultitaskContainerWithContainer:self.dataUUID];
+        [self.delegate appSceneVCAppDidExit:self];
+
+        if(self.isSwitchToLiveContainerRequested) {
+            NSUserDefaults *defaults = NSUserDefaults.lcUserDefaults;
+            [defaults setObject:self.bundleId forKey:@"selected"];
+            [defaults setObject:self.dataUUID forKey:@"selectedContainer"];
+            [defaults synchronize];
+            NSLog(@"[LC][LaunchModeSwitch] relaunching %@ with container %@ in LiveContainer", self.bundleId, self.dataUUID);
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [LCSharedUtils launchToGuestApp];
+            });
+        }
     });
 }
 

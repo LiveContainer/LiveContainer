@@ -39,8 +39,8 @@ API_AVAILABLE(ios(16.0))
 - (void)updateSettingsWithBlock:(void(^)(UIMutableApplicationSceneSettings *settings))block;
 - (void)appTerminationCleanUp;
 - (void)terminate;
+- (void)switchToLiveContainer;
 - (void)openURLScheme:(NSString *)urlString;
 - (void)handleStatusBarTapAction:(UIAction *)action;
 - (BOOL)usesHostingControllerAPI;
 @end
-

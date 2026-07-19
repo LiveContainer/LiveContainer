@@ -1,6 +1,88 @@
 import UIKit
 import SwiftUI
 import Intents
+import AppIntents
+import CoreFoundation
+
+private let lcActionButtonSwitchNotification = "com.kdt.livecontainer.actionButtonSwitch" as CFString
+
+@available(iOS 16.0, *)
+struct LCActionButtonSwitchIntent: AppIntent {
+    static var title: LocalizedStringResource = "lc.launchMode.switchToLiveProcess"
+    static var description = IntentDescription("Ask the active LiveContainer guest app to switch to LiveProcess. Run this shortcut three times to show the confirmation menu.")
+    static var openAppWhenRun = false
+
+    func perform() async throws -> some IntentResult {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(lcActionButtonSwitchNotification),
+            nil,
+            nil,
+            true
+        )
+        return .result()
+    }
+}
+
+@available(iOS 16.0, *)
+struct LCAppShortcuts: AppShortcutsProvider {
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: LCActionButtonSwitchIntent(),
+            phrases: ["Switch \(.applicationName) to LiveProcess"],
+            shortTitle: "lc.launchMode.switchToLiveProcess",
+            systemImageName: "arrow.left.arrow.right"
+        )
+    }
+
+    static var shortcutTileColor: ShortcutTileColor = .blue
+}
+
+enum LCLaunchModeSwitchDefaults {
+    static let pendingBundleID = "LCPendingLiveProcessBundleID"
+    static let pendingDataUUID = "LCPendingLiveProcessDataUUID"
+}
+
+@MainActor
+enum LCLaunchModeSwitchManager {
+    private static var isLaunching = false
+
+    static func launchPendingLiveProcessAppIfNeeded() {
+        guard !isLaunching else { return }
+
+        let defaults = UserDefaults.standard
+        guard let bundleID = defaults.string(forKey: LCLaunchModeSwitchDefaults.pendingBundleID),
+              let dataUUID = defaults.string(forKey: LCLaunchModeSwitchDefaults.pendingDataUUID)
+        else {
+            return
+        }
+
+        let model = DataManager.shared.model
+        guard let app = (model.apps + model.hiddenApps).first(where: {
+            $0.appInfo.relativeBundlePath == bundleID
+        }) else {
+            defaults.removeObject(forKey: LCLaunchModeSwitchDefaults.pendingBundleID)
+            defaults.removeObject(forKey: LCLaunchModeSwitchDefaults.pendingDataUUID)
+            defaults.set("Unable to find the app requested for LiveProcess: \(bundleID)", forKey: "error")
+            return
+        }
+
+        isLaunching = true
+        defaults.removeObject(forKey: LCLaunchModeSwitchDefaults.pendingBundleID)
+        defaults.removeObject(forKey: LCLaunchModeSwitchDefaults.pendingDataUUID)
+        NSLog("[LC][LaunchModeSwitch] relaunching \(bundleID) with container \(dataUUID) in LiveProcess")
+
+        Task {
+            defer { isLaunching = false }
+            do {
+                try await app.runApp(multitask: true, containerFolderName: dataUUID)
+            } catch {
+                NSLog("[LC][LaunchModeSwitch] LiveProcess relaunch failed: \(error.localizedDescription)")
+                defaults.set(error.localizedDescription, forKey: "error")
+            }
+        }
+    }
+}
 
 @objc class AppDelegate: UIResponder, UIApplicationDelegate {
         

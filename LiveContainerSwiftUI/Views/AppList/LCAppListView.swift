@@ -491,6 +491,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             app.delegate = self
         }
         didAppear = true
+        LCLaunchModeSwitchManager.launchPendingLiveProcessAppIfNeeded()
     }
     
     

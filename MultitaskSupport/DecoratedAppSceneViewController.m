@@ -44,6 +44,10 @@
                 [PiPManager.shared startPiPWithVC:self.appSceneVC];
             }
         }],
+        [UIAction actionWithTitle:@"lc.launchMode.switchToLiveContainer".loc image:[UIImage systemImageNamed:@"arrow.left.arrow.right"] identifier:nil handler:^(UIAction * _Nonnull action) {
+            self.isAppTerminationRequested = true;
+            [self.appSceneVC switchToLiveContainer];
+        }],
         [UICustomViewMenuElement elementWithViewProvider:^UIView *(UICustomViewMenuElement *element) {
             return [self scaleSliderViewWithTitle:@"lc.multitask.scale".loc min:0.5 max:2.0 value:self.scaleRatio stepInterval:0.01];
         }]

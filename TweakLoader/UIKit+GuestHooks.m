@@ -9,6 +9,48 @@ UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 BOOL launchURLProcessed = NO;
 
+static NSString * const LCPendingLiveProcessBundleIDKey = @"LCPendingLiveProcessBundleID";
+static NSString * const LCPendingLiveProcessDataUUIDKey = @"LCPendingLiveProcessDataUUID";
+static CFStringRef const LCActionButtonSwitchNotification = CFSTR("com.kdt.livecontainer.actionButtonSwitch");
+static const void *LCLaunchModeHomeBarCaptureViewKey = &LCLaunchModeHomeBarCaptureViewKey;
+static const NSTimeInterval LCLaunchModeHomeBarLongPressDuration = 0.65;
+static const CGFloat LCLaunchModeHomeBarExtraCaptureHeight = 6.0;
+static const CGFloat LCLaunchModeHomeBarMinimumCaptureHeight = 36.0;
+static const CGFloat LCLaunchModeHomeBarAllowableMovement = 22.0;
+
+@class LCLaunchModeSwitchGestureController;
+
+@interface LCLaunchModeHomeBarCaptureView : UIView
+@property(nonatomic, weak) LCLaunchModeSwitchGestureController *controller;
+@property(nonatomic) BOOL trackingHomeBarPress;
+@property(nonatomic) CGPoint initialTouchLocation;
+@property(nonatomic, copy) dispatch_block_t longPressBlock;
+- (void)cancelPendingLongPress;
+@end
+
+@interface LCLaunchModeSwitchGestureController : NSObject
+@property(nonatomic) BOOL showingAlert;
+@property(nonatomic) BOOL installed;
+@property(nonatomic) NSUInteger actionButtonInvocationCount;
+@property(nonatomic) CFAbsoluteTime lastActionButtonInvocationTime;
+@property(nonatomic) UIAlertController *confirmationAlert;
++ (instancetype)shared;
+- (void)install;
+- (void)handleActionButtonInvocation;
+- (void)handleHomeBarLongPressTimerFired;
+- (BOOL)confirmationAlertIsVisible;
+@end
+
+static void LCActionButtonSwitchNotificationCallback(CFNotificationCenterRef center,
+                                                     void *observer,
+                                                     CFNotificationName name,
+                                                     const void *object,
+                                                     CFDictionaryRef userInfo) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [LCLaunchModeSwitchGestureController.shared handleActionButtonInvocation];
+    });
+}
+
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
@@ -19,6 +61,11 @@ static void UIKitGuestHooksInit() {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
+    if(@available(iOS 16.0, *)) {
+        if(!NSUserDefaults.isLiveProcess && !NSUserDefaults.isSideStore) {
+            [LCLaunchModeSwitchGestureController.shared install];
+        }
+    }
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         switch (LCOrientationLockDirection) {
@@ -150,6 +197,300 @@ void LCShowAlert(NSString* message) {
     [window.rootViewController presentViewController:alert animated:YES completion:nil];
     objc_setAssociatedObject(alert, @"window", window, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
+
+@implementation LCLaunchModeHomeBarCaptureView
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if(self.hidden || !self.userInteractionEnabled || self.alpha < 0.01) {
+        return nil;
+    }
+    return [self pointInside:point withEvent:event] ? self : nil;
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self cancelPendingLongPress];
+    if(touches.count != 1 || event.allTouches.count != 1) {
+        return;
+    }
+
+    UITouch *touch = touches.anyObject;
+    self.initialTouchLocation = [touch locationInView:self];
+    self.trackingHomeBarPress = YES;
+
+    __weak typeof(self) weakSelf = self;
+    dispatch_block_t block = dispatch_block_create(0, ^{
+        LCLaunchModeHomeBarCaptureView *strongSelf = weakSelf;
+        if(!strongSelf || !strongSelf.trackingHomeBarPress || !strongSelf.window) {
+            return;
+        }
+        strongSelf.trackingHomeBarPress = NO;
+        strongSelf.longPressBlock = nil;
+        [strongSelf.controller handleHomeBarLongPressTimerFired];
+    });
+    self.longPressBlock = block;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(LCLaunchModeHomeBarLongPressDuration * NSEC_PER_SEC)), dispatch_get_main_queue(), block);
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    if(!self.trackingHomeBarPress) {
+        return;
+    }
+    if(event.allTouches.count != 1) {
+        [self cancelPendingLongPress];
+        return;
+    }
+
+    UITouch *touch = touches.anyObject;
+    CGPoint location = [touch locationInView:self];
+    CGFloat dx = location.x - self.initialTouchLocation.x;
+    CGFloat dy = location.y - self.initialTouchLocation.y;
+    CGFloat maximumDistance = LCLaunchModeHomeBarAllowableMovement * LCLaunchModeHomeBarAllowableMovement;
+    if(dx * dx + dy * dy > maximumDistance) {
+        [self cancelPendingLongPress];
+    }
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self cancelPendingLongPress];
+}
+
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self cancelPendingLongPress];
+}
+
+- (void)cancelPendingLongPress {
+    self.trackingHomeBarPress = NO;
+    if(self.longPressBlock) {
+        dispatch_block_cancel(self.longPressBlock);
+        self.longPressBlock = nil;
+    }
+}
+
+@end
+
+@implementation LCLaunchModeSwitchGestureController
+
++ (instancetype)shared {
+    static LCLaunchModeSwitchGestureController *controller;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        controller = [LCLaunchModeSwitchGestureController new];
+    });
+    return controller;
+}
+
+- (void)install {
+    if(self.installed) {
+        return;
+    }
+    self.installed = YES;
+    [NSNotificationCenter.defaultCenter addObserver:self
+                                           selector:@selector(attachGestureToGuestWindows)
+                                               name:UIApplicationDidBecomeActiveNotification
+                                             object:nil];
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+                                    NULL,
+                                    LCActionButtonSwitchNotificationCallback,
+                                    LCActionButtonSwitchNotification,
+                                    NULL,
+                                    CFNotificationSuspensionBehaviorDeliverImmediately);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self attachGestureToGuestWindows];
+    });
+}
+
+- (void)attachGestureToGuestWindows {
+    for(UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if(![scene isKindOfClass:UIWindowScene.class]) {
+            continue;
+        }
+        for(UIWindow *window in ((UIWindowScene *)scene).windows) {
+            if(window.windowLevel != UIWindowLevelNormal) {
+                continue;
+            }
+            LCLaunchModeHomeBarCaptureView *captureView = objc_getAssociatedObject(window, LCLaunchModeHomeBarCaptureViewKey);
+            if(captureView) {
+                [window bringSubviewToFront:captureView];
+                continue;
+            }
+
+            captureView = [[LCLaunchModeHomeBarCaptureView alloc] initWithFrame:CGRectZero];
+            captureView.translatesAutoresizingMaskIntoConstraints = NO;
+            captureView.backgroundColor = UIColor.clearColor;
+            captureView.userInteractionEnabled = YES;
+            captureView.multipleTouchEnabled = NO;
+            captureView.exclusiveTouch = YES;
+            captureView.isAccessibilityElement = NO;
+            captureView.accessibilityElementsHidden = YES;
+            captureView.controller = self;
+
+            [window addSubview:captureView];
+            NSLayoutConstraint *topConstraint = [captureView.topAnchor constraintEqualToAnchor:window.safeAreaLayoutGuide.bottomAnchor constant:-LCLaunchModeHomeBarExtraCaptureHeight];
+            topConstraint.priority = UILayoutPriorityDefaultHigh;
+            [NSLayoutConstraint activateConstraints:@[
+                [captureView.leadingAnchor constraintEqualToAnchor:window.leadingAnchor],
+                [captureView.trailingAnchor constraintEqualToAnchor:window.trailingAnchor],
+                [captureView.bottomAnchor constraintEqualToAnchor:window.bottomAnchor],
+                [captureView.heightAnchor constraintGreaterThanOrEqualToConstant:LCLaunchModeHomeBarMinimumCaptureHeight],
+                topConstraint
+            ]];
+            objc_setAssociatedObject(window, LCLaunchModeHomeBarCaptureViewKey, captureView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    }
+}
+
+- (void)handleHomeBarLongPressTimerFired {
+    if([self confirmationAlertIsVisible]) {
+        return;
+    }
+    UIImpactFeedbackGenerator *feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+    [feedback impactOccurred];
+    [self presentSwitchConfirmation];
+}
+
+- (void)handleActionButtonInvocation {
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    if(now - self.lastActionButtonInvocationTime > 8.0) {
+        self.actionButtonInvocationCount = 0;
+    }
+    self.lastActionButtonInvocationTime = now;
+    self.actionButtonInvocationCount += 1;
+    NSLog(@"[LC][LaunchModeSwitch] Action Button shortcut invocation %lu/3", (unsigned long)self.actionButtonInvocationCount);
+
+    if(self.actionButtonInvocationCount < 3) {
+        UIImpactFeedbackGenerator *feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+        [feedback impactOccurred];
+        return;
+    }
+
+    self.actionButtonInvocationCount = 0;
+    [self presentSwitchConfirmation];
+}
+
+- (UIWindowScene *)activeWindowScene {
+    for(UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if([scene isKindOfClass:UIWindowScene.class] && scene.activationState == UISceneActivationStateForegroundActive) {
+            return (UIWindowScene *)scene;
+        }
+    }
+    for(UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if([scene isKindOfClass:UIWindowScene.class]) {
+            return (UIWindowScene *)scene;
+        }
+    }
+    return nil;
+}
+
+- (UIViewController *)topViewControllerFrom:(UIViewController *)viewController {
+    UIViewController *presentedViewController = viewController.presentedViewController;
+    if(presentedViewController && !presentedViewController.isBeingDismissed) {
+        return [self topViewControllerFrom:presentedViewController];
+    }
+    if([viewController isKindOfClass:UINavigationController.class]) {
+        return [self topViewControllerFrom:((UINavigationController *)viewController).visibleViewController];
+    }
+    if([viewController isKindOfClass:UITabBarController.class]) {
+        return [self topViewControllerFrom:((UITabBarController *)viewController).selectedViewController];
+    }
+    if([viewController isKindOfClass:UISplitViewController.class]) {
+        UIViewController *lastViewController = ((UISplitViewController *)viewController).viewControllers.lastObject;
+        if(lastViewController) {
+            return [self topViewControllerFrom:lastViewController];
+        }
+    }
+    return viewController;
+}
+
+- (void)presentSwitchConfirmation {
+    if([self confirmationAlertIsVisible] || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) {
+        return;
+    }
+
+    NSString *bundleID = NSBundle.mainBundle.bundlePath.lastPathComponent;
+    NSString *dataUUID = [NSString stringWithUTF8String:getenv("HOME")].lastPathComponent;
+    if(bundleID.length == 0 || dataUUID.length == 0) {
+        return;
+    }
+
+    self.showingAlert = YES;
+    UIWindowScene *windowScene = [self activeWindowScene];
+    if(!windowScene) {
+        self.showingAlert = NO;
+        return;
+    }
+
+    UIWindow *guestWindow = windowScene.keyWindow;
+    if(!guestWindow) {
+        for(UIWindow *window in windowScene.windows) {
+            if(window.windowLevel == UIWindowLevelNormal && !window.hidden) {
+                guestWindow = window;
+                break;
+            }
+        }
+    }
+    UIViewController *presenter = [self topViewControllerFrom:guestWindow.rootViewController];
+    if(!presenter || !presenter.view.window) {
+        self.showingAlert = NO;
+        return;
+    }
+
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"LiveContainer"
+                                                                   message:@"lc.launchMode.switchToLiveProcessMessage".loc
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    self.confirmationAlert = alert;
+
+    __weak typeof(self) weakSelf = self;
+    [alert addAction:[UIAlertAction actionWithTitle:@"lc.launchMode.switchToLiveProcess".loc
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction *action) {
+        NSUserDefaults *defaults = NSUserDefaults.lcUserDefaults;
+        [defaults setObject:bundleID forKey:LCPendingLiveProcessBundleIDKey];
+        [defaults setObject:dataUUID forKey:LCPendingLiveProcessDataUUIDKey];
+        [defaults removeObjectForKey:@"selected"];
+        [defaults removeObjectForKey:@"selectedContainer"];
+        [defaults synchronize];
+        NSLog(@"[LC][LaunchModeSwitch] stopping LiveContainer guest %@ to relaunch container %@ in LiveProcess", bundleID, dataUUID);
+        [weakSelf finishSwitchConfirmation];
+        [NSClassFromString(@"LCSharedUtils") launchToGuestApp];
+    }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"lc.common.cancel".loc
+                                              style:UIAlertActionStyleCancel
+                                            handler:^(UIAlertAction *action) {
+        [weakSelf finishSwitchConfirmation];
+    }]];
+
+    UIPopoverPresentationController *popoverController = alert.popoverPresentationController;
+    if(popoverController) {
+        popoverController.sourceView = presenter.view;
+        popoverController.sourceRect = CGRectMake(CGRectGetMidX(presenter.view.bounds),
+                                                   CGRectGetMaxY(presenter.view.bounds) - 1,
+                                                   1,
+                                                   1);
+        popoverController.permittedArrowDirections = 0;
+    }
+
+    [presenter presentViewController:alert animated:YES completion:nil];
+}
+
+- (BOOL)confirmationAlertIsVisible {
+    UIAlertController *alert = self.confirmationAlert;
+    if(!alert) {
+        self.showingAlert = NO;
+        return NO;
+    }
+    if(alert.presentingViewController || alert.isBeingPresented || alert.view.window) {
+        return YES;
+    }
+    [self finishSwitchConfirmation];
+    return NO;
+}
+
+- (void)finishSwitchConfirmation {
+    self.confirmationAlert = nil;
+    self.showingAlert = NO;
+}
+
+@end
 
 void LCShowAppNotFoundAlert(NSString* bundleId) {
     LCShowAlert([@"lc.guestTweak.error.bundleNotFound %@" localizeWithFormat: bundleId]);

@@ -265,13 +265,23 @@ struct LCAppBanner : View {
 
         // Multitask Toggle
         if #available(iOS 16.0, *) {
-            let runTitle = model.shouldLaunchInMultitaskMode ? "lc.appBanner.run".loc : "lc.appBanner.multitask".loc
-            let runImage = model.shouldLaunchInMultitaskMode ? "play.fill" : "macwindow.badge.plus"
-            
-            let multitaskAction = UIAction(title: runTitle, image: UIImage(systemName: runImage)) { _ in
-                Task { await runApp(multitask: !model.shouldLaunchInMultitaskMode) }
+            let liveContainerAction = UIAction(
+                title: "lc.launchMode.runInLiveContainer".loc,
+                image: UIImage(systemName: "app.fill")
+            ) { _ in
+                Task { await runApp(multitask: false) }
             }
-            sectionChildren.append(multitaskAction)
+            let liveProcessAction = UIAction(
+                title: "lc.launchMode.runInLiveProcess".loc,
+                image: UIImage(systemName: "macwindow.badge.plus")
+            ) { _ in
+                Task { await runApp(multitask: true) }
+            }
+            sectionChildren.append(UIMenu(
+                title: "lc.launchMode.runMode".loc,
+                image: UIImage(systemName: "arrow.left.arrow.right"),
+                children: [liveContainerAction, liveProcessAction]
+            ))
         }
 
         // Submenu: Add to Home Screen

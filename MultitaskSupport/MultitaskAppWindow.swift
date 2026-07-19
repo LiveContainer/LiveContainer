@@ -45,6 +45,7 @@ struct MultitaskAppInfo {
 @available(iOS 16.1, *)
 struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     @Binding var show: Bool
+    @Binding var switchToLiveContainerRequested: Bool
     let bundleId: String
     let dataUUID: String
     let initSize: CGSize
@@ -111,7 +112,9 @@ struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     
     func updateUIViewController(_ vc: UIViewController, context _: Context) {
         if let vc = vc as? AppSceneViewController {
-            if !show {
+            if switchToLiveContainerRequested {
+                vc.switchToLiveContainer()
+            } else if !show {
                 vc.terminate()
             }
         }
@@ -126,6 +129,7 @@ struct MultitaskAppWindow: View {
     @State var errorMessage: String? = nil
     @State private var hasScheduledAutoClose = false
     @State private var didRequestManualClose = false
+    @State private var switchToLiveContainerRequested = false
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @Environment(\.openWindow) var openWindow
     @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
@@ -142,7 +146,8 @@ struct MultitaskAppWindow: View {
         let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
-                AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
+                AppSceneViewSwiftUI(show: $show, switchToLiveContainerRequested: $switchToLiveContainerRequested,
+                                    bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
                                     onAppInitialize: { pid, error in
                     DispatchQueue.main.async {
                         if error == nil {
@@ -159,6 +164,14 @@ struct MultitaskAppWindow: View {
             }
             .ignoresSafeArea(.all, edges: .all)
             .navigationTitle(Text("\(appInfo.displayName) - \(String(pid))"))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("lc.launchMode.switchToLiveContainer".loc, systemImage: "arrow.left.arrow.right") {
+                        didRequestManualClose = true
+                        switchToLiveContainerRequested = true
+                    }
+                }
+            }
             .onReceive(pub) { out in
                 if let scene1 = sceneDelegate.window?.windowScene, let scene2 = out.object as? UIWindowScene, scene1 == scene2 {
                     show = false

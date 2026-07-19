@@ -121,6 +121,14 @@ extern NSBundle *lcMainBundle;
 }
 
 + (BOOL)launchToGuestApp {
+    if(![NSThread isMainThread]) {
+        __block BOOL didLaunch = NO;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            didLaunch = [self launchToGuestApp];
+        });
+        return didLaunch;
+    }
+
     NSString *urlScheme = nil;
     NSString *tsPath = [NSString stringWithFormat:@"%@/../_TrollStore", NSBundle.mainBundle.bundlePath];
     UIApplication *application = [NSClassFromString(@"UIApplication") sharedApplication];

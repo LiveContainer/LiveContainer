@@ -1719,6 +1719,107 @@
         }
       }
     },
+    "lc.appList.jitlessCertificateRequiredIOS26" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتطلب iOS 26 أو الأحدث وضع JITLess. يرجى استيراد الشهادة المستخدمة لتوقيع LiveContainer من الإعدادات قبل تشغيل التطبيقات."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unter iOS 26 oder neuer ist der JITLess-Modus erforderlich. Bitte importiere in den Einstellungen das Zertifikat, mit dem LiveContainer signiert wurde, bevor du Apps startest."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JITLess mode is required on iOS 26 or later. Please import the certificate used to sign LiveContainer in Settings before launching apps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En iOS 26 o posterior se requiere el modo JITLess. Importa en Ajustes el certificado usado para firmar LiveContainer antes de abrir apps."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mode JITLess est requis sous iOS 26 ou version ultérieure. Importez dans les réglages le certificat utilisé pour signer LiveContainer avant de lancer des apps."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su iOS 26 o versioni successive è richiesta la modalità JITLess. Importa nelle impostazioni il certificato usato per firmare LiveContainer prima di avviare le app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26以降ではJITLessモードが必要です。アプリを起動する前に、設定でLiveContainerの署名に使用した証明書を読み込んでください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 이상에서는 JITLess 모드가 필요합니다. 앱을 실행하기 전에 설정에서 LiveContainer 서명에 사용한 인증서를 가져오세요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na iOS 26 lub nowszym wymagany jest tryb JITLess. Przed uruchomieniem aplikacji zaimportuj w ustawieniach certyfikat użyty do podpisania LiveContainer."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No iOS 26 ou posterior, o modo JITLess é necessário. Importe nos Ajustes o certificado usado para assinar o LiveContainer antes de abrir apps."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На iOS 26 или новее требуется режим JITLess. Перед запуском приложений импортируйте в настройках сертификат, которым был подписан LiveContainer."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "På iOS 26 eller senare krävs JITLess-läge. Importera certifikatet som användes för att signera LiveContainer i inställningarna innan du startar appar."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 veya daha yenisinde JITLess modu gerekir. Uygulamaları başlatmadan önce Ayarlar'da LiveContainer'ı imzalamak için kullanılan sertifikayı içe aktarın."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 trở lên yêu cầu chế độ JITLess. Vui lòng nhập chứng chỉ dùng để ký LiveContainer trong Cài đặt trước khi chạy ứng dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 或更新版本需要使用免 JIT 模式。请先到 LiveContainer 设置中导入用于签署 LiveContainer 的证书，再启动 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 26 或更新版本需要使用免 JIT 模式。請先到 LiveContainer 設定匯入用來簽署 LiveContainer 的憑證，再啟動 App。"
+          }
+        }
+      }
+    },
     "lc.appList.abortInstallation" : {
       "extractionState" : "manual",
       "localizations" : {

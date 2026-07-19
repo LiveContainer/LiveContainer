@@ -230,6 +230,8 @@ class LCAppModel: ObservableObject, Hashable {
             }
             
         }
+
+        try validateJITLessCertificateForLaunchIfNeeded(bundleIdOverride: bundleIdOverride)
         
         // this is rerouted to bringing app to front, so not needed here?
 //        if(MultitaskManager.isUsing(container: uiSelectedContainer!.folderName)) {
@@ -375,6 +377,27 @@ class LCAppModel: ObservableObject, Hashable {
         await MainActor.run {
             isAppRunning = false
         }
+    }
+
+    private func validateJITLessCertificateForLaunchIfNeeded(bundleIdOverride: String?) throws {
+        #if targetEnvironment(simulator)
+        return
+        #else
+        if #available(iOS 26.0, *) {
+            // Built-in SideStore is handled specially by LCBootstrap and does not require LiveContainer's
+            // imported signing certificate before launch.
+            if bundleIdOverride == "builtinSideStore" {
+                return
+            }
+
+            guard LCSharedUtils.certificatePassword() != nil else {
+                throw [
+                    "lc.signer.noCertificateFoundErr".loc,
+                    "lc.appList.jitlessCertificateRequiredIOS26".loc
+                ].joined(separator: "\n\n")
+            }
+        }
+        #endif
     }
     
     func forceResign() async throws {

@@ -3,6 +3,7 @@
 
 API_AVAILABLE(ios(16.0))
 @interface DecoratedAppSceneViewController : UIViewController<AppSceneViewControllerDelegate>
+@property(nonatomic, readonly) UIMenu *(^dockIconMenuProvider)(void);
 @property(nonatomic) AppSceneViewController* appSceneVC;
 @property(nonatomic) UIStackView *view;
 @property(nonatomic) UINavigationBar *navigationBar;

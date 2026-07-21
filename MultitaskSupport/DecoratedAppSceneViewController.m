@@ -10,6 +10,7 @@
 #import "utils.h"
 
 @interface DecoratedAppSceneViewController()
+@property(nonatomic) NSArray <UIAction *>* controlActions;
 @property(nonatomic) NSArray* activatedVerticalConstraints;
 @property(nonatomic) NSString* dataUUID;
 @property(nonatomic) int pid;
@@ -31,9 +32,37 @@
     _appSceneVC = [[AppSceneViewController alloc] initWithBundleId:bundleId dataUUID:dataUUID delegate:self];
     self.title = windowName;
     [self setupDecoratedView];
+    [self setupWindowControlItems];
     
     [MultitaskDockManager.shared addRunningApp:windowName appUUID:dataUUID view:self.view];
-    
+    __weak typeof(self) weakSelf = self;
+    self.navigationItem.titleMenuProvider = ^UIMenu *(NSArray<UIMenuElement *> *suggestedActions){
+        return [weakSelf titleMenuWithOptions:0];
+    };
+    return self;
+}
+
+- (UIMenu *(^)(void))dockIconMenuProvider {
+    return ^{
+        if (self.view.hidden || !self.appSceneVC.isAppRunning) {
+            // only allow Close when window is hidden
+            self.controlActions[0].attributes = UIMenuElementAttributesDisabled;
+            self.controlActions[1].attributes = UIMenuElementAttributesDisabled;
+        } else {
+            self.controlActions[0].attributes = self.controlActions[1].attributes = 0;
+        }
+        
+        UIMenuOptions options = UIMenuOptionsDisplayInline;
+        if (@available(iOS 17.0, *)) {
+            options |= UIMenuOptionsDisplayAsPalette;
+        }
+        UIMenu *controlMenu = [UIMenu menuWithTitle:@"" image:nil identifier:nil options:options children:self.controlActions];
+        UIMenu *titleMenu = [self titleMenuWithOptions:UIMenuOptionsDisplayInline];
+        return [UIMenu menuWithTitle:@"" children:@[controlMenu, titleMenu]];
+    };
+}
+
+- (UIMenu *)titleMenuWithOptions:(UIMenuOptions)options {
     UIAction *actionSwitchToExternalDisplay = [UIAction actionWithTitle:@"lc.multitask.enterExternalDisplay".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
         [self moveWindowToExternalDisplay];
     }];
@@ -54,39 +83,43 @@
         }]
     ];
     
-
-    __weak typeof(self) weakSelf = self;
-    [self.navigationItem setTitleMenuProvider:^UIMenu *(NSArray<UIMenuElement *> *suggestedActions){
-        if(!weakSelf.appSceneVC.isAppRunning) {
-            return [UIMenu menuWithTitle:NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", nil) children:@[]];
-        } else {
-            if(!ExternalSceneDelegate.available) {
-                actionSwitchToExternalDisplay.attributes = UIMenuElementAttributesDisabled;
-            }
-            NSString *pidText = [NSString stringWithFormat:@"PID: %d", weakSelf.pid];
-            return [UIMenu menuWithTitle:pidText children:menuItems];
+    if(!self.appSceneVC.isAppRunning) {
+        return [UIMenu menuWithTitle:NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", nil) children:@[]];
+    } else {
+        if(!ExternalSceneDelegate.available) {
+            actionSwitchToExternalDisplay.attributes = UIMenuElementAttributesDisabled;
         }
-    }];
+        NSString *pidText = [NSString stringWithFormat:@"PID: %d", self.pid];
+        return [UIMenu menuWithTitle:pidText image:nil identifier:nil options:options children:menuItems];
+    }
+}
+
+- (void)setupWindowControlItems {
+    UIImageConfiguration *imageConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
     
-    UIImage *minimizeImage = [UIImage systemImageNamed:@"minus.circle"];
-    UIImageConfiguration *minimizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-    minimizeImage = [minimizeImage imageWithConfiguration:minimizeConfig];
-    UIBarButtonItem *minimizeButton = [[UIBarButtonItem alloc] initWithImage:minimizeImage style:UIBarButtonItemStylePlain target:self action:@selector(minimizeWindow)];
-    minimizeButton.tintColor = [UIColor systemYellowColor];
+    UIImage *minimizeImage = [[UIImage systemImageNamed:@"minus.circle"] imageWithConfiguration:imageConfig];
+    minimizeImage = [minimizeImage imageWithTintColor:UIColor.systemYellowColor renderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIAction *minimizeAction = [UIAction actionWithTitle:@"" image:minimizeImage identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
+        [self minimizeWindow];
+    }];
+    UIBarButtonItem *minimizeButton = [[UIBarButtonItem alloc] initWithPrimaryAction:minimizeAction];
     
     NSString *maximizeImageName = _isMaximized ? @"arrow.down.right.and.arrow.up.left.circle" : @"arrow.up.left.and.arrow.down.right.circle";
-    UIImage *maximizeImage = [UIImage systemImageNamed:maximizeImageName];
-    UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-    maximizeImage = [maximizeImage imageWithConfiguration:maximizeConfig];
-    self.maximizeButton = [[UIBarButtonItem alloc] initWithImage:maximizeImage style:UIBarButtonItemStylePlain target:self action:@selector(maximizeWindow)];
-    self.maximizeButton.tintColor = [UIColor systemGreenColor];
+    UIImage *maximizeImage = [[UIImage systemImageNamed:maximizeImageName] imageWithConfiguration:imageConfig];
+    maximizeImage = [maximizeImage imageWithTintColor:UIColor.systemGreenColor renderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIAction *maximizeAction = [UIAction actionWithTitle:@"" image:maximizeImage identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
+        [self maximizeWindow];
+    }];
+    self.maximizeButton = [[UIBarButtonItem alloc] initWithPrimaryAction:maximizeAction];
     
-    UIImage *closeImage = [UIImage systemImageNamed:@"xmark.circle"];
-    UIImageConfiguration *closeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-    closeImage = [closeImage imageWithConfiguration:closeConfig];
-    UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithImage:closeImage style:UIBarButtonItemStylePlain target:self action:@selector(closeWindow)];
-    closeButton.tintColor = [UIColor systemRedColor];
+    UIImage *closeImage = [[UIImage systemImageNamed:@"xmark.circle"] imageWithConfiguration:imageConfig];
+    closeImage = [closeImage imageWithTintColor:UIColor.systemRedColor renderingMode:UIImageRenderingModeAlwaysOriginal];
+    UIAction *closeAction = [UIAction actionWithTitle:@"" image:closeImage identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
+        [self closeWindow];
+    }];
+    UIBarButtonItem *closeButton = [[UIBarButtonItem alloc] initWithPrimaryAction:closeAction];
     
+    self.controlActions = @[minimizeAction, maximizeAction, closeAction];
     NSArray *barButtonItems = @[closeButton, self.maximizeButton, minimizeButton];
     if([NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"]) {
         // resize handle overlaps the close button, so put the buttons on the left
@@ -98,8 +131,6 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self adjustNavigationBarButtonSpacingWithNegativeSpacing:-8.0 rightMargin:-4.0];
     });
-
-    return self;
 }
 
 - (void)setupDecoratedView {
@@ -184,7 +215,6 @@
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [self updateOriginalFrame];
 }
-
 
 // Stolen from UIKitester
 - (UIView *)scaleSliderViewWithTitle:(NSString *)title min:(CGFloat)minValue max:(CGFloat)maxValue value:(CGFloat)initialValue stepInterval:(CGFloat)step {
@@ -304,9 +334,8 @@
             [self.view layoutIfNeeded];
         } completion:^(BOOL finished) {
             self.isMaximized = NO;
-            UIImage *maximizeImage = [UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle"];
-            UIImageConfiguration *maximizeConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-            self.maximizeButton.image = [maximizeImage imageWithConfiguration:maximizeConfig];
+            UIImage *maximizeImage = [[UIImage systemImageNamed:@"arrow.up.left.and.arrow.down.right.circle"] imageWithConfiguration:self.maximizeButton.image.configuration];
+            self.maximizeButton.image = [maximizeImage imageWithTintColor:UIColor.systemGreenColor renderingMode:UIImageRenderingModeAlwaysOriginal];
         }];
     } else {
         updateSettingsBlock = ^(UIMutableApplicationSceneSettings *settings) {
@@ -324,9 +353,8 @@
             
             [self.view layoutIfNeeded];
         } completion:^(BOOL finished) {
-            UIImage *restoreImage = [UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle"];
-            UIImageConfiguration *restoreConfig = [UIImageSymbolConfiguration configurationWithPointSize:16.0 weight:UIImageSymbolWeightMedium];
-            self.maximizeButton.image = [restoreImage imageWithConfiguration:restoreConfig];
+            UIImage *restoreImage = [[UIImage systemImageNamed:@"arrow.down.right.and.arrow.up.left.circle"] imageWithConfiguration:self.maximizeButton.image.configuration];
+            self.maximizeButton.image = [restoreImage imageWithTintColor:UIColor.systemGreenColor renderingMode:UIImageRenderingModeAlwaysOriginal];
         }];
     }
 }

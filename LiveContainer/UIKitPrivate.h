@@ -17,6 +17,10 @@
 - (UIActivityContinuationManager*)_getActivityContinuationManager;
 @end
 
+@interface UIBarButtonItemGroup(private)
+- (UIMenu *)_representativeItemMenu;
+@end
+
 @interface UIContextMenuInteraction(private)
 - (void)_presentMenuAtLocation:(CGPoint)location;
 @end

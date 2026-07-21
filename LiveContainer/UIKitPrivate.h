@@ -124,7 +124,7 @@ extern NSString* FBSOpenApplicationOptionKeyPayloadURL;
 @end
 
 @interface UIView(private)
-- (UIViewController *)_viewDelegate;
+- (UIViewController *)_viewControllerForAncestor;
 - (void)setSafeAreaInsets:(UIEdgeInsets)safeAreaInsets;
 @end
 

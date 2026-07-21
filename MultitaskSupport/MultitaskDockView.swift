@@ -847,6 +847,10 @@ public struct MultitaskDockSwiftView: View {
                         
                         ForEach(dockManager.apps) { app in
                             AppIconView(app: app)
+                                .betterContextMenu {
+                                    (app.view?._viewDelegate() as? DecoratedAppSceneViewController)?
+                                        .dockIconMenuProvider() ?? UIMenu()
+                                }
                         }
                     }
                 }

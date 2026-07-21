@@ -5,7 +5,7 @@
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "PiPManager.h"
 #import "VirtualWindowsHostView.h"
-#import "ExternalSceneDelegate.h"
+#import "ExternalSceneManager.h"
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 
@@ -63,6 +63,13 @@
 }
 
 - (UIMenu *)titleMenuWithOptions:(UIMenuOptions)options {
+    UIAction *actionEnablePiP = [UIAction actionWithTitle:@"lc.multitask.enablePip".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
+        if ([PiPManager.shared isPiPWithVC:self.appSceneVC]) {
+            [PiPManager.shared stopPiP];
+        } else {
+            [PiPManager.shared startPiPWithVC:self.appSceneVC];
+        }
+    }];
     UIAction *actionSwitchToExternalDisplay = [UIAction actionWithTitle:@"lc.multitask.enterExternalDisplay".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
         [self moveWindowToExternalDisplay];
     }];
@@ -70,13 +77,7 @@
         [UIAction actionWithTitle:@"lc.multitask.copyPid".loc image:[UIImage systemImageNamed:@"doc.on.doc"] identifier:nil handler:^(UIAction * _Nonnull action) {
             UIPasteboard.generalPasteboard.string = @(self.appSceneVC.pid).stringValue;
         }],
-        [UIAction actionWithTitle:@"lc.multitask.enablePip".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
-            if ([PiPManager.shared isPiPWithVC:self.appSceneVC]) {
-                [PiPManager.shared stopPiP];
-            } else {
-                [PiPManager.shared startPiPWithVC:self.appSceneVC];
-            }
-        }],
+        actionEnablePiP,
         actionSwitchToExternalDisplay,
         [UICustomViewMenuElement elementWithViewProvider:^UIView *(UICustomViewMenuElement *element) {
             return [self scaleSliderViewWithTitle:@"lc.multitask.scale".loc min:0.5 max:2.0 value:self.scaleRatio stepInterval:0.01];
@@ -86,8 +87,11 @@
     if(!self.appSceneVC.isAppRunning) {
         return [UIMenu menuWithTitle:NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", nil) children:@[]];
     } else {
-        if(!ExternalSceneDelegate.available) {
-            actionSwitchToExternalDisplay.attributes = UIMenuElementAttributesDisabled;
+        if(!ExternalSceneManager.available) {
+            actionSwitchToExternalDisplay.attributes = UIMenuElementAttributesHidden;
+        } else if([ExternalSceneManager isHostingApp:self]) {
+            // handle this case? Disable external display to PiP for now
+            actionEnablePiP.attributes = UIMenuElementAttributesDisabled;
         }
         NSString *pidText = [NSString stringWithFormat:@"PID: %d", self.pid];
         return [UIMenu menuWithTitle:pidText image:nil identifier:nil options:options children:menuItems];
@@ -213,6 +217,7 @@
     NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
 
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
+    [defaults addObserver:self forKeyPath:@"LCMultitaskHideWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [self updateOriginalFrame];
 }
 
@@ -315,21 +320,17 @@
 }
 
 - (void)maximizeWindow {
-    void (^updateSettingsBlock)(UIMutableApplicationSceneSettings *settings);
-    
     [self.view layoutIfNeeded];
-    if (self.isMaximized) {
-        updateSettingsBlock = ^(UIMutableApplicationSceneSettings *settings) {
-            [self updateWindowedFrameWithSettings:settings];
-        };
+    self.isMaximized = !self.isMaximized;
+    if (!self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
         CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
+            [self updateVerticalConstraintsInternal];
+            
             self.view.layer.borderWidth = 1;
             self.resizeHandle.alpha = 1;
-            
-            [self.appSceneVC updateSettingsWithBlock:updateSettingsBlock];
             
             [self.view layoutIfNeeded];
         } completion:^(BOOL finished) {
@@ -338,18 +339,12 @@
             self.maximizeButton.image = [maximizeImage imageWithTintColor:UIColor.systemGreenColor renderingMode:UIImageRenderingModeAlwaysOriginal];
         }];
     } else {
-        updateSettingsBlock = ^(UIMutableApplicationSceneSettings *settings) {
-            [self updateMaximizedFrameWithSettings:settings];
-        };
         [self updateOriginalFrame];
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.isMaximized = YES;
-            [self updateVerticalConstraints];
+            [self updateVerticalConstraintsInternal];
             
             self.view.layer.borderWidth = 0;
             self.resizeHandle.alpha = 0;
-            
-            [self.appSceneVC updateSettingsWithBlock:updateSettingsBlock];
             
             [self.view layoutIfNeeded];
         } completion:^(BOOL finished) {
@@ -360,13 +355,16 @@
 }
 
 - (void)moveWindowToExternalDisplay {
-    UIViewController *newVC = ExternalSceneDelegate.keyWindow.rootViewController;
+    UIViewController *newVC = ExternalSceneManager.keyWindow.rootViewController;
     [newVC addChildViewController:self];
     [newVC.view addSubview:self.view];
     [self appSceneVC:self.appSceneVC didUpdateFromSettings:self.appSceneVC.presenter.scene.settings.mutableCopy transitionContext:nil lifecycleActionType:0];
 }
 
 - (void)moveWindowToMainDisplay {
+    MultitaskDockManager *dm = MultitaskDockManager.shared;
+    UIView *v = dm.windowHostingView;
+    UIViewController *vc = v._viewDelegate;
     UIViewController *newVC = MultitaskDockManager.shared.windowHostingView._viewDelegate;
     [newVC addChildViewController:self];
     [newVC.view addSubview:self.view];
@@ -485,15 +483,20 @@
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     [self.view layoutIfNeeded];
     [UIView animateWithDuration:0.3 animations:^{
-        BOOL bottomWindowBar = [change[NSKeyValueChangeNewKey] boolValue];
-        if(bottomWindowBar) {
-            self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems;
-            self.navigationItem.rightBarButtonItems = nil;
-            [self.view addArrangedSubview:self.navigationBar];
+        BOOL newValue = [change[NSKeyValueChangeNewKey] boolValue];
+        if([keyPath isEqualToString:@"LCMultitaskBottomWindowBar"]) {
+            if(newValue) {
+                self.navigationItem.leftBarButtonItems = self.navigationItem.rightBarButtonItems;
+                self.navigationItem.rightBarButtonItems = nil;
+                [self.view addArrangedSubview:self.navigationBar];
+            } else {
+                self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems;
+                self.navigationItem.leftBarButtonItems = nil;
+                [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+            }
         } else {
-            self.navigationItem.rightBarButtonItems = self.navigationItem.leftBarButtonItems;
-            self.navigationItem.leftBarButtonItems = nil;
-            [self.view insertArrangedSubview:self.navigationBar atIndex:0];
+            // LCMultitaskHideWindowBar
+            [self updateVerticalConstraints];
         }
         
         [self updateVerticalConstraints];
@@ -537,40 +540,43 @@
     [self.view.superview bringSubviewToFront:self.view];
 }
 
+- (void)updateVerticalConstraintsInternal {
+    BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
+    BOOL hideWindowBarFullscreen = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskHideWindowBar"];
+    BOOL hideWindowBar = (MultitaskDockManager.shared.isCollapsed || hideWindowBarFullscreen) && self.isMaximized;
+    CGFloat navBarHeight = hideWindowBar ? 0 : 44;
+    self.navigationBar.alpha = hideWindowBar ? 0 : 1;
+    self.navigationBar.hidden = hideWindowBar;
+    
+    // Update safe area insets
+    if(self.isMaximized) {
+        self.appSceneVC.shouldSkipDebounceOnce = YES;
+        __weak typeof(self) weakSelf = self;
+        [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+            [weakSelf updateMaximizedFrameWithSettings:settings];
+        }];
+    }
+    
+    [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
+    if(bottomWindowBar) {
+        self.activatedVerticalConstraints = @[
+            [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
+            [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
+        ];
+    } else {
+        self.activatedVerticalConstraints = @[
+            [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
+            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+            [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
+        ];
+    }
+    [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
+}
 - (void)updateVerticalConstraints {
     [self.view layoutIfNeeded];
     [UIView animateWithDuration:0.3 animations:^{
-        BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
-        BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && self.isMaximized;
-        CGFloat navBarHeight = hideWindowBar ? 0 : 44;
-        self.navigationBar.alpha = hideWindowBar ? 0 : 1;
-        self.navigationBar.hidden = hideWindowBar;
-        
-        // Update safe area insets
-        if(self.isMaximized) {
-            self.appSceneVC.shouldSkipDebounceOnce = YES;
-            __weak typeof(self) weakSelf = self;
-            [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-                [weakSelf updateMaximizedFrameWithSettings:settings];
-            }];
-        }
-        
-        [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];
-        if(bottomWindowBar) {
-            self.activatedVerticalConstraints = @[
-                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
-                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-            ];
-        } else {
-            self.activatedVerticalConstraints = @[
-                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
-                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
-                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
-            ];
-        }
-        [NSLayoutConstraint activateConstraints:self.activatedVerticalConstraints];
-
+        [self updateVerticalConstraintsInternal];
         [self.view layoutIfNeeded];
     }];
 }

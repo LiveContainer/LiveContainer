@@ -59,6 +59,9 @@ struct LCMultitaskSettingView: View {
                     Toggle(isOn: $bottomWindowBar) {
                         Text("lc.settings.bottomWindowBar".loc)
                     }
+                    Toggle(isOn: $hideFullscreenWindowBar) {
+                        Text("lc.settings.hideWindowBarOnFullscreen".loc)
+                    }
                     Toggle(isOn: $redirectURLToHost) {
                         Text("lc.settings.redirectURLToHost".loc)
                     }

@@ -70,8 +70,14 @@
             [PiPManager.shared startPiPWithVC:self.appSceneVC];
         }
     }];
-    UIAction *actionSwitchToExternalDisplay = [UIAction actionWithTitle:@"lc.multitask.enterExternalDisplay".loc image:[UIImage systemImageNamed:@"pip.enter"] identifier:nil handler:^(UIAction * _Nonnull action) {
-        [self moveWindowToExternalDisplay];
+    BOOL isWindowOnExternalDisplay = [ExternalSceneManager isHostingApp:self];
+    NSString *extDisplayOptionStr = isWindowOnExternalDisplay ? @"lc.multitask.moveToMainDisplay" : @"lc.multitask.moveToExternalDisplay";
+    UIAction *actionSwitchToExternalDisplay = [UIAction actionWithTitle:extDisplayOptionStr.loc image:[UIImage systemImageNamed:@"airplay.video"] identifier:nil handler:^(UIAction * _Nonnull action) {
+        if(isWindowOnExternalDisplay) {
+            [self moveWindowToMainDisplay];
+        } else {
+            [self moveWindowToExternalDisplay];
+        }
     }];
     NSArray *menuItems = @[
         [UIAction actionWithTitle:@"lc.multitask.copyPid".loc image:[UIImage systemImageNamed:@"doc.on.doc"] identifier:nil handler:^(UIAction * _Nonnull action) {
@@ -364,8 +370,8 @@
 - (void)moveWindowToMainDisplay {
     MultitaskDockManager *dm = MultitaskDockManager.shared;
     UIView *v = dm.windowHostingView;
-    UIViewController *vc = v._viewDelegate;
-    UIViewController *newVC = MultitaskDockManager.shared.windowHostingView._viewDelegate;
+    UIViewController *vc = v._viewControllerForAncestor;
+    UIViewController *newVC = MultitaskDockManager.shared.windowHostingView._viewControllerForAncestor;
     [newVC addChildViewController:self];
     [newVC.view addSubview:self.view];
     [self appSceneVC:self.appSceneVC didUpdateFromSettings:self.appSceneVC.presenter.scene.settings.mutableCopy transitionContext:nil lifecycleActionType:0];

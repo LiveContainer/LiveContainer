@@ -20,7 +20,7 @@
     // grab the frontmost app window, if it's visible pass this event to it
     UIView *frontmostView = self.subviews.lastObject;
     if(!frontmostView.hidden) {
-        DecoratedAppSceneViewController *decoratedVC = (id)frontmostView._viewDelegate;
+        DecoratedAppSceneViewController *decoratedVC = (id)frontmostView._viewControllerForAncestor;
         [decoratedVC.appSceneVC handleStatusBarTapAction:action];
     }
     return !frontmostView.hidden;

@@ -51,7 +51,7 @@
 - (void)sceneDidDisconnect:(UIScene *)scene {
     VirtualWindowsHostView *windowHostingView = (VirtualWindowsHostView *)self.window.rootViewController.view;
     for(UIView *view in windowHostingView.subviews) {
-        DecoratedAppSceneViewController *vc = (id)view._viewDelegate;
+        DecoratedAppSceneViewController *vc = (id)view._viewControllerForAncestor;
         if([vc isKindOfClass:DecoratedAppSceneViewController.class]) {
             [vc moveWindowToMainDisplay];
         }

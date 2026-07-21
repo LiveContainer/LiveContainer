@@ -607,7 +607,7 @@ class AppInfoProvider {
     private func passURLSchemeToView(_ view: UIView) {
         if let launchUrl = UserDefaults.standard.string(forKey: "launchAppUrlScheme") {
             UserDefaults.standard.removeObject(forKey: "launchAppUrlScheme")
-            if let decoratedVC = view._viewDelegate() as? DecoratedAppSceneViewController {
+            if let decoratedVC = view._viewControllerForAncestor() as? DecoratedAppSceneViewController {
                 decoratedVC.appSceneVC.openURLScheme(launchUrl)
             }
         }
@@ -615,7 +615,7 @@ class AppInfoProvider {
 
     private func animateViewAppearance(_ view: UIView, from center: CGPoint?, in window: UIWindow) {
         let isHidden = view.isHidden || view.alpha < 0.1
-        let decoratedVC = view._viewDelegate() as? DecoratedAppSceneViewController
+        let decoratedVC = view._viewControllerForAncestor() as? DecoratedAppSceneViewController
         let isMaximized = decoratedVC?.isMaximized ?? false
         
         // when a fullscreen multitask app is brought to front, optionally hide other windows
@@ -629,7 +629,7 @@ class AppInfoProvider {
             view.transform = .identity
             let origFrame = view.frame
             let pipManager = PiPManager.shared!
-            if let decoratedVC = view._viewDelegate(), pipManager.isPiP(withDecoratedVC: decoratedVC) {
+            if let decoratedVC = view._viewControllerForAncestor(), pipManager.isPiP(withDecoratedVC: decoratedVC) {
                 pipManager.stopPiP()
             } else {
                 view.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
@@ -719,7 +719,7 @@ class AppInfoProvider {
     @objc public func minimizeAllWindows(except: DecoratedAppSceneViewController? = nil) {
         DispatchQueue.main.async {
             self.apps.forEach { app in
-                if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController,
+                if let vc = app.view?._viewControllerForAncestor() as? DecoratedAppSceneViewController,
                    vc != except {
                     app.view?.layer.removeAllAnimations()
                     vc.minimizeWindow()
@@ -740,7 +740,7 @@ class AppInfoProvider {
         self.updateDockFrame()
         // find fullscreen apps and hide its UINavigationBar
         self.apps.forEach { app in
-            if let vc = app.view?._viewDelegate() as? DecoratedAppSceneViewController, vc.isMaximized {
+            if let vc = app.view?._viewControllerForAncestor() as? DecoratedAppSceneViewController, vc.isMaximized {
                 vc.updateVerticalConstraints()
             }
         }
@@ -848,7 +848,7 @@ public struct MultitaskDockSwiftView: View {
                         ForEach(dockManager.apps) { app in
                             AppIconView(app: app)
                                 .betterContextMenu {
-                                    (app.view?._viewDelegate() as? DecoratedAppSceneViewController)?
+                                    (app.view?._viewControllerForAncestor() as? DecoratedAppSceneViewController)?
                                         .dockIconMenuProvider() ?? UIMenu()
                                 }
                         }

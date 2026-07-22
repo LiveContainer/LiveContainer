@@ -1,12 +1,12 @@
-name: LiveContainer UI / Extension Bug Report
-description: Report a bug when using LiveContainer's own UI or extension.
+name: Built-in SideStore Bug Report
+description: Report a bug when using LiveContainer's built-in SideStore.
 title: "[BUG] "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Before you continue filling out the report, please **[read our FAQ](https://github.com/LiveContainer/LiveContainer/issues/265) and [search in GitHub Issues](https://github.com/LiveContainer/LiveContainer/issues) for the bug you are experiencing.**
+        Thanks for taking the time to fill out this bug report! Before you continue filling out the report, please **[read our FAQ](https://github.com/LiveContainer/LiveContainer/issues/265) and [search in GitHub Issues](https://github.com/LiveContainer/LiveContainer/issues) and also search for similar issues in SideStore's repo / docs for the bug you are experiencing.**
 
   - type: textarea
     id: description
@@ -44,6 +44,24 @@ body:
     attributes:
       label: Crash Log
       description: If a crash happened, please upload the crash log in iOS settings - Privacy Security - Analytics Improvements - Analytics Data - Search LiveContainer/LiveProcess. **Do not copy and paste.** Instead, please change .ips to .txt and upload it. If you are certain no crash report is produced, type "no crash report is produced".
+    validations:
+      required: true
+  - type: textarea
+    id: sidestore-error-message
+    label: Error Message
+    doescription: Tell use the exact error message you see when it failed to refresh / login etc.
+    validations:
+      required: true
+  - type: textarea
+    id: sidestore-health-check
+    label: Health Check Screen
+    description: If you are using LiveContainer+SideStore 3.7.13+, please Send the "Health Check" page in sidestore settings. Be sure to scroll from top to bottom. If you are using an older version, please upgrade first.
+    validations:
+      required: true
+  - type: textarea
+    id: sidestore-console-logs
+    label: Console Logs
+    description: Please send sidestore's console log. First trigger the bug, then find it in LiveContainer's folder in "Files" app -> sidestore -> Documents -> ConsoleLogs -> upload the most recent one.
     validations:
       required: true
   - type: textarea

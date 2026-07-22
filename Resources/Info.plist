@@ -34,7 +34,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.8.0</string>
+	<string>3.8.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -49,7 +49,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.8.0</string>
+	<string>3.8.1</string>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>
@@ -139,8 +139,8 @@
 		<string>_device-info._tcp</string>
 		<string>_sleep-proxy._udp</string>
 		<string>_dns-sd._udp</string>
-        <string>_remotepairing-pairable-host._tcp</string>
-        <string>_stikpairprobe._tcp</string>
+		<string>_remotepairing-pairable-host._tcp</string>
+		<string>_stikpairprobe._tcp</string>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
@@ -311,7 +311,6 @@
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>

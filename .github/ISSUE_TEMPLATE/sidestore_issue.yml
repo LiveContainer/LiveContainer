@@ -48,20 +48,23 @@ body:
       required: true
   - type: textarea
     id: sidestore-error-message
-    label: Error Message
-    doescription: Tell use the exact error message you see when it failed to refresh / login etc.
+    attributes:
+      label: Error Message
+      description: Tell us the exact error message you see when it failed to refresh / login etc.
     validations:
       required: true
   - type: textarea
     id: sidestore-health-check
-    label: Health Check Screen
-    description: If you are using LiveContainer+SideStore 3.7.13+, please Send the "Health Check" page in sidestore settings. Be sure to scroll from top to bottom. If you are using an older version, please upgrade first.
+    attributes:
+      label: Health Check Screen
+      description: If you are using LiveContainer+SideStore 3.7.13+, please Send the "Health Check" page in sidestore settings. Be sure to scroll from top to bottom. If you are using an older version, please upgrade first.
     validations:
       required: true
   - type: textarea
     id: sidestore-console-logs
-    label: Console Logs
-    description: Please send sidestore's console log. First trigger the bug, then find it in LiveContainer's folder in "Files" app -> sidestore -> Documents -> ConsoleLogs -> upload the most recent one.
+    attributes:
+      label: Console Logs
+      description: Please send sidestore's console log. First trigger the bug, then find it in LiveContainer's folder in "Files" app -> sidestore -> Documents -> ConsoleLogs -> upload the most recent one.
     validations:
       required: true
   - type: textarea

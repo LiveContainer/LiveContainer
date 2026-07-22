@@ -1,4 +1,6 @@
 import Foundation
+import SwiftUI
+import UIKit
 
 protocol LCAppModelDelegate {
     func closeNavigationView()
@@ -109,6 +111,30 @@ class LCAppModel: ObservableObject, Hashable {
             appInfo.remark = uiRemark
         }
     }
+
+    @Published var uiCustomDisplayName : String {
+        didSet {
+            appInfo.customDisplayName = uiCustomDisplayName
+        }
+    }
+
+    @Published var uiCustomIconName : String? {
+        didSet {
+            appInfo.customIconName = uiCustomIconName
+            iconRevision += 1
+        }
+    }
+
+    @Published var uiCustomColor : Color? {
+        didSet {
+            let newColor: UIColor? = uiCustomColor.map { UIColor($0) }
+            appInfo.customColor = newColor
+        }
+    }
+
+    // Separate from uiCustomIconName because swapping one custom image for
+    // another leaves the name unchanged but must still refresh views.
+    @Published private(set) var iconRevision = 0
     
     @Published var uiIsMultitaskModeSpecificed : MultitaskSpecified {
         didSet {
@@ -131,6 +157,24 @@ class LCAppModel: ObservableObject, Hashable {
     public var displayName: String {
         get {
             return appInfo.displayName() ?? "?"
+        }
+    }
+
+    public var originalDisplayName: String {
+        get {
+            return appInfo.originalDisplayName() ?? "?"
+        }
+    }
+
+    public var availableIconNames: [String] {
+        get {
+            return appInfo.alternateIconNames()
+        }
+    }
+
+    public var hasCustomization: Bool {
+        get {
+            return appInfo.hasCustomization()
         }
     }
     
@@ -179,6 +223,12 @@ class LCAppModel: ObservableObject, Hashable {
         self.jitLaunchScriptJs = appInfo.jitLaunchScriptJs
         self.uiSpoofSDKVersion = appInfo.spoofSDKVersion
         self.uiRemark = appInfo.remark ?? ""
+        self.uiCustomDisplayName = appInfo.customDisplayName ?? ""
+        self.uiCustomIconName = appInfo.customIconName
+        // LCAppInfo is unannotated ObjC, so bind through an explicit optional
+        // rather than mapping over an implicitly unwrapped one
+        let customColor: UIColor? = appInfo.customColor
+        self.uiCustomColor = customColor.map { Color(uiColor: $0) }
 #if is32BitSupported
         self.uiIs32bit = appInfo.is32bit
 #endif
@@ -190,6 +240,99 @@ class LCAppModel: ObservableObject, Hashable {
         }
     }
     
+    // Not a stored @Published: a model exists for every app from launch and
+    // generating an icon is expensive. LCAppInfo memoizes and drops it on change.
+    var uiIcon: UIImage! {
+        return appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon"))
+    }
+
+    func bannerColor() -> Color {
+        if let uiCustomColor {
+            return uiCustomColor
+        }
+        return extractMainHueColor()
+    }
+
+    func extractMainHueColor() -> Color {
+        let isDarkIcon = LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")
+        if !isDarkIcon, let cachedColor = appInfo.cachedColor {
+            return Color(uiColor: cachedColor)
+        } else if isDarkIcon, let cachedColor = appInfo.cachedColorDark {
+            return Color(uiColor: cachedColor)
+        }
+
+        guard let cgImage = appInfo.iconIsDarkIcon(isDarkIcon).cgImage else { return Color.clear }
+
+        let width = 1
+        let height = 1
+        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        var pixelData = [UInt8](repeating: 0, count: 4)
+
+        guard let context = CGContext(data: &pixelData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else {
+            return Color.clear
+        }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        let red = CGFloat(pixelData[0]) / 255.0
+        let green = CGFloat(pixelData[1]) / 255.0
+        let blue = CGFloat(pixelData[2]) / 255.0
+
+        let averageColor = UIColor(red: red, green: green, blue: blue, alpha: 1.0)
+
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+        averageColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+
+        if brightness < 0.1 && saturation < 0.1 {
+            return Color.red
+        }
+
+        if brightness < 0.3 {
+            brightness = 0.3
+        }
+
+        let ans = Color(hue: hue, saturation: saturation, brightness: brightness)
+        if isDarkIcon {
+            appInfo.cachedColorDark = UIColor(ans)
+        } else {
+            appInfo.cachedColor = UIColor(ans)
+        }
+
+        return ans
+    }
+
+    func setCustomIcon(image: UIImage) throws {
+        guard appInfo.setCustomIconImage(image) else {
+            throw "lc.appSettings.customIconSaveErr".loc
+        }
+        // re-runs the didSet even when the name is unchanged and only the image differs
+        uiCustomIconName = appInfo.customIconName
+    }
+
+    func resetName() {
+        uiCustomDisplayName = ""
+    }
+
+    func resetColor() {
+        uiCustomColor = nil
+    }
+
+    func resetIcon() {
+        _ = appInfo.setCustomIconImage(nil)
+        uiCustomIconName = nil
+    }
+
+    func resetCustomization() {
+        appInfo.resetCustomization()
+        uiCustomDisplayName = ""
+        uiCustomColor = nil
+        uiCustomIconName = nil
+    }
+
     static func == (lhs: LCAppModel, rhs: LCAppModel) -> Bool {
         return lhs === rhs
     }

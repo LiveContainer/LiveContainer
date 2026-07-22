@@ -9,6 +9,8 @@
 
 uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 
+NSString* const LCCustomIconName = @"LCCustomIcon";
+
 @implementation LCAppInfo
 
 - (instancetype)initWithBundlePath:(NSString*)bundlePath {
@@ -99,6 +101,14 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 }
 
 - (NSString*)displayName {
+    NSString* customDisplayName = self.customDisplayName;
+    if (customDisplayName.length > 0) {
+        return customDisplayName;
+    }
+    return [self originalDisplayName];
+}
+
+- (NSString*)originalDisplayName {
     if (_infoPlist[@"CFBundleDisplayName"]) {
         return _infoPlist[@"CFBundleDisplayName"];
     } else if (_infoPlist[@"CFBundleName"]) {
@@ -184,7 +194,6 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         return _cachedIconDark;
     }
     
-    // check if icon is cached on disk
     UIImage* uiIcon;
     NSString* cachedIconPath;
     if(isDarkIcon) {
@@ -193,7 +202,24 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
         cachedIconPath = [_bundlePath stringByAppendingPathComponent:@"LCAppIconLight.png"];
     }
     NSURL* cachedIconUrl = [NSURL fileURLWithPath:cachedIconPath];
-    
+
+    UIImage* customIcon = [self customIconImage];
+    if(customIcon) {
+        // persist to the same on-disk cache the generated icon uses, so readers
+        // that bypass LCAppInfo and load the PNG directly (the share extension)
+        // see the override too. clearIconCache wipes these when it changes.
+        if(![NSFileManager.defaultManager fileExistsAtPath:cachedIconPath]) {
+            saveCGImage([customIcon CGImage], cachedIconUrl);
+        }
+        if(isDarkIcon) {
+            _cachedIconDark = customIcon;
+        } else {
+            _cachedIcon = customIcon;
+        }
+        return customIcon;
+    }
+
+    // check if icon is cached on disk
     if([NSFileManager.defaultManager fileExistsAtPath:cachedIconPath]) {
         CGImageRef imageRef = loadCGImageFromURL(cachedIconUrl);
         uiIcon = [UIImage imageWithCGImage:imageRef];
@@ -228,7 +254,13 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 }
 
 - (UIImage *)generateLiveContainerWrappedIconWithStyle:(GeneratedIconStyle)style {
-    UIImage* icon = [UIImage generateIconForBundleURL:[NSURL fileURLWithPath:_bundlePath] style:style hasBorder:NO];
+    UIImage* icon;
+    if (style == Custom) {
+        icon = [self customIconImage];
+    }
+    if (!icon) {
+        icon = [UIImage generateIconForBundleURL:[NSURL fileURLWithPath:_bundlePath] style:style hasBorder:NO];
+    }
     if (![NSUserDefaults.standardUserDefaults boolForKey:@"LCFrameShortcutIcons"]) {
         return icon;
     }
@@ -730,6 +762,195 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
     } else {
         _info[@"remark"] = remark;
     }
+    [self save];
+}
+
+#pragma mark - Customization
+
+- (NSString*)customDisplayName {
+    return _info[@"customDisplayName"];
+}
+
+- (void)setCustomDisplayName:(NSString *)customDisplayName {
+    if(customDisplayName.length == 0 || [customDisplayName isEqualToString:[self originalDisplayName]]) {
+        [_info removeObjectForKey:@"customDisplayName"];
+    } else {
+        _info[@"customDisplayName"] = customDisplayName;
+    }
+    [self save];
+}
+
+- (NSString*)customIconName {
+    return _info[@"customIconName"];
+}
+
+- (void)setCustomIconName:(NSString *)customIconName {
+    if(customIconName.length == 0) {
+        [_info removeObjectForKey:@"customIconName"];
+    } else {
+        _info[@"customIconName"] = customIconName;
+    }
+    // customColor lives in its own key and survives this
+    [self clearIconCache];
+    [self save];
+}
+
+- (UIColor*)customColor {
+    if(_info[@"customColor"] == nil) {
+        return nil;
+    }
+    NSError* error;
+    UIColor* color = [NSKeyedUnarchiver unarchivedObjectOfClass:UIColor.class fromData:_info[@"customColor"] error:&error];
+    if(error) {
+        NSLog(@"[LC] failed to get custom color %@", error);
+        return nil;
+    }
+    return color;
+}
+
+- (void)setCustomColor:(UIColor *)color {
+    if(color == nil) {
+        [_info removeObjectForKey:@"customColor"];
+    } else {
+        NSError* error;
+        NSData* colorData = [NSKeyedArchiver archivedDataWithRootObject:color requiringSecureCoding:YES error:&error];
+        if(error) {
+            NSLog(@"[LC] failed to set custom color %@", error);
+            return;
+        }
+        _info[@"customColor"] = colorData;
+    }
+    [self save];
+}
+
+// Stored in the bundle alongside LCAppInfo.plist and the icon caches, so
+// uninstalling the app takes the image with it.
+- (NSString*)customIconPath {
+    return [_bundlePath stringByAppendingPathComponent:@"LCCustomIcon.png"];
+}
+
+- (UIImage*)customIconImage {
+    NSString* name = self.customIconName;
+    if(name.length == 0) {
+        return nil;
+    }
+    if([name isEqualToString:LCCustomIconName]) {
+        return [UIImage imageWithContentsOfFile:[self customIconPath]];
+    }
+    return [self imageForIconName:name];
+}
+
+- (BOOL)setCustomIconImage:(UIImage *)image {
+    if(image == nil) {
+        [NSFileManager.defaultManager removeItemAtPath:[self customIconPath] error:nil];
+        if([self.customIconName isEqualToString:LCCustomIconName]) {
+            self.customIconName = nil;
+        }
+        return YES;
+    }
+
+    NSData* png = UIImagePNGRepresentation(image);
+    if(!png || ![png writeToFile:[self customIconPath] atomically:YES]) {
+        return NO;
+    }
+    // assign even when the name is unchanged: the setter drops the icon caches
+    self.customIconName = LCCustomIconName;
+    return YES;
+}
+
+- (NSArray<NSString*>*)iconFileBaseNamesForIconName:(NSString*)name {
+    NSMutableArray<NSString*>* baseNames = [NSMutableArray new];
+    for(NSString* iconsKey in @[@"CFBundleIcons", @"CFBundleIcons~ipad"]) {
+        NSDictionary* icons = _infoPlist[iconsKey];
+        if(![icons isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        NSDictionary* alternateIcons = icons[@"CFBundleAlternateIcons"];
+        if(![alternateIcons isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        NSDictionary* entry = alternateIcons[name];
+        if(![entry isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        NSArray* files = entry[@"CFBundleIconFiles"];
+        if(![files isKindOfClass:NSArray.class]) {
+            continue;
+        }
+        for(NSString* file in files) {
+            if([file isKindOfClass:NSString.class] && ![baseNames containsObject:file]) {
+                [baseNames addObject:file];
+            }
+        }
+    }
+    // apps commonly name the icon after its file, so fall back to that
+    if(baseNames.count == 0) {
+        [baseNames addObject:name];
+    }
+    return baseNames;
+}
+
+- (UIImage*)imageForIconName:(NSString*)name {
+    if(name.length == 0) {
+        return nil;
+    }
+    if([name isEqualToString:LCCustomIconName]) {
+        return [UIImage imageWithContentsOfFile:[self customIconPath]];
+    }
+
+    // CFBundleIconFiles lists names in ascending size, so search back to front
+    // and prefer the highest scale, to get the largest artwork available.
+    for(NSString* baseName in [self iconFileBaseNamesForIconName:name].reverseObjectEnumerator) {
+        for(NSString* suffix in @[@"@3x", @"@2x", @"@3x~ipad", @"@2x~ipad", @"~ipad", @""]) {
+            NSString* fileName = [NSString stringWithFormat:@"%@%@.png", baseName, suffix];
+            NSString* path = [_bundlePath stringByAppendingPathComponent:fileName];
+            if(![NSFileManager.defaultManager fileExistsAtPath:path]) {
+                continue;
+            }
+            UIImage* image = [UIImage imageWithContentsOfFile:path];
+            if(image) {
+                return image;
+            }
+        }
+    }
+    // Icons compiled into Assets.car aren't loadable as loose files; the caller
+    // treats nil as "don't offer this icon".
+    return nil;
+}
+
+- (NSArray<NSString*>*)alternateIconNames {
+    NSMutableArray<NSString*>* names = [NSMutableArray new];
+    for(NSString* iconsKey in @[@"CFBundleIcons", @"CFBundleIcons~ipad"]) {
+        NSDictionary* icons = _infoPlist[iconsKey];
+        if(![icons isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        NSDictionary* alternateIcons = icons[@"CFBundleAlternateIcons"];
+        if(![alternateIcons isKindOfClass:NSDictionary.class]) {
+            continue;
+        }
+        for(NSString* name in alternateIcons) {
+            if([name isKindOfClass:NSString.class] && ![names containsObject:name] && [self imageForIconName:name]) {
+                [names addObject:name];
+            }
+        }
+    }
+    [names sortUsingSelector:@selector(localizedStandardCompare:)];
+    return names;
+}
+
+- (BOOL)hasCustomization {
+    return self.customDisplayName.length > 0 || self.customIconName.length > 0 || self.customColor != nil;
+}
+
+- (void)resetCustomization {
+    bool autoSaveWasDisabled = _autoSaveDisabled;
+    _autoSaveDisabled = true;
+    self.customDisplayName = nil;
+    self.customColor = nil;
+    [self setCustomIconImage:nil];
+    self.customIconName = nil;
+    _autoSaveDisabled = autoSaveWasDisabled;
     [self save];
 }
 

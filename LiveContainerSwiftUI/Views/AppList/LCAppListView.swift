@@ -419,6 +419,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             sharedModel.deepLink = nil
             handleURL(url: link)
         }
+        .onDrop(of: [.url], isTargeted: nil) { providers in
+            guard let provider = providers.first else { return false }
+            _ = provider.loadObject(ofClass: URL.self) { url, error in
+                guard let url else { return }
+                Task {
+                    guard let urlToOpen = await webViewUrlInput.open(initVal: url.absoluteString), urlToOpen != "" else {
+                        return
+                    }
+                    await openWebView(urlString: urlToOpen)
+                }
+            }
+            return true
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.InstallAppNotification)) { obj in
             if let obj2 = obj.object as? [String: Any], let installUrl = obj2["url"] as? URL {
                 Task { await installFromUrl(urlStr: installUrl.absoluteString) }

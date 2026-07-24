@@ -40,6 +40,7 @@ struct LCAppSettingsView: View {
     @State private var errorShow = false
     @State private var errorInfo = ""
     @State private var selectUnusedContainerSheetShow = false
+    @State private var iconPickerShow = false
     
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -50,8 +51,67 @@ struct LCAppSettingsView: View {
         _tweakFolders = tweakFolders
     }
     
+    private var bannerColorBinding: Binding<Color> {
+        Binding(
+            get: { model.uiCustomColor ?? model.extractMainHueColor() },
+            set: { model.uiCustomColor = $0 }
+        )
+    }
+
+    @ViewBuilder
+    private func resetButton(visible: Bool, action: @escaping () -> Void) -> some View {
+        if visible {
+            Button(action: action) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.gray)
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+
     var body: some View {
         Form {
+            Section {
+                HStack {
+                    Text("lc.appSettings.appIcon".loc)
+                    Spacer()
+                    IconImageView(icon: model.uiIcon)
+                        .frame(width: 30, height: 30)
+                    resetButton(visible: model.uiCustomIconName != nil) {
+                        model.resetIcon()
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    iconPickerShow = true
+                }
+                HStack {
+                    Text("lc.appSettings.appName".loc)
+                    Spacer()
+                    TextField(model.originalDisplayName, text: $model.uiCustomDisplayName)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.trailing)
+                    resetButton(visible: !model.uiCustomDisplayName.isEmpty) {
+                        model.resetName()
+                    }
+                }
+                HStack {
+                    ColorPicker("lc.appSettings.bannerColor".loc, selection: bannerColorBinding, supportsOpacity: false)
+                    resetButton(visible: model.uiCustomColor != nil) {
+                        model.resetColor()
+                    }
+                }
+                if model.hasCustomization {
+                    Button("lc.appSettings.resetCustomization".loc, role: .destructive) {
+                        model.resetCustomization()
+                    }
+                }
+            } header: {
+                Text("lc.appSettings.customization".loc)
+            } footer: {
+                Text("lc.appSettings.customizationDesc".loc)
+            }
+
             Section {
                 HStack {
                     Text("lc.appSettings.bundleId".loc)
@@ -384,8 +444,11 @@ struct LCAppSettingsView: View {
             }
 
         }
-        .navigationTitle(appInfo.displayName())
+        .navigationTitle(model.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $iconPickerShow) {
+            LCAppIconPickerView(model: model)
+        }
         .alert("lc.common.error".loc, isPresented: $errorShow) {
             Button("lc.common.ok".loc, action: {
             })

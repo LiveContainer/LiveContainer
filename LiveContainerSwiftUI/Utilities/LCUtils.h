@@ -60,7 +60,8 @@ int dyld_get_program_sdk_version(void);
 typedef NS_ENUM(NSInteger, GeneratedIconStyle){
     Original = -1,
     Light = 0,
-    Dark = 1
+    Dark = 1,
+    Custom = 2
 };
 
 @interface UIImage(LiveContainer)

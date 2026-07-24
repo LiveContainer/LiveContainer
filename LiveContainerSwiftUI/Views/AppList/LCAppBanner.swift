@@ -14,7 +14,7 @@ protocol LCAppBannerDelegate {
     func removeApp(app: LCAppModel)
     func installMdm(data: Data)
     func openNavigationView(view: AnyView)
-    func promptForGeneratedIconStyle() async -> GeneratedIconStyle?
+    func promptForGeneratedIconStyle(hasCustomIcon: Bool) async -> GeneratedIconStyle?
 }
 
 struct LCAppBanner : View {
@@ -39,8 +39,7 @@ struct LCAppBanner : View {
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
 
     @State private var mainColor : Color
-    @State private var icon: UIImage
-    
+
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -51,10 +50,7 @@ struct LCAppBanner : View {
         self.delegate = delegate
         
         _model = ObservedObject(wrappedValue: appModel)
-        _mainColor = State(initialValue: Color.clear)
-        _icon = State(initialValue: appModel.appInfo.iconIsDarkIcon(LCUtils.appGroupUserDefault.bool(forKey: "darkModeIcon")))
-        _mainColor = State(initialValue: extractMainHueColor())
-
+        _mainColor = State(initialValue: appModel.bannerColor())
     }
     @State private var mainHueColor: CGFloat? = nil
     
@@ -62,7 +58,7 @@ struct LCAppBanner : View {
 
         HStack {
             HStack {
-                IconImageView(icon: icon)
+                IconImageView(icon: model.uiIcon)
                     .frame(width: 60, height: 60)
 
                 VStack (alignment: .leading, content: {
@@ -230,9 +226,14 @@ struct LCAppBanner : View {
         } message: {
             Text(errorInfo)
         }
-        .onChange(of: darkModeIcon) { newVal in
-            icon = appInfo.iconIsDarkIcon(newVal)
-            mainColor = extractMainHueColor()
+        .onChange(of: darkModeIcon) { _ in
+            mainColor = model.bannerColor()
+        }
+        .onChange(of: model.uiCustomColor) { _ in
+            mainColor = model.bannerColor()
+        }
+        .onChange(of: model.iconRevision) { _ in
+            mainColor = model.bannerColor()
         }
     }
     
@@ -398,7 +399,7 @@ struct LCAppBanner : View {
     }
     
     func openSafariViewToCreateAppClip() async {
-        guard let style = await delegate.promptForGeneratedIconStyle() else {
+        guard let style = await delegate.promptForGeneratedIconStyle(hasCustomIcon: model.uiCustomIconName != nil) else {
             return
         }
         
@@ -413,65 +414,13 @@ struct LCAppBanner : View {
     }
     
     func saveIcon() async {
-        guard let style = await delegate.promptForGeneratedIconStyle() else {
+        guard let style = await delegate.promptForGeneratedIconStyle(hasCustomIcon: model.uiCustomIconName != nil) else {
             return
         }
         
         let img = appInfo.generateLiveContainerWrappedIcon(with: style)!
         self.saveIconFile = ImageDocument(uiImage: img)
         self.saveIconExporterShow = true
-    }
-    
-    func extractMainHueColor() -> Color {
-        if !darkModeIcon, let cachedColor = appInfo.cachedColor {
-            return Color(uiColor: cachedColor)
-        } else if darkModeIcon, let cachedColor = appInfo.cachedColorDark {
-            return Color(uiColor: cachedColor)
-        }
-        
-        guard let cgImage = appInfo.iconIsDarkIcon(darkModeIcon).cgImage else { return Color.clear }
-
-        let width = 1
-        let height = 1
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        var pixelData = [UInt8](repeating: 0, count: 4)
-        
-        guard let context = CGContext(data: &pixelData, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 4, space: colorSpace, bitmapInfo: bitmapInfo) else {
-            return Color.clear
-        }
-        
-        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-        
-        let red = CGFloat(pixelData[0]) / 255.0
-        let green = CGFloat(pixelData[1]) / 255.0
-        let blue = CGFloat(pixelData[2]) / 255.0
-        
-        let averageColor = UIColor(red: red, green: green, blue: blue, alpha: 1.0)
-        
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-        averageColor.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        
-        if brightness < 0.1 && saturation < 0.1 {
-            return Color.red
-        }
-        
-        if brightness < 0.3 {
-            brightness = 0.3
-        }
-        
-        let ans = Color(hue: hue, saturation: saturation, brightness: brightness)
-        if darkModeIcon {
-            appInfo.cachedColorDark = UIColor(ans)
-        } else {
-            appInfo.cachedColor = UIColor(ans)
-        }
-        
-        
-        return ans
     }
     
     func copyError() {

@@ -260,7 +260,9 @@ final class ShareExtensionViewModel: ObservableObject {
         }
         let appInfo = (NSDictionary(contentsOf: appURL.appendingPathComponent("LCAppInfo.plist")) as? [String: Any]) ?? [:]
         let relativeBundlePath = appURL.lastPathComponent
-        let displayName = (infoPlist["CFBundleDisplayName"] as? String)
+        let customDisplayName = appInfo["customDisplayName"] as? String
+        let displayName = (customDisplayName?.isEmpty == false ? customDisplayName : nil)
+            ?? (infoPlist["CFBundleDisplayName"] as? String)
             ?? (infoPlist["CFBundleName"] as? String)
             ?? (infoPlist["CFBundleExecutable"] as? String)
             ?? relativeBundlePath
@@ -287,7 +289,7 @@ final class ShareExtensionViewModel: ObservableObject {
             isLocked: appInfo["isLocked"] as? Bool ?? false,
             isJITNeeded: appInfo["isJITNeeded"] as? Bool ?? false,
             containers: usableContainers,
-            iconURL: iconURL(for: appURL),
+            iconURL: iconURL(for: appURL, appInfo: appInfo),
             lastLaunched: appInfo["lastLaunched"] as? Date,
             installationDate: appInfo["installationDate"] as? Date,
             isBuiltInSideStore: false
@@ -337,8 +339,17 @@ final class ShareExtensionViewModel: ObservableObject {
         return preferredIconURL(in: iconCacheURL)
     }
 
-    private func iconURL(for appURL: URL) -> URL? {
-        preferredIconURL(in: appURL)
+    private func iconURL(for appURL: URL, appInfo: [String: Any]) -> URL? {
+        // "LCCustomIcon" mirrors LCCustomIconName in LCAppInfo. An imported icon
+        // is stored here and survives an icon-cache clear, so prefer it directly;
+        // alternate bundle icons fall through to the caches the main app writes.
+        if appInfo["customIconName"] as? String == "LCCustomIcon" {
+            let customIconURL = appURL.appendingPathComponent("LCCustomIcon.png")
+            if FileManager.default.fileExists(atPath: customIconURL.path) {
+                return customIconURL
+            }
+        }
+        return preferredIconURL(in: appURL)
     }
 
     private func preferredIconURL(in directory: URL) -> URL? {

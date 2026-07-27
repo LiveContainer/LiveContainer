@@ -146,7 +146,8 @@
         clientSettings.statusBarStyle = 0;
     };
 
-    if (@available(iOS 18.0, *)) {
+    BOOL forceLegacyAPI = [NSUserDefaults.standardUserDefaults boolForKey:@"LCMultitaskForceLegacyAPI"];
+    if (!forceLegacyAPI) if (@available(iOS 18.0, *)) {
         // Use new API for iOS 18+. While some of these APIs are available since 17.0, we're only interested in fixing event deferring issue
         _UISceneHostingControllerAdvancedConfiguration *config = [[_UISceneHostingControllerAdvancedConfiguration alloc] initWithProcessIdentity:processHandle.identity];
         config.sceneSpecification = specification;
@@ -200,7 +201,9 @@
         [center removeObserver:self.extension name:UIApplicationWillResignActiveNotification object:UIApp];
         [center removeObserver:self.extension name:UIApplicationDidEnterBackgroundNotification object:UIApp];
         [center removeObserver:self.extension name:UIApplicationWillEnterForegroundNotification object:UIApp];
-    } else {
+    }
+    // Legacy API fallback
+    if(!self.usesHostingControllerAPI) {
         self.sceneID = [NSString stringWithFormat:@"sceneID:%@-%@", @"LiveProcess", self.dataUUID];
         FBSMutableSceneDefinition *definition = [PrivClass(FBSMutableSceneDefinition) definition];
         definition.identity = [PrivClass(FBSSceneIdentity) identityForIdentifier:self.sceneID];

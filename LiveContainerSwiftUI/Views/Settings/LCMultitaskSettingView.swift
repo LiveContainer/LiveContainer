@@ -21,6 +21,11 @@ struct LCMultitaskSettingView: View {
     @AppStorage("LCHideCollapsedDock", store: LCUtils.appGroupUserDefault) var hideCollapsedDock: Bool = false
     @AppStorage("LCRedirectURLToHost", store: LCUtils.appGroupUserDefault) var redirectURLToHost = false
     
+    @AppStorage("LCDeveloperMode") var developerMode = false
+    @AppStorage("LCSharePrivateDataWithLiveProcess") var sharePrivateDataWithLiveProcess = false
+    @AppStorage("LCMultitaskForceLegacyAPI") var forceLegacySceneAPI = false
+    @AppStorage("BKNoWatchdogs") var disableLiveProcessWatchdog = false
+    
     var body: some View {
         List {
             Section {
@@ -87,6 +92,24 @@ struct LCMultitaskSettingView: View {
                 .padding(.vertical, 4)
                 Toggle(isOn: $hideCollapsedDock) {
                     Text("lc.settings.hideCollapsedDock".loc)
+                }
+            }
+            
+            if developerMode {
+                Section {
+                    Toggle(isOn: $sharePrivateDataWithLiveProcess) {
+                        Text("Allow Private Data access from LiveProcess")
+                    }
+                    Toggle(isOn: $disableLiveProcessWatchdog) {
+                        Text("Disable LiveProcess watchdog termination")
+                    }
+                    if #available(iOS 18.0, *) {
+                        Toggle(isOn: $forceLegacySceneAPI) {
+                            Text("Force Legacy Scene API ")
+                        }
+                    }
+                } header: {
+                    Text("Developer Settings")
                 }
             }
         }

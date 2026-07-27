@@ -62,6 +62,7 @@ struct LCSettingsView: View {
     
     @State var store : Store = .Unknown
     
+    @AppStorage("LCDeveloperMode") var developerMode = false
     @AppStorage("LCLoadTweaksToSelf") var injectToLCItelf = false
     @AppStorage("LCIgnoreJITOnLaunch") var ignoreJITOnLaunch = false
     #if is32BitSupported
@@ -69,8 +70,6 @@ struct LCSettingsView: View {
     #endif
     @AppStorage("LCKeepSelectedWhenQuit") var keepSelectedWhenQuit = false
     @AppStorage("LCWaitForDebugger") var waitForDebugger = false
-    @AppStorage("LCSharePrivateDataWithLiveProcess") var sharePrivateDataWithLiveProcess = false
-    @AppStorage("BKNoWatchdogs") var disableLiveProcessWatchdog = false
     
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -307,6 +306,9 @@ struct LCSettingsView: View {
                     Text(LCUtils.getVersionInfo())
                         .foregroundStyle(.gray)
                         .onTapGesture(count: 5) {
+#if DEBUG
+                            developerMode = true
+#endif
                             sharedModel.developerMode = true
                         }
                 }
@@ -314,8 +316,11 @@ struct LCSettingsView: View {
                     .background(Color(UIColor.systemGroupedBackground))
                     .listRowInsets(EdgeInsets())
                 
-                if sharedModel.developerMode {
+                if developerMode || sharedModel.developerMode {
                     Section {
+                        Toggle(isOn: $developerMode) {
+                            Text("Keep Developer Settings".loc)
+                        }
                         Toggle(isOn: $injectToLCItelf) {
                             Text("lc.settings.injectLCItself".loc)
                         }
@@ -327,12 +332,6 @@ struct LCSettingsView: View {
                         }
                         Toggle(isOn: $waitForDebugger) {
                             Text("Wait For Debugger")
-                        }
-                        Toggle(isOn: $sharePrivateDataWithLiveProcess) {
-                            Text("Allow Private Data access from LiveProcess")
-                        }
-                        Toggle(isOn: $disableLiveProcessWatchdog) {
-                            Text("Disable LiveProcess watchdog termination")
                         }
                         Button {
                             export()

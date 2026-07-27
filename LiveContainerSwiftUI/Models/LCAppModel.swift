@@ -338,7 +338,7 @@ class LCAppModel: ObservableObject, Hashable {
         if jitNeeded || is32bit {
             if multitask, #available(iOS 17.4, *) {
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                    LCUtils.launchMultitaskGuestApp(appInfo.displayName()) { pidNumber, error in
+                    LCUtils.launchMultitaskGuestApp(appInfo) { pidNumber, error in
                         if let error {
                             continuation.resume(throwing: error)
                             return
@@ -366,7 +366,7 @@ class LCAppModel: ObservableObject, Hashable {
                 }
             }
         } else if multitask, #available(iOS 16.0, *) {
-            try await LCUtils.launchMultitaskGuestApp(appInfo.displayName())
+            try await LCUtils.launchMultitaskGuestApp(appInfo)
         } else {
             if #available(iOS 26.0, *), FileManager.default.fileExists(atPath: "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE") {
                 let fileContents = "\(appInfo.bundlePath()!)/Frameworks/MetalANGLE.framework/MetalANGLE".data(using: .utf8)

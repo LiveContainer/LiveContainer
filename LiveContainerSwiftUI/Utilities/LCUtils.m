@@ -54,7 +54,8 @@
     return nil;
 }
 
-+ (void)launchMultitaskGuestApp:(NSString *)displayName completionHandler:(void (^)(NSNumber *pid, NSError *error))completionHandler {
++ (void)launchMultitaskGuestApp:(LCAppInfo *)appInfo completionHandler:(void (^)(NSNumber *pid, NSError *error))completionHandler {
+    NSString *displayName = appInfo.displayName;
     if(!self.liveProcessBundleIdentifier) {
         NSError *error = [NSError errorWithDomain:displayName code:2 userInfo:@{NSLocalizedDescriptionKey: @"LiveProcess extension not found. Please reinstall LiveContainer and select Keep Extensions"}];
         if (completionHandler) completionHandler(nil, error);
@@ -62,7 +63,6 @@
     }
     
     NSUserDefaults *lcUserDefaults = NSUserDefaults.standardUserDefaults;
-    NSString* bundleId = [lcUserDefaults stringForKey:@"selected"];
     NSString* dataUUID = [lcUserDefaults stringForKey:@"selectedContainer"];
     
     [lcUserDefaults removeObjectForKey:@"selected"];
@@ -71,15 +71,15 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         if (@available(iOS 16.1, *)) {
             if(UIApplication.sharedApplication.supportsMultipleScenes && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskMode"] == 1) {
-                [MultitaskWindowManager openAppWindowWithDisplayName:displayName dataUUID:dataUUID bundleId:bundleId pidCallback:completionHandler];
+                [MultitaskWindowManager openAppWindowWithAppInfo:appInfo dataUUID:dataUUID pidCallback:completionHandler];
                 MultitaskDockManager *dock = [MultitaskDockManager shared];
-                [dock addRunningApp:displayName appUUID:dataUUID view:nil];
+                [dock addRunningApp:appInfo appUUID:dataUUID view:nil];
                 return;
             }
         }
         
         UIViewController *rootVC = SceneDelegate.shared.window.rootViewController;
-        DecoratedAppSceneViewController *launcherView = [[DecoratedAppSceneViewController alloc] initWindowName:displayName bundleId:bundleId dataUUID:dataUUID rootVC:rootVC];
+        DecoratedAppSceneViewController *launcherView = [[DecoratedAppSceneViewController alloc] initWithAppInfo:appInfo dataUUID:dataUUID rootVC:rootVC];
         // Wire PID callback
         launcherView.pidAvailableHandler = completionHandler;
         launcherView.view.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;

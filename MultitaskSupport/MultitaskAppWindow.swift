@@ -11,11 +11,13 @@ struct MultitaskAppInfo {
     var displayName: String
     var dataUUID: String
     var bundleId: String
+    var lcInfo: LCAppInfo
     
-    init(displayName: String, dataUUID: String, bundleId: String) {
-        self.displayName = displayName
+    init(lcInfo: LCAppInfo, dataUUID: String) {
+        self.lcInfo = lcInfo
+        self.bundleId = lcInfo.relativeBundlePath
+        self.displayName = lcInfo.displayName()
         self.dataUUID = dataUUID
-        self.bundleId = bundleId
     }
 }
 
@@ -24,19 +26,17 @@ struct MultitaskAppInfo {
     @Environment(\.openWindow) static var openWindow
     static var appDict: [String: MultitaskAppInfo] = [:]
     
-    @objc class func openAppWindow(displayName: String, dataUUID: String, bundleId: String, pidCallback: ((NSNumber, Error?) -> Void)?) {
+    @objc class func openAppWindow(appInfo: LCAppInfo, dataUUID: String, pidCallback: ((NSNumber, Error?) -> Void)?) {
         DataManager.shared.model.enableMultipleWindow = true
         DataManager.shared.model.pidCallback = pidCallback
-        appDict[dataUUID] = MultitaskAppInfo(displayName: displayName, dataUUID: dataUUID, bundleId: bundleId)
+        appDict[dataUUID] = MultitaskAppInfo(lcInfo: appInfo, dataUUID: dataUUID)
         openWindow(id: "appView", value: dataUUID)
     }
     
     @objc class func openExistingAppWindow(dataUUID: String) -> Bool {
-        for a in appDict {
-            if a.value.dataUUID == dataUUID {
-                openWindow(id: "appView", value: a.key)
-                return true
-            }
+        if let a = appDict[dataUUID] {
+            openWindow(id: "appView", value: dataUUID)
+            return true
         }
         return false
     }
@@ -45,7 +45,7 @@ struct MultitaskAppInfo {
 @available(iOS 16.1, *)
 struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     @Binding var show: Bool
-    let bundleId: String
+    let appInfo: MultitaskAppInfo
     let dataUUID: String
     let initSize: CGSize
     let onAppInitialize: (Int32, Error?) -> Void
@@ -106,7 +106,7 @@ struct AppSceneViewSwiftUI: UIViewControllerRepresentable {
     }
     
     func makeUIViewController(context: Context) -> UIViewController {
-        return AppSceneViewController(bundleId: bundleId, dataUUID: dataUUID, delegate: context.coordinator)
+        return AppSceneViewController(appInfo: appInfo.lcInfo, dataUUID: dataUUID, delegate: context.coordinator)
     }
     
     func updateUIViewController(_ vc: UIViewController, context _: Context) {
@@ -142,7 +142,7 @@ struct MultitaskAppWindow: View {
         let isVirtualWindowMode = multitaskMode == .virtualWindow
         if show, let appInfo {
             GeometryReader { geometry in
-                AppSceneViewSwiftUI(show: $show, bundleId: appInfo.bundleId, dataUUID: appInfo.dataUUID, initSize: geometry.size,
+                AppSceneViewSwiftUI(show: $show, appInfo: appInfo, dataUUID: appInfo.dataUUID, initSize: geometry.size,
                                     onAppInitialize: { pid, error in
                     DispatchQueue.main.async {
                         if error == nil {

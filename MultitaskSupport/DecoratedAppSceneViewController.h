@@ -13,7 +13,7 @@ API_AVAILABLE(ios(16.0))
 
 @property(nonatomic) BOOL isMaximized;
 @property(nonatomic) CGFloat scaleRatio;
-- (instancetype)initWindowName:(NSString*)windowName bundleId:(NSString*)bundleId dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC;
+- (instancetype)initWithAppInfo:(LCAppInfo*)appInfo dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC;
 - (void)minimizeWindow;
 - (void)minimizeWindowPiP;
 - (void)unminimizeWindowPiP;

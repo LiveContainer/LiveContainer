@@ -6,6 +6,7 @@
 //
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "FoundationPrivate.h"
+#import "../LiveContainerSwiftUI/Models/LCAppInfo.h"
 @import UIKit;
 @import Foundation;
 
@@ -23,6 +24,7 @@ API_AVAILABLE(ios(16.0))
 
 API_AVAILABLE(ios(16.0))
 @interface AppSceneViewController : UIViewController<_UISceneSettingsDiffAction>
+@property(nonatomic) LCAppInfo* appInfo;
 @property(nonatomic) NSString* bundleId;
 @property(nonatomic) NSString* dataUUID;
 @property(nonatomic) int pid;
@@ -33,7 +35,7 @@ API_AVAILABLE(ios(16.0))
 @property(nonatomic) UIView* contentView;
 @property(nonatomic) _UIScenePresenter *presenter;
 @property(nonatomic) _UISceneHostingController *hostingController API_AVAILABLE(ios(17.0));
-- (instancetype)initWithBundleId:(NSString*)bundleId dataUUID:(NSString*)dataUUID delegate:(id<AppSceneViewControllerDelegate>)delegate;
+- (instancetype)initWithAppInfo:(LCAppInfo*)appInfo dataUUID:(NSString*)dataUUID delegate:(id<AppSceneViewControllerDelegate>)delegate;
 - (void)setBackgroundNotificationEnabled:(bool)enabled;
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block;
 - (void)updateSettingsWithBlock:(void(^)(UIMutableApplicationSceneSettings *settings))block;

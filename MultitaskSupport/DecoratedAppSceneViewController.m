@@ -20,7 +20,7 @@
 @end
 
 @implementation DecoratedAppSceneViewController
-- (instancetype)initWindowName:(NSString*)windowName bundleId:(NSString*)bundleId dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC {
+- (instancetype)initWithAppInfo:(LCAppInfo*)appInfo dataUUID:(NSString*)dataUUID rootVC:(UIViewController*)rootVC {
     self = [super initWithNibName:nil bundle:nil];
     self.view = [[UIStackView alloc] initWithFrame:self.view.frame];
     [MultitaskDockManager.shared.windowHostingView addSubview:self.view];
@@ -29,12 +29,12 @@
     _dataUUID = dataUUID;
     _scaleRatio = 1.0;
     _isMaximized = [NSUserDefaults.lcUserDefaults boolForKey:@"LCLaunchMultitaskMaximized"];
-    _appSceneVC = [[AppSceneViewController alloc] initWithBundleId:bundleId dataUUID:dataUUID delegate:self];
-    self.title = windowName;
+    _appSceneVC = [[AppSceneViewController alloc] initWithAppInfo:appInfo dataUUID:dataUUID delegate:self];
+    self.title = appInfo.displayName;
     [self setupDecoratedView];
     [self setupWindowControlItems];
     
-    [MultitaskDockManager.shared addRunningApp:windowName appUUID:dataUUID view:self.view];
+    [MultitaskDockManager.shared addRunningApp:appInfo appUUID:dataUUID view:self.view];
     __weak typeof(self) weakSelf = self;
     self.navigationItem.titleMenuProvider = ^UIMenu *(NSArray<UIMenuElement *> *suggestedActions){
         return [weakSelf titleMenuWithOptions:0];

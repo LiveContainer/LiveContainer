@@ -427,8 +427,7 @@ class AppInfoProvider {
         }
     }
     
-    @objc public func addRunningApp(_ appName: String, appUUID: String, view: UIView?) {
-        let appInfo = AppInfoProvider.shared.findAppInfo(appName: appName, dataUUID: appUUID)
+    @objc public func addRunningApp(_ appInfo: LCAppInfo, appUUID: String, view: UIView?) {
         addRunningAppWithInfo(appInfo, appUUID: appUUID, view: view)
     }
     

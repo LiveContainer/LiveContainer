@@ -337,6 +337,7 @@ bool initGuestSDKVersionInfo(void) {
 #if TARGET_OS_MACCATALYST || TARGET_OS_SIMULATOR
 void DyldHookLoadableIntoProcess(void) {
     uint32_t *patchAddr = (uint32_t *)litehook_find_symbol(getDyldBase(), "__ZNK6mach_o6Header19loadableIntoProcessENS_8PlatformE7CStringb");
+    patchAddr =patchAddr?:(uint32_t *)litehook_find_symbol(getDyldBase(), "__ZNK5dyld39MachOFile19loadableIntoProcessENS_8PlatformEPKcb");
     size_t patchSize = sizeof(uint32_t[2]);
 
     kern_return_t kret;

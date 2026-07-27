@@ -123,7 +123,6 @@ static PiPManager* sharedInstance = nil;
     // resize if needed (eg orientation differs)
     [self.displayingDecoratedVC updateVerticalConstraints];
     
-    self.pipVideoCallContentView.transform = CGAffineTransformIdentity;
     if([NSUserDefaults.lcSharedDefaults boolForKey:@"LCAutoEndPiP"]) {
         self.pipController = nil;
         self.pipVideoCallViewController = nil;
@@ -138,8 +137,7 @@ static PiPManager* sharedInstance = nil;
 - (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(NSObject*)object change:(NSDictionary<NSString *,id> *) change context:(void *) context {
     CGRect rect = [change[@"new"] CGRectValue];
     CGFloat scale = self.displayingVC.usesHostingControllerAPI ? self.displayingVC.scaleRatio : 1;
-    CGAffineTransform transform1 = CGAffineTransformScale(CGAffineTransformIdentity, rect.size.width / self.displayingVC.contentView.bounds.size.width/scale,rect.size.height /self.displayingVC.contentView.bounds.size.height/scale);
-    self.pipVideoCallContentView.transform = transform1;
+    self.pipVideoCallContentView.transform3D = CATransform3DMakeScale(rect.size.width / self.displayingVC.contentView.bounds.size.width/scale, rect.size.height /self.displayingVC.contentView.bounds.size.height/scale, 1);
 }
 
 @end

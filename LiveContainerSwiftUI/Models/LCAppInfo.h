@@ -55,6 +55,10 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property UIImage* cachedIcon;
 @property UIImage* cachedIconDark;
 
+@property CGFloat windowScale;
+@property CGRect multitaskFrame;
+@property BOOL multitaskMaximized;
+
 - (void)setBundlePath:(NSString*)newBundlePath;
 - (NSMutableDictionary*)info;
 - (UIImage*)iconIsDarkIcon:(BOOL)isDarkIcon;

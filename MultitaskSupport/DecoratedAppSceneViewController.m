@@ -9,6 +9,9 @@
 #import "../LiveContainer/Localization.h"
 #import "utils.h"
 
+#define LCRectOriginNormalize(rect, parent) CGRectMake(rect.origin.x / parent.size.width, rect.origin.y / parent.size.height, rect.size.width, rect.size.height)
+#define LCRectOriginDenormalize(rect, parent) CGRectMake(rect.origin.x * parent.size.width, rect.origin.y * parent.size.height, rect.size.width, rect.size.height)
+
 @interface DecoratedAppSceneViewController()
 @property(nonatomic) NSArray <UIAction *>* controlActions;
 @property(nonatomic) NSArray* activatedVerticalConstraints;
@@ -27,8 +30,8 @@
     [rootVC addChildViewController:self];
     
     _dataUUID = dataUUID;
-    _scaleRatio = 1.0;
-    _isMaximized = [NSUserDefaults.lcUserDefaults boolForKey:@"LCLaunchMultitaskMaximized"];
+    _scaleRatio = appInfo.windowScale;
+    _isMaximized = appInfo.multitaskMaximized;
     _appSceneVC = [[AppSceneViewController alloc] initWithAppInfo:appInfo dataUUID:dataUUID delegate:self];
     self.title = appInfo.displayName;
     [self setupDecoratedView];
@@ -86,7 +89,7 @@
         actionEnablePiP,
         actionSwitchToExternalDisplay,
         [UICustomViewMenuElement elementWithViewProvider:^UIView *(UICustomViewMenuElement *element) {
-            return [self scaleSliderViewWithTitle:@"lc.multitask.scale".loc min:0.5 max:2.0 value:self.scaleRatio stepInterval:0.01];
+            return [self scaleSliderViewWithTitle:@"lc.multitask.scale".loc min:0.5 max:2.0 value:_scaleRatio stepInterval:0.01];
         }]
     ];
     
@@ -145,18 +148,20 @@
 
 - (void)setupDecoratedView {
     CGFloat navBarHeight = 44;
-    BOOL isLandscape = UIInterfaceOrientationIsLandscape(UIApp.statusBarOrientation);
-    CGRect frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
-    CGPoint rootViewCenter = self.view.superview.center;
-    frame.origin = CGPointMake(rootViewCenter.x - frame.size.width / 2, rootViewCenter.y - frame.size.height / 2);
-    
-    if(_isMaximized) {
-        CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-        // save origin as normalized coordinates
-        frame.origin.x /= maxFrame.size.width;
-        frame.origin.y /= maxFrame.size.height;
-        self.originalFrame = frame;
+    CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
+    CGRect frame = self.appSceneVC.appInfo.multitaskFrame;
+    if(CGRectIsEmpty(frame)) {
+        BOOL isLandscape = UIInterfaceOrientationIsLandscape(self.view.window.windowScene.effectiveGeometry.interfaceOrientation);
+        frame = CGRectMake(0, 0, isLandscape ? 480 : 320, (isLandscape ? 320 : 480) + navBarHeight);
+        CGPoint rootViewCenter = self.view.superview.center;
+        frame.origin = CGPointMake(rootViewCenter.x - frame.size.width / 2, rootViewCenter.y - frame.size.height / 2);
+        self.originalFrame = LCRectOriginNormalize(frame, maxFrame);
     } else {
+        self.originalFrame = frame;
+        frame = LCRectOriginDenormalize(frame, maxFrame);
+    }
+    
+    if(!_isMaximized) {
         self.view.frame = frame;
     }
     
@@ -224,7 +229,6 @@
 
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
     [defaults addObserver:self forKeyPath:@"LCMultitaskHideWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
-    [self updateOriginalFrame];
 }
 
 // Stolen from UIKitester
@@ -268,14 +272,9 @@
     return containerView;
 }
 
-- (void)scaleSliderChanged:(_UIPrototypingMenuSlider *)slider {
-    self.scaleRatio = slider.value;
+- (void)setScaleRatio:(CGFloat)scaleRatio {
+    _scaleRatio = scaleRatio;
     self.appSceneVC.scaleRatio = _scaleRatio;
-    if(self.appSceneVC.usesHostingControllerAPI) {
-        self.appSceneVC.contentView.transform = CGAffineTransformMakeScale(_scaleRatio, _scaleRatio);
-    } else {
-        self.appSceneVC.contentView.layer.sublayerTransform = CATransform3DMakeScale(_scaleRatio, _scaleRatio, 1.0);
-    }
     __weak typeof(self) weakSelf = self;
     [self.appSceneVC updateFrameWithSettingsBlock:^(UIMutableApplicationSceneSettings *settings) {
         if(weakSelf.isMaximized) {
@@ -286,6 +285,9 @@
             settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
         }
     }];
+}
+- (void)scaleSliderChanged:(_UIPrototypingMenuSlider *)slider {
+    self.scaleRatio = slider.value;
 }
 
 - (void)closeWindow {
@@ -330,7 +332,7 @@
     self.isMaximized = !self.isMaximized;
     if (!self.isMaximized) {
         CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-        CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
+        CGRect newFrame = LCRectOriginDenormalize(self.originalFrame, maxFrame);
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.view.frame = newFrame;
             [self updateVerticalConstraintsInternal];
@@ -378,6 +380,12 @@
 }
 
 - (void)appSceneVCAppDidExit:(AppSceneViewController*)vc {
+    // save settings
+    LCAppInfo *appInfo = self.appSceneVC.appInfo;
+    appInfo.multitaskFrame = self.originalFrame;
+    appInfo.multitaskMaximized = self.isMaximized;
+    appInfo.windowScale = self.scaleRatio;
+    
     BOOL skipTerminationScreen = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCSkipTerminatedScreen"];
     BOOL isManual = _isAppTerminationRequested;
     if(isManual || skipTerminationScreen) {
@@ -418,7 +426,6 @@
             [self presentViewController:alert animated:YES completion:nil];
         } else {
             self.pid = vc.pid;
-            [self updateOriginalFrame];
             if (self.pidAvailableHandler) {
                 self.pidAvailableHandler(@(self.pid), nil);
             }
@@ -432,6 +439,7 @@
 }
 
 - (void)appSceneVC:(AppSceneViewController*)vc didUpdateFromSettings:(UIMutableApplicationSceneSettings *)baseSettings transitionContext:(id)newContext lifecycleActionType:(uint32_t)actionType {
+    __weak typeof(self) weakSelf = self;
     [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
         settings.userInterfaceStyle = baseSettings.userInterfaceStyle;
         settings.interfaceOrientation = baseSettings.interfaceOrientation;
@@ -443,8 +451,12 @@
         } else {
             [self updateWindowedFrameWithSettings:settings];
         }
-        CGRect newFrame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - self.navigationBar.frame.size.height/self.scaleRatio);
+        CGRect newFrame = CGRectMake(0, 0, weakSelf.view.bounds.size.width, weakSelf.view.bounds.size.height - weakSelf.navigationBar.frame.size.height);
         
+        if(!self.appSceneVC.usesHostingControllerAPI) {
+            newFrame.size.width /= self.scaleRatio;
+            newFrame.size.height /= self.scaleRatio;
+        }
         if(UIInterfaceOrientationIsLandscape(baseSettings.interfaceOrientation)) {
             settings.frame = CGRectMake(0, 0, newFrame.size.height, newFrame.size.width);
         } else {
@@ -604,9 +616,10 @@
     }
     
     // scale peripheryInsets to match the scale ratio
-    settings.peripheryInsets = UIEdgeInsetsMake(settings.peripheryInsets.top/_scaleRatio, settings.peripheryInsets.left/_scaleRatio, settings.peripheryInsets.bottom/_scaleRatio, settings.peripheryInsets.right/_scaleRatio);
+    settings.peripheryInsets = UIEdgeInsetsMake(settings.peripheryInsets.top/_scaleRatio, settings.peripheryInsets.left/_scaleRatio,
+                                                settings.peripheryInsets.bottom/_scaleRatio, settings.peripheryInsets.right/_scaleRatio);
     if(UIDevice.currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
-        UIInterfaceOrientation currentOrientation = UIApp.statusBarOrientation;
+        UIInterfaceOrientation currentOrientation = self.view.window.windowScene.effectiveGeometry.interfaceOrientation;
         if(UIInterfaceOrientationIsLandscape(currentOrientation)) {
             safeAreaInsets.top = 0;
         }
@@ -631,7 +644,7 @@
     settings.peripheryInsets = UIEdgeInsetsZero;
     settings.safeAreaInsetsPortrait = UIEdgeInsetsZero;
     
-    CGRect newFrame = CGRectMake(self.originalFrame.origin.x * maxFrame.size.width, self.originalFrame.origin.y * maxFrame.size.height, self.originalFrame.size.width, self.originalFrame.size.height);
+    CGRect newFrame = LCRectOriginDenormalize(self.originalFrame, maxFrame);
     CGPoint center = self.view.center;
     CGRect frame = CGRectZero;
     frame.size.width = MIN(newFrame.size.width, maxFrame.size.width);
@@ -645,10 +658,9 @@
 }
 
 - (void)updateOriginalFrame {
-    if(_isMaximized) return;
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, self.view.window.safeAreaInsets);
-    // save origin as normalized coordinates
-    self.originalFrame = CGRectMake(self.view.frame.origin.x / maxFrame.size.width, self.view.frame.origin.y / maxFrame.size.height, self.view.frame.size.width, self.view.frame.size.height);
+    // save frame as normalized coordinates
+    self.originalFrame = LCRectOriginNormalize(self.view.frame, maxFrame);
 }
 
 @end

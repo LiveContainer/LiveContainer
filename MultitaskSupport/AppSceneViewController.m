@@ -38,9 +38,9 @@
     self.bundleId = appInfo.relativeBundlePath;
     self.delegate = delegate;
     self.dataUUID = dataUUID;
-    self.scaleRatio = 1.0;
     self.isAppTerminationCleanUpCalled = false;
     self.isNativeWindow = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskMode" ] == 1;
+    self.scaleRatio = self.isNativeWindow ? 1.0 : appInfo.windowScale;
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -136,7 +136,9 @@
         //settings.previewMaximumSize =
         //settings.deviceOrientationEventsEnabled = YES;
         if(!self.usesHostingControllerAPI) {
-            settings.safeAreaInsetsPortrait = self.view.safeAreaInsets;
+            UIEdgeInsets insets = self.view.safeAreaInsets;
+            settings.safeAreaInsetsPortrait = UIEdgeInsetsMake(insets.top/self.scaleRatio, insets.left/self.scaleRatio,
+                                                               insets.bottom/self.scaleRatio, insets.right/self.scaleRatio);
         }
     };
     void (^updateSceneClientSettings)(id) = ^void(UIMutableApplicationSceneClientSettings *clientSettings) {
@@ -158,6 +160,7 @@
         /// !! do NOT use self.hostingController.sceneView here as it breaks keyboard focus on iOS 26 below. I have no idea why this happens even though both return the same object. Maybe sceneView didn't initialize its ViewController properly?
         self.contentView = self.hostingController.sceneViewController.view;
         self.contentView.clipsToBounds = NO;
+        self.scaleRatio = _scaleRatio; // apply scale
         // _scenePresenter was a property in 26, but made only ivar in 27
         self.presenter = [self.contentView valueForKey:@"_scenePresenter"];
         self.sceneID = self.presenter.identifier;
@@ -216,6 +219,7 @@
         
         self.contentView = [[UIView alloc] init];
         [self.contentView addSubview:self.presenter.presentationView];
+        self.scaleRatio = _scaleRatio; // apply scale
     }
     [self.view addSubview:_contentView];
     
@@ -264,9 +268,11 @@
     }
 }
 - (void)updateFrameWithSettingsBlock:(void (^)(UIMutableApplicationSceneSettings *settings))block {
+    static void (^lastCancelledBlock)(UIMutableApplicationSceneSettings *settings);
     __block int currentDebounceToken = ++_resizeDebounceToken;
     dispatch_block_t queueBlock = ^{
         if(currentDebounceToken != self.resizeDebounceToken) {
+            if(block) lastCancelledBlock = block;
             return;
         }
         [self updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
@@ -285,7 +291,11 @@
             settings.frame = frame;
             if(block) {
                 block(settings);
+            } else if(lastCancelledBlock) {
+                // replay it in some rare cases the block responsible for updating safe area is discarded by viewWillLayoutSubviews
+                lastCancelledBlock(settings);
             }
+            lastCancelledBlock = nil;
         }];
     };
     if(_shouldSkipDebounceOnce) {
@@ -382,6 +392,11 @@
         [center removeObserver:self.extension name:UIApplicationDidEnterBackgroundNotification object:UIApp];
         [center removeObserver:self.extension name:UIApplicationWillResignActiveNotification object:UIApp];
     }
+}
+
+- (void)setScaleRatio:(CGFloat)scaleRatio {
+    _scaleRatio = scaleRatio;
+    self.contentView.transform = CGAffineTransformMakeScale(scaleRatio, scaleRatio);
 }
 
 - (void)viewDidMoveToWindow:(UIWindow *)newWindow shouldAppearOrDisappear:(BOOL)appear {

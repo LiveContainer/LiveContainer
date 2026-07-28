@@ -18,6 +18,7 @@ struct LCTabView: View {
     
     @State var previousSelectedTab : LCTabIdentifier = .apps
     
+    @AppStorage("error", store: LCUtils.appGroupUserDefault) private var lastLaunchError: String?
     @EnvironmentObject var sharedModel : SharedModel
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @State var shouldToggleMainWindowOpen = false
@@ -156,6 +157,9 @@ struct LCTabView: View {
                 previousSelectedTab = newValue
             }
         }
+        .onChange(of: lastLaunchError) { _ in
+            checkLastLaunchError()
+        }
         .onOpenURL { url in
             dispatchURL(url: url)
         }
@@ -204,7 +208,7 @@ struct LCTabView: View {
     }
     
     func checkLastLaunchError() {
-        var errorStr = UserDefaults.standard.string(forKey: "error")
+        var errorStr = lastLaunchError
         
         if errorStr == nil && UserDefaults.standard.bool(forKey: "SigningInProgress") {
             errorStr = "lc.signer.crashDuringSignErr".loc
@@ -214,7 +218,7 @@ struct LCTabView: View {
         guard let errorStr else {
             return
         }
-        UserDefaults.standard.removeObject(forKey: "error")
+        lastLaunchError = nil
         errorInfo = errorStr
         crashReportShow = true
     }

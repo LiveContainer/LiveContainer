@@ -418,12 +418,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         if(error) {
             [vc appTerminationCleanUp];
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"lc.common.error".loc message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-            [alert addAction:[UIAlertAction actionWithTitle:@"lc.common.ok".loc style:UIAlertActionStyleCancel handler:nil]];
-            [alert addAction:[UIAlertAction actionWithTitle:@"lc.common.copy".loc style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-                UIPasteboard.generalPasteboard.string = error.localizedDescription;
-            }]];
-            [self presentViewController:alert animated:YES completion:nil];
+            [NSUserDefaults.lcSharedDefaults setValue:error.localizedDescription forKey:@"error"];
         } else {
             self.pid = vc.pid;
             if (self.pidAvailableHandler) {

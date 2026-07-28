@@ -524,8 +524,26 @@
         [self.view layoutIfNeeded];
     }];
 }
+- (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings
+{
+    UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
 
-- (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
+    settings.peripheryInsets = UIEdgeInsetsMake(
+        safeAreaInsets.top / _scaleRatio,
+        safeAreaInsets.left / _scaleRatio,
+        safeAreaInsets.bottom / _scaleRatio,
+        safeAreaInsets.right / _scaleRatio
+    );
+
+    UIInterfaceOrientation orientation = UIApp.statusBarOrientation;
+
+    settings.safeAreaInsetsPortrait =
+        LCUIEdgeInsetsRotateToOrientation(settings.peripheryInsets,
+                                          orientation);
+
+    return safeAreaInsets;
+}
+/*- (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
     BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
     UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
     if(self.navigationBar.hidden) {
@@ -556,7 +574,7 @@
     
     safeAreaInsets.bottom = 0;
     return safeAreaInsets;
-}
+}*/
 
 - (void)updateMaximizedFrameWithSettings:(UIMutableApplicationSceneSettings *)settings {
     CGRect maxFrame = UIEdgeInsetsInsetRect(self.view.window.frame, [self updateMaximizedSafeAreaWithSettings:settings]);

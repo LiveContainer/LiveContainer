@@ -26657,6 +26657,17 @@
         }
       }
     },
+    "lc.settings.overlayMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlay Mode"
+          }
+        }
+      }
+    },
     "lc.settings.redirectURLToHost" : {
       "extractionState" : "stale",
       "localizations" : {

@@ -33,14 +33,10 @@
 Dead10ccFix* fix = nil;
 
 void initDead10ccFix(void) {
-
-    if(NSUserDefaults.isLiveProcess) {
-        fix = [[Dead10ccFix alloc] init];
-        [NSNotificationCenter.defaultCenter addObserver:fix selector:@selector(handleAppDidEnterBackground:) name:NSExtensionHostDidEnterBackgroundNotification object:nil];
-    } else if (NSUserDefaults.isSharedApp){
-        fix = [[Dead10ccFix alloc] init];
-        [NSNotificationCenter.defaultCenter addObserver:fix selector:@selector(handleAppDidEnterBackground:) name:@"UIApplicationDidEnterBackgroundNotification" object:nil];
-    }
+    fix = [[Dead10ccFix alloc] init];
+    // Note on LiveProcess: depending on Scene API, it could invoke either of these, so just register both
+    [NSNotificationCenter.defaultCenter addObserver:fix selector:@selector(handleAppDidEnterBackground:) name:NSExtensionHostDidEnterBackgroundNotification object:nil];
+    [NSNotificationCenter.defaultCenter addObserver:fix selector:@selector(handleAppDidEnterBackground:) name:@"UIApplicationDidEnterBackgroundNotification" object:nil];
 }
 
 

@@ -351,15 +351,15 @@
         forceSign = true;
         
         [self save];
-    }
 #if !is32BitSupported
-    if(is32bit) {
-        completetionHandler(NO, @"32-bit app is NOT supported!");
-        return;
-    }
+        if(is32bit) {
+            completetionHandler(NO, @"32-bit app is NOT supported!");
+            return;
+        }
 #else
-    self.is32Bit = is32bit;
+        self.is32bit = is32bit;
 #endif
+    }
 
     if (!LCSharedUtils.certificatePassword || is32bit || self.dontSign) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"SigningInProgress"];
@@ -736,6 +736,10 @@
         LCParseMachO(execPath.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
             sdkVersion = dyld_get_sdk_version((const struct mach_header *)header);
         });
+        // for 32bit apps, hardcode spoofed SDK to iOS 11, as lower causes weird crashes
+        if(self.is32bit && sdkVersion < 0xb0000) {
+            sdkVersion = 0xb0000;
+        }
         NSLog(@"[LC] sdkversion = %8x", sdkVersion);
         _info[@"spoofSDKVersion"] = [NSNumber numberWithUnsignedInt:sdkVersion];
     }

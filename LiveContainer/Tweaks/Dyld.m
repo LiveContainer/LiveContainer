@@ -184,7 +184,7 @@ bool hook_dyld_program_sdk_at_least(void* dyldApiInstancePtr, dyld_build_version
     // we are targeting ios, so we hard code 2
     if(version.platform == 0xffffffff){
         return version.version <= guestAppSdkVersionSet;
-    } else if (version.platform == 2){
+    } else if (version.platform != 1){
         return version.version <= guestAppSdkVersion;
     } else {
         return false;
@@ -279,16 +279,15 @@ bool initGuestSDKVersionInfo(void) {
     if(!versionMapPtr || versionMapPtr[0] != 0x07db0901) {
 #if !TARGET_OS_SIMULATOR
         const char* dyldPath = "/usr/lib/dyld";
+#else
+        const char* dyldPath = "/usr/lib/dyld_sim";
+#endif
         uint64_t offset = 0;
         if(@available(iOS 27.0, *)) {
             offset = LCFindSymbolOffset(dyldPath, "__ZN5dyld311sVersionMapE");
         } else {
             offset = LCFindSymbolOffset(dyldPath, "__ZN5dyld3L11sVersionMapE");
         }
-#else
-        void *result = litehook_find_symbol(dyldBase, "__ZN5dyld3L11sVersionMapE");
-        uint64_t offset = (uint64_t)result - (uint64_t)dyldBase;
-#endif
         assert(offset);
         versionMapPtr = dyldBase + offset;
         saveCachedSymbol(@"__ZN5dyld3L11sVersionMapE", dyldBase, offset);

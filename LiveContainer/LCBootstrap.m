@@ -545,7 +545,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             return @"JIT is required to run 32-bit apps.";
         }
         
-        NSString *selected32BitLayer = [lcUserDefaults stringForKey:@"selected32BitLayer"];
+        NSString *selected32BitLayer = [lcSharedDefaults stringForKey:@"selected32BitLayer"];
         if(!selected32BitLayer || [selected32BitLayer length] == 0) {
             appError = @"No 32-bit translation layer installed";
             NSLog(@"[LCBootstrap] %@", appError);

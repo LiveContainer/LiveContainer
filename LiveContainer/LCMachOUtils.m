@@ -249,7 +249,8 @@ NSString *LCParseMachO(const char *path, bool readOnly, LCParseMachOCallback cal
         struct fat_header *header = (struct fat_header *)map;
         struct fat_arch *arch = (struct fat_arch *)(map + sizeof(struct fat_header));
         for (int i = 0; i < OSSwapInt32(header->nfat_arch); i++) {
-            if (OSSwapInt32(arch->cputype) == CPU_TYPE_ARM64) {
+            int cputype = OSSwapInt32(arch->cputype);
+            if (cputype == CPU_TYPE_ARM64 || cputype == CPU_TYPE_ARM) {
                 callback(path, (struct mach_header_64 *)(map + OSSwapInt32(arch->offset)), fd, map);
             }
             arch = (struct fat_arch *)((void *)arch + sizeof(struct fat_arch));
@@ -353,7 +354,8 @@ const uint8_t* LCGetMachOUUID(struct mach_header_64 *header) {
 }
 
 bool LCIsMachOEncrypted(struct mach_header_64 *header) {
-    struct load_command *command = (struct load_command *)(header + 1);
+    size_t size = header->cputype==CPU_TYPE_ARM64 ? sizeof(struct mach_header_64) : sizeof(struct mach_header);
+    struct load_command *command = (struct load_command *)((uint64_t)header + size);
     for(int i = 0; i < header->ncmds; i++) {
         if(command->cmd == LC_ENCRYPTION_INFO || command->cmd == LC_ENCRYPTION_INFO_64) {
             return ((struct encryption_info_command *)command)->cryptid != 0;

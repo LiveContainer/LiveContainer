@@ -10,6 +10,12 @@ enum MultitaskMode : Int {
     case nativeWindow = 1
 }
 
+@objc enum MultitaskWindowBarMode : Int {
+    case `default` = 0
+    case hidden = 1
+    case overlay = 2
+}
+
 @objc class MultitaskManager : NSObject {
     static private var usingMultitaskContainers : [String] = []
     

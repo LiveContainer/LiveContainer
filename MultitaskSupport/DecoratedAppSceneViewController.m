@@ -228,7 +228,7 @@
     NSUserDefaults *defaults = NSUserDefaults.lcSharedDefaults;
 
     [defaults addObserver:self forKeyPath:@"LCMultitaskBottomWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
-    [defaults addObserver:self forKeyPath:@"LCMultitaskHideWindowBar" options:NSKeyValueObservingOptionNew context:NULL];
+    [defaults addObserver:self forKeyPath:@"LCMultitaskWindowBarMode" options:NSKeyValueObservingOptionNew context:NULL];
 }
 
 // Stolen from UIKitester
@@ -446,7 +446,10 @@
         } else {
             [self updateWindowedFrameWithSettings:settings];
         }
-        CGRect newFrame = CGRectMake(0, 0, weakSelf.view.bounds.size.width, weakSelf.view.bounds.size.height - weakSelf.navigationBar.frame.size.height);
+        BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
+        BOOL isModeOverlay = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskWindowBarMode"]==MultitaskWindowBarModeOverlay;
+        CGFloat navBarOffset = bottomWindowBar&&isModeOverlay ? 0 : weakSelf.navigationBar.frame.size.height;
+        CGRect newFrame = CGRectMake(0, 0, weakSelf.view.bounds.size.width, weakSelf.view.bounds.size.height - navBarOffset);
         
         if(!self.appSceneVC.usesHostingControllerAPI) {
             newFrame.size.width /= self.scaleRatio;
@@ -555,8 +558,10 @@
 
 - (void)updateVerticalConstraintsInternal {
     BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
-    BOOL hideWindowBarFullscreen = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskHideWindowBar"];
-    BOOL hideWindowBar = (MultitaskDockManager.shared.isCollapsed || hideWindowBarFullscreen) && self.isMaximized;
+    MultitaskWindowBarMode windowBarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskWindowBarMode"];
+    BOOL isModeHidden = windowBarMode==MultitaskWindowBarModeHidden;
+    BOOL isModeOverlay = windowBarMode==MultitaskWindowBarModeOverlay;
+    BOOL hideWindowBar = (MultitaskDockManager.shared.isCollapsed || isModeHidden) && self.isMaximized;
     CGFloat navBarHeight = hideWindowBar ? 0 : 44;
     self.navigationBar.alpha = hideWindowBar ? 0 : 1;
     self.navigationBar.hidden = hideWindowBar;
@@ -574,9 +579,16 @@
     if(bottomWindowBar) {
         self.activatedVerticalConstraints = @[
             [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-navBarHeight],
+            [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:isModeOverlay? 0 : -navBarHeight],
             [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight]
         ];
+    } else if(self.isMaximized) {
+            self.activatedVerticalConstraints = @[
+                [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:isModeOverlay? 0 : navBarHeight],
+                [self.appSceneVC.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+                [self.navigationBar.heightAnchor constraintEqualToConstant:navBarHeight],
+                [self.navigationBar.topAnchor constraintEqualToAnchor:self.view.window.safeAreaLayoutGuide.topAnchor]
+            ];
     } else {
         self.activatedVerticalConstraints = @[
             [self.appSceneVC.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:navBarHeight],
@@ -596,8 +608,9 @@
 
 - (UIEdgeInsets)updateMaximizedSafeAreaWithSettings:(UIMutableApplicationSceneSettings *)settings {
     BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
+    MultitaskWindowBarMode windowBarMode = [NSUserDefaults.lcSharedDefaults integerForKey:@"LCMultitaskWindowBarMode"];
     UIEdgeInsets safeAreaInsets = self.view.window.safeAreaInsets;
-    if(self.navigationBar.hidden) {
+    if(self.navigationBar.hidden || windowBarMode == MultitaskWindowBarModeOverlay) {
         settings.peripheryInsets = safeAreaInsets;
         safeAreaInsets = UIEdgeInsetsZero;
     } else if(bottomWindowBar) {

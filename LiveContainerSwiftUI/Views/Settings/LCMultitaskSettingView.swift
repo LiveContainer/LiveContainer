@@ -12,7 +12,7 @@ struct LCMultitaskSettingView: View {
     @AppStorage("LCLaunchInMultitaskMode") var launchInMultitaskMode = false
     @AppStorage("LCLaunchMultitaskMaximized") var launchMultitaskMaximized = false
     @AppStorage("LCMultitaskBottomWindowBar", store: LCUtils.appGroupUserDefault) var bottomWindowBar = false
-    @AppStorage("LCMultitaskHideWindowBar", store: LCUtils.appGroupUserDefault) var hideFullscreenWindowBar = false
+    @AppStorage("LCMultitaskWindowBarMode", store: LCUtils.appGroupUserDefault) var windowBarMode = MultitaskWindowBarMode.default
     @AppStorage("LCAutoEndPiP", store: LCUtils.appGroupUserDefault) var autoEndPiP = false
     @AppStorage("LCSkipTerminatedScreen", store: LCUtils.appGroupUserDefault) var skipTerminatedScreen = false
     @AppStorage("LCRestartTerminatedApp", store: LCUtils.appGroupUserDefault) var restartTerminatedApp = false
@@ -64,8 +64,12 @@ struct LCMultitaskSettingView: View {
                     Toggle(isOn: $bottomWindowBar) {
                         Text("lc.settings.bottomWindowBar".loc)
                     }
-                    Toggle(isOn: $hideFullscreenWindowBar) {
-                        Text("lc.settings.hideWindowBarOnFullscreen".loc)
+                    Picker(selection: $windowBarMode) {
+                        Text("lc.settings.windowBarMode.default".loc).tag(MultitaskWindowBarMode.default)
+                        Text("lc.settings.windowBarMode.hide".loc).tag(MultitaskWindowBarMode.hidden)
+                        Text("lc.settings.windowBarMode.overlay".loc).tag(MultitaskWindowBarMode.overlay)
+                    } label: {
+                        Text("lc.settings.windowBarMode".loc)
                     }
                     Toggle(isOn: $redirectURLToHost) {
                         Text("lc.settings.redirectURLToHost".loc)

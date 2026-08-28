@@ -90,14 +90,10 @@ static BOOL checkJITEnabled() {
         return NO;
     }
     // check if jailbroken
-    if (access("/var/mobile", R_OK) == 0) {
+    if (access("/usr/lib/systemhook.dylib", R_OK) == 0) {
         return YES;
     }
     
-    if(@available(iOS 26.0 ,*))  {
-        return false;
-    }
-
     // check csflags
     int flags;
     csops(getpid(), 0, &flags, sizeof(flags));
@@ -539,31 +535,33 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         }
     }
     
-#if is32BitSupported
     bool is32bit = [guestAppInfo[@"is32bit"] boolValue];
     if(is32bit) {
         if (!isJitEnabled) {
             return @"JIT is required to run 32-bit apps.";
         }
         
-        NSString *selected32BitLayer = [lcSharedDefaults stringForKey:@"selected32BitLayer"];
-        if(!selected32BitLayer || [selected32BitLayer length] == 0) {
-            appError = @"No 32-bit translation layer installed";
+        NSString *selected32BitLayer = guestAppInfo[@"selected32BitEmulator"] ?: [lcSharedDefaults stringForKey:@"LCSelected32BitEmulator"];
+        if(selected32BitLayer.length == 0) {
+            appError = @"No 32-bit emulator selected";
             NSLog(@"[LCBootstrap] %@", appError);
             *path = oldPath;
             return appError;
         }
-        NSBundle *selected32bitLayerBundle = [NSBundle bundleWithPath:[docPath stringByAppendingPathComponent:selected32BitLayer]]; //TODO make it user friendly;
+        NSBundle *selected32bitLayerBundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"%@/Applications/%@", docPath, selected32BitLayer]];
         if(!selected32bitLayerBundle) {
-            appError = @"The specified LiveExec32.app path is not found";
+            selected32bitLayerBundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"%@/Applications/%@", appGroupFolder.path, selected32BitLayer]];
+        }
+        if(!selected32bitLayerBundle) {
+            appError = @"The specified 32-bit emulator app is not found";
             NSLog(@"[LCBootstrap] %@", appError);
             *path = oldPath;
             return appError;
         }
         // maybe need to save selected32bitLayerBundle to static variable?
         appExecPath = strdup(selected32bitLayerBundle.executablePath.UTF8String);
+        overwriteExecPath(appExecPath);
     }
-#endif
     if(![guestAppInfo[@"dontInjectTweakLoader"] boolValue]) {
         tweakLoaderLoaded = true;
     }
@@ -623,12 +621,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     [NSUserDefaults performSelector:@selector(initialize)];
 
     // Attempt to load the bundle. 32-bit bundle will always fail because of 32-bit main executable, so ignore it
-    if (
-#if is32BitSupported
-        !is32bit &&
-#endif
-        ![appBundle loadAndReturnError:&error]
-        ) {
+    if (!is32bit && ![appBundle loadAndReturnError:&error]) {
         appError = error.localizedDescription;
         NSLog(@"[LCBootstrap] loading bundle failed: %@", error);
         *path = oldPath;
@@ -648,17 +641,13 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     // Go!
     NSLog(@"[LCBootstrap] jumping to main %p", appMain);
     int ret;
-#if is32BitSupported
     if(!is32bit) {
-#endif
         argv[0] = (char *)appExecPath;
         ret = appMain(argc, argv, environ);
-#if is32BitSupported
     } else {
         char *argv32[] = {(char*)appExecPath, (char*)*path, NULL};
         ret = appMain(sizeof(argv32)/sizeof(*argv32) - 1, argv32, environ);
     }
-#endif
     return [NSString stringWithFormat:@"App returned from its main function with code %d.", ret];
 }
 

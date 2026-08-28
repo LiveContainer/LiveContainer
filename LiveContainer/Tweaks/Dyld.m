@@ -623,7 +623,7 @@ void* jitless_hook_mmap(void *addr, size_t len, int prot, int flags, int fd, off
     char filePath[PATH_MAX];
     if (fcntl(fd, F_GETPATH, filePath) != 0) return map;
     char newTmpPath[PATH_MAX];
-    sprintf(newTmpPath, "%s/Documents/%p.dylib", getenv("LP_HOME_PATH"), addr);
+    sprintf(newTmpPath, "%s/Documents/.fd%d.dylib", getenv("LP_HOME_PATH"), fd);
     rename(filePath, newTmpPath);
     map = __mmap(addr, len, prot, flags, fd, offset);
     rename(newTmpPath, filePath);

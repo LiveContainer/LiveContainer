@@ -6,10 +6,10 @@
 
 void* lcShared = 0;
 
-int LiveContainerMainC(int argc, char *argv[]) {
+int LiveContainerMainC(int argc, char *argv[], char *envp[]) {
     const char *home = getenv("HOME");
 
-    int (*lcMain)(int argc, char *argv[]) = 0;
+    int (*lcMain)(int argc, char *argv[], char *envp[]) = 0;
     
     if (!home) {
         abort();
@@ -36,17 +36,17 @@ int LiveContainerMainC(int argc, char *argv[]) {
 loadlc:
     lcShared = dlopen("@executable_path/Frameworks/LiveContainerShared.framework/LiveContainerShared", RTLD_LAZY|RTLD_GLOBAL);
     lcMain = dlsym(lcShared, "LiveContainerMain");
-    __attribute__((musttail)) return lcMain(argc, argv);
+    __attribute__((musttail)) return lcMain(argc, argv, envp);
 }
 
 #ifdef DEBUG
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[], char *envp[]) {
 
     if(lcShared == NULL) {
-        __attribute__((musttail)) return LiveContainerMainC(argc, argv);
+        __attribute__((musttail)) return LiveContainerMainC(argc, argv, envp);
     }
-    int (*callAppMain)(int argc, char *argv[]) = dlsym(lcShared, "callAppMain");
-    __attribute__((musttail)) return callAppMain(argc, argv);
+    int (*callAppMain)(int argc, char *argv[], char *envp[]) = dlsym(lcShared, "callAppMain");
+    __attribute__((musttail)) return callAppMain(argc, argv, envp);
 
 }
 #endif

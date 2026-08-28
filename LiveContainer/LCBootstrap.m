@@ -18,7 +18,8 @@
 #import "Tweaks/Tweaks.h"
 #include <mach-o/ldsyms.h>
 
-static int (*appMain)(int, char**);
+extern char **environ;
+static int (*appMain)(int, char**, char**);
 NSUserDefaults *lcUserDefaults;
 NSUserDefaults *lcSharedDefaults;
 NSString *lcAppGroupPath;
@@ -651,11 +652,11 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     if(!is32bit) {
 #endif
         argv[0] = (char *)appExecPath;
-        ret = appMain(argc, argv);
+        ret = appMain(argc, argv, environ);
 #if is32BitSupported
     } else {
         char *argv32[] = {(char*)appExecPath, (char*)*path, NULL};
-        ret = appMain(sizeof(argv32)/sizeof(*argv32) - 1, argv32);
+        ret = appMain(sizeof(argv32)/sizeof(*argv32) - 1, argv32, environ);
     }
 #endif
     return [NSString stringWithFormat:@"App returned from its main function with code %d.", ret];
@@ -886,8 +887,8 @@ int LiveContainerMain(int argc, char *argv[]) {
 }
 
 #ifdef DEBUG
-int callAppMain(int argc, char *argv[]) {
+int callAppMain(int argc, char *argv[], char *envp[]) {
     assert(appMain != NULL);
-    __attribute__((musttail)) return appMain(argc, argv);
+    __attribute__((musttail)) return appMain(argc, argv, envp);
 }
 #endif

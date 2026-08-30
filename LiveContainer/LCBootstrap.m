@@ -368,6 +368,43 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     bool isJitEnabled = checkJITEnabled();
     if (isJitEnabled) {
         init_bypassDyldLibValidation();
+    } else if (!isLiveProcess && guestAppInfo[@"isJITNeeded"] && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCJITEnablerType"] == 7) { // JITEnablerTypeStikJITHeadless
+        __block NSError *error;
+        NSExtension *ext = [NSExtension extensionWithIdentifier:LCSharedUtils.liveProcessBundleIdentifier error:&error];
+        if (!ext) {
+            return [@"JIT was required, but could not spawn StikDebug because LiveProcess is missing. " stringByAppendingString:error.localizedDescription];
+        }
+        NSURL *pairingURL = [NSURL fileURLWithPath:[docPath stringByAppendingPathComponent:@"SideStore/Documents/ALTPairingFile.mobiledevicepairing"]];
+        NSURL *ddiURL = [NSURL fileURLWithPath:[docPath stringByAppendingPathComponent:@"SideStore/Documents/DMG"]];
+        [fm createDirectoryAtURL:ddiURL withIntermediateDirectories:YES attributes:nil error:nil];
+        if (![fm fileExistsAtPath:pairingURL.path]) {
+            return @"Unexpected pairing file not found unhandled by UI";
+        }
+        
+        NSExtensionItem *item = [NSExtensionItem new];
+        item.userInfo = @{
+            // TODO: pairing file sandbox tokens
+            @"customPayloadDylib": @"@rpath/StikJITHeadless.framework/StikJITHeadless",
+            @"customPayloadEntry": @"StikJITHeadlessMain",
+            @"pairingBookmark": [pairingURL bookmarkDataWithOptions:(1<<11) includingResourceValuesForKeys:0 relativeToURL:0 error:0],
+            @"ddiBookmark": [ddiURL bookmarkDataWithOptions:(1<<11) includingResourceValuesForKeys:0 relativeToURL:0 error:0],
+            @"script": guestAppInfo[@"jitLaunchScriptJs"] ?: @"",
+            @"pid": @(getpid())
+        };
+        ext.requestCancellationBlock = ^(NSUUID *uuid, NSError *jitError) {
+            error = jitError;
+        };
+        [ext beginExtensionRequestWithInputItems:@[item] completion:^(NSUUID *uuid) {
+            CFRunLoopStop(CFRunLoopGetMain());
+        }];
+        CFRunLoopRun();
+        while (!error && !checkJITEnabled()) {
+            usleep(1000*100);
+        }
+        if (error) {
+            return [@"Builtin StikJIT failed: " stringByAppendingString:error.localizedDescription];
+        }
+        isJitEnabled = YES;
     }
 
     // Locate dyld image name address

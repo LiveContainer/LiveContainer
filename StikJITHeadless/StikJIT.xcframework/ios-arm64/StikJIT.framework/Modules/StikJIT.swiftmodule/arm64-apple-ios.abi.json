@@ -1,0 +1,3230 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "StikJIT",
+    "printedName": "StikJIT",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "idevice",
+        "printedName": "idevice",
+        "declKind": "Import",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "DDIPaths",
+        "printedName": "DDIPaths",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "imagePath",
+            "printedName": "imagePath",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT8DDIPathsV9imagePathSSvp",
+            "mangledName": "$s7StikJIT8DDIPathsV9imagePathSSvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV9imagePathSSvg",
+                "mangledName": "$s7StikJIT8DDIPathsV9imagePathSSvg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV9imagePathSSvs",
+                "mangledName": "$s7StikJIT8DDIPathsV9imagePathSSvs",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV9imagePathSSvM",
+                "mangledName": "$s7StikJIT8DDIPathsV9imagePathSSvM",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "trustcachePath",
+            "printedName": "trustcachePath",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT8DDIPathsV14trustcachePathSSvp",
+            "mangledName": "$s7StikJIT8DDIPathsV14trustcachePathSSvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV14trustcachePathSSvg",
+                "mangledName": "$s7StikJIT8DDIPathsV14trustcachePathSSvg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV14trustcachePathSSvs",
+                "mangledName": "$s7StikJIT8DDIPathsV14trustcachePathSSvs",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV14trustcachePathSSvM",
+                "mangledName": "$s7StikJIT8DDIPathsV14trustcachePathSSvM",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "manifestPath",
+            "printedName": "manifestPath",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT8DDIPathsV12manifestPathSSvp",
+            "mangledName": "$s7StikJIT8DDIPathsV12manifestPathSSvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12manifestPathSSvg",
+                "mangledName": "$s7StikJIT8DDIPathsV12manifestPathSSvg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12manifestPathSSvs",
+                "mangledName": "$s7StikJIT8DDIPathsV12manifestPathSSvs",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12manifestPathSSvM",
+                "mangledName": "$s7StikJIT8DDIPathsV12manifestPathSSvM",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(imagePath:trustcachePath:manifestPath:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0ACSS_S2Stcfc",
+            "mangledName": "$s7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0ACSS_S2Stcfc",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Function",
+            "name": "default",
+            "printedName": "default(in:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJIT8DDIPathsV7default2inAC10Foundation3URLV_tFZ",
+            "mangledName": "$s7StikJIT8DDIPathsV7default2inAC10Foundation3URLV_tFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:7StikJIT8DDIPathsV",
+        "mangledName": "$s7StikJIT8DDIPathsV",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "DeveloperDiskImageService",
+        "printedName": "DeveloperDiskImageService",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "shared",
+            "printedName": "shared",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "DeveloperDiskImageService",
+                "printedName": "StikJIT.DeveloperDiskImageService",
+                "usr": "s:7StikJIT25DeveloperDiskImageServiceC"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT25DeveloperDiskImageServiceC6sharedACvpZ",
+            "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC6sharedACvpZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DeveloperDiskImageService",
+                    "printedName": "StikJIT.DeveloperDiskImageService",
+                    "usr": "s:7StikJIT25DeveloperDiskImageServiceC"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT25DeveloperDiskImageServiceC6sharedACvgZ",
+                "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC6sharedACvgZ",
+                "moduleName": "StikJIT",
+                "static": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(session:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "DeveloperDiskImageService",
+                "printedName": "StikJIT.DeveloperDiskImageService",
+                "usr": "s:7StikJIT25DeveloperDiskImageServiceC"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URLSession",
+                "printedName": "Foundation.URLSession",
+                "hasDefaultArg": true,
+                "usr": "c:objc(cs)NSURLSession"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:7StikJIT25DeveloperDiskImageServiceC7sessionACSo12NSURLSessionC_tcfc",
+            "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC7sessionACSo12NSURLSessionC_tcfc",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Function",
+            "name": "downloadIfNeeded",
+            "printedName": "downloadIfNeeded(to:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Double, Swift.String) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Tuple",
+                    "printedName": "(Swift.Double, Swift.String)",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJIT25DeveloperDiskImageServiceC16downloadIfNeeded2to8progressyAA8DDIPathsV_ySd_SStctYaKF",
+            "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC16downloadIfNeeded2to8progressyAA8DDIPathsV_ySd_SStctYaKF",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "download",
+            "printedName": "download(to:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Double, Swift.String) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Tuple",
+                    "printedName": "(Swift.Double, Swift.String)",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJIT25DeveloperDiskImageServiceC8download2to8progressyAA8DDIPathsV_ySd_SStctYaKF",
+            "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC8download2to8progressyAA8DDIPathsV_ySd_SStctYaKF",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Var",
+            "name": "unownedExecutor",
+            "printedName": "unownedExecutor",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UnownedSerialExecutor",
+                "printedName": "_Concurrency.UnownedSerialExecutor",
+                "usr": "s:Sce"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT25DeveloperDiskImageServiceC15unownedExecutorScevp",
+            "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC15unownedExecutorScevp",
+            "moduleName": "StikJIT",
+            "implicit": true,
+            "intro_Macosx": "10.15",
+            "intro_iOS": "17.4",
+            "intro_tvOS": "13.0",
+            "intro_watchOS": "6.0",
+            "declAttributes": [
+              "Available",
+              "Available",
+              "Available",
+              "Available",
+              "Final",
+              "Nonisolated",
+              "Semantics"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UnownedSerialExecutor",
+                    "printedName": "_Concurrency.UnownedSerialExecutor",
+                    "usr": "s:Sce"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT25DeveloperDiskImageServiceC15unownedExecutorScevg",
+                "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC15unownedExecutorScevg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Class",
+        "usr": "s:7StikJIT25DeveloperDiskImageServiceC",
+        "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC",
+        "moduleName": "StikJIT",
+        "intro_iOS": "17.4",
+        "declAttributes": [
+          "AccessControl",
+          "Available"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Actor",
+            "printedName": "Actor",
+            "usr": "s:ScA",
+            "mangledName": "$sScA"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "Network",
+        "printedName": "Network",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "idevice",
+        "printedName": "idevice",
+        "declKind": "Import",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "idevice",
+        "printedName": "idevice",
+        "declKind": "Import",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "StikJITIOKit",
+        "printedName": "StikJITIOKit",
+        "declKind": "Import",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "JavaScriptCore",
+        "printedName": "JavaScriptCore",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "Import",
+        "name": "idevice",
+        "printedName": "idevice",
+        "declKind": "Import",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StikJIT",
+        "printedName": "StikJIT",
+        "children": [
+          {
+            "kind": "TypeDecl",
+            "name": "Script",
+            "printedName": "Script",
+            "children": [
+              {
+                "kind": "Var",
+                "name": "universal",
+                "printedName": "universal",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.Script.Type) -> StikJIT.StikJIT.Script",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Script",
+                        "printedName": "StikJIT.StikJIT.Script",
+                        "usr": "s:7StikJITAAO6ScriptO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.Script.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO6ScriptO9universalyA2DmF",
+                "mangledName": "$s7StikJITAAO6ScriptO9universalyA2DmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "legacy",
+                "printedName": "legacy",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.Script.Type) -> StikJIT.StikJIT.Script",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Script",
+                        "printedName": "StikJIT.StikJIT.Script",
+                        "usr": "s:7StikJITAAO6ScriptO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.Script.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO6ScriptO6legacyyA2DmF",
+                "mangledName": "$s7StikJITAAO6ScriptO6legacyyA2DmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "custom",
+                "printedName": "custom",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.Script.Type) -> (Foundation.URL) -> StikJIT.StikJIT.Script",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Foundation.URL) -> StikJIT.StikJIT.Script",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "URL",
+                            "printedName": "Foundation.URL",
+                            "usr": "s:10Foundation3URLV"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.Script.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO6ScriptO6customyAD10Foundation3URLVcADmF",
+                "mangledName": "$s7StikJITAAO6ScriptO6customyAD10Foundation3URLVcADmF",
+                "moduleName": "StikJIT"
+              }
+            ],
+            "declKind": "Enum",
+            "usr": "s:7StikJITAAO6ScriptO",
+            "mangledName": "$s7StikJITAAO6ScriptO",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Sendable",
+                "printedName": "Sendable",
+                "usr": "s:s8SendableP",
+                "mangledName": "$ss8SendableP"
+              }
+            ]
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "DeviceSecurityState",
+            "printedName": "DeviceSecurityState",
+            "children": [
+              {
+                "kind": "Var",
+                "name": "isTXMPresent",
+                "printedName": "isTXMPresent",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO19DeviceSecurityStateV12isTXMPresentSbSgvp",
+                "mangledName": "$s7StikJITAAO19DeviceSecurityStateV12isTXMPresentSbSgvp",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "HasStorage",
+                  "AccessControl"
+                ],
+                "isLet": true,
+                "hasStorage": true,
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Optional",
+                        "printedName": "Swift.Bool?",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Bool",
+                            "printedName": "Swift.Bool",
+                            "usr": "s:Sb"
+                          }
+                        ],
+                        "usr": "s:Sq"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO19DeviceSecurityStateV12isTXMPresentSbSgvg",
+                    "mangledName": "$s7StikJITAAO19DeviceSecurityStateV12isTXMPresentSbSgvg",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "get"
+                  }
+                ]
+              },
+              {
+                "kind": "Constructor",
+                "name": "init",
+                "printedName": "init(isTXMPresent:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DeviceSecurityState",
+                    "printedName": "StikJIT.StikJIT.DeviceSecurityState",
+                    "usr": "s:7StikJITAAO19DeviceSecurityStateV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Constructor",
+                "usr": "s:7StikJITAAO19DeviceSecurityStateV12isTXMPresentADSbSg_tcfc",
+                "mangledName": "$s7StikJITAAO19DeviceSecurityStateV12isTXMPresentADSbSg_tcfc",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "init_kind": "Designated"
+              }
+            ],
+            "declKind": "Struct",
+            "usr": "s:7StikJITAAO19DeviceSecurityStateV",
+            "mangledName": "$s7StikJITAAO19DeviceSecurityStateV",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Sendable",
+                "printedName": "Sendable",
+                "usr": "s:s8SendableP",
+                "mangledName": "$ss8SendableP"
+              }
+            ]
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "PreparationStage",
+            "printedName": "PreparationStage",
+            "children": [
+              {
+                "kind": "Var",
+                "name": "checkingReachability",
+                "printedName": "checkingReachability",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PreparationStage",
+                        "printedName": "StikJIT.StikJIT.PreparationStage",
+                        "usr": "s:7StikJITAAO16PreparationStageO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO20checkingReachabilityyA2DmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO20checkingReachabilityyA2DmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "checkingDDI",
+                "printedName": "checkingDDI",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PreparationStage",
+                        "printedName": "StikJIT.StikJIT.PreparationStage",
+                        "usr": "s:7StikJITAAO16PreparationStageO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO11checkingDDIyA2DmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO11checkingDDIyA2DmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "downloadingDDI",
+                "printedName": "downloadingDDI",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> (Swift.Double, Swift.String) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Swift.Double, Swift.String) -> StikJIT.StikJIT.PreparationStage",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Tuple",
+                            "printedName": "(fraction: Swift.Double, status: Swift.String)",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "Double",
+                                "printedName": "Swift.Double",
+                                "usr": "s:Sd"
+                              },
+                              {
+                                "kind": "TypeNominal",
+                                "name": "String",
+                                "printedName": "Swift.String",
+                                "usr": "s:SS"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO14downloadingDDIyADSd_SStcADmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO14downloadingDDIyADSd_SStcADmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "mountingDDI",
+                "printedName": "mountingDDI",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> (Swift.Double) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Swift.Double) -> StikJIT.StikJIT.PreparationStage",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Tuple",
+                            "printedName": "(fraction: Swift.Double)",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "Double",
+                                "printedName": "Swift.Double",
+                                "usr": "s:Sd"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO11mountingDDIyADSd_tcADmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO11mountingDDIyADSd_tcADmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "verifyingDDI",
+                "printedName": "verifyingDDI",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PreparationStage",
+                        "printedName": "StikJIT.StikJIT.PreparationStage",
+                        "usr": "s:7StikJITAAO16PreparationStageO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO12verifyingDDIyA2DmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO12verifyingDDIyA2DmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "ready",
+                "printedName": "ready",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.PreparationStage.Type) -> StikJIT.StikJIT.PreparationStage",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PreparationStage",
+                        "printedName": "StikJIT.StikJIT.PreparationStage",
+                        "usr": "s:7StikJITAAO16PreparationStageO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.PreparationStage.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "PreparationStage",
+                            "printedName": "StikJIT.StikJIT.PreparationStage",
+                            "usr": "s:7StikJITAAO16PreparationStageO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO16PreparationStageO5readyyA2DmF",
+                "mangledName": "$s7StikJITAAO16PreparationStageO5readyyA2DmF",
+                "moduleName": "StikJIT"
+              }
+            ],
+            "declKind": "Enum",
+            "usr": "s:7StikJITAAO16PreparationStageO",
+            "mangledName": "$s7StikJITAAO16PreparationStageO",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Sendable",
+                "printedName": "Sendable",
+                "usr": "s:s8SendableP",
+                "mangledName": "$ss8SendableP"
+              }
+            ]
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "JITReadiness",
+            "printedName": "JITReadiness",
+            "children": [
+              {
+                "kind": "Var",
+                "name": "unreachable",
+                "printedName": "unreachable",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.JITReadiness.Type) -> (Swift.String) -> StikJIT.StikJIT.JITReadiness",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Swift.String) -> StikJIT.StikJIT.JITReadiness",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Tuple",
+                            "printedName": "(reason: Swift.String)",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "String",
+                                "printedName": "Swift.String",
+                                "usr": "s:SS"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.JITReadiness.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO12JITReadinessO11unreachableyADSS_tcADmF",
+                "mangledName": "$s7StikJITAAO12JITReadinessO11unreachableyADSS_tcADmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "preparationFailed",
+                "printedName": "preparationFailed",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.JITReadiness.Type) -> (Swift.String) -> StikJIT.StikJIT.JITReadiness",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Swift.String) -> StikJIT.StikJIT.JITReadiness",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Tuple",
+                            "printedName": "(reason: Swift.String)",
+                            "children": [
+                              {
+                                "kind": "TypeNominal",
+                                "name": "String",
+                                "printedName": "Swift.String",
+                                "usr": "s:SS"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.JITReadiness.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO12JITReadinessO17preparationFailedyADSS_tcADmF",
+                "mangledName": "$s7StikJITAAO12JITReadinessO17preparationFailedyADSS_tcADmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "ready",
+                "printedName": "ready",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.JITReadiness.Type) -> (StikJIT.StikJIT.DeviceSecurityState) -> StikJIT.StikJIT.JITReadiness",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(StikJIT.StikJIT.DeviceSecurityState) -> StikJIT.StikJIT.JITReadiness",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "DeviceSecurityState",
+                            "printedName": "StikJIT.StikJIT.DeviceSecurityState",
+                            "usr": "s:7StikJITAAO19DeviceSecurityStateV"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.JITReadiness.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "JITReadiness",
+                            "printedName": "StikJIT.StikJIT.JITReadiness",
+                            "usr": "s:7StikJITAAO12JITReadinessO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO12JITReadinessO5readyyAdB19DeviceSecurityStateVcADmF",
+                "mangledName": "$s7StikJITAAO12JITReadinessO5readyyAdB19DeviceSecurityStateVcADmF",
+                "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "isReady",
+                "printedName": "isReady",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO12JITReadinessO7isReadySbvp",
+                "mangledName": "$s7StikJITAAO12JITReadinessO7isReadySbvp",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO12JITReadinessO7isReadySbvg",
+                    "mangledName": "$s7StikJITAAO12JITReadinessO7isReadySbvg",
+                    "moduleName": "StikJIT",
+                    "accessorKind": "get"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Enum",
+            "usr": "s:7StikJITAAO12JITReadinessO",
+            "mangledName": "$s7StikJITAAO12JITReadinessO",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Sendable",
+                "printedName": "Sendable",
+                "usr": "s:s8SendableP",
+                "mangledName": "$ss8SendableP"
+              }
+            ]
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "Configuration",
+            "printedName": "Configuration",
+            "children": [
+              {
+                "kind": "Var",
+                "name": "deviceAddress",
+                "printedName": "deviceAddress",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO13ConfigurationV13deviceAddressSSvp",
+                "mangledName": "$s7StikJITAAO13ConfigurationV13deviceAddressSSvp",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "HasStorage",
+                  "AccessControl"
+                ],
+                "hasStorage": true,
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV13deviceAddressSSvg",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV13deviceAddressSSvg",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "get"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Set",
+                    "printedName": "Set()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV13deviceAddressSSvs",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV13deviceAddressSSvs",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "set"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Modify",
+                    "printedName": "Modify()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV13deviceAddressSSvM",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV13deviceAddressSSvM",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "_modify"
+                  }
+                ]
+              },
+              {
+                "kind": "Var",
+                "name": "rsdPort",
+                "printedName": "rsdPort",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt16",
+                    "printedName": "Swift.UInt16",
+                    "usr": "s:s6UInt16V"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvp",
+                "mangledName": "$s7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvp",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "HasStorage",
+                  "AccessControl"
+                ],
+                "hasStorage": true,
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UInt16",
+                        "printedName": "Swift.UInt16",
+                        "usr": "s:s6UInt16V"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvg",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvg",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "get"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Set",
+                    "printedName": "Set()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UInt16",
+                        "printedName": "Swift.UInt16",
+                        "usr": "s:s6UInt16V"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvs",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV7rsdPorts6UInt16Vvs",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "set"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Modify",
+                    "printedName": "Modify()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV7rsdPorts6UInt16VvM",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV7rsdPorts6UInt16VvM",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "_modify"
+                  }
+                ]
+              },
+              {
+                "kind": "Var",
+                "name": "connectionTimeout",
+                "printedName": "connectionTimeout",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO13ConfigurationV17connectionTimeoutSdvp",
+                "mangledName": "$s7StikJITAAO13ConfigurationV17connectionTimeoutSdvp",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "HasStorage",
+                  "AccessControl"
+                ],
+                "hasStorage": true,
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV17connectionTimeoutSdvg",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV17connectionTimeoutSdvg",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "get"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Set",
+                    "printedName": "Set()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV17connectionTimeoutSdvs",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV17connectionTimeoutSdvs",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "set"
+                  },
+                  {
+                    "kind": "Accessor",
+                    "name": "Modify",
+                    "printedName": "Modify()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Void",
+                        "printedName": "()"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV17connectionTimeoutSdvM",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV17connectionTimeoutSdvM",
+                    "moduleName": "StikJIT",
+                    "implicit": true,
+                    "accessorKind": "_modify"
+                  }
+                ]
+              },
+              {
+                "kind": "Constructor",
+                "name": "init",
+                "printedName": "init(deviceAddress:rsdPort:connectionTimeout:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Configuration",
+                    "printedName": "StikJIT.StikJIT.Configuration",
+                    "usr": "s:7StikJITAAO13ConfigurationV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "hasDefaultArg": true,
+                    "usr": "s:SS"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt16",
+                    "printedName": "Swift.UInt16",
+                    "hasDefaultArg": true,
+                    "usr": "s:s6UInt16V"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "hasDefaultArg": true,
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Constructor",
+                "usr": "s:7StikJITAAO13ConfigurationV13deviceAddress7rsdPort17connectionTimeoutADSS_s6UInt16VSdtcfc",
+                "mangledName": "$s7StikJITAAO13ConfigurationV13deviceAddress7rsdPort17connectionTimeoutADSS_s6UInt16VSdtcfc",
+                "moduleName": "StikJIT",
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "init_kind": "Designated"
+              },
+              {
+                "kind": "Var",
+                "name": "default",
+                "printedName": "default",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Configuration",
+                    "printedName": "StikJIT.StikJIT.Configuration",
+                    "usr": "s:7StikJITAAO13ConfigurationV"
+                  }
+                ],
+                "declKind": "Var",
+                "usr": "s:7StikJITAAO13ConfigurationV7defaultADvpZ",
+                "mangledName": "$s7StikJITAAO13ConfigurationV7defaultADvpZ",
+                "moduleName": "StikJIT",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "accessors": [
+                  {
+                    "kind": "Accessor",
+                    "name": "Get",
+                    "printedName": "Get()",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Configuration",
+                        "printedName": "StikJIT.StikJIT.Configuration",
+                        "usr": "s:7StikJITAAO13ConfigurationV"
+                      }
+                    ],
+                    "declKind": "Accessor",
+                    "usr": "s:7StikJITAAO13ConfigurationV7defaultADvgZ",
+                    "mangledName": "$s7StikJITAAO13ConfigurationV7defaultADvgZ",
+                    "moduleName": "StikJIT",
+                    "static": true,
+                    "accessorKind": "get"
+                  }
+                ]
+              }
+            ],
+            "declKind": "Struct",
+            "usr": "s:7StikJITAAO13ConfigurationV",
+            "mangledName": "$s7StikJITAAO13ConfigurationV",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Sendable",
+                "printedName": "Sendable",
+                "usr": "s:s8SendableP",
+                "mangledName": "$ss8SendableP"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "enableJIT",
+            "printedName": "enableJIT(targetPID:pairingFile:configuration:script:forceScript:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int32",
+                "printedName": "Swift.Int32",
+                "usr": "s:s5Int32V"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Configuration",
+                "printedName": "StikJIT.StikJIT.Configuration",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO13ConfigurationV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Script",
+                "printedName": "StikJIT.StikJIT.Script",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO6ScriptO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.String) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO06enableB09targetPID11pairingFile13configuration6script11forceScript8progressys5Int32V_10Foundation3URLVAB13ConfigurationVAB0K0OSbySSctKFZ",
+            "mangledName": "$s7StikJITAAO06enableB09targetPID11pairingFile13configuration6script11forceScript8progressys5Int32V_10Foundation3URLVAB13ConfigurationVAB0K0OSbySSctKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "deprecated": true,
+            "declAttributes": [
+              "AccessControl",
+              "Available"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "enableJIT",
+            "printedName": "enableJIT(targetPID:pairingFile:ddiPaths:configuration:script:forceScript:preparationProgress:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int32",
+                "printedName": "Swift.Int32",
+                "usr": "s:s5Int32V"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Configuration",
+                "printedName": "StikJIT.StikJIT.Configuration",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO13ConfigurationV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Script",
+                "printedName": "StikJIT.StikJIT.Script",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO6ScriptO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJIT.PreparationStage) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "PreparationStage",
+                    "printedName": "StikJIT.StikJIT.PreparationStage",
+                    "usr": "s:7StikJITAAO16PreparationStageO"
+                  }
+                ],
+                "hasDefaultArg": true
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.String) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO06enableB09targetPID11pairingFile8ddiPaths13configuration6script11forceScript19preparationProgress8progressys5Int32V_10Foundation3URLVAA8DDIPathsVAB13ConfigurationVAB0M0OSbyAB16PreparationStageOcySSctKFZ",
+            "mangledName": "$s7StikJITAAO06enableB09targetPID11pairingFile8ddiPaths13configuration6script11forceScript19preparationProgress8progressys5Int32V_10Foundation3URLVAA8DDIPathsVAB13ConfigurationVAB0M0OSbyAB16PreparationStageOcySSctKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Var",
+            "name": "isTXMPresent",
+            "printedName": "isTXMPresent",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.Bool?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJITAAO12isTXMPresentSbSgvpZ",
+            "mangledName": "$s7StikJITAAO12isTXMPresentSbSgvpZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.Bool?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Bool",
+                        "printedName": "Swift.Bool",
+                        "usr": "s:Sb"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJITAAO12isTXMPresentSbSgvgZ",
+                "mangledName": "$s7StikJITAAO12isTXMPresentSbSgvgZ",
+                "moduleName": "StikJIT",
+                "static": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "prepareDevice",
+            "printedName": "prepareDevice(pairingFile:paths:configuration:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "JITReadiness",
+                "printedName": "StikJIT.StikJIT.JITReadiness",
+                "usr": "s:7StikJITAAO12JITReadinessO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Configuration",
+                "printedName": "StikJIT.StikJIT.Configuration",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO13ConfigurationV"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJIT.PreparationStage) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "PreparationStage",
+                    "printedName": "StikJIT.StikJIT.PreparationStage",
+                    "usr": "s:7StikJITAAO16PreparationStageO"
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO13prepareDevice11pairingFile5paths13configuration8progressAB12JITReadinessO10Foundation3URLV_AA8DDIPathsVAB13ConfigurationVyAB16PreparationStageOctFZ",
+            "mangledName": "$s7StikJITAAO13prepareDevice11pairingFile5paths13configuration8progressAB12JITReadinessO10Foundation3URLV_AA8DDIPathsVAB13ConfigurationVyAB16PreparationStageOctFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "resetCachedDDI",
+            "printedName": "resetCachedDDI(at:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO14resetCachedDDI2atyAA8DDIPathsV_tKFZ",
+            "mangledName": "$s7StikJITAAO14resetCachedDDI2atyAA8DDIPathsV_tKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "isDDIMounted",
+            "printedName": "isDDIMounted(pairingFile:configuration:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Configuration",
+                "printedName": "StikJIT.StikJIT.Configuration",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO13ConfigurationV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO12isDDIMounted11pairingFile13configurationSb10Foundation3URLV_AB13ConfigurationVtKFZ",
+            "mangledName": "$s7StikJITAAO12isDDIMounted11pairingFile13configurationSb10Foundation3URLV_AB13ConfigurationVtKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "downloadDDIIfNeeded",
+            "printedName": "downloadDDIIfNeeded(to:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Double, Swift.String) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Tuple",
+                    "printedName": "(Swift.Double, Swift.String)",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Double",
+                        "printedName": "Swift.Double",
+                        "usr": "s:Sd"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO19downloadDDIIfNeeded2to8progressyAA8DDIPathsV_ySd_SStctYaKFZ",
+            "mangledName": "$s7StikJITAAO19downloadDDIIfNeeded2to8progressyAA8DDIPathsV_ySd_SStctYaKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "intro_iOS": "17.4",
+            "declAttributes": [
+              "AccessControl",
+              "Available"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "mountDDI",
+            "printedName": "mountDDI(pairingFile:configuration:paths:progress:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Configuration",
+                "printedName": "StikJIT.StikJIT.Configuration",
+                "hasDefaultArg": true,
+                "usr": "s:7StikJITAAO13ConfigurationV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DDIPaths",
+                "printedName": "StikJIT.DDIPaths",
+                "usr": "s:7StikJIT8DDIPathsV"
+              },
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(Swift.Double) -> ()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "hasDefaultArg": true
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7StikJITAAO8mountDDI11pairingFile13configuration5paths8progressy10Foundation3URLV_AB13ConfigurationVAA8DDIPathsVySdctKFZ",
+            "mangledName": "$s7StikJITAAO8mountDDI11pairingFile13configuration5paths8progressy10Foundation3URLV_AB13ConfigurationVAA8DDIPathsVySdctKFZ",
+            "moduleName": "StikJIT",
+            "static": true,
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:7StikJITAAO",
+        "mangledName": "$s7StikJITAAO",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "StikJITError",
+        "printedName": "StikJITError",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "pairingFile",
+            "printedName": "pairingFile",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO11pairingFileyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO11pairingFileyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "scriptUnavailable",
+            "printedName": "scriptUnavailable",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StikJITError",
+                    "printedName": "StikJIT.StikJITError",
+                    "usr": "s:7StikJIT0A8JITErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO17scriptUnavailableyA2CmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO17scriptUnavailableyA2CmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "debugProxyUnavailable",
+            "printedName": "debugProxyUnavailable",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StikJITError",
+                    "printedName": "StikJIT.StikJITError",
+                    "usr": "s:7StikJIT0A8JITErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO21debugProxyUnavailableyA2CmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO21debugProxyUnavailableyA2CmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "device",
+            "printedName": "device",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.Int32, Swift.Int32, Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.Int32, Swift.Int32, Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Tuple",
+                        "printedName": "(code: Swift.Int32, subCode: Swift.Int32, message: Swift.String)",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Int32",
+                            "printedName": "Swift.Int32",
+                            "usr": "s:s5Int32V"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Int32",
+                            "printedName": "Swift.Int32",
+                            "usr": "s:s5Int32V"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "String",
+                            "printedName": "Swift.String",
+                            "usr": "s:SS"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO6deviceyACs5Int32V_AFSStcACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO6deviceyACs5Int32V_AFSStcACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "ddiDownload",
+            "printedName": "ddiDownload",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO11ddiDownloadyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO11ddiDownloadyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "ddiFilesMissing",
+            "printedName": "ddiFilesMissing",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO15ddiFilesMissingyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO15ddiFilesMissingyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "ddiNotMounted",
+            "printedName": "ddiNotMounted",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StikJITError",
+                    "printedName": "StikJIT.StikJITError",
+                    "usr": "s:7StikJIT0A8JITErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO13ddiNotMountedyA2CmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO13ddiNotMountedyA2CmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "deviceNotReady",
+            "printedName": "deviceNotReady",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO14deviceNotReadyyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO14deviceNotReadyyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "txmDetectionUnavailable",
+            "printedName": "txmDetectionUnavailable",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "StikJITError",
+                    "printedName": "StikJIT.StikJITError",
+                    "usr": "s:7StikJIT0A8JITErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO23txmDetectionUnavailableyA2CmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO23txmDetectionUnavailableyA2CmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "customScript",
+            "printedName": "customScript",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO12customScriptyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO12customScriptyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "scriptExecution",
+            "printedName": "scriptExecution",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(StikJIT.StikJITError.Type) -> (Swift.String) -> StikJIT.StikJITError",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> StikJIT.StikJITError",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "StikJIT.StikJITError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "StikJITError",
+                        "printedName": "StikJIT.StikJITError",
+                        "usr": "s:7StikJIT0A8JITErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:7StikJIT0A8JITErrorO15scriptExecutionyACSScACmF",
+            "mangledName": "$s7StikJIT0A8JITErrorO15scriptExecutionyACSScACmF",
+            "moduleName": "StikJIT"
+          },
+          {
+            "kind": "Var",
+            "name": "errorDescription",
+            "printedName": "errorDescription",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT0A8JITErrorO16errorDescriptionSSSgvp",
+            "mangledName": "$s7StikJIT0A8JITErrorO16errorDescriptionSSSgvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT0A8JITErrorO16errorDescriptionSSSgvg",
+                "mangledName": "$s7StikJIT0A8JITErrorO16errorDescriptionSSSgvg",
+                "moduleName": "StikJIT",
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:7StikJIT0A8JITErrorO",
+        "mangledName": "$s7StikJIT0A8JITErrorO",
+        "moduleName": "StikJIT",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "LocalizedError",
+            "printedName": "LocalizedError",
+            "usr": "s:10Foundation14LocalizedErrorP",
+            "mangledName": "$s10Foundation14LocalizedErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "StikJIT"
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/DeveloperDiskImageService.swift",
+      "kind": "StringLiteral",
+      "offset": 1730,
+      "length": 114,
+      "value": "\"https:\/\/github.com\/doronz88\/DeveloperDiskImage\/raw\/refs\/heads\/main\/PersonalizedImages\/Xcode_iOS_DDI_Personalized\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/EndpointProbe.swift",
+      "kind": "StringLiteral",
+      "offset": 107,
+      "length": 33,
+      "value": "\"com.stik.StikJIT.endpoint-probe\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/EndpointProbe.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1477,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/ScriptRunner.swift",
+      "kind": "IntegerLiteral",
+      "offset": 150,
+      "length": 5,
+      "value": "16384"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/ScriptRunner.swift",
+      "kind": "IntegerLiteral",
+      "offset": 202,
+      "length": 2,
+      "value": "19"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/ScriptRunner.swift",
+      "kind": "IntegerLiteral",
+      "offset": 247,
+      "length": 3,
+      "value": "128"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
+      "kind": "StringLiteral",
+      "offset": 1369,
+      "length": 10,
+      "value": "\"10.7.0.1\""
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1419,
+      "length": 5,
+      "value": "49152"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1480,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2115,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2984,
+      "length": 5,
+      "value": "false"
+    }
+  ]
+}

@@ -754,12 +754,10 @@
         LCParseMachO(execPath.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
             sdkVersion = dyld_get_sdk_version((const struct mach_header *)header);
         });
-#if is32BitSupported
-        // for 32bit apps, hardcode spoofed SDK to iOS 11, as lower causes weird crashes
-        if(self.is32bit && sdkVersion < 0xb0000) {
+        // Hardcode spoofed SDK to iOS 11 if lower, as lower causes `Error in compatibility flow` crashes
+        if((self.is32bit || sdkVersion) && sdkVersion < 0xb0000) {
             sdkVersion = 0xb0000;
         }
-#endif
         NSLog(@"[LC] sdkversion = %8x", sdkVersion);
         _info[@"spoofSDKVersion"] = [NSNumber numberWithUnsignedInt:sdkVersion];
     }

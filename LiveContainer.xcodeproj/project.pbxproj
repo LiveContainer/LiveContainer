@@ -30,6 +30,7 @@
 		E1292C0A2DCA43540065E12D /* utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 172CA85E2D9D721700CF6989 /* utils.m */; };
 		E1292C0B2DCA43560065E12D /* LCBootstrap.m in Sources */ = {isa = PBXBuildFile; fileRef = 172CA85A2D9D721700CF6989 /* LCBootstrap.m */; };
 		E1292C132DCA46070065E12D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = E1292C032DCA3C160065E12D /* main.c */; };
+		E15C6F2F30440EAD00FEC6BD /* StikJITHeadless.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */; };
 		E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
 		E1946AD83041BFF8005CBEDD /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1946AD63041BFDD005CBEDD /* IOKit.framework */; };
@@ -99,6 +100,13 @@
 			remoteGlobalIDString = E1292BD52DCA3B660065E12D;
 			remoteInfo = LiveContainerShared;
 		};
+		E15C6F2C30440EAD00FEC6BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17DCE9952C7067EC00731D42 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E15C6F2730440EAD00FEC6BD;
+			remoteInfo = StikJITHeadless;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -115,6 +123,7 @@
 				E1292BEC2DCA3B670065E12D /* LiveContainerShared.framework in Embed Frameworks */,
 				17413FBC2D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework in Embed Frameworks */,
 				174140942D9C0E8200F3F928 /* ZSign.dylib in Embed Frameworks */,
+				E15C6F2F30440EAD00FEC6BD /* StikJITHeadless.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,6 +191,7 @@
 		E1292AE52DCA3A660065E12D /* LiveProcess.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveProcess.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LiveContainerShared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1292C032DCA3C160065E12D /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = StikJITHeadless.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LCMachOUtils.m; sourceTree = "<group>"; };
 		E16D95762E1CD49E0068EB63 /* LCMachOUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LCMachOUtils.h; sourceTree = "<group>"; };
 		E16D9BA02E1D48DE0068EB63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -198,7 +208,6 @@
 				DefaultIcon.png,
 				Localizable.xcstrings,
 				Settings.bundle,
-				universal.js,
 			);
 			target = 17DCE99C2C7067EC00731D42 /* LiveContainer */;
 		};
@@ -308,6 +317,19 @@
 				XPCServer.h,
 			);
 		};
+		E15C6F383044101500FEC6BD /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				StikJIT.xcframework = (
+					CodeSignOnCopy,
+					RemoveHeadersOnCopy,
+				);
+			};
+			buildPhase = 17413FC12D9C0BAE00F3F928 /* Embed Frameworks */;
+			membershipExceptions = (
+				StikJIT.xcframework,
+			);
+		};
 		E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 17413FB02D9C0BAE00F3F928 /* Headers */;
@@ -332,6 +354,7 @@
 		E1292AE72DCA3A660065E12D /* LiveProcess */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveProcess; sourceTree = "<group>"; };
 		E1292C1A2DCA48F00065E12D /* Tweaks */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C202DCA48F00065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Tweaks; sourceTree = "<group>"; };
 		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
+		E15C6F2930440EAD00FEC6BD /* StikJITHeadless */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E15C6F383044101500FEC6BD /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StikJITHeadless; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -413,6 +436,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E15C6F2530440EAD00FEC6BD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -467,6 +497,7 @@
 				173545A92E2C7913001B3B4C /* SideStoreSupport */,
 				17CAE6182F230449008B1977 /* LaunchAppExtension */,
 				17E23DE02F443A9300C55733 /* ShareExtension */,
+				E15C6F2930440EAD00FEC6BD /* StikJITHeadless */,
 				174140B82D9C0F9100F3F928 /* Frameworks */,
 				17DCE99E2C7067EC00731D42 /* Products */,
 				17780D3B2E1C02420077E636 /* litehook */,
@@ -486,6 +517,7 @@
 				173545A82E2C7913001B3B4C /* SideStoreSupport.framework */,
 				17CAE6172F230449008B1977 /* LaunchAppExtension.appex */,
 				17E23DDF2F443A9300C55733 /* ShareExtension.appex */,
+				E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -533,6 +565,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				E11884B92EF7A164009C6FA6 /* dyld_bypass_validation.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E15C6F2330440EAD00FEC6BD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -694,6 +733,7 @@
 				173545AD2E2C7913001B3B4C /* PBXTargetDependency */,
 				17CAE61F2F230449008B1977 /* PBXTargetDependency */,
 				17E23DE82F443A9300C55733 /* PBXTargetDependency */,
+				E15C6F2D30440EAD00FEC6BD /* PBXTargetDependency */,
 			);
 			name = LiveContainer;
 			productName = jump;
@@ -768,6 +808,29 @@
 			productReference = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		E15C6F2730440EAD00FEC6BD /* StikJITHeadless */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E15C6F3030440EAD00FEC6BD /* Build configuration list for PBXNativeTarget "StikJITHeadless" */;
+			buildPhases = (
+				E15C6F2330440EAD00FEC6BD /* Headers */,
+				E15C6F2430440EAD00FEC6BD /* Sources */,
+				E15C6F2530440EAD00FEC6BD /* Frameworks */,
+				E15C6F2630440EAD00FEC6BD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E15C6F2930440EAD00FEC6BD /* StikJITHeadless */,
+			);
+			name = StikJITHeadless;
+			packageProductDependencies = (
+			);
+			productName = StikJITHeadless;
+			productReference = E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -775,7 +838,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2610;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					173545A72E2C7913001B3B4C = {
@@ -809,6 +872,10 @@
 					E1292BD52DCA3B660065E12D = {
 						CreatedOnToolsVersion = 16.3;
 						LastSwiftMigration = 1630;
+					};
+					E15C6F2730440EAD00FEC6BD = {
+						CreatedOnToolsVersion = 27.0;
+						LastSwiftMigration = 2700;
 					};
 				};
 			};
@@ -875,6 +942,7 @@
 				173545A72E2C7913001B3B4C /* SideStoreSupport */,
 				17CAE6162F230449008B1977 /* LaunchAppExtension */,
 				17E23DDE2F443A9300C55733 /* ShareExtension */,
+				E15C6F2730440EAD00FEC6BD /* StikJITHeadless */,
 			);
 		};
 /* End PBXProject section */
@@ -923,6 +991,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		E1292BD42DCA3B660065E12D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E15C6F2630440EAD00FEC6BD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1030,6 +1105,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E15C6F2430440EAD00FEC6BD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1077,6 +1159,11 @@
 			isa = PBXTargetDependency;
 			target = E1292BD52DCA3B660065E12D /* LiveContainerShared */;
 			targetProxy = E1292BE92DCA3B670065E12D /* PBXContainerItemProxy */;
+		};
+		E15C6F2D30440EAD00FEC6BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E15C6F2730440EAD00FEC6BD /* StikJITHeadless */;
+			targetProxy = E15C6F2C30440EAD00FEC6BD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1970,6 +2057,95 @@
 			};
 			name = Release;
 		};
+		E15C6F3130440EAD00FEC6BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdt.StikJITHeadless;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		E15C6F3230440EAD00FEC6BD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdt.StikJITHeadless;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2068,6 +2244,15 @@
 			buildConfigurations = (
 				E1292BED2DCA3B670065E12D /* Debug */,
 				E1292BEE2DCA3B670065E12D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E15C6F3030440EAD00FEC6BD /* Build configuration list for PBXNativeTarget "StikJITHeadless" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E15C6F3130440EAD00FEC6BD /* Debug */,
+				E15C6F3230440EAD00FEC6BD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

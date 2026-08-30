@@ -1,4 +1,4 @@
-// Universal JIT Script, last updated 2026-03-29
+// Universal JIT Script, last updated 2026-29-03 (YYYY-DD-MM)
 /*
  // JIT "syscalls"
  __attribute__((noinline,optnone,naked))
@@ -39,7 +39,7 @@ const legacyCommands = {
 //const LOG_NONE = 0;
 const LOG_INFO = 1;
 const LOG_VERBOSE = 2;
-let logLevel = LOG_VERBOSE;
+let logLevel = LOG_INFO;
 function log_verbose(msg) {
     if (logLevel >= LOG_VERBOSE) {
         log(msg);

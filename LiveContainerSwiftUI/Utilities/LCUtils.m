@@ -39,24 +39,8 @@
 
 
 #pragma mark Multitasking
-+ (NSString *)liveProcessBundleIdentifier {
-    // first check if we have LiveProcess extension in our own bundle
-    NSBundle *liveProcessBundle = [NSBundle bundleWithPath:[NSBundle.mainBundle.builtInPlugInsPath stringByAppendingPathComponent:@"LiveProcess.appex"]];
-    if(liveProcessBundle) {
-        return liveProcessBundle.bundleIdentifier;
-    }
-    
-    // in LC2, attempt to guess LC1's LiveProcess extension
-    NSString *bundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", LCSharedUtils.teamIdentifier];
-    if([NSExtension extensionWithIdentifier:bundleID error:nil]) {
-        return bundleID;
-    }
-    
-    return nil;
-}
-
 + (void)launchMultitaskGuestApp:(NSString *)displayName completionHandler:(void (^)(NSNumber *pid, NSError *error))completionHandler {
-    if(!self.liveProcessBundleIdentifier) {
+    if(!LCSharedUtils.liveProcessBundleIdentifier) {
         NSError *error = [NSError errorWithDomain:displayName code:2 userInfo:@{NSLocalizedDescriptionKey: @"LiveProcess extension not found. Please reinstall LiveContainer and select Keep Extensions"}];
         if (completionHandler) completionHandler(nil, error);
         return;
@@ -202,7 +186,7 @@
     static dispatch_once_t onceToken;
     static NSString *script;
     dispatch_once(&onceToken, ^{
-        NSData *data = [NSData dataWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"universal" ofType:@"js"]];
+        NSData *data = [NSData dataWithContentsOfFile:[[NSBundle bundleWithIdentifier:@"com.stik.StikJIT"] pathForResource:@"universal" ofType:@"js"]];
         script = [data base64EncodedStringWithOptions:0];
     });
     return script;

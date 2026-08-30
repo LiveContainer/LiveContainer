@@ -1,0 +1,96 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 effective-5.10 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)
+// swift-module-flags: -target arm64-apple-ios17.4 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name StikJIT
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -interface-compiler-version 6.1.2
+import Foundation
+import JavaScriptCore
+import Network
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public struct DDIPaths : Swift.Sendable {
+  public var imagePath: Swift.String
+  public var trustcachePath: Swift.String
+  public var manifestPath: Swift.String
+  public init(imagePath: Swift.String, trustcachePath: Swift.String, manifestPath: Swift.String)
+  public static func `default`(in directory: Foundation.URL) -> DDIPaths
+}
+@available(iOS 17.4, *)
+public actor DeveloperDiskImageService {
+  public static var shared: DeveloperDiskImageService {
+    get
+  }
+  public init(session: Foundation.URLSession = .shared)
+  public func downloadIfNeeded(to paths: DDIPaths, progress: @escaping (Swift.Double, Swift.String) -> Swift.Void = { _, _ in }) async throws
+  public func download(to paths: DDIPaths, progress: @escaping (Swift.Double, Swift.String) -> Swift.Void = { _, _ in }) async throws
+  @objc deinit
+  @available(iOS 17.4, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+  @_semantics("defaultActor") nonisolated final public var unownedExecutor: _Concurrency.UnownedSerialExecutor {
+    get
+  }
+}
+public enum StikJIT {
+  public enum Script : Swift.Sendable {
+    case universal
+    case legacy
+    case custom(Foundation.URL)
+  }
+  public struct DeviceSecurityState : Swift.Sendable {
+    public let isTXMPresent: Swift.Bool?
+    public init(isTXMPresent: Swift.Bool?)
+  }
+  public enum PreparationStage : Swift.Sendable {
+    case checkingReachability
+    case checkingDDI
+    case downloadingDDI(fraction: Swift.Double, status: Swift.String)
+    case mountingDDI(fraction: Swift.Double)
+    case verifyingDDI
+    case ready
+  }
+  public enum JITReadiness : Swift.Sendable {
+    case unreachable(reason: Swift.String)
+    case preparationFailed(reason: Swift.String)
+    case ready(DeviceSecurityState)
+    public var isReady: Swift.Bool {
+      get
+    }
+  }
+  public struct Configuration : Swift.Sendable {
+    public var deviceAddress: Swift.String
+    public var rsdPort: Swift.UInt16
+    public var connectionTimeout: Foundation.TimeInterval
+    public init(deviceAddress: Swift.String = "10.7.0.1", rsdPort: Swift.UInt16 = 49152, connectionTimeout: Foundation.TimeInterval = 5)
+    public static var `default`: Configuration {
+      get
+    }
+  }
+  @available(*, deprecated, message: "Use enableJIT with ddiPaths to prepare the device before enabling JIT.")
+  public static func enableJIT(targetPID: Swift.Int32, pairingFile: Foundation.URL, configuration: Configuration = .default, script: Script = .universal, forceScript: Swift.Bool = false, progress: @escaping (Swift.String) -> Swift.Void = { _ in }) throws
+  public static func enableJIT(targetPID: Swift.Int32, pairingFile: Foundation.URL, ddiPaths: DDIPaths, configuration: Configuration = .default, script: Script = .universal, forceScript: Swift.Bool = false, preparationProgress: @escaping (PreparationStage) -> Swift.Void = { _ in }, progress: @escaping (Swift.String) -> Swift.Void = { _ in }) throws
+  public static var isTXMPresent: Swift.Bool? {
+    get
+  }
+  public static func prepareDevice(pairingFile: Foundation.URL, paths: DDIPaths, configuration: Configuration = .default, progress: @escaping (PreparationStage) -> Swift.Void = { _ in }) -> JITReadiness
+  public static func resetCachedDDI(at paths: DDIPaths) throws
+  public static func isDDIMounted(pairingFile: Foundation.URL, configuration: Configuration = .default) throws -> Swift.Bool
+  @available(iOS 17.4, *)
+  public static func downloadDDIIfNeeded(to paths: DDIPaths, progress: @escaping (Swift.Double, Swift.String) -> Swift.Void = { _, _ in }) async throws
+  public static func mountDDI(pairingFile: Foundation.URL, configuration: Configuration = .default, paths: DDIPaths, progress: @escaping (Swift.Double) -> Swift.Void = { _ in }) throws
+}
+public enum StikJITError : Swift.Error, Foundation.LocalizedError {
+  case pairingFile(Swift.String)
+  case scriptUnavailable
+  case debugProxyUnavailable
+  case device(code: Swift.Int32, subCode: Swift.Int32, message: Swift.String)
+  case ddiDownload(Swift.String)
+  case ddiFilesMissing(Swift.String)
+  case ddiNotMounted
+  case deviceNotReady(Swift.String)
+  case txmDetectionUnavailable
+  case customScript(Swift.String)
+  case scriptExecution(Swift.String)
+  public var errorDescription: Swift.String? {
+    get
+  }
+}

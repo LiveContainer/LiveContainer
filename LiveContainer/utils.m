@@ -128,7 +128,6 @@ uint64_t aarch64_emulate_adrp_ldr(uint32_t instruction, uint32_t ldrInstruction,
     return adrp_target + (uint64_t) imm12;
 }
 
-
 @implementation NSDictionary(lc)
 
 - (BOOL)writeBinToFile:(NSString *)path atomically:(BOOL)useAuxiliaryFile {

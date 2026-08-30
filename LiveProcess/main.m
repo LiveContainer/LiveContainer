@@ -103,7 +103,7 @@ int LiveProcessMain(int argc, char *argv[]) {
 // this is our fake UIApplicationMain called from _xpc_objc_uimain (xpc_main)
 __attribute__((visibility("default")))
 int UIApplicationMain(int argc, char * argv[], NSString * principalClassName, NSString * delegateClassName) {
-    return LiveProcessMain(argc, argv);
+    exit(LiveProcessMain(argc, argv));
 }
 
 // NSExtensionMain will load UIKit and call UIApplicationMain, so we need to redirect it to our fake one

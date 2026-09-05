@@ -345,7 +345,7 @@
     
     // MARK: patch main executable
     // we remove the teamId after app group id so it can be correctly signed by AltSign.
-    NSString* entitlementXML = getLCEntitlementXML();
+    NSString* entitlementXML = getExecutableEntitlementXML(NSBundle.mainBundle.executablePath);
     NSData *plistData = [entitlementXML dataUsingEncoding:NSUTF8StringEncoding];
     NSMutableDictionary *dict = [NSPropertyListSerialization propertyListWithData:plistData
                                                                           options:NSPropertyListMutableContainers

@@ -560,10 +560,10 @@ bool checkCodeSignature(const char* path) {
     return ans;
 }
 
-NSString* getLCEntitlementXML(void) {
+NSString* getExecutableEntitlementXML(NSString* path) {
     __block NSString* ans = @"Failed to find main executable?";
     // it seems the debug build messes the code signature region up, so we search the executable file on the disk instead.
-    LCParseMachO(NSBundle.mainBundle.executablePath.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
+    LCParseMachO(path.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
         ans = getEntitlementXML(header, 0);
     });
     return ans;

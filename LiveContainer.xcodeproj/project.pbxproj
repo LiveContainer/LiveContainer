@@ -682,6 +682,7 @@
 				17413FC12D9C0BAE00F3F928 /* Embed Frameworks */,
 				17D4DA692D9C495E008E7396 /* Run Script */,
 				17CAE6202F230449008B1977 /* Embed ExtensionKit Extensions */,
+				17AA00022F900002008B1977 /* Publish App Intents metadata */,
 			);
 			buildRules = (
 			);
@@ -949,6 +950,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nINFO_PLIST=\"${TARGET_BUILD_DIR}\"/\"${INFOPLIST_PATH}\"\n\n# Get current Git branch and commit hash\nCONFIG_BRANCH=$(git rev-parse --abbrev-ref HEAD)\nCONFIG_COMMIT=$(git log -1 --format=%h)\n\n# Combine values into a version info string\nLCVersionInfo=\"$CONFIGURATION ($CONFIG_BRANCH/$CONFIG_COMMIT)\"\n\n/usr/libexec/PlistBuddy -c \"Add :LCVersionInfo string $LCVersionInfo\" \"${INFO_PLIST}\"\ncp -n -r \"$SRCROOT\"/Resources/*.lproj \"$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH\"\necho 1\n";
+		};
+		17AA00022F900002008B1977 /* Publish App Intents metadata */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Frameworks/LiveContainerSwiftUI.framework/Metadata.appintents/extract.actionsdata",
+			);
+			name = "Publish App Intents metadata";
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Metadata.appintents/extract.actionsdata",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"${ACTION}\" = \"indexbuild\" ]; then exit 0; fi\n# The App Shortcut's intent must be instantiable in the APP process: iOS looks\n# for the Swift type there, not in an extension. LiveContainerSwiftUI.framework\n# is only ever dlopen'd (LCBootstrap.m), never linked, so Xcode's automatic\n# App Intents metadata aggregation cannot see it and we publish it by hand.\nAPP=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}\"\nSRC=\"$APP/Frameworks/LiveContainerSwiftUI.framework/Metadata.appintents\"\nif [ ! -d \"$SRC\" ]; then\n  echo \"error: LiveContainerSwiftUI Metadata.appintents not found; App Shortcuts would silently not work\"\n  exit 1\nfi\nrm -rf \"$APP/Metadata.appintents\"\ncp -R \"$SRC\" \"$APP/Metadata.appintents\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

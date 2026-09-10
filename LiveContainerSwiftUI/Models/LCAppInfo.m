@@ -7,7 +7,6 @@
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
 
-uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 
 NSString* const LCCustomIconName = @"LCCustomIcon";
 
@@ -371,7 +370,6 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
             isEncrypted |= LCIsMachOEncrypted(header);
         });
         is32bit = !has64bitSlice;
-        LCPatchAppBundleFixupARM64eSlice([NSURL fileURLWithPath:appPath]);
         if (isEncrypted) {
             error = @"The app you tried to install is encrypted. Please provide decrypted app.";
         }
@@ -380,21 +378,21 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
             completetionHandler(NO, error);
             return;
         }
+        if (!is32bit) {
+            LCPatchAppBundleFixupARM64eSlice([NSURL fileURLWithPath:appPath]);
+        } else {
+            self.isJITNeeded = YES;
+            self.classicMode = YES;
+            self.spoofSDKVersion = YES;
+        }
         info[@"LCPatchRevision"] = @(currentPatchRev);
         forceSign = true;
         
         [self save];
+        self.is32bit = is32bit;
     }
-#if !is32BitSupported
-    if(is32bit) {
-        completetionHandler(NO, @"32-bit app is NOT supported!");
-        return;
-    }
-#else
-    self.is32Bit = is32bit;
-#endif
 
-    if (!LCSharedUtils.certificatePassword || is32bit || self.dontSign) {
+    if (!LCSharedUtils.certificatePassword || self.is32bit || self.dontSign) {
         [NSUserDefaults.standardUserDefaults removeObjectForKey:@"SigningInProgress"];
         completetionHandler(YES, nil);
         return;
@@ -455,6 +453,47 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
     _info[@"isJITNeeded"] = [NSNumber numberWithBool:isJITNeeded];
     [self save];
     
+}
+
+- (bool)classicMode {
+    return [_info[@"classicMode"] boolValue];
+}
+
+- (void)setClassicMode:(bool)classicMode {
+    _info[@"classicMode"] = @(classicMode);
+
+    if(classicMode) {
+        [self defaultClassicMode];
+    } else {
+        _info[@"LCClassicModeCache"] = nil;
+        [self save];
+    }
+}
+
+- (NSUInteger)defaultClassicMode {
+    if(!self.classicMode) {
+        return 0;
+    }
+
+    NSInteger systemMajorVersion = NSProcessInfo.processInfo.operatingSystemVersion.majorVersion;
+    NSDictionary *cache = _info[@"LCClassicModeCache"];
+    NSNumber *cachedMode = cache[@"defaultClassicMode"];
+    NSNumber *cachedSystemMajorVersion = cache[@"systemMajorVersion"];
+    if([cachedMode isKindOfClass:NSNumber.class] &&
+       [cachedSystemMajorVersion isKindOfClass:NSNumber.class] &&
+       cachedSystemMajorVersion.integerValue == systemMajorVersion) {
+        return cachedMode.unsignedIntegerValue;
+    }
+
+    NSError *error = nil;
+    NSNumber *mode = LCGetDefaultClassicMode([NSURL fileURLWithPath:self.bundlePath]);
+
+    _info[@"LCClassicModeCache"] = @{
+        @"defaultClassicMode": mode,
+        @"systemMajorVersion": @(systemMajorVersion),
+    };
+    [self save];
+    return mode.unsignedIntegerValue;
 }
 
 - (bool)isLocked {
@@ -671,7 +710,7 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
     _info[@"LCContainers"] = containerInfo;
     [self save];
 }
-#if is32BitSupported
+
 - (bool)is32bit {
     if(_info[@"is32bit"] != nil) {
         return [_info[@"is32bit"] boolValue];
@@ -684,7 +723,10 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
     [self save];
     
 }
-#endif
+- (bool)is32bitEmulator {
+    return [_infoPlist[@"LC32BitTranslationLayer"] boolValue];
+}
+
 - (bool)dontSign {
     if(_info[@"dontSign"] != nil) {
         return [_info[@"dontSign"] boolValue];
@@ -699,6 +741,9 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
 }
 
 - (NSString *)jitLaunchScriptJs {
+    if (self.is32bit && LCUtils.isTXMScriptRequired) {
+        return LCUtils.base64EncodedUniversalJITScript;
+    }
     return _info[@"jitLaunchScriptJs"];
 }
 
@@ -707,6 +752,19 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
         _info[@"jitLaunchScriptJs"] = jitLaunchScriptJs;
     } else {
         [_info removeObjectForKey:@"jitLaunchScriptJs"];
+    }
+    if (!_autoSaveDisabled) [self save];
+}
+
+- (NSString *)selected32BitEmulator {
+    return _info[@"selected32BitEmulator"];
+}
+
+- (void)setSelected32BitEmulator:(NSString *)selected32BitEmulator {
+    if (selected32BitEmulator.length > 0) {
+        _info[@"selected32BitEmulator"] = selected32BitEmulator;
+    } else {
+        [_info removeObjectForKey:@"selected32BitEmulator"];
     }
     if (!_autoSaveDisabled) [self save];
 }
@@ -728,6 +786,10 @@ NSString* const LCCustomIconName = @"LCCustomIcon";
         LCParseMachO(execPath.UTF8String, true, ^(const char *path, struct mach_header_64 *header, int fd, void *filePtr) {
             sdkVersion = dyld_get_sdk_version((const struct mach_header *)header);
         });
+        // Hardcode spoofed SDK to iOS 11 if lower, as lower causes `Error in compatibility flow` crashes
+        if((self.is32bit || sdkVersion) && sdkVersion < 0xb0000) {
+            sdkVersion = 0xb0000;
+        }
         NSLog(@"[LC] sdkversion = %8x", sdkVersion);
         _info[@"spoofSDKVersion"] = [NSNumber numberWithUnsignedInt:sdkVersion];
     }

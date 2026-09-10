@@ -22,9 +22,9 @@ enum JITEnablerType : Int, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .StikJIT: "StikDebug"
-        case .StikJITLC: "StikDebug (Another LiveContainer)"
+        case .StikJITLC: "StikDebug (Another LiveContainer/Multitask)"
         case .StosDebug: "StosDebug"
-        case .StosDebugLC: "StosDebug (Another LiveContainer)"
+        case .StosDebugLC: "StosDebug (Another LiveContainer/Multitask)"
         case .SideStore: "SideStore"
         case .JITStreamerEBLegacy: "JitStreamer-EB (Relaunch)"
         case .SideJITServer: "SideJITServer/JITStreamer 2.0"
@@ -37,8 +37,6 @@ struct LCSettingsView: View {
     @State var errorInfo = ""
     @State var successShow = false
     @State var successInfo = ""
-    
-    @Binding var appDataFolderNames: [String]
 
     @State private var certificateDataFound = false
     
@@ -64,9 +62,7 @@ struct LCSettingsView: View {
     
     @AppStorage("LCLoadTweaksToSelf") var injectToLCItelf = false
     @AppStorage("LCIgnoreJITOnLaunch") var ignoreJITOnLaunch = false
-    #if is32BitSupported
-    @AppStorage("selected32BitLayer") var liveExec32Path : String = ""
-    #endif
+    @AppStorage("LCSelected32BitEmulator", store: LCUtils.appGroupUserDefault) var selected32BitEmulator : String = ""
     @AppStorage("LCKeepSelectedWhenQuit") var keepSelectedWhenQuit = false
     @AppStorage("LCWaitForDebugger") var waitForDebugger = false
     @AppStorage("LCSharePrivateDataWithLiveProcess") var sharePrivateDataWithLiveProcess = false
@@ -78,11 +74,9 @@ struct LCSettingsView: View {
     
     let storeName = LCUtils.getStoreName()
     
-    init(appDataFolderNames: Binding<[String]>) {
+    init() {
         _certificateDataFound = State(initialValue: LCSharedUtils.certificatePassword() != nil)
         _store = State(initialValue: LCUtils.store())
-        
-        _appDataFolderNames = appDataFolderNames
     }
     
     var body: some View {
@@ -196,6 +190,17 @@ struct LCSettingsView: View {
                     Text("lc.settings.JitDesc".loc)
                 }
                 
+                Section {
+                    Picker(selection: $selected32BitEmulator) {
+                        ForEach(sharedModel.arm32EmuApps, id: \.self) { app in
+                            Text("lc.common.none".loc).tag("")
+                            Text(app.appInfo.displayName()).tag(app.appInfo.relativeBundlePath!)
+                        }
+                    } label: {
+                        Text("lc.settings.selected32BitEmulator".loc)
+                    }
+                }
+                
                 Section{
                     Toggle(isOn: $dynamicColors) {
                         Text("lc.settings.dynamicColors".loc)
@@ -272,7 +277,7 @@ struct LCSettingsView: View {
                         }
                     }
                     NavigationLink {
-                        LCDataManagementView(appDataFolderNames: $appDataFolderNames)
+                        LCDataManagementView()
                     } label: {
                         Text("lc.settings.dataManagement".loc)
                     }
@@ -365,14 +370,6 @@ struct LCSettingsView: View {
                             Text("Show FLEX Overlay")
                         }
                         .disabled(NSClassFromString("FLEXManager") == nil)
-                        #if is32BitSupported
-                        HStack {
-                            Text("LiveExec32 .app path")
-                            Spacer()
-                            TextField("", text: $liveExec32Path)
-                                .multilineTextAlignment(.trailing)
-                        }
-                        #endif
                     } header: {
                         Text("Developer Settings")
                     } footer: {
@@ -612,11 +609,30 @@ struct LCSettingsView: View {
                 }
                 
                 guard let data = item as? Data else {
-                    errorInfo = "Failed to decode password data"
+                    errorInfo = "Failed to decode certificate data"
                     errorShow = true
                     return
                 }
-                onSideStoreCertificateCallback(certificateData: data, password: "")
+                
+                let passwordQuery: [String: Any] = [
+                    kSecClass as String: kSecClassGenericPassword,
+                    kSecAttrAccount as String: "signingCertificatePassword",
+                    kSecReturnData as String: true,
+                    kSecMatchLimit as String: kSecMatchLimitOne,
+                    kSecAttrService as String: "com.kdt.livecontainer",
+                    kSecAttrSynchronizable as String: kSecAttrSynchronizableAny
+                ]
+                
+                var passwordItem: CFTypeRef?
+                let passwordStatus = SecItemCopyMatching(passwordQuery as CFDictionary, &passwordItem)
+                var password = ""
+                if passwordStatus == errSecSuccess,
+                   let passwordData = passwordItem as? Data,
+                   let pwd = String(data: passwordData, encoding: .utf8) {
+                    password = pwd
+                }
+                
+                onSideStoreCertificateCallback(certificateData: data, password: password)
                 
                 return
             }

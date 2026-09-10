@@ -28,7 +28,7 @@ struct LCTweakFolderView : View {
     @State var baseUrl : URL
     @State var tweakItems : [LCTweakItem]
     private var isRoot : Bool
-    @Binding var tweakFolders : [String]
+    @EnvironmentObject private var sharedModel: SharedModel
     
     @State private var errorShow = false
     @State private var errorInfo = ""
@@ -41,9 +41,8 @@ struct LCTweakFolderView : View {
     
     @State private var isTweakSigning = false
     
-    init(baseUrl: URL, isRoot: Bool = false, tweakFolders: Binding<[String]>) {
+    init(baseUrl: URL, isRoot: Bool = false) {
         _baseUrl = State(initialValue: baseUrl)
-        _tweakFolders = tweakFolders
         self.isRoot = isRoot
         var tmpTweakItems : [LCTweakItem] = []
         let fm = FileManager()
@@ -78,7 +77,7 @@ struct LCTweakFolderView : View {
                                 // hidden link so the row navigates without the toggle triggering it
                                 ZStack {
                                     NavigationLink {
-                                        LCTweakFolderView(baseUrl: tweakItem.fileUrl, isRoot: false, tweakFolders: $tweakFolders)
+                                        LCTweakFolderView(baseUrl: tweakItem.fileUrl, isRoot: false)
                                     } label: {
                                         EmptyView()
                                     }
@@ -256,7 +255,7 @@ struct LCTweakFolderView : View {
         }
         if isRoot {
             for iToRemove in indexToRemove {
-                tweakFolders.removeAll(where: { s in
+                sharedModel.tweakFolderNames.removeAll(where: { s in
                     return s == tweakItems[iToRemove].displayName
                 })
             }
@@ -285,7 +284,7 @@ struct LCTweakFolderView : View {
         }
         tweakItems.remove(at: indexToRemove)
         if isRoot {
-            tweakFolders.removeAll(where: { s in
+            sharedModel.tweakFolderNames.removeAll(where: { s in
                 return s == tweakItem.displayName
             })
         }
@@ -318,12 +317,12 @@ struct LCTweakFolderView : View {
         tweakItems.insert(newTweakItem, at: indexToRename)
 
         if isRoot {
-            let indexToRename2 = tweakFolders.firstIndex(of: tweakItem.displayName)
+            let indexToRename2 = sharedModel.tweakFolderNames.firstIndex(of: tweakItem.displayName)
             guard let indexToRename2 = indexToRename2 else {
                 return
             }
-            tweakFolders.remove(at: indexToRename2)
-            tweakFolders.insert(newName, at: indexToRename2)
+            sharedModel.tweakFolderNames.remove(at: indexToRename2)
+            sharedModel.tweakFolderNames.insert(newName, at: indexToRename2)
 
         }
     }
@@ -360,7 +359,7 @@ struct LCTweakFolderView : View {
         }
         tweakItems.append(LCTweakItem(fileUrl: dest, isFolder: true, isFramework: false, isTweak: false, isEnabled: true))
         if isRoot {
-            tweakFolders.append(newName)
+            sharedModel.tweakFolderNames.append(newName)
         }
     }
     
@@ -393,11 +392,9 @@ struct LCTweakFolderView : View {
 }
 
 struct LCTweaksView: View {
-    @Binding var tweakFolders : [String]
-    
     var body: some View {
         NavigationView {
-            LCTweakFolderView(baseUrl: LCPath.tweakPath, isRoot: true, tweakFolders: $tweakFolders)
+            LCTweakFolderView(baseUrl: LCPath.tweakPath, isRoot: true)
         }
         .navigationViewStyle(StackNavigationViewStyle())
 

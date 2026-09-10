@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct LCEntitlementView : View {
+    @State var isLiveProcess: Bool
     @State var loaded = false
     @State var entitlementReadSuccess = false
     
@@ -23,16 +24,17 @@ struct LCEntitlementView : View {
         if loaded {
             Form {
                 Section {
-                    HStack {
-                        Text("lc.jitlessDiag.bundleId".loc)
-                        Spacer()
-                        Text(Bundle.main.bundleIdentifier ?? "lc.common.unknown".loc)
-                            .foregroundStyle(entitlementReadSuccess && teamId != nil ? (isBundleIdCorrect ? .green : .red): .gray)
-                            .textSelection(.enabled)
+                    if !isLiveProcess {
+                        HStack {
+                            Text("lc.jitlessDiag.bundleId".loc)
+                            Spacer()
+                            Text(Bundle.main.bundleIdentifier ?? "lc.common.unknown".loc)
+                                .foregroundStyle(entitlementReadSuccess && teamId != nil ? (isBundleIdCorrect ? .green : .red): .gray)
+                                .textSelection(.enabled)
+                        }
                     }
-                    
                     if entitlementReadSuccess {
-                        if !isBundleIdCorrect && teamId != nil {
+                        if !isLiveProcess && !isBundleIdCorrect && teamId != nil {
                             HStack {
                                 Text("lc.jitlessDiag.bundleIdExpected".loc)
                                 Spacer()
@@ -79,7 +81,7 @@ struct LCEntitlementView : View {
                         .font(.system(.subheadline, design: .monospaced))
                 }
             }
-            .navigationTitle("lc.jielessDiag.entitlement".loc)
+            .navigationTitle(isLiveProcess ? "LiveProcess Entitlements" : "LiveContainer Entitlements")
             .navigationBarTitleDisplayMode(.inline)
         } else {
             Text("lc.common.loading".loc)
@@ -98,7 +100,19 @@ struct LCEntitlementView : View {
             loaded = true
         }
         
-        guard let entitlementXML = getLCEntitlementXML() else {
+        let executablePath: String?
+        
+        if !isLiveProcess {
+            executablePath = Bundle.main.executablePath
+        } else {
+            executablePath = Bundle.main.builtInPlugInsURL?.appendingPathComponent("LiveProcess.appex/LiveProcess").path
+            if let executablePath, !FileManager.default.fileExists(atPath: executablePath) {
+                entitlementContent = "LiveProcess is not installed."
+                return
+            }
+        }
+
+        guard let entitlementXML = getExecutableEntitlementXML(executablePath) else {
             entitlementContent = "Failed to load entitlement."
             return
         }
@@ -148,6 +162,7 @@ struct LCEntitlementView : View {
 struct LCJITLessDiagnoseView : View {
     @State var loaded = false
     @State var appGroupId = "Unknown"
+    @State var appGroupIdColor : Color = .gray
     @State var store : Store = .SideStore
     @State var certificateDataFound = false
     @State var certificatePasswordFound = false
@@ -185,7 +200,7 @@ struct LCJITLessDiagnoseView : View {
                         Text("lc.jitlessDiag.appGroupId".loc)
                         Spacer()
                         Text(appGroupId)
-                            .foregroundStyle(appGroupId == "Unknown" ? .red : .green)
+                            .foregroundStyle(appGroupIdColor)
                     }
                     HStack {
                         Text("lc.jitlessDiag.appGroupAccessible".loc)
@@ -212,9 +227,16 @@ struct LCJITLessDiagnoseView : View {
                         
                     }
                     NavigationLink {
-                        LCEntitlementView()
+                        LCEntitlementView(isLiveProcess: false)
                     } label: {
-                        Text("lc.jielessDiag.entitlement".loc)
+                        Text("LiveContainer Entitlements".loc)
+                    }
+                    if sharedModel.multiLCStatus == 0 {
+                        NavigationLink {
+                            LCEntitlementView(isLiveProcess: true)
+                        } label: {
+                            Text("LiveProcess Entitlements".loc)
+                        }
                     }
                 }
                     
@@ -326,7 +348,31 @@ struct LCJITLessDiagnoseView : View {
     }
     
     func onAppear() {
-        appGroupId = LCSharedUtils.appGroupID() ?? "lc.common.unknown".loc
+        
+        let task = SecTaskCreateFromSelf(nil)
+        guard let value = SecTaskCopyValueForEntitlement(task, "com.apple.developer.team-identifier" as CFString, nil), let teamId = value.takeRetainedValue() as? String else {
+            errorInfo = "Failed to read com.apple.developer.team-identifier"
+            errorShow = true
+            return
+        }
+        expectedTeamId = teamId
+        
+        if let fetchedAppGroupId = LCSharedUtils.appGroupID() {
+            appGroupId = fetchedAppGroupId
+            if UserDefaults.sideStoreExist() {
+                if fetchedAppGroupId == "group.com.SideStore.SideStore." + teamId {
+                    appGroupIdColor = .green
+                } else {
+                    appGroupIdColor = .orange
+                }
+            } else {
+                appGroupIdColor = .green
+            }
+        } else {
+            appGroupId = "lc.common.unknown".loc
+            appGroupIdColor = .red
+        }
+        
         store = LCUtils.store()
         appGroupAccessible = LCSharedUtils.appGroupPath() != nil
         certificateDataFound = LCUtils.certificateData() != nil
@@ -340,14 +386,7 @@ struct LCJITLessDiagnoseView : View {
         if certificateDataFound {
             validateCertificate()
         }
-        let task = SecTaskCreateFromSelf(nil)
-        guard let value = SecTaskCopyValueForEntitlement(task, "com.apple.developer.team-identifier" as CFString, nil), let teamId = value.takeRetainedValue() as? String else {
-            errorInfo = "Failed to read com.apple.developer.team-identifier"
-            errorShow = true
-            return
-        }
-        expectedTeamId = teamId
-        
+
         loaded = true
     }
     

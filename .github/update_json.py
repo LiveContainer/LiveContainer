@@ -14,7 +14,7 @@ def prepare_description(text):
     text = re.sub(r'\r\n\r\n', '\r \n', text) # Replace \r\n\r\n with \r \n (avoid incorrect display of the description regarding paragraphs)
     return text
 
-def fetch_latest_release(repo_url):
+def fetch_latest_release(repo_url, is_nightly: bool):
     api_url = f"https://api.github.com/repos/{repo_url}/releases"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -22,8 +22,12 @@ def fetch_latest_release(repo_url):
     try:
         response = requests.get(api_url, headers=headers)
         response.raise_for_status()
-        release = response.json()
-        return release
+        releases = response.json()
+        latest_release = next((
+            release for release in releases
+            if (release["tag_name"] == "nightly") == is_nightly
+        ), None)
+        return [latest_release] if latest_release else []
     except requests.RequestException as e:
         print(f"Error fetching releases: {e}")
         raise
@@ -56,7 +60,7 @@ def update_json_file_release(repo_url, json_file, latest_release):
 
     app = data["apps"][0]
 
-    with open("Resources/Info.plist", 'rb') as infile:
+    with open("LiveContainer/Info.plist", 'rb') as infile:
         info_plist = plistlib.load(infile)
     full_version = info_plist["CFBundleVersion"]
 
@@ -149,7 +153,7 @@ def update_json_file_nightly(json_file, nightly_release):
 
     app = data["apps"][0]
 
-    with open("Resources/Info.plist", 'rb') as infile:
+    with open("LiveContainer/Info.plist", 'rb') as infile:
         info_plist = plistlib.load(infile)
     full_version = info_plist["CFBundleVersion"]
     tag = nightly_release["tag_name"]
@@ -234,7 +238,7 @@ def update_json_file_release_ss_lc(repo_url, json_file, latest_release, is_night
 
     app = data["apps"][0]
 
-    with open("Resources/Info.plist", 'rb') as infile:
+    with open("LiveContainer/Info.plist", 'rb') as infile:
         info_plist = plistlib.load(infile)
     full_version = info_plist["CFBundleVersion"]
 
@@ -332,7 +336,7 @@ def main():
     is_nightly = "NIGHTLY_LINK" in os.environ
 
     try:
-        fetched_data_latest = fetch_latest_release(repo_url)
+        fetched_data_latest = fetch_latest_release(repo_url, is_nightly)
         if is_nightly:
             json_file = "./.github/apps_nightly.json"
             update_json_file_nightly(json_file, fetched_data_latest)

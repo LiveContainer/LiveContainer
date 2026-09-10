@@ -10,7 +10,7 @@
 #import <mach-o/dyld.h>
 #import "../LiveContainer/utils.h"
 #import "../LiveContainer/Tweaks/Tweaks.h"
-#import "../SideStore/XPCServer.h"
+#import "../SideStoreSupport/XPCServer.h"
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
 @end

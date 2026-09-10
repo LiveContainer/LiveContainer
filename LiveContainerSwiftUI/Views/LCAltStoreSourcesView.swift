@@ -484,7 +484,7 @@ struct LCSourcesView: View {
     @StateObject private var viewModel = AltStoreSourcesViewModel()
     @State private var errorMessage: String?
     @State private var sourcePendingRemoval: AltStoreSourcesViewModel.SourceItem?
-    @ObservedObject public var searchContext: SearchContext
+    @ObservedObject public var searchContext: SearchContext = SearchContext()
     @State private var expandedSources: Set<URL> = []
     @State private var isManagingSources = false
     
@@ -607,13 +607,8 @@ struct LCSourcesView: View {
                 )
             }
         }
-        .apply {
-            if #available(iOS 19.0, *), SharedModel.isLiquidGlassSearchEnabled {
-                $0
-            } else {
-                $0.searchable(text: $searchContext.query)
-            }
-        }
+        .searchable(text: $searchContext.query, placement: .navigationBarDrawer(displayMode: .always))
+
         .onAppear {
             expandedSources = []
             if !isViewAppeared {

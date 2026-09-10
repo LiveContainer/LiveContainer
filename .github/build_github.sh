@@ -8,11 +8,11 @@ mv "$archive_path.xcarchive/Products/Applications" Payload
 
 # temporarily move sidestore support framrwork to tmp before zip
 mkdir tmp
-mv Payload/LiveContainer.app/Frameworks/SideStore.framework ./tmp
+mv Payload/LiveContainer.app/Frameworks/SideStoreSupport.framework ./tmp
 
 zip -r "$scheme.ipa" "Payload" -x "._*" -x ".DS_Store" -x "__MACOSX"
 
-mv ./tmp/SideStore.framework Payload/LiveContainer.app/Frameworks
+mv ./tmp/SideStoreSupport.framework Payload/LiveContainer.app/Frameworks
 
 # put sidestore related keys into Info.plist and settings bundle
 /usr/libexec/PlistBuddy -c 'Add :ALTAppGroups array' ./Payload/LiveContainer.app/Info.plist
@@ -57,10 +57,11 @@ cp ./.github/sidelc/LCAppInfo.plist ./Payload/LiveContainer.app/Frameworks/SideS
 cp ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/Intents.intentdefinition ./Payload/LiveContainer.app/
 cp ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/ViewApp.intentdefinition ./Payload/LiveContainer.app/
 cp -r ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/Metadata.appintents ./Payload/LiveContainer.app/Metadata.appintents
+sed -i '' 's/9SideStore20RefreshAllAppsIntentV/16SideStoreSupport20RefreshAllAppsIntentV/g' ./Payload/LiveContainer.app/Metadata.appintents/extract.actionsdata
+sed -i '' 's/9SideStore26RefreshAllAppsWidgetIntentV/16SideStoreSupport26RefreshAllAppsWidgetIntentV/g' ./Payload/LiveContainer.app/Metadata.appintents/extract.actionsdata
 
 # AltWidgetExtension
 mv ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/PlugIns/AltWidgetExtension.appex ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex
-cp -r ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/Frameworks ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.kdt.livecontainer.LiveWidget"  ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/Info.plist
 /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable LiveWidgetExtension"  ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/Info.plist
 mv ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/AltWidgetExtension ./Payload/LiveContainer.app/PlugIns/LiveWidgetExtension.appex/LiveWidgetExtension

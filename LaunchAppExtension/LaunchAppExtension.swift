@@ -61,7 +61,7 @@ struct LaunchAppExtension: AppIntent {
         return schemeToLaunch
     }
 
-    func openURL(url: URL) async throws {
+    func openURL(launchOptions: [String: Any]) async throws {
         var ext : NSExtension? = LaunchAppExtension.ext
         if ext == nil {
             do {
@@ -74,9 +74,7 @@ struct LaunchAppExtension: AppIntent {
             
         }
         let extensionItem = NSExtensionItem()
-        extensionItem.userInfo = [
-            "url": url,
-        ]
+        extensionItem.userInfo = launchOptions
         await ext?.beginRequest(withInputItems: [extensionItem])
     }
     
@@ -105,7 +103,7 @@ struct LaunchAppExtension: AppIntent {
             lcSharedDefaults.set("livecontainer", forKey: "LCLaunchExtensionScheme")
             lcSharedDefaults.set("builtinSideStore", forKey: "LCLaunchExtensionBundleID")
             lcSharedDefaults.set(Date.now, forKey: "LCLaunchExtensionLaunchDate")
-            try await openURL(url: launchURL)
+            try await openURL(launchOptions: ["url": launchURL])
             return .result()
         }
         
@@ -162,7 +160,7 @@ struct LaunchAppExtension: AppIntent {
         let appBundle = LCSharedUtils.findBundle(withBundleId: bundleId, isSharedAppOut: &isSharedApp)
         guard let appBundle else {
             // app bundle cannot be found, we pass the url as-is in case it can only be handled by lc1
-            try await openURL(url: launchURL)
+            try await openURL(launchOptions: ["url": launchURL])
             return .result()
         }
         
@@ -188,24 +186,28 @@ struct LaunchAppExtension: AppIntent {
         }
         
         var newLaunch = false
+        var allowClassicMode = false
         // if the container is running in a lc, use its scheme, otherwise find free one
         if var runningScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: containerName) {
             if(runningScheme.hasSuffix("liveprocess")) {
                 runningScheme = (runningScheme as NSString).deletingPathExtension
             }
             schemeToLaunch = runningScheme
+            allowClassicMode = true
         } else {
             newLaunch = true
             if isSharedApp {
                 schemeToLaunch = firstFreeInstalledLC(preferredScheme: preferredScheme)
+                allowClassicMode = schemeToLaunch != nil
             } else {
                 schemeToLaunch = "livecontainer"
+                allowClassicMode = !LCSharedUtils.isLCScheme(inUse: "livecontainer")
             }
         }
 
         guard let schemeToLaunch else {
             // no free lc, we just open the lc1 and let the user to decide what to do
-            try await openURL(url: launchURL)
+            try await openURL(launchOptions: ["url": launchURL])
             return .result()
         }
         
@@ -221,7 +223,14 @@ struct LaunchAppExtension: AppIntent {
             throw LaunchAppExtensionError("unable to construct new url")
         }
 
-        try await openURL(url: newURL)
+        var launchOptions: [String: Any] = ["url": newURL]
+        if allowClassicMode {
+            let cachedClassicMode = (appInfo["classicMode"] as? Bool ?? false)
+                ? ((appInfo["LCClassicModeCache"] as? [String: Any])?["defaultClassicMode"] as? NSNumber)?.uintValue ?? 0
+                : 0
+            launchOptions["classicMode"] = cachedClassicMode
+        }
+        try await openURL(launchOptions: launchOptions)
         return .result()
     }
 }

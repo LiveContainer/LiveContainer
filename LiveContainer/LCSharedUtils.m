@@ -8,6 +8,9 @@ extern NSUserDefaults *lcUserDefaults;
 extern NSString *lcAppUrlScheme;
 extern NSBundle *lcMainBundle;
 
+NSString* FBSOpenApplicationOptionKeyActivateAsClassic = @"__ActivateAsClassic";
+NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
+
 @implementation LCSharedUtils
 
 + (NSString*) teamIdentifier {
@@ -120,46 +123,50 @@ extern NSBundle *lcMainBundle;
     return [nud objectForKey:@"LCCertificatePassword"];
 }
 
-+ (BOOL)launchToGuestApp {
-    NSString *urlScheme = nil;
-    NSString *tsPath = [NSString stringWithFormat:@"%@/../_TrollStore", NSBundle.mainBundle.bundlePath];
-    UIApplication *application = [NSClassFromString(@"UIApplication") sharedApplication];
++ (BOOL)launchToGuestAppWithClassicMode:(NSUInteger)classicMode {
+    void (^completionHandler)(BOOL) = ^(BOOL success) {
+        // syscall(SYS_ptrace, PT_DENY_ATTACH, 0, 0, 0);
+        __asm__ __volatile__ (
+                              "mov x0, #31\n"
+                              "mov x16, #26\n"
+                              "svc #0x80"
+                              );
+        raise(SIGKILL);
+    };
     
-    int tries = 1;
     if (!self.certificatePassword) {
+        NSString *urlScheme = nil;
+        NSString *tsPath = [NSString stringWithFormat:@"%@/../_TrollStore", NSBundle.mainBundle.bundlePath];
         if (!access(tsPath.UTF8String, F_OK)) {
             urlScheme = @"apple-magnifier://enable-jit?bundle-id=%@";
-        } else if ([application canOpenURL:[NSURL URLWithString:@"stikjit://"]]) {
-            urlScheme = @"stikjit://enable-jit?bundle-id=%@";
-        } else if ([application canOpenURL:[NSURL URLWithString:@"sidestore://"]]) {
-            urlScheme = @"sidestore://sidejit-enable?bid=%@";
+        }
+        
+        if(urlScheme) {
+            NSURL *launchURL = [NSURL URLWithString:[NSString stringWithFormat:urlScheme, NSBundle.mainBundle.bundleIdentifier]];
+            UIApplication *application = [NSClassFromString(@"UIApplication") sharedApplication];
+            [application openURL:launchURL options:@{} completionHandler:completionHandler];
+            return YES;
         }
     }
-    if (!urlScheme) {
-        tries = 2;
-        urlScheme = [NSString stringWithFormat:@"%@://livecontainer-relaunch", lcAppUrlScheme];
-    }
-    NSURL *launchURL = [NSURL URLWithString:[NSString stringWithFormat:urlScheme, NSBundle.mainBundle.bundleIdentifier]];
 
-    if ([application canOpenURL:launchURL]) {
-        //[UIApplication.sharedApplication suspend];
-        for (int i = 0; i < tries; i++) {
-            [application openURL:launchURL options:@{} completionHandler:^(BOOL b) {
-                // syscall(SYS_ptrace, PT_DENY_ATTACH, 0, 0, 0);
-                __asm__ __volatile__ (
-                    "mov x0, #31\n"
-                    "mov x16, #26\n"
-                    "svc #0x80\n"
-                );
-                raise(SIGKILL);
-            }];
-        }
-        return YES;
-    } else {
-        // none of the ways work somehow (e.g. LC itself was hidden), we just exit and wait for user to manually launch it
-        exit(0);
+    int tries = 2;
+    _LSOpenConfiguration *configuration = [[PrivClass(_LSOpenConfiguration) alloc] init];
+    if(classicMode) {
+        NSMutableDictionary* dict = [NSMutableDictionary new];
+        dict[FBSOpenApplicationOptionKeyActivateAsClassic] = @(classicMode);
+        configuration.frontBoardOptions = dict;
     }
-    return NO;
+    LSApplicationWorkspace* workspace = [PrivClass(LSApplicationWorkspace) defaultWorkspace];
+    
+    for (int i = 0; i < tries; i++) {
+        [workspace openApplicationWithBundleIdentifier:NSUserDefaults.lcMainBundle.bundleIdentifier
+                                         configuration:configuration
+                                     completionHandler:^(BOOL success, NSError* error) {
+            NSLog(@"success=%d error=%@", success, error);
+            completionHandler(success);
+        }];
+    }
+    return YES;
 }
 
 + (BOOL)launchToGuestAppWithURL:(NSURL *)url {
@@ -187,7 +194,14 @@ extern NSBundle *lcMainBundle;
         // Attempt to restart LiveContainer with the selected guest app
         [lcUserDefaults setObject:launchBundleId forKey:@"selected"];
         [lcUserDefaults setObject:containerFolderName forKey:@"selectedContainer"];
-        return [self launchToGuestApp];
+        bool isSharedApp = false;
+        NSBundle *appBundle = [self findBundleWithBundleId:launchBundleId isSharedAppOut:&isSharedApp];
+        NSDictionary *appInfo = [NSDictionary dictionaryWithContentsOfFile:
+            [appBundle.bundlePath stringByAppendingPathComponent:@"LCAppInfo.plist"]];
+        NSUInteger classicMode = [appInfo[@"classicMode"] boolValue]
+            ? [appInfo[@"LCClassicModeCache"][@"defaultClassicMode"] unsignedIntegerValue]
+            : 0;
+        return [self launchToGuestAppWithClassicMode:classicMode];
     }
     
     return NO;

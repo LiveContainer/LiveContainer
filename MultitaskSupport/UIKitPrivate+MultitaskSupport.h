@@ -8,7 +8,6 @@
 #import <UIKit/UIKit.h>
 #import "UIKitPrivate.h"
 
-#define PrivClass(NAME) NSClassFromString(@#NAME)
 extern const UIApplication *UIApp;
 
 @interface LSResourceProxy : NSObject
@@ -155,6 +154,7 @@ extern const UIApplication *UIApp;
 
 @interface UIMutableApplicationSceneSettings(Multitask)
 @property(nonatomic, assign, readwrite) BOOL canShowAlerts;
+@property(nonatomic, assign, readwrite) NSUInteger deactivationReasons;
 @property(nonatomic, assign) BOOL deviceOrientationEventsEnabled;
 @property(nonatomic, assign, readwrite) NSInteger interruptionPolicy;
 @property(nonatomic, strong, readwrite) NSString *persistenceIdentifier;
@@ -292,7 +292,7 @@ API_AVAILABLE(ios(17.0))
 API_AVAILABLE(ios(17.4))
 @interface _UISceneHostingControllerAdvancedConfiguration : NSObject
 @property(retain, nonatomic) UIApplicationSceneSpecification *sceneSpecification;
-@property(retain, nonatomic) NSOrderedSet *additionalExtensions;
+@property(retain, nonatomic) NSOrderedSet *additionalExtensions API_AVAILABLE(ios(18.0));
 - (instancetype)initWithProcessIdentity:(RBSProcessIdentity *)identity;
 @end
 

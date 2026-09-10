@@ -9,95 +9,45 @@ import Foundation
 import SwiftUI
 
 struct LCTabView: View {
-    @Binding var appDataFolderNames: [String]
-    @Binding var tweakFolderNames: [String]
-    
     @State var errorShow = false
     @State var crashReportShow = false
     @State var errorInfo = ""
-    
-    @State var previousSelectedTab : LCTabIdentifier = .apps
     
     @EnvironmentObject var sharedModel : SharedModel
     @EnvironmentObject var sceneDelegate: SceneDelegate
     @State var shouldToggleMainWindowOpen = false
     @Environment(\.scenePhase) var scenePhase
     @StateObject var downloadHelper = DownloadHelper()
-    
-    @StateObject var searchContextAppList = SearchContext()
-    @StateObject var searchContextSource = SearchContext()
-    
+
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
-    private var appListView: LCAppListView {
-        LCAppListView(appDataFolderNames: $appDataFolderNames, tweakFolderNames: $tweakFolderNames, searchContext: searchContextAppList)
-    }
-    
-    private var sourcesView: LCSourcesView {
-        LCSourcesView(searchContext: searchContextSource)
-    }
-
-    
     var body: some View {
-        Group {
-            if #available(iOS 19.0, *), SharedModel.isLiquidGlassSearchEnabled {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.sources".loc, systemImage: "books.vertical", value: LCTabIdentifier.sources) {
-                            sourcesView
-                        }
+        TabView(selection: $sharedModel.selectedTab) {
+            if DataManager.shared.model.multiLCStatus != 2 {
+                LCSourcesView()
+                    .tabItem {
+                        Label("lc.tabView.sources".loc, systemImage: "books.vertical")
                     }
-                    Tab("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill", value: LCTabIdentifier.apps) {
-                        appListView
-                    }
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        Tab("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver", value: LCTabIdentifier.tweaks) {
-                            LCTweaksView(tweakFolders: $tweakFolderNames)
-                        }
-                    }
-                    Tab("lc.tabView.settings".loc, systemImage: "gearshape.fill", value: LCTabIdentifier.settings) {
-                        LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                    }
-                    Tab("Search".loc, systemImage: "magnifyingglass", value: LCTabIdentifier.search, role: .search) {
-                        if previousSelectedTab == .sources {
-                            sourcesView
-                                .searchable(text: $searchContextSource.query)
-                        } else {
-                            appListView
-                                .searchable(text: $searchContextAppList.query)
-                        }
-
-                    }
-                }
-            } else {
-                TabView(selection: $sharedModel.selectedTab) {
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        sourcesView
-                            .tabItem {
-                                Label("lc.tabView.sources".loc, systemImage: "books.vertical")
-                            }
-                            .tag(LCTabIdentifier.sources)
-                    }
-                    appListView
-                        .tabItem {
-                            Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
-                        }
-                        .tag(LCTabIdentifier.apps)
-                    if DataManager.shared.model.multiLCStatus != 2 {
-                        LCTweaksView(tweakFolders: $tweakFolderNames)
-                            .tabItem{
-                                Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
-                            }
-                            .tag(LCTabIdentifier.tweaks)
-                    }
-                    
-                    LCSettingsView(appDataFolderNames: $appDataFolderNames)
-                        .tabItem {
-                            Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
-                        }
-                        .tag(LCTabIdentifier.settings)
-                }
+                    .tag(LCTabIdentifier.sources)
             }
+            LCAppListView()
+                .tabItem {
+                    Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
+                }
+                .tag(LCTabIdentifier.apps)
+            if DataManager.shared.model.multiLCStatus != 2 {
+                LCTweaksView()
+                    .tabItem{
+                        Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
+                    }
+                    .tag(LCTabIdentifier.tweaks)
+            }
+            
+            LCSettingsView()
+                .tabItem {
+                    Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
+                }
+                .tag(LCTabIdentifier.settings)
         }
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)
@@ -140,7 +90,7 @@ struct LCTabView: View {
             closeDuplicatedWindow()
             checkLastLaunchError()
             checkTeamId()
-            checkBundleId()
+            checkAndSaveBundleId()
             checkGetTaskAllow()
             checkPrivateContainerBookmark()
         }
@@ -149,11 +99,6 @@ struct LCTabView: View {
                 if shouldToggleMainWindowOpen {
                     DataManager.shared.model.mainWindowOpened = false
                 }
-            }
-        }
-        .onChange(of: sharedModel.selectedTab) { newValue in
-            if newValue != LCTabIdentifier.search {
-                previousSelectedTab = newValue
             }
         }
         .onOpenURL { url in
@@ -260,7 +205,12 @@ struct LCTabView: View {
         UserDefaults.standard.set(currentTeamId, forKey: "LCCertificateTeamId")
     }
     
-    func checkBundleId() {
+    func checkAndSaveBundleId() {
+        if DataManager.shared.model.multiLCStatus == 2 {
+            let scheme = UserDefaults.lcAppUrlScheme() ?? ""
+            LCUtils.appGroupUserDefault.set(Bundle.main.bundleIdentifier, forKey: "LCBundleID.\(scheme)")
+        }
+        
         if UserDefaults.standard.bool(forKey: "LCBundleIdChecked") {
             return
         }

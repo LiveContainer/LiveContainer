@@ -207,11 +207,11 @@ extension LCUtils {
         }
     }
     
-    public static func askForJIT(withScript script: String? = nil, appName: String? = nil, onServerMessage: ((String) -> Void)? = nil) async -> Bool {
+    public static func askForJIT(withScript script: String? = nil, appName: String? = nil, classicMode: UInt = 0, onServerMessage: ((String) -> Void)? = nil) async -> Bool {
         // if LiveContainer is installed by TrollStore
         let tsPath = "\(Bundle.main.bundlePath)/../_TrollStore"
         if (access((tsPath as NSString).utf8String, 0) == 0) {
-            LCSharedUtils.launchToGuestApp()
+            LCSharedUtils.launchToGuestApp(withClassicMode: classicMode)
             return true
         }
         

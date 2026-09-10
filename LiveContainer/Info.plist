@@ -34,7 +34,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.8.0</string>
+	<string>3.8.9</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -49,7 +49,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.8.0</string>
+	<string>3.8.9</string>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>
@@ -80,6 +80,8 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>The guest app is requesting for this permission.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -95,6 +97,7 @@
 	<string>The guest app is requesting for this permission.</string>
 	<key>NSBonjourServices</key>
 	<array>
+		<string>_FC9F5ED42C8A._tcp</string>
 		<string>_airplay._tcp</string>
 		<string>_raop._tcp</string>
 		<string>_companion-link._tcp</string>
@@ -139,8 +142,8 @@
 		<string>_device-info._tcp</string>
 		<string>_sleep-proxy._udp</string>
 		<string>_dns-sd._udp</string>
-        <string>_remotepairing-pairable-host._tcp</string>
-        <string>_stikpairprobe._tcp</string>
+		<string>_remotepairing-pairable-host._tcp</string>
+		<string>_stikpairprobe._tcp</string>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>

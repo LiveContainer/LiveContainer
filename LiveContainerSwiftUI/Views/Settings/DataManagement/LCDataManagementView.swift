@@ -13,7 +13,6 @@ struct LCFolderPath {
 }
 
 struct LCDataManagementView : View {
-    @Binding var appDataFolderNames: [String]
     @State var folderPaths : [LCFolderPath]
     @State var filzaInstalled = false
     @State var appeared = false
@@ -33,9 +32,7 @@ struct LCDataManagementView : View {
     
     @EnvironmentObject private var sharedModel : SharedModel
     
-    init(appDataFolderNames: Binding<[String]>) {        
-        _appDataFolderNames = appDataFolderNames
-        
+    init() {
         _folderPaths = State(initialValue: [
             LCFolderPath(path: LCPath.docPath, desc: "Private Container"),
             LCFolderPath(path: LCPath.lcGroupDocPath, desc: "App Group Container"),
@@ -224,7 +221,7 @@ struct LCDataManagementView : View {
         }
         
         var foldersToDelete : [String]  = []
-        for appDataFolderName in appDataFolderNames {
+        for appDataFolderName in sharedModel.appDataFolderNames {
             if folderNameToAppDict[appDataFolderName] == nil {
                 foldersToDelete.append(appDataFolderName)
             }
@@ -239,7 +236,7 @@ struct LCDataManagementView : View {
             for folder in foldersToDelete {
                 try fm.removeItem(at: LCPath.dataPath.appendingPathComponent(folder))
                 LCUtils.removeAppKeychain(dataUUID: folder)
-                self.appDataFolderNames.removeAll(where: { s in
+                sharedModel.appDataFolderNames.removeAll(where: { s in
                     return s == folder
                 })
             }

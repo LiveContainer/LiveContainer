@@ -3,6 +3,7 @@
 @import UIKit;
 @import UniformTypeIdentifiers;
 @import Security;
+#import <IOKit/IOKitLib.h>
 
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
@@ -182,6 +183,31 @@
     return ans;
 }
 
+#pragma mark JIT
+
++ (BOOL)isTXMScriptRequired {
+    if (@available(iOS 19.0, *)) {
+        // https://github.com/opa334/Dopamine/commit/e8438b4a64ead3997d2c70a575431cb1b4070fb9
+        io_registry_entry_t memory_map = IORegistryEntryFromPath(0, "IODeviceTree:/chosen/memory-map");
+        if (memory_map == IO_OBJECT_NULL)
+            return NO;
+        NSArray *keys = (__bridge NSArray *)IORegistryEntryCreateCFProperty(memory_map, CFSTR(kIORegistryEntryPropertyKeysKey), 0, 0);
+        IOObjectRelease(memory_map);
+        return keys && [keys containsObject:@"TXM"];
+    }
+    return NO;
+}
+
++ (NSString *)base64EncodedUniversalJITScript {
+    static dispatch_once_t onceToken;
+    static NSString *script;
+    dispatch_once(&onceToken, ^{
+        NSData *data = [NSData dataWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"universal" ofType:@"js"]];
+        script = [data base64EncodedStringWithOptions:0];
+    });
+    return script;
+}
+
 #pragma mark Setup
 
 + (Store) store {
@@ -319,7 +345,7 @@
     
     // MARK: patch main executable
     // we remove the teamId after app group id so it can be correctly signed by AltSign.
-    NSString* entitlementXML = getLCEntitlementXML();
+    NSString* entitlementXML = getExecutableEntitlementXML(NSBundle.mainBundle.executablePath);
     NSData *plistData = [entitlementXML dataUsingEncoding:NSUTF8StringEncoding];
     NSMutableDictionary *dict = [NSPropertyListSerialization propertyListWithData:plistData
                                                                           options:NSPropertyListMutableContainers
@@ -395,6 +421,7 @@
     [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"PlugIns"] error:nil];
     // remove all sidestore stuff
     if([NSUserDefaults sideStoreExist]) {
+        [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/SideStoreSupport.framework"] error:nil];
         [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/SideStore.framework"] error:nil];
         [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/SideStoreApp.framework"] error:nil];
         [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Intents.intentdefinition"] error:nil];

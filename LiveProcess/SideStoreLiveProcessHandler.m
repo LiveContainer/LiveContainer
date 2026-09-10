@@ -5,7 +5,7 @@
 //  Created by s s on 2025/7/20.
 //
 
-#include "../SideStore/XPCServer.h"
+#include "../SideStoreSupport/XPCServer.h"
 
 static LiveProcessSideStoreHandler* sharedHandler = nil;
 

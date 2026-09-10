@@ -25,6 +25,8 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property NSString* relativeBundlePath;
 @property bool isShared;
 @property bool isJITNeeded;
+@property bool classicMode;
+@property (nonatomic, readonly) NSUInteger defaultClassicMode;
 @property bool isLocked;
 @property bool isHidden;
 @property bool doSymlinkInbox;
@@ -44,12 +46,12 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property bool dontSign;
 @property bool spoofSDKVersion;
 @property (nonatomic, strong) NSString* jitLaunchScriptJs;
+@property (nonatomic, strong) NSString* selected32BitEmulator;
 @property NSDate* lastLaunched;
 @property NSDate* installationDate;
 @property NSString* remark;
-#if is32BitSupported
 @property bool is32bit;
-#endif
+@property(readonly) bool is32bitEmulator;
 @property UIColor* cachedColor;
 @property UIColor* cachedColorDark;
 @property UIImage* cachedIcon;

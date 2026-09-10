@@ -26,9 +26,6 @@ struct LCAppSettingsView: View {
     
     @ObservedObject private var model : LCAppModel
     
-    @Binding var appDataFolders: [String]
-    @Binding var tweakFolders: [String]
-    
 
     @StateObject private var renameFolderInput = InputHelper()
     @StateObject private var moveToAppGroupAlert = YesNoHelper()
@@ -44,11 +41,9 @@ struct LCAppSettingsView: View {
     
     @EnvironmentObject private var sharedModel : SharedModel
     
-    init(model: LCAppModel, appDataFolders: Binding<[String]>, tweakFolders: Binding<[String]>) {
+    init(model: LCAppModel) {
         self.appInfo = model.appInfo
         self._model = ObservedObject(wrappedValue: model)
-        _appDataFolders = appDataFolders
-        _tweakFolders = tweakFolders
     }
     
     private var bannerColorBinding: Binding<Color> {
@@ -132,7 +127,7 @@ struct LCAppSettingsView: View {
                     Menu {
                         Picker(selection: $model.uiTweakFolder , label: Text("")) {
                             Label("lc.common.none".loc, systemImage: "nosign").tag(Optional<String>(nil))
-                            ForEach(tweakFolders, id:\.self) { folderName in
+                            ForEach(sharedModel.tweakFolderNames, id:\.self) { folderName in
                                 Text(folderName).tag(Optional(folderName))
                             }
                         }
@@ -212,7 +207,8 @@ struct LCAppSettingsView: View {
                 Toggle(isOn: $model.uiIsJITNeeded) {
                     Text("lc.appSettings.launchWithJit".loc)
                 }
-                if #available(iOS 26.0, *), model.uiIsJITNeeded {
+                .disabled(model.uiIs32bit)
+                if #available(iOS 26.0, *), model.uiIsJITNeeded, !model.uiIs32bit {
                     HStack {
                         Text("lc.appSettings.jit26.script".loc)
                         Spacer()
@@ -257,6 +253,16 @@ struct LCAppSettingsView: View {
                         }) {
                             Text("lc.common.select".loc)
                         }
+                    }
+                }
+                if model.uiIs32bit {
+                    Picker(selection: $model.uiSelected32BitEmulator) {
+                        ForEach(sharedModel.arm32EmuApps, id: \.self) { app in
+                            Text("lc.common.default".loc).tag("")
+                            Text(app.appInfo.displayName()).tag(app.appInfo.relativeBundlePath!)
+                        }
+                    } label: {
+                        Text("lc.appSettings.selected32BitEmulator".loc)
                     }
                 }
             } footer: {
@@ -398,6 +404,16 @@ struct LCAppSettingsView: View {
                 
             } footer: {
                 Text("lc.appSettings.hideLiveContainerDesc".loc)
+            }
+            
+            if #available(iOS 16.0, *) {
+                Section {
+                    Toggle(isOn: $model.uiClassicMode) {
+                        Text("lc.appSettings.classicMode".loc)
+                    }
+                } footer: {
+                    Text("lc.appSettings.classicModeDesc".loc)
+                }
             }
             
             Section {
@@ -545,7 +561,7 @@ struct LCAppSettingsView: View {
             return
         }
         
-        self.appDataFolders.append(newName)
+        sharedModel.appDataFolderNames.append(newName)
         let newContainer = LCContainer(folderName: newName, name: displayName, isShared: model.uiIsShared)
         // assign keychain group
         var keychainGroupSet : Set<Int> = Set(minimumCapacity: 3)
@@ -692,14 +708,14 @@ struct LCAppSettingsView: View {
                 if container.storageBookMark != nil {
                     continue
                 }
-                appDataFolders.removeAll(where: { s in
+                sharedModel.appDataFolderNames.removeAll(where: { s in
                     return s == container.folderName
                 })
                 container.isShared = true
             }
             
             if let tweakFolder = appInfo.tweakFolder, tweakFolder.count > 0 {
-                tweakFolders.removeAll(where: { s in
+                sharedModel.tweakFolderNames.removeAll(where: { s in
                     return s == tweakFolder
                 })
             }
@@ -755,10 +771,10 @@ struct LCAppSettingsView: View {
                 if container.storageBookMark != nil {
                     continue
                 }
-                appDataFolders.append(container.folderName)
+                sharedModel.appDataFolderNames.append(container.folderName)
             }
             if let tweakFolder = appInfo.tweakFolder, tweakFolder.count > 0 {
-                tweakFolders.append(tweakFolder)
+                sharedModel.tweakFolderNames.append(tweakFolder)
                 model.uiTweakFolder = tweakFolder
             }
             

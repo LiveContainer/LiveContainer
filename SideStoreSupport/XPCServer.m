@@ -8,7 +8,6 @@
 #import <Foundation/Foundation.h>
 #import "XPCServer.h"
 
-
 @interface ServerDelegate : NSObject <NSXPCListenerDelegate>
 @property NSObject<RefreshServer>* reporter;
 @end

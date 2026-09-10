@@ -6450,6 +6450,40 @@
         }
       }
     },
+    "lc.appSettings.classicMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Experimental) Compatibility Mode"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "兼容模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "相容模式"
+          }
+        }
+      }
+    },
+    "lc.appSettings.classicModeDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Experimental) Guides the system to display the app at the appropriate resolution. On iPad OS, the app will be displayed in iPhone mode if it does not natively support iPad."
+          }
+        }
+      }
+    },
     "lc.appSettings.customIcon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8782,6 +8816,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset All Customization"
+          }
+        }
+      }
+    },
+    "lc.appSettings.selected32BitEmulator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "32-bit emulator"
           }
         }
       }
@@ -27242,6 +27287,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "終結後自動重啟"
+          }
+        }
+      }
+    },
+    "lc.settings.selected32BitEmulator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default 32-bit emulator"
           }
         }
       }

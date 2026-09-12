@@ -73,11 +73,14 @@ struct LCSettingsView: View {
     @EnvironmentObject private var sharedModel : SharedModel
     
     @State private var isViewAppeared = false
+    @State private var pairingFileFound = false
+    @State private var isChoosingPairingFile = false
     
     let storeName = LCUtils.getStoreName()
     
     init() {
         _certificateDataFound = State(initialValue: LCSharedUtils.certificatePassword() != nil)
+        _pairingFileFound = State(initialValue: (try? LCPath.pairingFilePath.checkResourceIsReachable()) ?? false)
         _store = State(initialValue: LCUtils.store())
     }
     
@@ -162,6 +165,13 @@ struct LCSettingsView: View {
                 }
                 
                 Section {
+                    Picker(selection: $JITEnabler) {
+                        ForEach(JITEnablerType.allCases) { enablerType in
+                            Text(enablerType.displayName).tag(enablerType)
+                        }
+                    } label: {
+                        Text("lc.settings.jitEnabler".loc)
+                    }
                     if JITEnabler == .SideJITServer || JITEnabler == .JITStreamerEBLegacy {
                         HStack {
                             Text("lc.settings.JitAddress".loc)
@@ -178,14 +188,30 @@ struct LCSettingsView: View {
                                 .multilineTextAlignment(.trailing)
                         }
                     }
-                    Picker(selection: $JITEnabler) {
-                        ForEach(JITEnablerType.allCases) { enablerType in
-                            Text(enablerType.displayName).tag(enablerType)
+                    if JITEnabler == .StikJITHeadless {
+                        HStack {
+                            if !pairingFileFound {
+                                Button {
+                                    isChoosingPairingFile = true
+                                } label: {
+                                    Text("lc.settings.importPairingFile".loc)
+                                }
+                            } else {
+                                Button {
+                                    try? FileManager.default.removeItem(at: LCPath.pairingFilePath)
+                                    pairingFileFound = false
+                                } label: {
+                                    Text("lc.settings.removePairingFile".loc)
+                                }
+                            }
                         }
-                    } label: {
-                        Text("lc.settings.jitEnabler".loc)
+                        .betterFileImporter(isPresented: $isChoosingPairingFile, types: [.propertyList], multiple: false) { fileUrls in
+                            try? FileManager.default.moveItem(at: fileUrls[0], to: LCPath.pairingFilePath)
+                            pairingFileFound = true
+                        } onDismiss: {
+                            isChoosingPairingFile = false
+                        }
                     }
-
                 } header: {
                     Text("JIT")
                 } footer: {

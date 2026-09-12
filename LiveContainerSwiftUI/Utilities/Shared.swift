@@ -20,6 +20,7 @@ struct LCPath {
     public static let dataPath = docPath.appendingPathComponent("Data/Application")
     public static let appGroupPath = docPath.appendingPathComponent("Data/AppGroup")
     public static let tweakPath = docPath.appendingPathComponent("Tweaks")
+    public static let pairingFilePath = docPath.appendingPathComponent("SideStore/Documents/ALTPairingFile.mobiledevicepairing")
     
     public static let lcGroupDocPath = {
         let fm = FileManager()
@@ -48,6 +49,9 @@ struct LCPath {
         }
         if !fm.fileExists(atPath: LCPath.lcGroupTweakPath.path) {
             try fm.createDirectory(at: LCPath.lcGroupTweakPath, withIntermediateDirectories: true)
+        }
+        if !fm.fileExists(atPath: LCPath.pairingFilePath.path) {
+            try fm.createDirectory(at: LCPath.pairingFilePath.deletingLastPathComponent(), withIntermediateDirectories: true)
         }
     }
 }

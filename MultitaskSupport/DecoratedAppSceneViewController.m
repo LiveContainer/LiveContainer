@@ -503,11 +503,18 @@
         
         // Update safe area insets
         if(self.isMaximized) {
-            self.appSceneVC.shouldSkipDebounceOnce = YES;
-            __weak typeof(self) weakSelf = self;
-            [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-                [weakSelf updateMaximizedFrameWithSettings:settings];
-            }];
+            if(self.isAppTerminated) {
+                // the guest scene is already torn down by the time appSceneVCAppDidExit: runs, so
+                // -[AppSceneViewController updateSettingsWithBlock:] drops the block and our frame
+                // would stay in the bar-less fullscreen geometry, putting the bar under the status bar
+                [self updateMaximizedFrameWithSettings:[UIMutableApplicationSceneSettings new]];
+            } else {
+                self.appSceneVC.shouldSkipDebounceOnce = YES;
+                __weak typeof(self) weakSelf = self;
+                [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+                    [weakSelf updateMaximizedFrameWithSettings:settings];
+                }];
+            }
         }
         
         [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];

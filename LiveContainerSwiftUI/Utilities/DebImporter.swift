@@ -260,16 +260,21 @@ enum DebImporter {
         try fm.copyItem(at: effectiveRoot, to: tweakDir)
         fm.createFile(atPath: tweakDir.appendingPathComponent(debTweakMarkerName).path, contents: nil)
 
-        // Resolved once, the same way FileManager's enumerator below canonicalizes the URLs
-        // it yields (e.g. adding a /private prefix) -- everything under tweakDir is then
-        // related back to it by stripping this exact prefix, rather than searching for
-        // tweakName as a path *component*, which breaks if the payload happens to contain a
-        // directory with the same name as the tweak itself (e.g. a tweak named "Frameworks"
-        // shipping its own Library/Frameworks/Foo.framework -- searching by name would match
-        // the inner "Frameworks" instead of the tweak's own root).
+        // FileManager's enumerator below canonicalizes the URLs it yields (e.g. adding a
+        // /private prefix) but doesn't canonicalize the *base* URL it was given -- so
+        // resolving symlinks on tweakDir alone and comparing that against the enumerator's
+        // already-canonical children never matches (this regressed the whole redirect
+        // mechanism: relativeComponents returned nil for everything, so nothing ever got
+        // recorded, for exactly this reason). Resolving symlinks on *both* sides
+        // independently before comparing makes the comparison correct regardless of which
+        // side (if either) actually needed canonicalizing.
+        //
+        // This still avoids searching for tweakName as a path *component* (which breaks if
+        // the payload contains a directory sharing the tweak's own name, e.g. a tweak named
+        // "Frameworks" shipping its own Library/Frameworks/Foo.framework).
         let canonicalTweakDirPath = tweakDir.resolvingSymlinksInPath().path
         func relativeComponents(under url: URL) -> [String]? {
-            let path = url.path
+            let path = url.resolvingSymlinksInPath().path
             if path == canonicalTweakDirPath { return [] }
             guard path.hasPrefix(canonicalTweakDirPath + "/") else { return nil }
             return path.dropFirst(canonicalTweakDirPath.count + 1).split(separator: "/").map(String.init)

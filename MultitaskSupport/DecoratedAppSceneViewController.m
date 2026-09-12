@@ -15,6 +15,7 @@
 @property(nonatomic) CGRect originalFrame;
 @property(nonatomic) UIBarButtonItem *maximizeButton;
 @property(nonatomic) bool isAppTerminationRequested;
+@property(nonatomic) bool isAppTerminated;
 @end
 
 @implementation DecoratedAppSceneViewController
@@ -349,6 +350,10 @@
         label.text = NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", @"");
         label.textAlignment = NSTextAlignmentCenter;
         [self.view insertSubview:label atIndex:0];
+        // the window bar is hidden while a maximized app runs with the dock collapsed,
+        // bring it back so the terminated window can still be moved and closed
+        _isAppTerminated = true;
+        [self updateVerticalConstraints];
     }
 }
 
@@ -491,7 +496,7 @@
     [self.view layoutIfNeeded];
     [UIView animateWithDuration:0.3 animations:^{
         BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
-        BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && self.isMaximized;
+        BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && self.isMaximized && !self.isAppTerminated;
         CGFloat navBarHeight = hideWindowBar ? 0 : 44;
         self.navigationBar.alpha = hideWindowBar ? 0 : 1;
         self.navigationBar.hidden = hideWindowBar;

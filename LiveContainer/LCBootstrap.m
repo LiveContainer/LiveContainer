@@ -366,9 +366,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
 
     // If JIT is enabled, bypass library validation so we can load arbitrary binaries
     bool isJitEnabled = checkJITEnabled();
-    if (isJitEnabled) {
-        init_bypassDyldLibValidation();
-    } else if (!isLiveProcess && [guestAppInfo[@"isJITNeeded"] boolValue] && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCJITEnablerType"] == 7) { // JITEnablerTypeStikJITHeadless
+    if (!isJitEnabled && [guestAppInfo[@"isJITNeeded"] boolValue] && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCJITEnablerType"] == 7) { // JITEnablerTypeStikJITHeadless
         __block NSError *error;
         NSExtension *ext = [NSExtension extensionWithIdentifier:LCSharedUtils.liveProcessBundleIdentifier error:&error];
         if (!ext) {
@@ -404,6 +402,9 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             return [@"Builtin StikJIT failed: " stringByAppendingString:error.localizedDescription];
         }
         isJitEnabled = YES;
+    }
+    if (isJitEnabled) {
+        init_bypassDyldLibValidation();
     }
 
     // Locate dyld image name address

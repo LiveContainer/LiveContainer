@@ -1105,10 +1105,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     func jitLaunch(withPID pid: Int, withScript script: String? = nil, appName: String) async {
         await MainActor.run {
-            let encodedData = script?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-                
-            
             if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")) {
+                if jitEnabler == .StikJITHeadless {
+                    // let guest app spawn it
+                    return
+                }
+                
+                let encodedData = script?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
                 if jitEnabler == .StosDebug || jitEnabler == .StosDebugLC {
                     let encoded = encodedData.map { "&script=\($0)" } ?? ""
                     if jitEnabler == .StosDebugLC {

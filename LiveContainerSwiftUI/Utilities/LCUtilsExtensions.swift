@@ -343,14 +343,17 @@ extension LCUtils {
                 await UIApplication.shared.open(URL(string: launchURLStr)!)
             }
             
-        } else if jitEnabler == .StikJIT || jitEnabler == .StikJITLC || jitEnabler == .StikJITHeadless {
+        } else if jitEnabler == .StikJITHeadless {
+            LCSharedUtils.launchToGuestApp(withClassicMode: classicMode)
+            return true
+        } else if jitEnabler == .StikJIT || jitEnabler == .StikJITLC {
             var launchURLStr = "stikjit://enable-jit?bundle-id=\(Bundle.main.bundleIdentifier!)"
 
             if let script = script, !script.isEmpty {
                 launchURLStr += "&script-data=\(script)"
             }
             let launchURL : URL
-            if jitEnabler == .StikJITLC || jitEnabler == .StikJITHeadless {
+            if jitEnabler == .StikJITLC {
                 let encodedStr = Data(launchURLStr.utf8).base64EncodedString()
 
                 
@@ -369,15 +372,10 @@ extension LCUtils {
                 var freeScheme = LCSharedUtils.getContainerUsingLCScheme(withFolderName: appToLaunch.uiDefaultDataFolder)
                 
                 if(freeScheme == nil) {
-                    if jitEnabler == .StikJITHeadless {
-                        LCSharedUtils.launchToGuestApp(withClassicMode: classicMode)
-                        return true
-                    } else {
-                        // if not, try to find a free lc
-                        forEachInstalledLC(isFree: true) { scheme, shouldBreak in
-                            freeScheme = scheme
-                            shouldBreak = true
-                        }
+                    // if not, try to find a free lc
+                    forEachInstalledLC(isFree: true) { scheme, shouldBreak in
+                        freeScheme = scheme
+                        shouldBreak = true
                     }
                 }
                 guard let freeScheme else {

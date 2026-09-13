@@ -167,31 +167,6 @@
     return ans;
 }
 
-#pragma mark JIT
-
-+ (BOOL)isTXMScriptRequired {
-    if (@available(iOS 19.0, *)) {
-        // https://github.com/opa334/Dopamine/commit/e8438b4a64ead3997d2c70a575431cb1b4070fb9
-        io_registry_entry_t memory_map = IORegistryEntryFromPath(0, "IODeviceTree:/chosen/memory-map");
-        if (memory_map == IO_OBJECT_NULL)
-            return NO;
-        NSArray *keys = (__bridge NSArray *)IORegistryEntryCreateCFProperty(memory_map, CFSTR(kIORegistryEntryPropertyKeysKey), 0, 0);
-        IOObjectRelease(memory_map);
-        return keys && [keys containsObject:@"TXM"];
-    }
-    return NO;
-}
-
-+ (NSString *)base64EncodedUniversalJITScript {
-    static dispatch_once_t onceToken;
-    static NSString *script;
-    dispatch_once(&onceToken, ^{
-        NSData *data = [NSData dataWithContentsOfFile:[[NSBundle bundleWithIdentifier:@"com.stik.StikJIT"] pathForResource:@"universal" ofType:@"js"]];
-        script = [data base64EncodedStringWithOptions:0];
-    });
-    return script;
-}
-
 #pragma mark Setup
 
 + (Store) store {

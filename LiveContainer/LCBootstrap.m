@@ -368,11 +368,11 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     bool isJitEnabled = checkJITEnabled();
     if (isJitEnabled) {
         init_bypassDyldLibValidation();
-    } else if (!isLiveProcess && guestAppInfo[@"isJITNeeded"] && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCJITEnablerType"] == 7) { // JITEnablerTypeStikJITHeadless
+    } else if (!isLiveProcess && [guestAppInfo[@"isJITNeeded"] boolValue] && [NSUserDefaults.lcSharedDefaults integerForKey:@"LCJITEnablerType"] == 7) { // JITEnablerTypeStikJITHeadless
         __block NSError *error;
         NSExtension *ext = [NSExtension extensionWithIdentifier:LCSharedUtils.liveProcessBundleIdentifier error:&error];
         if (!ext) {
-            return [@"JIT was required, but could not spawn StikDebug because LiveProcess is missing. " stringByAppendingString:error.localizedDescription];
+            return [@"JIT was required, but could not spawn StikJIT because LiveProcess is missing. " stringByAppendingString:error.localizedDescription];
         }
         NSURL *pairingURL = [NSURL fileURLWithPath:[docPath stringByAppendingPathComponent:@"SideStore/Documents/ALTPairingFile.mobiledevicepairing"]];
         NSURL *ddiURL = [NSURL fileURLWithPath:[docPath stringByAppendingPathComponent:@"SideStore/Documents/DMG"]];
@@ -383,7 +383,6 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         
         NSExtensionItem *item = [NSExtensionItem new];
         item.userInfo = @{
-            // TODO: pairing file sandbox tokens
             @"customPayloadDylib": @"@rpath/StikJITHeadless.framework/StikJITHeadless",
             @"customPayloadEntry": @"StikJITHeadlessMain",
             @"pairingBookmark": [pairingURL bookmarkDataWithOptions:(1<<11) includingResourceValuesForKeys:0 relativeToURL:0 error:0],
@@ -633,7 +632,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         return appError;
     }
     
-    if([guestAppInfo[@"dontInjectTweakLoader"] boolValue] && ![guestAppInfo[@"dontLoadTweakLoader"] boolValue]) {
+    if((is32bit || [guestAppInfo[@"dontInjectTweakLoader"] boolValue]) && ![guestAppInfo[@"dontLoadTweakLoader"] boolValue]) {
         tweakLoaderLoaded = true;
         if([guestAppInfo[@"hideLiveContainer"] boolValue]) {
             dlopen([lcMainBundle.bundlePath stringByAppendingPathComponent:@"Frameworks/TweakLoader.dylib"].UTF8String, RTLD_LAZY|RTLD_GLOBAL);

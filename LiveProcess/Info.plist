@@ -83,13 +83,9 @@
 		<string>_device-info._tcp</string>
 		<string>_sleep-proxy._udp</string>
 		<string>_dns-sd._udp</string>
-        <string>_remotepairing-pairable-host._tcp</string>
-        <string>_stikpairprobe._tcp</string>
+		<string>_remotepairing-pairable-host._tcp</string>
+		<string>_stikpairprobe._tcp</string>
 	</array>
-	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
-	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -97,19 +93,17 @@
 			<key>NSExtensionActivationRule</key>
 			<string>FALSEPREDICATE</string>
 		</dict>
+		<key>NSExtensionContextClass</key>
+		<string>NSExtensionContext</string>
+		<key>NSExtensionContextHostClass</key>
+		<string>NSExtensionContext</string>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.ar.viewer</string>
 		<key>NSExtensionPrincipalClass</key>
 		<string>LiveProcessHandler</string>
-		<key>NSExtensionContextClass</key>
-        <string>NSExtensionContext</string>
-        <key>NSExtensionContextHostClass</key>
-        <string>NSExtensionContext</string>
 	</dict>
 	<key>NSLocationDefaultAccuracyReduced</key>
 	<true/>
-	<key>NSRemindersFullAccessUsageDescription</key>
-	<string>The guest app is requesting for this permission.</string>
 	<key>SBAppUsesLocalNotifications</key>
 	<integer>1</integer>
 	<key>UIApplicationSceneManifest</key>
@@ -128,14 +122,14 @@
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
-    <key>XPCService</key>
-    <dict>
-        <key>ServiceType</key>
-        <string>Application</string>
-        <key>_MultipleInstances</key>
-        <true/>
-        <key>_ProcessType</key>
-        <string>App</string>
-    </dict>
+	<key>XPCService</key>
+	<dict>
+		<key>ServiceType</key>
+		<string>Application</string>
+		<key>_MultipleInstances</key>
+		<true/>
+		<key>_ProcessType</key>
+		<string>App</string>
+	</dict>
 </dict>
 </plist>

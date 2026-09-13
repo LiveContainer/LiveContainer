@@ -24,7 +24,7 @@ import StikJIT
         }
         
         var script = StikJIT.Script.universal
-        if let scriptString {
+        if let scriptString, !scriptString.isEmpty {
             let scriptURL = URL.temporaryDirectory.appending(component: "script.js")
             try? scriptString.write(to: scriptURL, atomically: true, encoding: .utf8)
             script = StikJIT.Script.custom(scriptURL)

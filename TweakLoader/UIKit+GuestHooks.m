@@ -3,6 +3,7 @@
 #import "UIKitPrivate.h"
 #import "../LiveContainer/utils.h"
 #import <LocalAuthentication/LocalAuthentication.h>
+@import AVKit;
 #import "Localization.h"
 
 UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
@@ -19,6 +20,12 @@ static void UIKitGuestHooksInit() {
     swizzle(UIApplication.class, @selector(setDelegate:), @selector(hook_setDelegate:));
     swizzle(UIScene.class, @selector(scene:didReceiveActions:fromTransitionContext:), @selector(hook_scene:didReceiveActions:fromTransitionContext:));
     swizzle(UIScene.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));
+    if([NSUserDefaults.guestAppInfo[@"disablePiP"] boolValue]) {
+        // some apps (eg. YouTube Music) start PiP on their own whenever they go to background
+        swizzleClassMethod(AVPictureInPictureController.class, @selector(isPictureInPictureSupported), @selector(hook_isPictureInPictureSupported));
+        swizzle(AVPictureInPictureController.class, @selector(startPictureInPicture), @selector(hook_startPictureInPicture));
+        swizzle(AVPictureInPictureController.class, @selector(setCanStartPictureInPictureAutomaticallyFromInline:), @selector(hook_setCanStartPictureInPictureAutomaticallyFromInline:));
+    }
     NSInteger LCOrientationLockDirection = [NSUserDefaults.guestAppInfo[@"LCOrientationLock"] integerValue];
     if(LCOrientationLockDirection != 0 && [UIDevice.currentDevice userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         switch (LCOrientationLockDirection) {
@@ -41,6 +48,21 @@ static void UIKitGuestHooksInit() {
 
     }
 }
+
+@implementation AVPictureInPictureController(LiveContainerHook)
+
++ (BOOL)hook_isPictureInPictureSupported {
+    return NO;
+}
+
+- (void)hook_startPictureInPicture {
+}
+
+- (void)hook_setCanStartPictureInPictureAutomaticallyFromInline:(BOOL)value {
+    [self hook_setCanStartPictureInPictureAutomaticallyFromInline:NO];
+}
+
+@end
 
 NSString* findDefaultContainerWithBundleId(NSString* bundleId) {
     // find app's default container

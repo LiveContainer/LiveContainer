@@ -28,6 +28,7 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property bool isLocked;
 @property bool isHidden;
 @property bool doSymlinkInbox;
+@property bool disablePiP;
 @property bool hideLiveContainer;
 @property bool dontLoadTweakLoader;
 @property bool dontInjectTweakLoader;

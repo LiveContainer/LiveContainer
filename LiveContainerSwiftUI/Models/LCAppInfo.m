@@ -503,6 +503,19 @@
     
 }
 
+- (bool)disablePiP {
+    if(_info[@"disablePiP"] != nil) {
+        return [_info[@"disablePiP"] boolValue];
+    } else {
+        return NO;
+    }
+}
+
+- (void)setDisablePiP:(bool)disablePiP {
+    _info[@"disablePiP"] = [NSNumber numberWithBool:disablePiP];
+    [self save];
+}
+
 - (bool)hideLiveContainer {
     if(_info[@"hideLiveContainer"] != nil) {
         return [_info[@"hideLiveContainer"] boolValue];

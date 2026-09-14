@@ -6407,6 +6407,52 @@
         }
       }
     },
+    "lc.appSettings.disablePiP" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable Picture in Picture"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt Hình trong hình"
+          }
+        },
+        "zh_CN" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "禁用画中画"
+          }
+        }
+      }
+    },
+    "lc.appSettings.disablePiPDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop this app from entering Picture in Picture. Useful for apps that start PiP on their own when they go to the background, such as YouTube Music."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngăn ứng dụng này vào chế độ Hình trong hình. Hữu ích với các ứng dụng tự mở PiP khi chuyển xuống nền, ví dụ YouTube Music."
+          }
+        },
+        "zh_CN" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阻止此应用进入画中画。适用于进入后台时自行开启画中画的应用，例如 YouTube Music。"
+          }
+        }
+      }
+    },
     "lc.appSettings.dontInjectTweakLoader" : {
       "extractionState" : "manual",
       "localizations" : {

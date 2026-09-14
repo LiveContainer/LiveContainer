@@ -46,6 +46,11 @@ class LCAppModel: ObservableObject, Hashable {
             appInfo.doSymlinkInbox = uiDoSymlinkInbox
         }
     }
+    @Published var uiDisablePiP : Bool {
+        didSet {
+            appInfo.disablePiP = uiDisablePiP
+        }
+    }
     @Published var uiUseLCBundleId : Bool {
         didSet {
             appInfo.doUseLCBundleId = uiUseLCBundleId
@@ -177,6 +182,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.uiContainers = appInfo.containers
         self.uiTweakFolder = appInfo.tweakFolder
         self.uiDoSymlinkInbox = appInfo.doSymlinkInbox
+        self.uiDisablePiP = appInfo.disablePiP
         self.uiOrientationLock = appInfo.orientationLock
         self.uiIsMultitaskModeSpecificed = appInfo.multitaskSpecified
         self.uiUseLCBundleId = appInfo.doUseLCBundleId

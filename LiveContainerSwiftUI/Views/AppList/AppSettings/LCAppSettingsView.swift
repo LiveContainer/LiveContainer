@@ -366,6 +366,14 @@ struct LCAppSettingsView: View {
 
             
             Section {
+                Toggle(isOn: $model.uiDisablePiP) {
+                    Text("lc.appSettings.disablePiP".loc)
+                }
+            } footer: {
+                Text("lc.appSettings.disablePiPDesc".loc)
+            }
+            
+            Section {
                 Toggle(isOn: $model.uiDoSymlinkInbox) {
                     Text("lc.appSettings.fixFilePicker".loc)
                 }

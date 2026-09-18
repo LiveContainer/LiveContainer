@@ -15,6 +15,7 @@
 @property(nonatomic) CGRect originalFrame;
 @property(nonatomic) UIBarButtonItem *maximizeButton;
 @property(nonatomic) bool isAppTerminationRequested;
+@property(nonatomic) bool isAppTerminated;
 @end
 
 @implementation DecoratedAppSceneViewController
@@ -349,6 +350,10 @@
         label.text = NSLocalizedString(@"lc.multitaskAppWindow.appTerminated", @"");
         label.textAlignment = NSTextAlignmentCenter;
         [self.view insertSubview:label atIndex:0];
+        // the window bar is hidden while a maximized app runs with the dock collapsed,
+        // bring it back so the terminated window can still be moved and closed
+        _isAppTerminated = true;
+        [self updateVerticalConstraints];
     }
 }
 
@@ -491,18 +496,25 @@
     [self.view layoutIfNeeded];
     [UIView animateWithDuration:0.3 animations:^{
         BOOL bottomWindowBar = [NSUserDefaults.lcSharedDefaults boolForKey:@"LCMultitaskBottomWindowBar"];
-        BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && self.isMaximized;
+        BOOL hideWindowBar = MultitaskDockManager.shared.isCollapsed && self.isMaximized && !self.isAppTerminated;
         CGFloat navBarHeight = hideWindowBar ? 0 : 44;
         self.navigationBar.alpha = hideWindowBar ? 0 : 1;
         self.navigationBar.hidden = hideWindowBar;
         
         // Update safe area insets
         if(self.isMaximized) {
-            self.appSceneVC.shouldSkipDebounceOnce = YES;
-            __weak typeof(self) weakSelf = self;
-            [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
-                [weakSelf updateMaximizedFrameWithSettings:settings];
-            }];
+            if(self.isAppTerminated) {
+                // the guest scene is already torn down by the time appSceneVCAppDidExit: runs, so
+                // -[AppSceneViewController updateSettingsWithBlock:] drops the block and our frame
+                // would stay in the bar-less fullscreen geometry, putting the bar under the status bar
+                [self updateMaximizedFrameWithSettings:[UIMutableApplicationSceneSettings new]];
+            } else {
+                self.appSceneVC.shouldSkipDebounceOnce = YES;
+                __weak typeof(self) weakSelf = self;
+                [self.appSceneVC updateSettingsWithBlock:^(UIMutableApplicationSceneSettings *settings) {
+                    [weakSelf updateMaximizedFrameWithSettings:settings];
+                }];
+            }
         }
         
         [NSLayoutConstraint deactivateConstraints:self.activatedVerticalConstraints];

@@ -2636,6 +2636,17 @@
         }
       }
     },
+    "lc.appList.generatedIconStyleSelector.custom" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        }
+      }
+    },
     "lc.appList.generatedIconStyleSelector.dark" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6171,6 +6182,28 @@
         }
       }
     },
+    "lc.appSettings.appIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Icon"
+          }
+        }
+      }
+    },
+    "lc.appSettings.appName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Name"
+          }
+        }
+      }
+    },
     "lc.appSettings.appOpenInOtherLc %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6268,6 +6301,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此應用程式的資料目前在%@。 開啟%@，將其啟動到「我的應用程式」螢幕，然後重試。"
+          }
+        }
+      }
+    },
+    "lc.appSettings.bannerColor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banner Color"
           }
         }
       }
@@ -6373,6 +6417,39 @@
         }
       }
     },
+    "lc.appSettings.chooseCustomIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Custom Icon"
+          }
+        }
+      }
+    },
+    "lc.appSettings.chooseFromFiles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose from Files"
+          }
+        }
+      }
+    },
+    "lc.appSettings.chooseFromPhotos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose from Photos"
+          }
+        }
+      }
+    },
     "lc.appSettings.classicMode" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6403,6 +6480,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(Experimental) Guides the system to display the app at the appropriate resolution. On iPad OS, the app will be displayed in iPhone mode if it does not natively support iPad."
+          }
+        }
+      }
+    },
+    "lc.appSettings.customIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        }
+      }
+    },
+    "lc.appSettings.customIconReadErr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to read the selected image."
+          }
+        }
+      }
+    },
+    "lc.appSettings.customIconSaveErr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save the custom icon."
+          }
+        }
+      }
+    },
+    "lc.appSettings.customization" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customization"
+          }
+        }
+      }
+    },
+    "lc.appSettings.customizationDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These settings only change how this app is presented by LiveContainer. The name and icon are also used for App Clips you create."
           }
         }
       }
@@ -8500,6 +8632,17 @@
         }
       }
     },
+    "lc.appSettings.noAlternateIcons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This app doesn't provide any alternate icons. You can still choose a custom one."
+          }
+        }
+      }
+    },
     "lc.appSettings.remark" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8662,6 +8805,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入備註..."
+          }
+        }
+      }
+    },
+    "lc.appSettings.resetCustomization" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset All Customization"
           }
         }
       }

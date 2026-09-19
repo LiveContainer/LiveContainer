@@ -188,7 +188,7 @@ struct LCSettingsView: View {
                                 .multilineTextAlignment(.trailing)
                         }
                     }
-                    if JITEnabler == .StikJITHeadless {
+                    if JITEnabler == .StikJITHeadless, sharedModel.multiLCStatus == 0 {
                         HStack {
                             if !pairingFileFound {
                                 Button {

@@ -9,7 +9,7 @@ import Foundation
 import StikJIT
 
 @objc(StikJITWrapper) public class StikJITWrapper: NSObject {
-    @objc public static func enableJIT(with pid: Int32, pairingFile: URL, ddiPath: URL, scriptString: String?) -> String {
+    @objc public static func enableJIT(with pid: Int32, pairingFile: URL, ddiPath: URL, scriptPath: URL?) -> String {
         let ddiPaths = DDIPaths.default(in: ddiPath)
         let readiness = StikJIT.prepareDevice(pairingFile: pairingFile, paths: ddiPaths)
         switch readiness {
@@ -24,10 +24,8 @@ import StikJIT
         }
         
         var script = StikJIT.Script.universal
-        if let scriptString, !scriptString.isEmpty {
-            let scriptURL = URL.temporaryDirectory.appending(component: "script.js")
-            try? scriptString.write(to: scriptURL, atomically: true, encoding: .utf8)
-            script = StikJIT.Script.custom(scriptURL)
+        if let scriptPath {
+            script = StikJIT.Script.custom(scriptPath)
         }
         
         do {

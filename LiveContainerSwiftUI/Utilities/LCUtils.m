@@ -378,6 +378,9 @@
     // we don't care about errors when removing unnecessary files. errors occur probably because the file does not exist
     // we remove the extension
     [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"PlugIns"] error:nil];
+    // remove StikJIT stuff since we use LC1's extension
+    [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/StikJIT.framework"] error:nil];
+    [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/StikJITHeadless.framework"] error:nil];
     // remove all sidestore stuff
     if([NSUserDefaults sideStoreExist]) {
         [manager removeItemAtURL:[appBundlePath URLByAppendingPathComponent:@"Frameworks/SideStoreSupport.framework"] error:nil];

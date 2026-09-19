@@ -4,6 +4,8 @@
 #include <os/lock.h>
 #define PrivClass(name) ((Class)objc_lookUpClass(#name))
 
+extern const char * APP_SANDBOX_READ_WRITE;
+
 const char **_CFGetProgname(void);
 const char **_CFGetProcessPath(void);
 int _NSGetExecutablePath(char* buf, uint32_t* bufsize);
@@ -14,6 +16,8 @@ void os_unfair_recursive_lock_lock_with_options(void* lock, uint32_t options);
 void os_unfair_recursive_lock_unlock(void* lock);
 bool os_unfair_recursive_lock_trylock(void* lock);
 bool os_unfair_recursive_lock_tryunlock4objc(void* lock);
+int64_t sandbox_extension_consume(const char *extension_token);
+char *sandbox_extension_issue_file(const char *extension_class, const char *path, uint32_t flags);
 
 struct dyld_all_image_infos *_alt_dyld_get_all_image_infos(void);
 void *getDyldBase(void);

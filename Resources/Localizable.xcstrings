@@ -19361,6 +19361,28 @@
         }
       }
     },
+    "lc.settings.appShortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Apps in Spotlight and Siri"
+          }
+        }
+      }
+    },
+    "lc.settings.appShortcutsDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lets you open an app in LiveContainer straight from Spotlight search or by asking Siri, with no shortcut to build and no home screen icon to add. Hidden apps are never listed."
+          }
+        }
+      }
+    },
     "lc.settings.autoEndPiP" : {
       "extractionState" : "stale",
       "localizations" : {

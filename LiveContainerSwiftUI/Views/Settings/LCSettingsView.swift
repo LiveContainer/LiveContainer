@@ -51,6 +51,7 @@ struct LCSettingsView: View {
     @AppStorage("LCOpenWebPageWithoutAsking") var silentOpenWebPage = false
     @AppStorage("LCDontSignApp", store: LCUtils.appGroupUserDefault) var dontSignApp = false
     @AppStorage("LCStrictHiding", store: LCUtils.appGroupUserDefault) var strictHiding = false
+    @AppStorage(LCGuestAppCatalog.disableKey, store: LCUtils.appGroupUserDefault) var disableAppShortcuts = false
     @AppStorage("dynamicColors", store: LCUtils.appGroupUserDefault) var dynamicColors = true
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
     
@@ -252,6 +253,22 @@ struct LCSettingsView: View {
                     }
                 }
                 
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { !disableAppShortcuts },
+                        set: { newValue in
+                            disableAppShortcuts = !newValue
+                            // Republish immediately so turning this off clears
+                            // the index instead of leaving stale entries behind.
+                            LCGuestAppCatalog.refreshShortcutParameters()
+                        }
+                    )) {
+                        Text("lc.settings.appShortcuts".loc)
+                    }
+                } footer: {
+                    Text("lc.settings.appShortcutsDesc".loc)
+                }
+
                 Section {
                     Toggle(isOn: $dontSignApp) {
                         Text("lc.settings.dontSign".loc)

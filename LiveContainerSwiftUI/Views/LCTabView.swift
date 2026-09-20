@@ -95,6 +95,9 @@ struct LCTabView: View {
             }
         }
         .task {
+            // Starts observing the app list so the App Shortcut's app
+            // parameter is re-indexed whenever apps change.
+            LCGuestAppCatalog.shared.start()
             closeDuplicatedWindow()
             checkLastLaunchError()
             checkTeamId()

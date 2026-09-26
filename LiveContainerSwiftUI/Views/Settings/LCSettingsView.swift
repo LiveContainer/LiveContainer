@@ -75,6 +75,8 @@ struct LCSettingsView: View {
     let storeName = LCUtils.getStoreName()
     
     init() {
+        let startupSpan = LCStartupBegin("LCSettingsView.init (stored properties already initialized)")
+        defer { LCStartupEnd(startupSpan) }
         _certificateDataFound = State(initialValue: LCSharedUtils.certificatePassword() != nil)
         _store = State(initialValue: LCUtils.store())
     }

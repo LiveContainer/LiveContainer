@@ -278,13 +278,19 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
     return image;
 }
 
+#include "../../LiveContainer/LCStartupDiagnostics.h"
+
 @implementation UIImage(LiveContainer)
 + (instancetype)generateIconForBundleURL:(NSURL*)url style:(GeneratedIconStyle)style hasBorder:(BOOL)hasBorder {
+    LC_STARTUP_SCOPE("IconServices generateIconForBundleURL");
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        LC_STARTUP_SCOPE("IconServices initialize and install hooks");
         iconsNeedToGenerateOriginalIcon = [NSMutableSet new];
         
+        uint64_t loadSpan = LCStartupBegin("dlopen IconServices");
         void* handle = dlopen("/System/Library/PrivateFrameworks/IconServices.framework/IconServices", RTLD_LAZY|RTLD_GLOBAL);
+        LCStartupEnd(loadSpan);
         assert(handle);
 
         Class isBundleClass = PrivClass(ISBundleIcon);
@@ -339,7 +345,9 @@ CGImageRef loadCGImageFromURL(NSURL *url) {
         [iconsNeedToGenerateOriginalIcon addObject:icon];
     }
     
+    uint64_t generateSpan = LCStartupBegin("ISGenerationRequest.generateImageReturningRecordIdentifiers");
     IFImage* ifImage = [request generateImageReturningRecordIdentifiers:nil];
+    LCStartupEnd(generateSpan);
     CGImageRef imageRef = [ifImage CGImage];
     
     if(style == Original) {

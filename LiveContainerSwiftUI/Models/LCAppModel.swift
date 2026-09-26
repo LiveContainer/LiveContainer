@@ -160,6 +160,8 @@ class LCAppModel: ObservableObject, Hashable {
     var delegate : LCAppModelDelegate?
     
     init(appInfo : LCAppInfo, delegate: LCAppModelDelegate? = nil) {
+        let startupSpan = LCStartupBegin("LCAppModel.init")
+        defer { LCStartupEnd(startupSpan) }
         self.appInfo = appInfo
         self.delegate = delegate
 

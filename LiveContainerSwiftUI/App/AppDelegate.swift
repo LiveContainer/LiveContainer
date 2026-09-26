@@ -5,6 +5,15 @@ import Intents
 @objc class AppDelegate: UIResponder, UIApplicationDelegate {
         
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? ) -> Bool {
+        let startupSpan = LCStartupBegin("AppDelegate.didFinishLaunching")
+        defer { LCStartupEnd(startupSpan) }
+        LCStartupMeasure("Read startup battery state") {
+            let device = UIDevice.current
+            let wasMonitoring = device.isBatteryMonitoringEnabled
+            device.isBatteryMonitoringEnabled = true
+            LCStartupLog("Battery: state=\(device.batteryState.rawValue) (0=unknown 1=unplugged 2=charging 3=full) level=\(device.batteryLevel) lowPower=\(ProcessInfo.processInfo.isLowPowerModeEnabled)")
+            device.isBatteryMonitoringEnabled = wasMonitoring
+        }
         application.shortcutItems = nil
         UserDefaults.standard.removeObject(forKey: "LCNeedToAcquireJIT")
         
@@ -35,6 +44,8 @@ import Intents
     }
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let startupSpan = LCStartupBegin("AppDelegate.configurationForConnectingScene")
+        defer { LCStartupEnd(startupSpan) }
         let configuration = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
         configuration.delegateClass = SceneDelegate.self
         return configuration
@@ -53,7 +64,16 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject { // Make
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        LCStartupLog("SceneDelegate.willConnect; keyWindowPresent=\((scene as? UIWindowScene)?.keyWindow != nil)")
         self.window = (scene as? UIWindowScene)?.keyWindow
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        LCStartupLog("SceneDelegate.didBecomeActive; keyWindowPresent=\((scene as? UIWindowScene)?.keyWindow != nil)")
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        LCStartupStop("Scene entered background; stop startup monitoring")
     }
     
 }

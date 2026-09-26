@@ -17,6 +17,8 @@ class SearchContext: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
+        let startupSpan = LCStartupBegin("LCAppListView.init")
+        defer { LCStartupEnd(startupSpan) }
         $query
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.main)
             .sink { [weak self] value in
@@ -396,6 +398,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             LCCustomSortView()
         }
         .onAppear() {
+            LCStartupLog("LCAppListView.onAppear")
             if !isViewAppeared {
                 if let webpageUrlStr = UserDefaults.standard.string(forKey: "webPageToOpen") {
                     Task { await openWebView(urlString: webpageUrlStr) }

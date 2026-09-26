@@ -11,6 +11,12 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
+        let startupSpan = LCStartupBegin("LiveContainerSwiftUIApp.init")
+        defer { LCStartupEnd(startupSpan) }
+        LCStartupMeasure("Read process startup metadata") {
+            let process = ProcessInfo.processInfo
+            LCStartupLog("LC version=\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "?") build=\(Bundle.main.object(forInfoDictionaryKey: "LCVersionInfo") ?? "?") OS=\(process.operatingSystemVersionString) lowPower=\(process.isLowPowerModeEnabled) thermal=\(process.thermalState.rawValue)")
+        }
         let fm = FileManager()
         var tempAppDataFolderNames : [String] = []
         var tempTweakFolderNames : [String] = []
@@ -23,11 +29,15 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         do {
             // load apps
             try fm.createDirectory(at: LCPath.bundlePath, withIntermediateDirectories: true)
-            let appDirs = try fm.contentsOfDirectory(atPath: LCPath.bundlePath.path)
+            let appDirs = try LCStartupMeasure("Enumerate private Applications") {
+                try fm.contentsOfDirectory(atPath: LCPath.bundlePath.path)
+            }
             for appDir in appDirs {
                 if !appDir.hasSuffix(".app") {
                     continue
                 }
+                let appSpan = LCStartupBegin("Load private app \(appDir)")
+                defer { LCStartupEnd(appSpan) }
                 let newApp = LCAppInfo(bundlePath: "\(LCPath.bundlePath.path)/\(appDir)")!
                 newApp.relativeBundlePath = appDir
                 newApp.isShared = false
@@ -44,11 +54,15 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             }
             if LCPath.lcGroupDocPath != LCPath.docPath {
                 try fm.createDirectory(at: LCPath.lcGroupBundlePath, withIntermediateDirectories: true)
-                let appDirsShared = try fm.contentsOfDirectory(atPath: LCPath.lcGroupBundlePath.path)
+                let appDirsShared = try LCStartupMeasure("Enumerate shared Applications") {
+                    try fm.contentsOfDirectory(atPath: LCPath.lcGroupBundlePath.path)
+                }
                 for appDir in appDirsShared {
                     if !appDir.hasSuffix(".app") {
                         continue
                     }
+                    let appSpan = LCStartupBegin("Load shared app \(appDir)")
+                    defer { LCStartupEnd(appSpan) }
                     let newApp = LCAppInfo(bundlePath: "\(LCPath.lcGroupBundlePath.path)/\(appDir)")!
                     newApp.relativeBundlePath = appDir
                     newApp.isShared = true
@@ -66,7 +80,9 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             }
             // load document folders
             try fm.createDirectory(at: LCPath.dataPath, withIntermediateDirectories: true)
-            let dataDirs = try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)
+            let dataDirs = try LCStartupMeasure("Enumerate Data/Application") {
+                try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)
+            }
             for dataDir in dataDirs {
                 let dataDirUrl = LCPath.dataPath.appendingPathComponent(dataDir)
                 if !dataDirUrl.hasDirectoryPath {
@@ -77,7 +93,9 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             
             // load tweak folders
             try fm.createDirectory(at: LCPath.tweakPath, withIntermediateDirectories: true)
-            let tweakDirs = try fm.contentsOfDirectory(atPath: LCPath.tweakPath.path)
+            let tweakDirs = try LCStartupMeasure("Enumerate Tweaks") {
+                try fm.contentsOfDirectory(atPath: LCPath.tweakPath.path)
+            }
             for tweakDir in tweakDirs {
                 let tweakDirUrl = LCPath.tweakPath.appendingPathComponent(tweakDir)
                 if !tweakDirUrl.hasDirectoryPath {
@@ -87,9 +105,13 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                 tempTweakFolderNames.append(folderName)
             }
         } catch {
+            LCStartupLog("App initialization error: \(error)")
             NSLog("[LC] error:\(error)")
         }
         
+        let publishSpan = LCStartupBegin("Publish app models and URL schemes")
+        defer { LCStartupEnd(publishSpan) }
+        LCStartupLog("App counts: visible=\(tempApps.count) hidden=\(tempHiddenApps.count) dataFolders=\(tempAppDataFolderNames.count) tweakFolders=\(tempTweakFolderNames.count)")
         DataManager.shared.model.apps = tempApps
         DataManager.shared.model.arm32EmuApps = tempArm32EmuApps
         DataManager.shared.model.hiddenApps = tempHiddenApps
@@ -101,6 +123,12 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     }
     
     var body: some Scene {
+        let sceneSpan = LCStartupBegin("LiveContainerSwiftUIApp.body")
+        defer { LCStartupEnd(sceneSpan) }
+        return scenes
+    }
+
+    @SceneBuilder private var scenes: some Scene {
         WindowGroup(id: "Main") {
             LCTabView()
                 .handlesExternalEvents(preferring: ["*"], allowing: ["*"])

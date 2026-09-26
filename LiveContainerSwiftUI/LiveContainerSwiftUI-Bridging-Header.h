@@ -8,6 +8,7 @@
 #define LiveContainerSwiftUI_Bridging_Header_h_h
 #include "LCAppInfo.h"
 #include "../LiveContainer/LCSharedUtils.h"
+#include "../LiveContainer/LCStartupDiagnostics.h"
 #include "Utilities/LCUtils.h"
 #include "Utilities/unarchive.h"
 #include "../MultitaskSupport/AppSceneViewController.h"

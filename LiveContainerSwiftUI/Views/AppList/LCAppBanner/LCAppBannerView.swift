@@ -132,7 +132,9 @@ final class LCAppBannerRootView: UIView {
         traitCollection: UITraitCollection
     ) {
         let icon = appInfo.iconIsDarkIcon(darkModeIcon) ?? UIImage()
-        let mainColor = Self.extractMainHueColor(appInfo: appInfo, icon: icon, darkModeIcon: darkModeIcon)
+        let mainColor = LCStartupMeasure("App banner extract color") {
+            Self.extractMainHueColor(appInfo: appInfo, icon: icon, darkModeIcon: darkModeIcon)
+        }
         let accentColor = dynamicColors ? mainColor : (UIColor(named: "FontColor") ?? .systemBlue)
         let textColor = Self.readableTextColor(for: accentColor, traitCollection: traitCollection)
 
@@ -405,4 +407,3 @@ final class LCAppBannerRunControl: UIControl {
         setNeedsLayout()
     }
 }
-

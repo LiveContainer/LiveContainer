@@ -6,17 +6,23 @@
 #import "LCAppInfo.h"
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
+#include "../../LiveContainer/LCStartupDiagnostics.h"
 
 
 @implementation LCAppInfo
 
 - (instancetype)initWithBundlePath:(NSString*)bundlePath {
+    LC_STARTUP_SCOPE("LCAppInfo.initWithBundlePath");
     self = [super init];
     self.isShared = false;
 	if(self) {
         _bundlePath = bundlePath;
+        uint64_t infoSpan = LCStartupBegin("Read Info.plist");
         _infoPlist = [NSMutableDictionary dictionaryWithContentsOfFile:[NSString stringWithFormat:@"%@/Info.plist", bundlePath]];
+        LCStartupEnd(infoSpan);
+        uint64_t lcInfoSpan = LCStartupBegin("Read LCAppInfo.plist");
         _info = [NSMutableDictionary dictionaryWithContentsOfFile:[NSString stringWithFormat:@"%@/LCAppInfo.plist", bundlePath]];
+        LCStartupEnd(lcInfoSpan);
         if(!_info) {
             _info = [[NSMutableDictionary alloc] init];
         }
@@ -182,6 +188,7 @@
     } else if (_cachedIconDark && isDarkIcon) {
         return _cachedIconDark;
     }
+    LC_STARTUP_SCOPE(([[NSString stringWithFormat:@"Icon %@ dark=%d", _bundlePath.lastPathComponent, isDarkIcon] UTF8String]));
     
     // check if icon is cached on disk
     UIImage* uiIcon;
@@ -194,14 +201,19 @@
     NSURL* cachedIconUrl = [NSURL fileURLWithPath:cachedIconPath];
     
     if([NSFileManager.defaultManager fileExistsAtPath:cachedIconPath]) {
+        uint64_t readSpan = LCStartupBegin("Read/decode cached icon PNG");
         CGImageRef imageRef = loadCGImageFromURL(cachedIconUrl);
         uiIcon = [UIImage imageWithCGImage:imageRef];
+        LCStartupEnd(readSpan);
     }
     
     // generate and save icon cache to disk
     if(!uiIcon) {
+        LCStartupLog("Icon cache miss; generating icon");
         uiIcon = [UIImage generateIconForBundleURL:[NSURL fileURLWithPath:_bundlePath] style:isDarkIcon hasBorder:YES];
+        uint64_t saveSpan = LCStartupBegin("Save generated icon PNG");
         saveCGImage([uiIcon CGImage], cachedIconUrl);
+        LCStartupEnd(saveSpan);
     }
     
     // cache icon to memory

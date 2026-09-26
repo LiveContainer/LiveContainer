@@ -157,6 +157,8 @@ final class AltStoreSourcesViewModel: ObservableObject {
     private let cacheDirectoryName = "AltStoreSourceCache"
     
     init() {
+        let startupSpan = LCStartupBegin("AltStoreSourcesViewModel.init")
+        defer { LCStartupEnd(startupSpan) }
         loadStoredSources()
         Task {
             await refreshAllSources()
@@ -227,11 +229,16 @@ final class AltStoreSourcesViewModel: ObservableObject {
     }
     
     private func loadStoredSources() {
+        let startupSpan = LCStartupBegin("Sources loadStoredSources")
+        defer { LCStartupEnd(startupSpan) }
         let defaults = UserDefaults.standard
         let stored = defaults.array(forKey: defaultsKey) as? [String] ?? []
         let urls = stored.compactMap { URL(string: $0) }
         self.sources = urls.map { SourceItem(url: $0, isLoading: false) }
+        LCStartupLog("Stored source count=\(sources.count)")
         for index in sources.indices {
+            let cacheSpan = LCStartupBegin("Load/decode source cache index=\(index)")
+            defer { LCStartupEnd(cacheSpan) }
             let url = sources[index].url
             if let data = cachedData(for: url),
                let cachedSource = try? AltStoreSourceLoader.decode(from: data, baseURL: url) {
@@ -265,11 +272,17 @@ final class AltStoreSourcesViewModel: ObservableObject {
 
 private extension AltStoreSourcesViewModel {
     func cachedData(for url: URL) -> Data? {
+        let startupSpan = LCStartupBegin("Sources read cached JSON")
+        defer { LCStartupEnd(startupSpan) }
         guard let fileURL = cacheFileURL(for: url) else { return nil }
-        return try? Data(contentsOf: fileURL)
+        let data = try? Data(contentsOf: fileURL)
+        LCStartupLog("Source cache bytes=\(data?.count ?? 0)")
+        return data
     }
     
     func storeCache(_ data: Data, for url: URL) {
+        let startupSpan = LCStartupBegin("Sources write cached JSON")
+        defer { LCStartupEnd(startupSpan) }
         guard let fileURL = cacheFileURL(for: url) else { return }
         do {
             try data.write(to: fileURL, options: .atomic)
@@ -326,7 +339,9 @@ enum AltStoreSourceLoader {
     }
     
     static func decode(from data: Data, baseURL: URL) throws -> AltStoreSource {
-        try decodeSource(from: data, baseURL: baseURL)
+        try LCStartupMeasure("Decode source JSON bytes=\(data.count)") {
+            try decodeSource(from: data, baseURL: baseURL)
+        }
     }
     
     private static func decodeSource(from data: Data, baseURL: URL) throws -> AltStoreSource {

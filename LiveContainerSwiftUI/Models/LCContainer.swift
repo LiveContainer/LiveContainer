@@ -77,6 +77,8 @@ class LCContainer : ObservableObject, Hashable {
     }
     
     convenience init(infoDict : [String : Any], isShared : Bool) {
+        let startupSpan = LCStartupBegin("LCContainer.init folder=\(infoDict["folderName"] as? String ?? "?") shared=\(isShared) bookmark=\(infoDict["bookmarkData"] != nil)")
+        defer { LCStartupEnd(startupSpan) }
         let bookmarkData : Data? = infoDict["bookmarkData"] as? Data
         
         self.init(folderName: infoDict["folderName"] as? String ?? "ERROR",
@@ -92,11 +94,15 @@ class LCContainer : ObservableObject, Hashable {
 
                 do {
                     var isStale = false
-                    let url = try URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
+                    let url = try LCStartupMeasure("Resolve container bookmark") {
+                        try URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
+                    }
+                    LCStartupLog("Container bookmark resolved; stale=\(isStale)")
 
                     self.resolvedContainerURL = url
 
                 } catch {
+                    LCStartupLog("Container bookmark resolution error: \(error)")
                     print(error.localizedDescription)
                 }
 
@@ -104,6 +110,8 @@ class LCContainer : ObservableObject, Hashable {
         }
         
         do {
+            let ioSpan = LCStartupBegin("Container directory check and LCContainerInfo.plist read")
+            defer { LCStartupEnd(ioSpan) }
             let fm = FileManager.default
             if(!fm.fileExists(atPath: infoDictUrl.deletingLastPathComponent().path)) {
                 try fm.createDirectory(at: infoDictUrl.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -116,7 +124,7 @@ class LCContainer : ObservableObject, Hashable {
                 spoofedIdentifier = plistInfo["spoofedIdentifierForVendor"] as? String
             }
         } catch {
-            
+            LCStartupLog("Container info read error: \(error)")
         }
     }
     

@@ -3,6 +3,7 @@
 #import "LCSharedUtils.h"
 #import "UIKitPrivate.h"
 #import "utils.h"
+#include "LCStartupDiagnostics.h"
 
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
@@ -654,6 +655,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
 
 static void exceptionHandler(NSException *exception) {
     NSString *error = [NSString stringWithFormat:@"%@\nCall stack: %@", exception.reason, exception.callStackSymbols];
+    LCStartupLog(error.UTF8String);
     if(isLiveProcess) {
         NSExtensionContext *context = [NSClassFromString(@"LiveProcessHandler") extensionContext];
         [context cancelRequestWithError:[NSError errorWithDomain:@"LiveProcess" code:1 userInfo:@{NSLocalizedDescriptionKey: error}]];
@@ -663,6 +665,7 @@ static void exceptionHandler(NSException *exception) {
 }
 
 int LiveContainerMain(int argc, char *argv[]) {
+    uint64_t bootstrapSpan = LCStartupBegin("LiveContainerMain before route selection");
     lcMainBundle = [NSBundle mainBundle];
     lcUserDefaults = NSUserDefaults.standardUserDefaults;
     
@@ -706,7 +709,9 @@ int LiveContainerMain(int argc, char *argv[]) {
     }
     
     // we put all files in app group after fixing 0xdead10cc. This call is here in case user upgraded lc with app's data in private Library/SharedDocuments
+    uint64_t migrationSpan = LCStartupBegin("moveSharedAppFolderBack");
     [LCSharedUtils moveSharedAppFolderBack];
+    LCStartupEnd(migrationSpan);
     
     if(lastLaunchDataUUID) {
         NSString* lastLaunchType = [lcUserDefaults objectForKey:@"lastLaunchType"];
@@ -719,7 +724,9 @@ int LiveContainerMain(int argc, char *argv[]) {
         }
         // recover preferences
         // this is not needed anymore, it's here for backward competability
+        uint64_t preferenceSpan = LCStartupBegin("Restore guest preferences");
         [LCSharedUtils dumpPreferenceToPath:preferencesTo dataUUID:lastLaunchDataUUID];
+        LCStartupEnd(preferenceSpan);
         if(!isLiveProcess) {
             [lcUserDefaults removeObjectForKey:@"lastLaunchDataUUID"];
             [lcUserDefaults removeObjectForKey:@"lastLaunchType"];
@@ -798,7 +805,9 @@ int LiveContainerMain(int argc, char *argv[]) {
 
     }
     NSSetUncaughtExceptionHandler(&exceptionHandler);
+    LCStartupEnd(bootstrapSpan);
     if (selectedApp || isSideStore) {
+        LCStartupStop("Guest/SideStore launch selected; not the LC UI startup path");
         [lcUserDefaults removeObjectForKey:@"selected"];
         [lcUserDefaults removeObjectForKey:@"selectedContainer"];
         if(launchUrl) {
@@ -824,11 +833,13 @@ int LiveContainerMain(int argc, char *argv[]) {
     }
     
     if(isLiveProcess) {
+        LCStartupStop("LiveProcess has no LC UI");
         NSLog(@"LiveProcess should not launch lcui!");
         return 0;
     }
     
     // put back cookies
+    uint64_t cookiesSpan = LCStartupBegin("Restore Cookies");
     NSFileManager *fm = [NSFileManager defaultManager];
     NSURL *libraryURL = [fm URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask].firstObject;;
     NSURL *cookies2URL = [libraryURL URLByAppendingPathComponent:@"Cookies2"];
@@ -847,11 +858,17 @@ int LiveContainerMain(int argc, char *argv[]) {
         }
     }
     
+    LCStartupEnd(cookiesSpan);
+    uint64_t uiLoadSpan = LCStartupBegin("dlopen LiveContainerSwiftUI");
     void *LiveContainerSwiftUIHandle = dlopen("@executable_path/Frameworks/LiveContainerSwiftUI.framework/LiveContainerSwiftUI", RTLD_LAZY);
+    LCStartupEnd(uiLoadSpan);
+    if (!LiveContainerSwiftUIHandle) LCStartupLog("dlopen LiveContainerSwiftUI failed");
     NSCAssert(LiveContainerSwiftUIHandle, @"%s", dlerror());
     
     if(sideStoreExist) {
+        uint64_t sideStoreSpan = LCStartupBegin("dlopen SideStoreSupport");
         void* sideStoreHandle = dlopen("@executable_path/Frameworks/SideStoreSupport.framework/SideStoreSupport", RTLD_LAZY);
+        LCStartupEnd(sideStoreSpan);
     }
 
     if ([lcUserDefaults boolForKey:@"LCLoadTweaksToSelf"]) {
@@ -868,10 +885,13 @@ int LiveContainerMain(int argc, char *argv[]) {
         extern void DyldHookLoadableIntoProcess(void);
         DyldHookLoadableIntoProcess();
 #endif
+        uint64_t tweakSpan = LCStartupBegin("dlopen TweakLoader for LC itself");
         dlopen("@executable_path/Frameworks/TweakLoader.dylib", RTLD_LAZY);
+        LCStartupEnd(tweakSpan);
     }
 
     int (*LiveContainerSwiftUIMain)(void) = dlsym(LiveContainerSwiftUIHandle, "main");
+    LCStartupLog("Calling LiveContainerSwiftUI main");
     return LiveContainerSwiftUIMain();
 
 }

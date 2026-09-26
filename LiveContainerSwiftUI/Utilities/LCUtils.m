@@ -7,6 +7,7 @@
 
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
+#include "../../LiveContainer/LCStartupDiagnostics.h"
 #import "LCAppInfo.h"
 #import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
 #import "../../ZSign/zsigner.h"
@@ -211,16 +212,21 @@
 #pragma mark Setup
 
 + (Store) store {
+    LC_STARTUP_SCOPE("LCUtils.store including dispatch_once wait");
     static Store ans;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         // use uttype to accurately detect store
-        if([UTType typeWithIdentifier:[NSString stringWithFormat:@"io.sidestore.Installed.%@", NSBundle.mainBundle.bundleIdentifier]]) {
+        uint64_t sideStoreSpan = LCStartupBegin("UTType query: SideStore installed type");
+        UTType *sideStoreType = [UTType typeWithIdentifier:[NSString stringWithFormat:@"io.sidestore.Installed.%@", NSBundle.mainBundle.bundleIdentifier]];
+        LCStartupEnd(sideStoreSpan);
+        if(sideStoreType) {
             ans = SideStore;
-        } else if ([UTType typeWithIdentifier:[NSString stringWithFormat:@"io.altstore.Installed.%@", NSBundle.mainBundle.bundleIdentifier]]) {
-            ans = AltStore;
         } else {
-            ans = Unknown;
+            uint64_t altStoreSpan = LCStartupBegin("UTType query: AltStore installed type");
+            UTType *altStoreType = [UTType typeWithIdentifier:[NSString stringWithFormat:@"io.altstore.Installed.%@", NSBundle.mainBundle.bundleIdentifier]];
+            LCStartupEnd(altStoreSpan);
+            ans = altStoreType ? AltStore : Unknown;
         }
         
         if(ans != Unknown) {

@@ -83,6 +83,8 @@ class LCAppSortManager: ObservableObject {
     // MARK: - Initialization
     
     init() {
+        let startupSpan = LCStartupBegin("LCAppSortManager.init")
+        defer { LCStartupEnd(startupSpan) }
         self.customSortOrder = LCUtils.appGroupUserDefault.array(forKey: "LCCustomSortOrder") as? [String] ?? []
         
         DataManager.shared.model.$apps

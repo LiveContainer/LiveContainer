@@ -22,6 +22,12 @@ struct LCTabView: View {
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
     var body: some View {
+        let startupSpan = LCStartupBegin("LCTabView.body / construct tabs")
+        defer { LCStartupEnd(startupSpan) }
+        return content
+    }
+
+    private var content: some View {
         TabView(selection: $sharedModel.selectedTab) {
             if DataManager.shared.model.multiLCStatus != 2 {
                 LCSourcesView()
@@ -95,12 +101,17 @@ struct LCTabView: View {
             }
         }
         .task {
+            let taskSpan = LCStartupBegin("LCTabView initial checks task")
+            defer { LCStartupEnd(taskSpan) }
             closeDuplicatedWindow()
             checkLastLaunchError()
-            checkTeamId()
-            checkAndSaveBundleId()
-            checkGetTaskAllow()
-            checkPrivateContainerBookmark()
+            LCStartupMeasure("checkTeamId") { checkTeamId() }
+            LCStartupMeasure("checkAndSaveBundleId") { checkAndSaveBundleId() }
+            LCStartupMeasure("checkGetTaskAllow") { checkGetTaskAllow() }
+            LCStartupMeasure("checkPrivateContainerBookmark") { checkPrivateContainerBookmark() }
+        }
+        .onAppear {
+            LCStartupUIAppeared()
         }
         .onReceive(pub) { out in
             if let scene1 = sceneDelegate.window?.windowScene, let scene2 = out.object as? UIWindowScene, scene1 == scene2 {

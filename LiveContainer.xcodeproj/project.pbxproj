@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A16300000000000000000001 /* LCStartupDiagnosticsBootstrap.c in Sources */ = {isa = PBXBuildFile; fileRef = A16300000000000000000003 /* LCStartupDiagnosticsBootstrap.c */; };
+		A16300000000000000000002 /* LCStartupDiagnostics.c in Sources */ = {isa = PBXBuildFile; fileRef = A16300000000000000000004 /* LCStartupDiagnostics.c */; };
 		173545AF2E2C7913001B3B4C /* SideStoreSupport.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 173545A82E2C7913001B3B4C /* SideStoreSupport.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		17413FBC2D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		174140902D9C0E8200F3F928 /* TweakLoader.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1741403A2D9C0D0000F3F928 /* TweakLoader.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -155,6 +157,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A16300000000000000000003 /* LCStartupDiagnosticsBootstrap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LCStartupDiagnosticsBootstrap.c; sourceTree = "<group>"; };
+		A16300000000000000000004 /* LCStartupDiagnostics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LCStartupDiagnostics.c; sourceTree = "<group>"; };
+		A16300000000000000000005 /* LCStartupDiagnostics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LCStartupDiagnostics.h; sourceTree = "<group>"; };
 		172978E8302EAF07004A3E78 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		172CA8542D9D721700CF6989 /* dyld_bypass_validation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = dyld_bypass_validation.m; sourceTree = "<group>"; };
 		172CA8552D9D721700CF6989 /* FoundationPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FoundationPrivate.h; sourceTree = "<group>"; };
@@ -414,6 +419,9 @@
 			children = (
 				E16D95762E1CD49E0068EB63 /* LCMachOUtils.h */,
 				E1292C032DCA3C160065E12D /* main.c */,
+				A16300000000000000000003 /* LCStartupDiagnosticsBootstrap.c */,
+				A16300000000000000000004 /* LCStartupDiagnostics.c */,
+				A16300000000000000000005 /* LCStartupDiagnostics.h */,
 				E1292C1A2DCA48F00065E12D /* Tweaks */,
 				E11884B82EF7A15F009C6FA6 /* dyld_bypass_validation.h */,
 				172CA8542D9D721700CF6989 /* dyld_bypass_validation.m */,
@@ -993,6 +1001,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1292C132DCA46070065E12D /* main.c in Sources */,
+				A16300000000000000000001 /* LCStartupDiagnosticsBootstrap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1019,6 +1028,7 @@
 				E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */,
 				E1292C082DCA434F0065E12D /* LCSharedUtils.m in Sources */,
 				E1292C0B2DCA43560065E12D /* LCBootstrap.m in Sources */,
+				A16300000000000000000002 /* LCStartupDiagnostics.c in Sources */,
 				E1292C0A2DCA43540065E12D /* utils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

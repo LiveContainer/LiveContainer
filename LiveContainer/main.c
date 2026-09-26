@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include "LCStartupDiagnostics.h"
 
 void* lcShared = 0;
 
@@ -14,6 +15,8 @@ int LiveContainerMainC(int argc, char *argv[], char *envp[]) {
     if (!home) {
         abort();
     }
+    const LCStartupDiagnosticsAPI *diagnostics = LCStartupDiagnosticsStart(home);
+    diagnostics->log("Entered LiveContainerMainC");
     char path[PATH_MAX];
     snprintf(path, sizeof(path), "%s/Library/preloadLibraries.txt", home);
     FILE *file = fopen(path, "r");
@@ -27,15 +30,32 @@ int LiveContainerMainC(int argc, char *argv[], char *envp[]) {
         if (len > 0 && line[len - 1] == '\n') {
             line[len - 1] = '\0';
         }
+        uint64_t preloadSpan = diagnostics->begin("dlopen preloaded library");
         dlopen(line, RTLD_LAZY|RTLD_GLOBAL);
+        diagnostics->end(preloadSpan);
     }
     
     fclose(file);
     remove(path);
     
 loadlc:
+    ;
+    uint64_t sharedSpan = diagnostics->begin("dlopen LiveContainerShared");
     lcShared = dlopen("@executable_path/Frameworks/LiveContainerShared.framework/LiveContainerShared", RTLD_LAZY|RTLD_GLOBAL);
+    diagnostics->end(sharedSpan);
+    if (!lcShared) {
+        const char *error = dlerror();
+        diagnostics->log(error ? error : "LiveContainerShared failed to load");
+        return 1;
+    }
+    void (*attachDiagnostics)(const LCStartupDiagnosticsAPI *) = dlsym(lcShared, "LCStartupDiagnosticsAttach");
+    if (attachDiagnostics) attachDiagnostics(diagnostics);
     lcMain = dlsym(lcShared, "LiveContainerMain");
+    if (!lcMain) {
+        diagnostics->log("LiveContainerMain symbol not found");
+        return 1;
+    }
+    diagnostics->log("Calling LiveContainerMain");
     __attribute__((musttail)) return lcMain(argc, argv, envp);
 }
 

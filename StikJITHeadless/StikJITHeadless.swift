@@ -9,7 +9,7 @@ import Foundation
 import StikJIT
 
 @objc(StikJITWrapper) public class StikJITWrapper: NSObject {
-    @objc public static func enableJIT(with pid: Int32, pairingFile: URL, ddiPath: URL, scriptJs: String?) -> String {
+    @objc public static func enableJIT(with pid: Int32, timeout: TimeInterval, pairingFile: URL, ddiPath: URL, scriptJs: String?) -> String {
         let ddiPaths = DDIPaths.default(in: ddiPath)
         var script = StikJIT.Script.universal
         if let scriptJs {
@@ -27,7 +27,7 @@ import StikJIT
         }
         
         do {
-            let config = StikJIT.Configuration(connectionTimeout: 1)
+            let config = StikJIT.Configuration(connectionTimeout: timeout)
             try StikJIT.enableJIT(targetPID: pid, pairingFile: pairingFile, ddiPaths: ddiPaths,
                                   configuration: config, script: script, forceScript: false, progress: { progress in
                 print(progress)

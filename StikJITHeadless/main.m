@@ -6,6 +6,8 @@
 //
 @import Foundation;
 #import <CommonCrypto/CommonCrypto.h>
+#import "../LiveContainer/FoundationPrivate.h"
+#import "../LiveContainer/UIKitPrivate.h"
 #import "../LiveContainer/utils.h"
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>
@@ -14,7 +16,7 @@
 @end
 
 @interface StikJITWrapper : NSObject
-+ (NSString *)enableJITWith:(int)pid pairingFile:(NSURL *)pairing ddiPath:(NSURL *)ddi scriptJs:(NSString *)script;
++ (NSString *)enableJITWith:(int)pid timeout:(NSTimeInterval)timeout pairingFile:(NSURL *)pairing ddiPath:(NSURL *)ddi scriptJs:(NSString *)script;
 @end
 
 static int StikJITExitWithError(NSString *error) {
@@ -45,8 +47,17 @@ int StikJITHeadlessMain(void) {
         return StikJITExitWithError(@"Pairing file is not set.");
     }
     
-    NSString *error = [StikJITWrapper enableJITWith:[appInfo[@"pid"] unsignedIntValue]
-                                        pairingFile:pairingFile ddiPath:ddiPath scriptJs:appInfo[@"script"]];
+    pid_t pid = [appInfo[@"pid"] unsignedIntValue];
+    NSString *scriptJs = appInfo[@"script"];
+    NSString *error = [StikJITWrapper enableJITWith:pid timeout:0.2 pairingFile:pairingFile ddiPath:ddiPath scriptJs:scriptJs];
     if (error.length < 1) return 0;
+    if ([error containsString:@"Timed out connecting to"]) {
+        error = [error stringByAppendingString:@"\n\nIs LocalDevVPN connected?"];
+        // FIXME: auto open URL does not work
+        // NSString *callbackScheme = appInfo[@"callbackScheme"];
+        // LSApplicationWorkspace* workspace = [PrivClass(LSApplicationWorkspace) defaultWorkspace];
+        // [workspace openURL:[NSURL fileURLWithPath:[@"localdevvpn://enable?scheme=" stringByAppendingString:callbackScheme]]];
+        // error = [StikJITWrapper enableJITWith:pid timeout:4 pairingFile:pairingFile ddiPath:ddiPath scriptJs:scriptJs];
+    }
     return StikJITExitWithError(error);
 }

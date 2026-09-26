@@ -136,6 +136,7 @@ static NSString *enableJITWithStikJIT(NSString *docPath) {
     item.userInfo = @{
         @"customPayloadDylib": @"@rpath/StikJITHeadless.framework/StikJITHeadless",
         @"customPayloadEntry": @"StikJITHeadlessMain",
+        //@"callbackScheme": lcAppUrlScheme,
         @"sandboxExtension": sandboxExtension,
         @"script": guestAppInfo[@"jitLaunchScriptJs"] ?: @"",
         @"pid": @(getpid())

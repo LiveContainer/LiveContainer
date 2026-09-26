@@ -1,4 +1,3 @@
 framework module StikJIT {
   header "StikJIT-Swift.h"
-  requires objc
 }

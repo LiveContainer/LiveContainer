@@ -296,9 +296,179 @@
             ]
           },
           {
+            "kind": "Var",
+            "name": "cryptexInfoPath",
+            "printedName": "cryptexInfoPath",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT8DDIPathsV15cryptexInfoPathSSvp",
+            "mangledName": "$s7StikJIT8DDIPathsV15cryptexInfoPathSSvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV15cryptexInfoPathSSvg",
+                "mangledName": "$s7StikJIT8DDIPathsV15cryptexInfoPathSSvg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV15cryptexInfoPathSSvs",
+                "mangledName": "$s7StikJIT8DDIPathsV15cryptexInfoPathSSvs",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV15cryptexInfoPathSSvM",
+                "mangledName": "$s7StikJIT8DDIPathsV15cryptexInfoPathSSvM",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "rootHashPath",
+            "printedName": "rootHashPath",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:7StikJIT8DDIPathsV12rootHashPathSSvp",
+            "mangledName": "$s7StikJIT8DDIPathsV12rootHashPathSSvp",
+            "moduleName": "StikJIT",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12rootHashPathSSvg",
+                "mangledName": "$s7StikJIT8DDIPathsV12rootHashPathSSvg",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12rootHashPathSSvs",
+                "mangledName": "$s7StikJIT8DDIPathsV12rootHashPathSSvs",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:7StikJIT8DDIPathsV12rootHashPathSSvM",
+                "mangledName": "$s7StikJIT8DDIPathsV12rootHashPathSSvM",
+                "moduleName": "StikJIT",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
             "kind": "Constructor",
             "name": "init",
-            "printedName": "init(imagePath:trustcachePath:manifestPath:)",
+            "printedName": "init(imagePath:trustcachePath:manifestPath:cryptexInfoPath:rootHashPath:)",
             "children": [
               {
                 "kind": "TypeNominal",
@@ -323,11 +493,41 @@
                 "name": "String",
                 "printedName": "Swift.String",
                 "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
               }
             ],
             "declKind": "Constructor",
-            "usr": "s:7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0ACSS_S2Stcfc",
-            "mangledName": "$s7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0ACSS_S2Stcfc",
+            "usr": "s:7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0011cryptexInfoE008rootHashE0ACSS_S3SSgAItcfc",
+            "mangledName": "$s7StikJIT8DDIPathsV9imagePath010trustcacheE008manifestE0011cryptexInfoE008rootHashE0ACSS_S3SSgAItcfc",
             "moduleName": "StikJIT",
             "declAttributes": [
               "AccessControl"
@@ -391,6 +591,13 @@
             "printedName": "Sendable",
             "usr": "s:s8SendableP",
             "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
           }
         ]
       },
@@ -608,15 +815,7 @@
             "mangledName": "$s7StikJIT25DeveloperDiskImageServiceC15unownedExecutorScevp",
             "moduleName": "StikJIT",
             "implicit": true,
-            "intro_Macosx": "10.15",
-            "intro_iOS": "17.4",
-            "intro_tvOS": "13.0",
-            "intro_watchOS": "6.0",
             "declAttributes": [
-              "Available",
-              "Available",
-              "Available",
-              "Available",
               "Final",
               "Nonisolated",
               "Semantics"
@@ -684,6 +883,13 @@
             "printedName": "Sendable",
             "usr": "s:s8SendableP",
             "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
           }
         ]
       },
@@ -916,6 +1122,56 @@
                 "usr": "s:7StikJITAAO6ScriptO6customyAD10Foundation3URLVcADmF",
                 "mangledName": "$s7StikJITAAO6ScriptO6customyAD10Foundation3URLVcADmF",
                 "moduleName": "StikJIT"
+              },
+              {
+                "kind": "Var",
+                "name": "customBase64",
+                "printedName": "customBase64",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(StikJIT.StikJIT.Script.Type) -> (Swift.String) -> StikJIT.StikJIT.Script",
+                    "children": [
+                      {
+                        "kind": "TypeFunc",
+                        "name": "Function",
+                        "printedName": "(Swift.String) -> StikJIT.StikJIT.Script",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "String",
+                            "printedName": "Swift.String",
+                            "usr": "s:SS"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "StikJIT.StikJIT.Script.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Script",
+                            "printedName": "StikJIT.StikJIT.Script",
+                            "usr": "s:7StikJITAAO6ScriptO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:7StikJITAAO6ScriptO12customBase64yADSScADmF",
+                "mangledName": "$s7StikJITAAO6ScriptO12customBase64yADSScADmF",
+                "moduleName": "StikJIT"
               }
             ],
             "declKind": "Enum",
@@ -946,6 +1202,13 @@
                 "printedName": "Sendable",
                 "usr": "s:s8SendableP",
                 "mangledName": "$ss8SendableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "SendableMetatype",
+                "printedName": "SendableMetatype",
+                "usr": "s:s16SendableMetatypeP",
+                "mangledName": "$ss16SendableMetatypeP"
               }
             ]
           },
@@ -1078,6 +1341,13 @@
                 "printedName": "Sendable",
                 "usr": "s:s8SendableP",
                 "mangledName": "$ss8SendableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "SendableMetatype",
+                "printedName": "SendableMetatype",
+                "usr": "s:s16SendableMetatypeP",
+                "mangledName": "$ss16SendableMetatypeP"
               }
             ]
           },
@@ -1383,6 +1653,13 @@
                 "printedName": "Sendable",
                 "usr": "s:s8SendableP",
                 "mangledName": "$ss8SendableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "SendableMetatype",
+                "printedName": "SendableMetatype",
+                "usr": "s:s16SendableMetatypeP",
+                "mangledName": "$ss16SendableMetatypeP"
               }
             ]
           },
@@ -1624,6 +1901,13 @@
                 "printedName": "Sendable",
                 "usr": "s:s8SendableP",
                 "mangledName": "$ss8SendableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "SendableMetatype",
+                "printedName": "SendableMetatype",
+                "usr": "s:s16SendableMetatypeP",
+                "mangledName": "$ss16SendableMetatypeP"
               }
             ]
           },
@@ -2000,6 +2284,13 @@
                 "printedName": "Sendable",
                 "usr": "s:s8SendableP",
                 "mangledName": "$ss8SendableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "SendableMetatype",
+                "printedName": "SendableMetatype",
+                "usr": "s:s16SendableMetatypeP",
+                "mangledName": "$ss16SendableMetatypeP"
               }
             ]
           },
@@ -3110,13 +3401,6 @@
           },
           {
             "kind": "Conformance",
-            "name": "Escapable",
-            "printedName": "Escapable",
-            "usr": "s:s9EscapableP",
-            "mangledName": "$ss9EscapableP"
-          },
-          {
-            "kind": "Conformance",
             "name": "Error",
             "printedName": "Error",
             "usr": "s:s5ErrorP",
@@ -3131,10 +3415,24 @@
           },
           {
             "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
             "name": "Sendable",
             "printedName": "Sendable",
             "usr": "s:s8SendableP",
             "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
           }
         ]
       },
@@ -3152,9 +3450,9 @@
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/DeveloperDiskImageService.swift",
       "kind": "StringLiteral",
-      "offset": 1730,
-      "length": 114,
-      "value": "\"https:\/\/github.com\/doronz88\/DeveloperDiskImage\/raw\/refs\/heads\/main\/PersonalizedImages\/Xcode_iOS_DDI_Personalized\""
+      "offset": 2110,
+      "length": 109,
+      "value": "\"https:\/\/github.com\/doronz88\/DeveloperDiskImage\/raw\/refs\/heads\/main\/PersonalizedImages\/Xcode_iOS_DDI_Cryptex\""
     },
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/EndpointProbe.swift",
@@ -3194,35 +3492,35 @@
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
       "kind": "StringLiteral",
-      "offset": 1369,
+      "offset": 1452,
       "length": 10,
       "value": "\"10.7.0.1\""
     },
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
       "kind": "IntegerLiteral",
-      "offset": 1419,
+      "offset": 1502,
       "length": 5,
       "value": "49152"
     },
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
       "kind": "IntegerLiteral",
-      "offset": 1480,
+      "offset": 1563,
       "length": 1,
       "value": "5"
     },
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
       "kind": "BooleanLiteral",
-      "offset": 2115,
+      "offset": 2198,
       "length": 5,
       "value": "false"
     },
     {
       "filePath": "\/Users\/runner\/work\/StikJIT\/StikJIT\/Sources\/StikJIT.swift",
       "kind": "BooleanLiteral",
-      "offset": 2984,
+      "offset": 3067,
       "length": 5,
       "value": "false"
     }

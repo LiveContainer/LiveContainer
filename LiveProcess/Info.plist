@@ -85,6 +85,7 @@
 		<string>_dns-sd._udp</string>
         <string>_remotepairing-pairable-host._tcp</string>
         <string>_stikpairprobe._tcp</string>
+        <string>_dicom._tcp</string>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>

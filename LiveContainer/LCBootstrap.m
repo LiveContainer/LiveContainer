@@ -113,7 +113,8 @@ static NSString *enableJITWithStikJIT(NSString *docPath) {
     // 2. can't use file bookmark here as fileproviderd keeps rejecting for some reason
     NSString *key = @"LCStikJITSandboxExtension";
     NSString *sandboxExtension = [NSUserDefaults.lcSharedDefaults stringForKey:key];
-    if (!sandboxExtension || sandbox_extension_consume(sandboxExtension.UTF8String) < 1) {
+    if (!sandboxExtension || sandbox_extension_consume(sandboxExtension.UTF8String) < 1 ||
+        ![NSFileManager.defaultManager fileExistsAtPath:[sandboxExtension componentsSeparatedByString:@";"].lastObject]) {
         if ([lcAppUrlScheme isEqualToString:@"livecontainer"]) {
             NSURL *sandboxURL = [NSURL fileURLWithPath:[docPath stringByAppendingPathComponent:@"SideStore/Documents"]];
             NSURL *ddiPath = [sandboxURL URLByAppendingPathComponent:@"DMG"];
@@ -608,7 +609,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
             selected32bitLayerBundle = [NSBundle bundleWithPath:[NSString stringWithFormat:@"%@/Applications/%@", appGroupFolder.path, selected32BitLayer]];
         }
         if(!selected32bitLayerBundle) {
-            appError = @"The specified 32-bit emulator app is not found";
+            appError = @"Cannot find the selected 32-bit emulator app. Is it available as Shared App?";
             NSLog(@"[LCBootstrap] %@", appError);
             *path = oldPath;
             return appError;

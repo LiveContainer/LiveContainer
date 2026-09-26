@@ -101,6 +101,14 @@ class LCAppModel: ObservableObject, Hashable {
             appInfo.jitLaunchScriptJs = jitLaunchScriptJs
         }
     }
+    var jitLaunchScriptJsResolved: String? {
+        get {
+            guard let jitLaunchScriptJs, jitLaunchScriptJs.hasPrefix("/") else {
+                return jitLaunchScriptJs
+            }
+            return Bundle.main.bundlePath.appending(jitLaunchScriptJs)
+        }
+    }
     
     @Published var uiSelected32BitEmulator : String {
         didSet {
@@ -352,7 +360,7 @@ class LCAppModel: ObservableObject, Hashable {
                             return
                         }
                         Task {
-                            if let scriptData = self.jitLaunchScriptJs, !scriptData.isEmpty {
+                            if let scriptData = self.jitLaunchScriptJsResolved, !scriptData.isEmpty {
                                 await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: scriptData, appName: self.appInfo.displayName())
                             } else {
                                 await self.delegate?.jitLaunch(withPID: pidNumber.intValue, withScript: nil, appName: self.appInfo.displayName())
@@ -363,7 +371,7 @@ class LCAppModel: ObservableObject, Hashable {
                 }
             } else {
                 // Non-multitask JIT flow remains unchanged
-                if let scriptData = jitLaunchScriptJs, !scriptData.isEmpty {
+                if let scriptData = jitLaunchScriptJsResolved, !scriptData.isEmpty {
                     await delegate?.jitLaunch(withScript: scriptData, appName: self.appInfo.displayName(), classicMode: classicMode)
                 } else {
                     await delegate?.jitLaunch(appName: self.appInfo.displayName(), classicMode: classicMode)

@@ -149,27 +149,16 @@ struct LCAppSettingsView: View {
                 }
                 .disabled(model.uiIs32bit)
                 if #available(iOS 26.0, *), model.uiIsJITNeeded, !model.uiIs32bit {
-                    HStack {
-                        Text("lc.appSettings.jit26.script".loc)
-                        Spacer()
-                        if let base64String = model.jitLaunchScriptJs, !base64String.isEmpty {
-                            // Show a generic name since we're not storing the filename
-                            Text("lc.appSettings.jit26.scriptLoaded".loc)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .foregroundColor(.primary)
-
-                            Button(action: {
-                                model.jitLaunchScriptJs = nil
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.gray)
-                            }
-                            .buttonStyle(BorderlessButtonStyle())
-                        } else {
-                            Text("No file selected")
-                                .foregroundColor(.gray)
+                    let isBuiltinScript = model.jitLaunchScriptJs?.hasPrefix("/") ?? true
+                        Picker(selection: $model.jitLaunchScriptJs) {
+                            // for compat with other scripts we still have to put the script contents back in
+                            Text("universal.js").tag("/Frameworks/StikJIT.framework/universal.js")
+                            Text("legacy.js").tag("/Frameworks/StikJIT.framework/legacy.js")
+                            Text("Custom").tag(isBuiltinScript ? "" : model.jitLaunchScriptJs)
+                        } label: {
+                            Text("lc.appSettings.jit26.script".loc)
                         }
+                    if !isBuiltinScript {
                         Button(action: {
                             // This will trigger the file picker
                             let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.javaScript], asCopy: true)
@@ -191,7 +180,18 @@ struct LCAppSettingsView: View {
                                 rootViewController.present(picker, animated: true)
                             }
                         }) {
-                            Text("lc.common.select".loc)
+                            HStack {
+                                Spacer()
+                                if let base64String = model.jitLaunchScriptJs, !base64String.isEmpty {
+                                    // Show a generic name since we're not storing the filename
+                                    Text("lc.appSettings.jit26.scriptLoaded".loc)
+                                        .foregroundColor(.primary)
+                                } else {
+                                    Text("lc.common.noFileSelected".loc)
+                                        .foregroundColor(.gray)
+                                }
+                                Text("lc.common.select".loc)
+                            }
                         }
                     }
                 }

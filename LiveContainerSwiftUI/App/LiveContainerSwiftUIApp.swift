@@ -98,6 +98,7 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
         if let tempURLSchemes {
             UserDefaults.lcShared().set(Array(tempURLSchemes), forKey: "LCGuestURLSchemes")
         }
+        LCPath.reconcileBackupPolicy()
     }
     
     var body: some Scene {

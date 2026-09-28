@@ -73,6 +73,7 @@ struct LCSelectContainerView : View{
         do {
             let fm = FileManager.default
             try fm.createDirectory(at: LCPath.dataPath, withIntermediateDirectories: true)
+            LCPath.reconcileBackupPolicy()
             let dataDirs = try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)
             for dataDir in dataDirs {
                 let dataDirUrl = LCPath.dataPath.appendingPathComponent(dataDir)

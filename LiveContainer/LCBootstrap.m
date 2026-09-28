@@ -1,4 +1,5 @@
 #import "FoundationPrivate.h"
+#import "LCBackupPolicyManager.h"
 #import "LCMachOUtils.h"
 #import "LCSharedUtils.h"
 #import "UIKitPrivate.h"
@@ -33,6 +34,20 @@ bool isLiveProcess = false;
 bool isSharedBundle = false;
 bool isSideStore = false;
 bool sideStoreExist = false;
+
+static NSString *LCValidatedHomePath(void) {
+    const char *homePathCString = getenv("LC_HOME_PATH");
+    if(homePathCString == NULL || homePathCString[0] == '\0') {
+        NSLog(@"[LCBootstrap] LC_HOME_PATH is not set");
+        return nil;
+    }
+
+    NSString *homePath = [NSString stringWithUTF8String:homePathCString];
+    if(homePath == nil) {
+        NSLog(@"[LCBootstrap] LC_HOME_PATH is not valid UTF-8");
+    }
+    return homePath;
+}
 
 @implementation NSUserDefaults(LiveContainer)
 + (instancetype)lcUserDefaults {
@@ -270,7 +285,11 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     }
 
     NSFileManager *fm = NSFileManager.defaultManager;
-    NSString *docPath = [NSString stringWithFormat:@"%s/Documents", getenv("LC_HOME_PATH")];
+    NSString *homePath = LCValidatedHomePath();
+    if(homePath == nil) {
+        return @"LC_HOME_PATH is unavailable.";
+    }
+    NSString *docPath = [homePath stringByAppendingPathComponent:@"Documents"];
     
     NSURL *appGroupFolder = nil;
     
@@ -670,7 +689,12 @@ int LiveContainerMain(int argc, char *argv[]) {
     lcAppUrlScheme = NSBundle.mainBundle.infoDictionary[@"CFBundleURLTypes"][0][@"CFBundleURLSchemes"][0];
     lcAppGroupPath = [[NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:[NSClassFromString(@"LCSharedUtils") appGroupID]] path];
     isLiveProcess = [lcAppUrlScheme isEqualToString:@"liveprocess"];
-    setenv("LC_HOME_PATH", getenv("HOME"), 0);
+    const char *processHome = getenv("HOME");
+    if(processHome != NULL && processHome[0] != '\0') {
+        setenv("LC_HOME_PATH", processHome, 0);
+    } else {
+        NSLog(@"[LCBootstrap] HOME is not set; LC_HOME_PATH was not initialized");
+    }
 
     NSString *selectedApp = [lcUserDefaults stringForKey:@"selected"];
     NSString *selectedContainer = [lcUserDefaults stringForKey:@"selectedContainer"];
@@ -707,19 +731,34 @@ int LiveContainerMain(int argc, char *argv[]) {
     
     // we put all files in app group after fixing 0xdead10cc. This call is here in case user upgraded lc with app's data in private Library/SharedDocuments
     [LCSharedUtils moveSharedAppFolderBack];
+
+    if(!isLiveProcess) {
+        NSString *homePath = LCValidatedHomePath();
+        if(homePath) {
+            LCBackupPolicy policy = [LCBackupPolicyManager policyFromUserDefaults:lcSharedDefaults];
+            [LCBackupPolicyManager applyPolicy:policy
+                                     toHomeURL:[NSURL fileURLWithPath:homePath isDirectory:YES]
+                                   appGroupURL:[LCSharedUtils appGroupPath]];
+        }
+    }
     
     if(lastLaunchDataUUID) {
         NSString* lastLaunchType = [lcUserDefaults objectForKey:@"lastLaunchType"];
-        NSString* preferencesTo;
+        NSString* preferencesTo = nil;
         if([lastLaunchType isEqualToString:@"Shared"]) {
             preferencesTo = [LCSharedUtils.appGroupPath.path stringByAppendingPathComponent:[NSString stringWithFormat:@"LiveContainer/Data/Application/%@/Library/Preferences", lastLaunchDataUUID]];
         } else {
-            NSString *docPath = [NSString stringWithFormat:@"%s/Documents", getenv("LC_HOME_PATH")];
-            preferencesTo = [docPath stringByAppendingPathComponent:[NSString stringWithFormat:@"Data/Application/%@/Library/Preferences", lastLaunchDataUUID]];
+            NSString *homePath = LCValidatedHomePath();
+            if(homePath) {
+                NSString *docPath = [homePath stringByAppendingPathComponent:@"Documents"];
+                preferencesTo = [docPath stringByAppendingPathComponent:[NSString stringWithFormat:@"Data/Application/%@/Library/Preferences", lastLaunchDataUUID]];
+            }
         }
         // recover preferences
         // this is not needed anymore, it's here for backward competability
-        [LCSharedUtils dumpPreferenceToPath:preferencesTo dataUUID:lastLaunchDataUUID];
+        if(preferencesTo) {
+            [LCSharedUtils dumpPreferenceToPath:preferencesTo dataUUID:lastLaunchDataUUID];
+        }
         if(!isLiveProcess) {
             [lcUserDefaults removeObjectForKey:@"lastLaunchDataUUID"];
             [lcUserDefaults removeObjectForKey:@"lastLaunchType"];

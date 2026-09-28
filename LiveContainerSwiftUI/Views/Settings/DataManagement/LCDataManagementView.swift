@@ -29,6 +29,7 @@ struct LCDataManagementView : View {
     @State var errorInfo = ""
     @State var successShow = false
     @State var successInfo = ""
+    @State private var backupPolicyRawValue: Int
     
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -38,11 +39,28 @@ struct LCDataManagementView : View {
             LCFolderPath(path: LCPath.lcGroupDocPath, desc: "App Group Container"),
             LCFolderPath(path: Bundle.main.bundleURL, desc: "LiveContainer Bundle"),
         ])
+        _backupPolicyRawValue = State(
+            initialValue: LCBackupPolicyManager.policy(from: LCUtils.appGroupUserDefault).rawValue
+        )
     }
     
     var body: some View {
     
         Form {
+            if sharedModel.multiLCStatus != 2 {
+                Section {
+                    Picker("lc.settings.backupPolicy".loc, selection: $backupPolicyRawValue) {
+                        Text("lc.settings.backupPolicy.full".loc).tag(LCBackupPolicy.full.rawValue)
+                        Text("lc.settings.backupPolicy.noData".loc).tag(LCBackupPolicy.noLiveContainerData.rawValue)
+                    }
+                    .onChange(of: backupPolicyRawValue) { newValue in
+                        updateBackupPolicy(rawValue: newValue)
+                    }
+                } footer: {
+                    Text("lc.settings.backupPolicy.description".loc)
+                }
+            }
+
             Section {
                 if sharedModel.multiLCStatus != 2 {
                     Button {
@@ -203,6 +221,20 @@ struct LCDataManagementView : View {
                 }
             }
             appeared = true
+        }
+    }
+
+    func updateBackupPolicy(rawValue: Int) {
+        guard let policy = LCBackupPolicy(rawValue: rawValue),
+              policy == .full || policy == .noLiveContainerData else {
+            backupPolicyRawValue = LCBackupPolicy.full.rawValue
+            return
+        }
+
+        LCBackupPolicyManager.setPolicy(policy, in: LCUtils.appGroupUserDefault)
+        if !LCPath.reconcileBackupPolicy() {
+            errorInfo = "lc.settings.backupPolicy.applyFailed".loc
+            errorShow = true
         }
     }
     
@@ -399,6 +431,7 @@ struct LCDataManagementView : View {
             }
             successInfo = "lc.settings.moveDanglingFolderComplete %lld %lld".localizeWithFormat(movedDataFolderCount,movedTweakFolderCount)
             successShow = true
+            LCPath.reconcileBackupPolicy()
             
         } catch {
             errorInfo = error.localizedDescription
@@ -428,6 +461,7 @@ struct LCDataManagementView : View {
             }
             successInfo = "lc.settings.appGroup.moveSuccess".loc
             successShow = true
+            LCPath.reconcileBackupPolicy()
             
         } catch {
             errorInfo = error.localizedDescription
@@ -457,6 +491,7 @@ struct LCDataManagementView : View {
             }
             successInfo = "lc.settings.appGroup.moveSuccess".loc
             successShow = true
+            LCPath.reconcileBackupPolicy()
             
         } catch {
             errorInfo = error.localizedDescription

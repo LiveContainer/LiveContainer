@@ -290,6 +290,20 @@
 			);
 			target = 17413FB42D9C0BAE00F3F928 /* LiveContainerSwiftUI */;
 		};
+		E174D4323071140600C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				StikJITHeadlessSpawner.m,
+			);
+			target = E15C6F2730440EAD00FEC6BD /* StikJITHeadless */;
+		};
+		E174D4343071141000C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				StikJITHeadlessSpawner.m,
+			);
+			target = E1292BD52DCA3B660065E12D /* LiveContainerShared */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -337,7 +351,7 @@
 		E1292AE72DCA3A660065E12D /* LiveProcess */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveProcess; sourceTree = "<group>"; };
 		E1292C1A2DCA48F00065E12D /* Tweaks */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C202DCA48F00065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Tweaks; sourceTree = "<group>"; };
 		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
-		E15C6F2930440EAD00FEC6BD /* StikJITHeadless */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = StikJITHeadless; sourceTree = "<group>"; };
+		E15C6F2930440EAD00FEC6BD /* StikJITHeadless */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E174D4343071141000C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E174D4323071140600C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StikJITHeadless; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */

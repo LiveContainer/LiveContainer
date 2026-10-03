@@ -24,6 +24,9 @@
 - (void)_hostDidEnterBackgroundNote:(NSNotification *)note;
 - (void)_hostWillResignActiveNote:(NSNotification *)note;
 @end
+@interface NSExtension(LiveProcessCustomPayloads)
++ (NSString *)spawnStikJITWithHostURLScheme:(NSString *)lcAppUrlScheme docPath:(NSString *)docPath script:(NSString *)script;
+@end
 
 void* SecTaskCreateFromSelf(CFAllocatorRef allocator);
 NSString *SecTaskCopyTeamIdentifier(void *task, NSError **error);

@@ -7,7 +7,7 @@
 @import Foundation;
 #import <CommonCrypto/CommonCrypto.h>
 #import "../LiveContainer/FoundationPrivate.h"
-#import "../LiveContainer/UIKitPrivate.h"
+//#import "../LiveContainer/UIKitPrivate.h"
 #import "../LiveContainer/utils.h"
 
 @interface LiveProcessHandler : NSObject<NSExtensionRequestHandling>

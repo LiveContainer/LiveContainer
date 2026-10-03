@@ -46,11 +46,12 @@ int LiveProcessMain(int argc, char *argv[]) {
     NSString *customPayloadDylib = appInfo[@"customPayloadDylib"];
     if(customPayloadDylib) {
         void *handle = dlopen(customPayloadDylib.fileSystemRepresentation, RTLD_LAZY);
-        NSCAssert(appInfo, @"Failed to load custom payload dylib at path: %@", customPayloadDylib);
+        NSCAssert(handle, @"Failed to load custom payload dylib: %s", dlerror());
         
         NSString *customPayloadEntry = appInfo[@"customPayloadEntry"];
         NSCAssert(customPayloadEntry, @"Missing customPayloadEntry");
         int (*payloadEntry)(int, char **, char **, char **) = dlsym(handle, customPayloadEntry.UTF8String);
+        NSCAssert(payloadEntry, @"Could not find customPayloadEntry");
         return payloadEntry(argc, argv, _envp, _apple);
     }
     

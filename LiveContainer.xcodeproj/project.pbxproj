@@ -33,6 +33,7 @@
 		E15C6F2F30440EAD00FEC6BD /* StikJITHeadless.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */; };
 		E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
+		E180AE4A3070F174003DA01D /* BypassRAMLimit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E180AE3A3070ED91003DA01D /* BypassRAMLimit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E1946AD83041BFF8005CBEDD /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1946AD63041BFDD005CBEDD /* IOKit.framework */; };
 		E1F04CE730527A2200EABBF1 /* StikJIT.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E1F04CE630527A2200EABBF1 /* StikJIT.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -108,6 +109,13 @@
 			remoteGlobalIDString = E15C6F2730440EAD00FEC6BD;
 			remoteInfo = StikJITHeadless;
 		};
+		E180AE483070F164003DA01D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17DCE9952C7067EC00731D42 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E180AE323070ED91003DA01D;
+			remoteInfo = BypassRAMLimit;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -126,6 +134,7 @@
 				174140942D9C0E8200F3F928 /* ZSign.dylib in Embed Frameworks */,
 				E15C6F2F30440EAD00FEC6BD /* StikJITHeadless.framework in Embed Frameworks */,
 				E1F04CE730527A2200EABBF1 /* StikJIT.framework in Embed Frameworks */,
+				E180AE4A3070F174003DA01D /* BypassRAMLimit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -197,6 +206,7 @@
 		E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LCMachOUtils.m; sourceTree = "<group>"; };
 		E16D95762E1CD49E0068EB63 /* LCMachOUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LCMachOUtils.h; sourceTree = "<group>"; };
 		E16D9BA02E1D48DE0068EB63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		E180AE3A3070ED91003DA01D /* BypassRAMLimit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BypassRAMLimit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1946AD63041BFDD005CBEDD /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = DEVELOPER_DIR; };
 		E1F04CE630527A2200EABBF1 /* StikJIT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StikJIT.framework; path = "StikJITHeadless/StikJIT.xcframework/ios-arm64/StikJIT.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -304,6 +314,22 @@
 			);
 			target = E1292BD52DCA3B660065E12D /* LiveContainerShared */;
 		};
+		E174D5B23071165100C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				main.m,
+				StikJITHeadless.swift,
+				StikJITHeadlessSpawner.m,
+			);
+			target = E180AE323070ED91003DA01D /* BypassRAMLimit */;
+		};
+		E180AE4B3070F220003DA01D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				BypassRAMLimit.m,
+			);
+			target = E15C6F2730440EAD00FEC6BD /* StikJITHeadless */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -351,7 +377,8 @@
 		E1292AE72DCA3A660065E12D /* LiveProcess */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292AF72DCA3A660065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveProcess; sourceTree = "<group>"; };
 		E1292C1A2DCA48F00065E12D /* Tweaks */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C202DCA48F00065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Tweaks; sourceTree = "<group>"; };
 		E1292C242DCA4E6F0065E12D /* MultitaskSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E1292C2D2DCA4E800065E12D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E1D5EDC02F48AA25004AF1E9 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MultitaskSupport; sourceTree = "<group>"; };
-		E15C6F2930440EAD00FEC6BD /* StikJITHeadless */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E174D4343071141000C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E174D4323071140600C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StikJITHeadless; sourceTree = "<group>"; };
+		E15C6F2930440EAD00FEC6BD /* StikJITHeadless */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E174D4343071141000C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E174D4323071140600C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, E174D5B23071165100C095FF /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StikJITHeadless; sourceTree = "<group>"; };
+		E180AE423070EDD9003DA01D /* BypassRAMLimit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E180AE4B3070F220003DA01D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BypassRAMLimit; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -440,6 +467,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E180AE353070ED91003DA01D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -496,6 +530,7 @@
 				17CAE6182F230449008B1977 /* LaunchAppExtension */,
 				17E23DE02F443A9300C55733 /* ShareExtension */,
 				E15C6F2930440EAD00FEC6BD /* StikJITHeadless */,
+				E180AE423070EDD9003DA01D /* BypassRAMLimit */,
 				174140B82D9C0F9100F3F928 /* Frameworks */,
 				17DCE99E2C7067EC00731D42 /* Products */,
 				17780D3B2E1C02420077E636 /* litehook */,
@@ -516,6 +551,7 @@
 				17CAE6172F230449008B1977 /* LaunchAppExtension.appex */,
 				17E23DDF2F443A9300C55733 /* ShareExtension.appex */,
 				E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */,
+				E180AE3A3070ED91003DA01D /* BypassRAMLimit.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -567,6 +603,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		E15C6F2330440EAD00FEC6BD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E180AE333070ED91003DA01D /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -732,6 +775,7 @@
 				17CAE61F2F230449008B1977 /* PBXTargetDependency */,
 				17E23DE82F443A9300C55733 /* PBXTargetDependency */,
 				E15C6F2D30440EAD00FEC6BD /* PBXTargetDependency */,
+				E180AE493070F164003DA01D /* PBXTargetDependency */,
 			);
 			name = LiveContainer;
 			productName = jump;
@@ -821,12 +865,37 @@
 			);
 			fileSystemSynchronizedGroups = (
 				E15C6F2930440EAD00FEC6BD /* StikJITHeadless */,
+				E180AE423070EDD9003DA01D /* BypassRAMLimit */,
 			);
 			name = StikJITHeadless;
 			packageProductDependencies = (
 			);
 			productName = StikJITHeadless;
 			productReference = E15C6F2830440EAD00FEC6BD /* StikJITHeadless.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		E180AE323070ED91003DA01D /* BypassRAMLimit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E180AE373070ED91003DA01D /* Build configuration list for PBXNativeTarget "BypassRAMLimit" */;
+			buildPhases = (
+				E180AE333070ED91003DA01D /* Headers */,
+				E180AE343070ED91003DA01D /* Sources */,
+				E180AE353070ED91003DA01D /* Frameworks */,
+				E180AE363070ED91003DA01D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E15C6F2930440EAD00FEC6BD /* StikJITHeadless */,
+				E180AE423070EDD9003DA01D /* BypassRAMLimit */,
+			);
+			name = BypassRAMLimit;
+			packageProductDependencies = (
+			);
+			productName = StikJITHeadless;
+			productReference = E180AE3A3070ED91003DA01D /* BypassRAMLimit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -941,6 +1010,7 @@
 				17CAE6162F230449008B1977 /* LaunchAppExtension */,
 				17E23DDE2F443A9300C55733 /* ShareExtension */,
 				E15C6F2730440EAD00FEC6BD /* StikJITHeadless */,
+				E180AE323070ED91003DA01D /* BypassRAMLimit */,
 			);
 		};
 /* End PBXProject section */
@@ -996,6 +1066,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		E15C6F2630440EAD00FEC6BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E180AE363070ED91003DA01D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1110,6 +1187,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E180AE343070ED91003DA01D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1162,6 +1246,11 @@
 			isa = PBXTargetDependency;
 			target = E15C6F2730440EAD00FEC6BD /* StikJITHeadless */;
 			targetProxy = E15C6F2C30440EAD00FEC6BD /* PBXContainerItemProxy */;
+		};
+		E180AE493070F164003DA01D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E180AE323070ED91003DA01D /* BypassRAMLimit */;
+			targetProxy = E180AE483070F164003DA01D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2152,6 +2241,97 @@
 			};
 			name = Release;
 		};
+		E180AE383070ED91003DA01D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdt.BypassRAMLimit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		E180AE393070ED91003DA01D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.kdt.BypassRAMLimit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2259,6 +2439,15 @@
 			buildConfigurations = (
 				E15C6F3130440EAD00FEC6BD /* Debug */,
 				E15C6F3230440EAD00FEC6BD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E180AE373070ED91003DA01D /* Build configuration list for PBXNativeTarget "BypassRAMLimit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E180AE383070ED91003DA01D /* Debug */,
+				E180AE393070ED91003DA01D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

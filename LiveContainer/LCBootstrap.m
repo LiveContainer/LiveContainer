@@ -7,6 +7,7 @@
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_images.h>
+#include <objc/message.h>
 #include <objc/runtime.h>
 
 #include <dlfcn.h>
@@ -357,6 +358,12 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         }
         NSString *target = [bundlePath stringByAppendingPathComponent:@"Frameworks/TweakLoader.dylib"];
         symlink(target.UTF8String, tweakLoaderPath.UTF8String);
+    }
+
+    if (true) { // TODO: pref bypass limit...
+        if (dlopen("@rpath/BypassRAMLimit.framework/BypassRAMLimit", RTLD_LAZY)) {
+            [NSExtension spawnBypassRAMLimitPayload];
+        }
     }
 
     // If JIT is enabled, bypass library validation so we can load arbitrary binaries

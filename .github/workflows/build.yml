@@ -22,6 +22,8 @@ jobs:
       archive_path: ${{ env.archive_path }}
       artifact: ${{ env.scheme }}.ipa
       artifact2: ${{ env.scheme }}+SideStore.ipa
+      artifact_2appid: ${{ env.scheme }}+SideStore-2AppID.ipa
+      artifact_1appid: ${{ env.scheme }}+SideStore-1AppID.ipa
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -82,6 +84,18 @@ jobs:
           name: ${{ env.scheme }}+SideStore.ipa
           path: ${{ env.scheme }}+SideStore.ipa
 
+      - name: Upload LiveContainer+SideStore-2AppID
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.scheme }}+SideStore-2AppID.ipa
+          path: ${{ env.scheme }}+SideStore-2AppID.ipa
+
+      - name: Upload LiveContainer+SideStore-1AppID
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.scheme }}+SideStore-1AppID.ipa
+          path: ${{ env.scheme }}+SideStore-1AppID.ipa
+
   release__nightly:
     name: Nightly Release
     permissions:
@@ -104,6 +118,14 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact2 }}
+      - name: Download a Build Artifact 2AppID
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build.outputs.artifact_2appid }}
+      - name: Download a Build Artifact 1AppID
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build.outputs.artifact_1appid }}
       - name: Get Commit Info
         id: commit_info
         run: |
@@ -133,6 +155,8 @@ jobs:
           files: |
             ${{ needs.build.outputs.artifact }}
             ${{ needs.build.outputs.artifact2 }}
+            ${{ needs.build.outputs.artifact_2appid }}
+            ${{ needs.build.outputs.artifact_1appid }}
             .github/apps_nightly.json
       - name: Update apps.json in Release 1.0
         continue-on-error: true

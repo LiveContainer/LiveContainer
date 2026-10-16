@@ -135,6 +135,7 @@ jobs:
             ${{ needs.build.outputs.artifact2 }}
             .github/apps_nightly.json
       - name: Update apps.json in Release 1.0
+        continue-on-error: true
         uses: softprops/action-gh-release@v3
         with:
           tag_name: "1.0"

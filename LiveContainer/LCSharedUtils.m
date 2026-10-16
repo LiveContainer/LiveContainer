@@ -19,12 +19,17 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
     dispatch_once(&onceToken, ^{
 #if !TARGET_OS_SIMULATOR
         void* taskSelf = SecTaskCreateFromSelf(NULL);
-        CFErrorRef error = NULL;
-        CFTypeRef cfans = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("com.apple.developer.team-identifier"), &error);
-        if(CFGetTypeID(cfans) == CFStringGetTypeID()) {
-            ans = (__bridge NSString*)cfans;
+        if (taskSelf) {
+            CFErrorRef error = NULL;
+            CFTypeRef cfans = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("com.apple.developer.team-identifier"), &error);
+            if(cfans) {
+                if(CFGetTypeID(cfans) == CFStringGetTypeID()) {
+                    ans = (__bridge NSString*)cfans;
+                }
+                CFRelease(cfans);
+            }
+            CFRelease(taskSelf);
         }
-        CFRelease(taskSelf);
 #endif
         if(!ans) {
             // the above seems not to work if the device is jailbroken by Palera1n, so we use the public api one as backup
@@ -49,6 +54,9 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
                 ans = bundleSeedID;
             }
         }
+        if(!ans) {
+            ans = @"";
+        }
     });
     return ans;
 }
@@ -57,10 +65,14 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
     static dispatch_once_t once;
     static NSString *appGroupID = @"Unknown";
     dispatch_once(&once, ^{
-        NSArray* possibleAppGroups = @[
-            [@"group.com.SideStore.SideStore." stringByAppendingString:[self teamIdentifier]],
-            [@"group.com.rileytestut.AltStore." stringByAppendingString:[self teamIdentifier]]
-        ];
+        NSString *teamId = [self teamIdentifier];
+        NSMutableArray* possibleAppGroups = [NSMutableArray array];
+        if (teamId.length > 0) {
+            [possibleAppGroups addObject:[@"group.com.SideStore.SideStore." stringByAppendingString:teamId]];
+            [possibleAppGroups addObject:[@"group.com.rileytestut.AltStore." stringByAppendingString:teamId]];
+        }
+        [possibleAppGroups addObject:@"group.com.SideStore.SideStore"];
+        [possibleAppGroups addObject:@"group.com.rileytestut.AltStore"];
         
         // we prefer app groups with "Apps" in it, which indicate this app group is actually used by the store.
         for (NSString *group in possibleAppGroups) {

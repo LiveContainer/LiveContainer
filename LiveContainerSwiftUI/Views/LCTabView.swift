@@ -49,6 +49,7 @@ struct LCTabView: View {
                 }
                 .tag(LCTabIdentifier.settings)
         }
+        .tint(LCTheme.shared.accent)
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)
         .alert("lc.common.error".loc, isPresented: $errorShow){

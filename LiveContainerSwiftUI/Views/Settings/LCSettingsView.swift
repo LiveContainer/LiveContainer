@@ -211,10 +211,35 @@ struct LCSettingsView: View {
                         }
                     }
                     
+                    // LiveContainer Extended — Accent color
+                    Picker(selection: Binding(
+                        get: { LCTheme.shared.accentPreset },
+                        set: { LCTheme.shared.accentPreset = $0 }
+                    )) {
+                        ForEach(LCAccentPreset.allCases) { preset in
+                            HStack {
+                                Circle()
+                                    .fill(preset.color)
+                                    .frame(width: 14, height: 14)
+                                Text(preset.rawValue)
+                            }
+                            .tag(preset)
+                        }
+                    } label: {
+                        Text("Accent Color")
+                    }
+                    
+                    Toggle(isOn: Binding(
+                        get: { LCTheme.shared.doubleTapStatusBarToExit },
+                        set: { LCTheme.shared.doubleTapStatusBarToExit = $0 }
+                    )) {
+                        Text("Double-tap Status Bar to Exit App")
+                    }
+                    
                 } header: {
                     Text("lc.settings.interface".loc)
                 } footer: {
-                    Text("lc.settings.dynamicColors.desc".loc)
+                    Text("lc.settings.dynamicColors.desc".loc + "\n\nDouble-tap the status bar while an app is running to return to LiveContainer without fully quitting.")
                 }
                 Section{
                     Toggle(isOn: $frameShortIcon) {
@@ -284,6 +309,29 @@ struct LCSettingsView: View {
                 }
                 
                 Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("LiveContainer Extended")
+                            .font(.headline)
+                        Text("An extended implementation of LiveContainer")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    
+                    HStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundStyle(LCTheme.shared.accent)
+                        Button("Nguyen Quang Dung") {
+                            openLeadDeveloperGitHub()
+                        }
+                    }
+                } header: {
+                    Text("Development & Engineering")
+                } footer: {
+                    Text("Lead Developer of LiveContainer Extended")
+                }
+                
+                Section {
                     HStack {
                         Image("GitHub")
                         Button("LiveContainer/LiveContainer") {
@@ -303,9 +351,9 @@ struct LCSettingsView: View {
                         }
                     }
                 } header: {
-                    Text("lc.settings.about".loc)
+                    Text("Original project")
                 } footer: {
-                    Text("lc.settings.warning".loc)
+                    Text("Based on LiveContainer — Original authors and contributors\n\n" + "lc.settings.warning".loc)
                 }
                 
                 VStack{
@@ -469,6 +517,10 @@ struct LCSettingsView: View {
     
     func openTwitter() {
         UIApplication.shared.open(URL(string: "https://twitter.com/khanhduytran0")!)
+    }
+    
+    func openLeadDeveloperGitHub() {
+        UIApplication.shared.open(URL(string: "https://github.com/nquangdungg")!)
     }
 
     func clearNotifications() {

@@ -131,6 +131,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 })
                 .hidden()
                 
+                // LiveContainer Extended — Dashboard header
+                if sharedModel.multiLCStatus != 2 {
+                    LCDashboardHeaderView(
+                        onRefreshAll: {
+                            // Open built-in SideStore and let user refresh; gated by LocalDevVPN in the button itself
+                            LCUtils.openSideStore(delegate: self)
+                        },
+                        onOpenSideStore: {
+                            LCUtils.openSideStore(delegate: self)
+                        },
+                        onImportIPA: {
+                            choosingIPA = true
+                        },
+                        onOpenSettings: {
+                            sharedModel.selectedTab = .settings
+                        }
+                    )
+                    .padding(.bottom, 8)
+                }
+                
                 LazyVStack {
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self)

@@ -1,3 +1,12 @@
+# LiveContainer Extended
+
+> An extended implementation of LiveContainer  
+> **Lead Developer:** [Nguyen Quang Dung](https://github.com/nquangdungg)
+
+Based on the original [LiveContainer](https://github.com/LiveContainer/LiveContainer) project.
+
+---
+
 <div align="center">
    <img width="217" height="217" src="./screenshots/livecontainer_icon.png" alt="Logo">
 </div>

@@ -777,3 +777,60 @@ static LCControlAppURLHandling LCHandleControlAppURL(NSURL *url, NSString** modi
     }
 }
 @end
+
+// MARK: - LiveContainer Extended: Double-tap status bar to return to LC (classic mode)
+
+static NSTimeInterval LCGuestLastStatusBarTapTime = 0;
+static const NSTimeInterval LCGuestDoubleTapInterval = 0.35;
+
+@interface LCGuestStatusBarManager : UIStatusBarManager
+@end
+
+@implementation LCGuestStatusBarManager
+
+- (void)handleTapAction:(UIAction *)action {
+    BOOL enabled = YES;
+    NSString *appGroupId = nil;
+    Class sharedUtilsClass = NSClassFromString(@"LCSharedUtils");
+    if ([sharedUtilsClass respondsToSelector:@selector(appGroupID)]) {
+        appGroupId = [sharedUtilsClass appGroupID];
+    }
+    NSUserDefaults *defaults = appGroupId ? [[NSUserDefaults alloc] initWithSuiteName:appGroupId] : NSUserDefaults.standardUserDefaults;
+    if ([defaults objectForKey:@"LCDoubleTapStatusBarToExit"] != nil) {
+        enabled = [defaults boolForKey:@"LCDoubleTapStatusBarToExit"];
+    }
+    
+    if (enabled) {
+        NSTimeInterval now = [NSDate date].timeIntervalSince1970;
+        if (LCGuestLastStatusBarTapTime > 0 && (now - LCGuestLastStatusBarTapTime) <= LCGuestDoubleTapInterval) {
+            LCGuestLastStatusBarTapTime = 0;
+            if (@available(iOS 10.0, *)) {
+                UIImpactFeedbackGenerator *gen = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+                [gen impactOccurred];
+            }
+            if ([sharedUtilsClass respondsToSelector:@selector(launchToGuestAppWithClassicMode:)]) {
+                [sharedUtilsClass launchToGuestAppWithClassicMode:0];
+            }
+            return;
+        }
+        LCGuestLastStatusBarTapTime = now;
+    }
+    
+    [super handleTapAction:action];
+}
+
+@end
+
+@interface UIApplication (LCGuestStatusBar)
+@end
+
+@implementation UIApplication (LCGuestStatusBar)
++ (Class)_statusBarManagerClass {
+    if (@available(iOS 16.0, *)) {
+        if (NSUserDefaults.lcGuestAppId) {
+            return LCGuestStatusBarManager.class;
+        }
+    }
+    return UIStatusBarManager.class;
+}
+@end

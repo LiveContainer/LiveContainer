@@ -64,7 +64,8 @@ uint32_t dyld_get_sdk_version(const struct mach_header* mh);
 typedef NS_ENUM(NSInteger, GeneratedIconStyle){
     Original = -1,
     Light = 0,
-    Dark = 1
+    Dark = 1,
+    Custom = 2
 };
 
 @interface UIImage(LiveContainer)

@@ -304,7 +304,7 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     }
 
     private func createAppClip() async {
-        guard let style = await delegate.promptForGeneratedIconStyle() else {
+        guard let style = await delegate.promptForGeneratedIconStyle(hasCustomIcon: configuration.model.uiCustomIconName != nil) else {
             return
         }
 
@@ -323,7 +323,7 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     }
 
     private func saveIcon() async {
-        guard let style = await delegate.promptForGeneratedIconStyle() else {
+        guard let style = await delegate.promptForGeneratedIconStyle(hasCustomIcon: configuration.model.uiCustomIconName != nil) else {
             return
         }
 

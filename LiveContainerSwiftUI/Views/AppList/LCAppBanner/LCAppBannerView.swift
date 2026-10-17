@@ -132,7 +132,9 @@ final class LCAppBannerRootView: UIView {
         traitCollection: UITraitCollection
     ) {
         let icon = appInfo.iconIsDarkIcon(darkModeIcon) ?? UIImage()
-        let mainColor = Self.extractMainHueColor(appInfo: appInfo, icon: icon, darkModeIcon: darkModeIcon)
+        // LCAppInfo is unannotated ObjC, so bind through an explicit optional
+        let customColor: UIColor? = appInfo.customColor
+        let mainColor = customColor ?? Self.extractMainHueColor(appInfo: appInfo, icon: icon, darkModeIcon: darkModeIcon)
         let accentColor = dynamicColors ? mainColor : (UIColor(named: "FontColor") ?? .systemBlue)
         let textColor = Self.readableTextColor(for: accentColor, traitCollection: traitCollection)
 

@@ -19754,6 +19754,61 @@
         }
       }
     },
+    "lc.settings.backupPolicy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Backup"
+          }
+        }
+      }
+    },
+    "lc.settings.backupPolicy.applyFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The backup policy could not be applied completely. LiveContainer will retry the next time it launches."
+          }
+        }
+      }
+    },
+    "lc.settings.backupPolicy.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full backup preserves historical behavior. No LiveContainer data excludes managed guest apps, containers, tweaks, and LiveContainer support data while leaving SideStore data unchanged."
+          }
+        }
+      }
+    },
+    "lc.settings.backupPolicy.full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full backup"
+          }
+        }
+      }
+    },
+    "lc.settings.backupPolicy.noData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No LiveContainer data"
+          }
+        }
+      }
+    },
     "lc.settings.cleanCacheComplete" : {
       "extractionState" : "stale",
       "localizations" : {

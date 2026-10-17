@@ -29,6 +29,7 @@
 		E1292C092DCA43510065E12D /* Localization.m in Sources */ = {isa = PBXBuildFile; fileRef = 172CA8592D9D721700CF6989 /* Localization.m */; };
 		E1292C0A2DCA43540065E12D /* utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 172CA85E2D9D721700CF6989 /* utils.m */; };
 		E1292C0B2DCA43560065E12D /* LCBootstrap.m in Sources */ = {isa = PBXBuildFile; fileRef = 172CA85A2D9D721700CF6989 /* LCBootstrap.m */; };
+		FCB100042F6D000100000001 /* LCBackupPolicyManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FCB100022F6D000100000001 /* LCBackupPolicyManager.m */; };
 		E1292C132DCA46070065E12D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = E1292C032DCA3C160065E12D /* main.c */; };
 		E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */; };
 		E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
@@ -163,6 +164,8 @@
 		172CA8582D9D721700CF6989 /* Localization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Localization.h; sourceTree = "<group>"; };
 		172CA8592D9D721700CF6989 /* Localization.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Localization.m; sourceTree = "<group>"; };
 		172CA85A2D9D721700CF6989 /* LCBootstrap.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LCBootstrap.m; sourceTree = "<group>"; };
+		FCB100012F6D000100000001 /* LCBackupPolicyManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LCBackupPolicyManager.h; sourceTree = "<group>"; };
+		FCB100022F6D000100000001 /* LCBackupPolicyManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LCBackupPolicyManager.m; sourceTree = "<group>"; };
 		172CA85C2D9D721700CF6989 /* UIKitPrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIKitPrivate.h; sourceTree = "<group>"; };
 		172CA85D2D9D721700CF6989 /* utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
 		172CA85E2D9D721700CF6989 /* utils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = utils.m; sourceTree = "<group>"; };
@@ -424,6 +427,8 @@
 				172CA8582D9D721700CF6989 /* Localization.h */,
 				172CA8592D9D721700CF6989 /* Localization.m */,
 				172CA85A2D9D721700CF6989 /* LCBootstrap.m */,
+				FCB100012F6D000100000001 /* LCBackupPolicyManager.h */,
+				FCB100022F6D000100000001 /* LCBackupPolicyManager.m */,
 				172CA85C2D9D721700CF6989 /* UIKitPrivate.h */,
 				172CA85D2D9D721700CF6989 /* utils.h */,
 				172CA85E2D9D721700CF6989 /* utils.m */,
@@ -1019,6 +1024,7 @@
 				E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */,
 				E1292C082DCA434F0065E12D /* LCSharedUtils.m in Sources */,
 				E1292C0B2DCA43560065E12D /* LCBootstrap.m in Sources */,
+				FCB100042F6D000100000001 /* LCBackupPolicyManager.m in Sources */,
 				E1292C0A2DCA43540065E12D /* utils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

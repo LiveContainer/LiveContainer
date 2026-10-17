@@ -37,8 +37,19 @@ struct LCPath {
     public static let lcGroupDataPath = lcGroupDocPath.appendingPathComponent("Data/Application")
     public static let lcGroupAppGroupPath = lcGroupDocPath.appendingPathComponent("Data/AppGroup")
     public static let lcGroupTweakPath = lcGroupDocPath.appendingPathComponent("Tweaks")
+
+    @discardableResult
+    static func reconcileBackupPolicy() -> Bool {
+        let policy = LCBackupPolicyManager.policy(from: LCUtils.appGroupUserDefault)
+        return LCBackupPolicyManager.applyPolicy(
+            policy,
+            homeURL: docPath.deletingLastPathComponent(),
+            appGroupURL: LCSharedUtils.appGroupPath()
+        )
+    }
     
     public static func ensureAppGroupPaths() throws {
+        defer { reconcileBackupPolicy() }
         let fm = FileManager()
         if !fm.fileExists(atPath: LCPath.lcGroupBundlePath.path) {
             try fm.createDirectory(at: LCPath.lcGroupBundlePath, withIntermediateDirectories: true)

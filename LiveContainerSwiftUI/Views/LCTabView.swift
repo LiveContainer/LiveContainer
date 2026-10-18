@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct LCTabView: View {
+    @AppStorage("LCOSHomeScreenEnabled", store: LCUtils.appGroupUserDefault) private var homeScreenEnabled = true
     @State var errorShow = false
     @State var crashReportShow = false
     @State var errorInfo = ""
@@ -48,6 +49,11 @@ struct LCTabView: View {
                     Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
                 }
                 .tag(LCTabIdentifier.settings)
+        }
+        .apply { content in
+            if #available(iOS 16.0, *) {
+                content.toolbar(homeScreenEnabled && sharedModel.selectedTab == .apps ? .hidden : .visible, for: .tabBar)
+            } else { content }
         }
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)

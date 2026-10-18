@@ -281,11 +281,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             appCollection
             .background(NavigationLink(destination: navigateTo, isActive: $isNavigationActive) { EmptyView() }.hidden())
             .navigationBarHidden(homeScreenEnabled && !isNavigationActive)
-            .apply { content in
-                if #available(iOS 16.0, *) {
-                    content.toolbar(homeScreenEnabled ? .hidden : .visible, for: .tabBar)
-                } else { content }
-            }
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
             .coordinateSpace(name: "scroll")
             .onAppear {

@@ -28,7 +28,17 @@ actor PackageStore {
         while path.path != "/", !path.path.isEmpty {
             if fm.fileExists(atPath: path.path) {
                 let attributes = try fm.attributesOfItem(atPath: path.path)
-                guard attributes[.type] as? FileAttributeType == .typeDirectory else {
+                let type = attributes[.type] as? FileAttributeType
+                // Darwin exposes sandbox/temp storage through Apple's /var and /tmp aliases.
+                // Those fixed system aliases are distinct from links inside package storage.
+                var systemAlias = false
+                #if canImport(Darwin)
+                if type == .typeSymbolicLink, ["/var", "/tmp"].contains(path.path) {
+                    let destination = try fm.destinationOfSymbolicLink(atPath: path.path)
+                    systemAlias = ["private" + path.path, "/private" + path.path].contains(destination)
+                }
+                #endif
+                guard type == .typeDirectory || systemAlias else {
                     throw PackageFailure.invalid("Package storage contains a symbolic link or non-directory")
                 }
             }
@@ -52,7 +62,7 @@ actor PackageStore {
             .map { url in
                 let receipt = try readReceipt(at: url)
                 let enabled = !url.lastPathComponent.hasSuffix(".disabled")
-                guard url == (try folder(receipt.id, enabled: enabled)) else {
+                guard url.standardizedFileURL.path == (try folder(receipt.id, enabled: enabled)).standardizedFileURL.path else {
                     throw PackageFailure.invalid("Package directory does not match its receipt")
                 }
                 return (receipt, enabled)

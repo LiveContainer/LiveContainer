@@ -5,6 +5,7 @@ import plistlib
 import shutil
 import subprocess
 import time
+import sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
 out = root / 'artifacts' / 'home-preview'
@@ -13,7 +14,8 @@ out.mkdir(parents=True, exist_ok=True)
 def run(*args, **kwargs):
     return subprocess.run(args, check=True, text=True, **kwargs)
 
-app = root / 'preview-build/Build/Products/Debug-iphonesimulator/LiveContainer.app'
+component = '--component' in sys.argv
+app = root / ('artifacts/home-preview-build/LCOSHomePreview.app' if component else 'preview-build/Build/Products/Debug-iphonesimulator/LiveContainer.app')
 info = plistlib.loads((app / 'Info.plist').read_bytes())
 bundle = info['CFBundleIdentifier']
 entitlements = out / 'simulator.entitlements'
@@ -45,14 +47,17 @@ try:
             shutil.copyfile(icons / f'{i}.png', target / f'LCAppIcon{style}.png')
         ids.append(identifier + ':' + folder)
     layout = json.dumps({'version': 1, 'order': ids, 'dock': ids[-4:]})
-    for appearance, enabled, filename in [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png'), ('light', 'NO', 'app-list.png')]:
+    captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png')]
+    if not component:
+        captures.append(('light', 'NO', 'app-list.png'))
+    for appearance, enabled, filename in captures:
         run('xcrun', 'simctl', 'ui', udid, 'appearance', appearance)
         subprocess.run(['xcrun', 'simctl', 'terminate', udid, bundle], capture_output=True)
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', enabled,
             '-LCOSHomeLayout', layout, '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
         time.sleep(7)
         run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename))
-    (out / 'README.txt').write_text('Screenshots use the actual simulator-built host UI with test-only guest metadata and generated SF Symbol icons. Fixture apps are not production-installed apps. Guest launch, signing and tweak injection are not tested by these screenshots.\n', encoding='utf-8')
+    (out / 'README.txt').write_text('Screenshots render the production Home Screen and icon artwork source in a native component fixture host with test-only registry adapters and generated SF Symbol icons. Fixture apps are not production-installed apps. Original launch controllers, guest signing and tweak injection are not tested by these screenshots. The full host compiles for simulator but its launch was denied by SBMainWorkspace.\n', encoding='utf-8')
 finally:
     subprocess.run(['xcrun', 'simctl', 'shutdown', udid], capture_output=True)
     subprocess.run(['xcrun', 'simctl', 'delete', udid], capture_output=True)

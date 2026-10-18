@@ -10,6 +10,7 @@ on:
       - 'LiveContainerSwiftUI/Views/Settings/LCSettingsView.swift'
       - 'Tests/HomeScreenPreview/**'
       - 'scripts/home_screen_preview.py'
+      - 'scripts/build_home_preview.py'
       - '.github/workflows/home-screen-preview.yml'
 permissions:
   contents: read
@@ -24,12 +25,12 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.2'
-      - name: Build actual host for iOS Simulator
+      - name: Compile production desktop sources in a native component fixture host
         run: |
           set -o pipefail
-          xcodebuild -project LiveContainer.xcodeproj -scheme LiveContainer -configuration Debug -sdk iphonesimulator -arch arm64 -derivedDataPath preview-build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES build > simulator-build.log 2>&1
-      - name: Capture native light, dark and list layouts with test fixture metadata
-        run: python3 scripts/home_screen_preview.py
+          python3 scripts/build_home_preview.py 2>&1 | tee simulator-build.log
+      - name: Capture native light and dark desktop layouts with test fixture metadata
+        run: python3 scripts/home_screen_preview.py --component
       - uses: actions/upload-artifact@v4
         if: always()
         with:

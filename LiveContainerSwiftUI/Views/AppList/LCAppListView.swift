@@ -291,6 +291,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
             .navigationTitle("lc.appList.myApps".loc)
             .toolbar { appToolbar }
+            .apply { content in
+                if #available(iOS 16.0, *) {
+                    content.toolbar(homeScreenEnabled && !isNavigationActive ? .hidden : .visible, for: .tabBar)
+                } else { content }
+            }
         }
     }
 

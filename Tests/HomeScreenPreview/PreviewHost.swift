@@ -39,6 +39,7 @@ struct LCAppBanner: View {
     let delegate: LCAppBannerDelegate
     var homeScreen = false
     var iconSide: CGFloat = 62
+    var homeEditing = false
     var showLabel = true
     var isDocked = false
     var onToggleDock: (() -> Void)?

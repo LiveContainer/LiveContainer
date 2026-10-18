@@ -26,6 +26,7 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     private var iconHost: UIHostingController<LCHomeIconArtwork>?
     var onToggleDock: (() -> Void)?
     var isDocked = false
+    var homeEditing = false
     
     init(delegate: LCAppBannerDelegate, config: LCAppBannerConfiguration, homeScreen: Bool = false,
          iconSide: CGFloat = 62, showLabel: Bool = true) {
@@ -121,7 +122,7 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
 
     private func makeHomeIcon() -> LCHomeIconArtwork {
         LCHomeIconArtwork(model: configuration.model, darkIcon: configuration.darkModeIcon,
-                          side: iconSide, showLabel: showLabel, launch: { [weak self] in self?.runButtonTapped() })
+                          side: iconSide, showLabel: showLabel, launch: { [weak self] in guard let self, !self.homeEditing else { return }; self.runButtonTapped() })
     }
 
     func updateHomeIcon(side: CGFloat, showLabel: Bool) {

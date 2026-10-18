@@ -119,7 +119,7 @@ struct LCTabView: View {
         }
         .apply { content in
             if #available(iOS 16.0, *) {
-                content.toolbar(homeScreenEnabled && sharedModel.selectedTab == .apps ? .hidden : .visible, for: .tabBar)
+                content.toolbar(.visible, for: .tabBar)
             } else { content }
         }
     }

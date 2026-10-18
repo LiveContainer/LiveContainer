@@ -1,19 +1,104 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "lcos.home.done": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Done"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Готово"
+        }
+      }
+    }
+  },
+  "lcos.home.edit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit Apps"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Изменить сетку"
+        }
+      }
+    }
+  },
+  "lcos.home.folder": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Folder"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Папка"
+        }
+      }
+    }
+  },
+  "lcos.home.moveOut": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Move Out of Folder"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Убрать из папки"
+        }
+      }
+    }
+  },
+  "lcos.home.folderDragHint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Drag an app outside the folder to move it back to the grid."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Перетащите приложение за пределы папки, чтобы вернуть его в сетку."
+        }
+      }
+    }
+  },
     "lcos.home.enabled" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Home Screen"
+            "value" : "App Grid"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Рабочий стол"
+            "value" : "Сетка приложений"
           }
         }
       }

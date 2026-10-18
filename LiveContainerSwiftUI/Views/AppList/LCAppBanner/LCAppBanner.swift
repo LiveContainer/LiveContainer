@@ -19,6 +19,7 @@ protocol LCAppBannerDelegate {
 struct LCAppBanner: UIViewControllerRepresentable {
     var delegate: LCAppBannerDelegate
     var homeScreen = false
+    var homeEditing = false
     var iconSide: CGFloat = 62
     var showLabel = true
     var isDocked = false
@@ -31,10 +32,11 @@ struct LCAppBanner: UIViewControllerRepresentable {
     private let sharedModel = DataManager.shared.model
 
     init(appModel: LCAppModel, delegate: LCAppBannerDelegate, homeScreen: Bool = false,
-         iconSide: CGFloat = 62, showLabel: Bool = true, isDocked: Bool = false, onToggleDock: (() -> Void)? = nil) {
+         iconSide: CGFloat = 62, homeEditing: Bool = false, showLabel: Bool = true, isDocked: Bool = false, onToggleDock: (() -> Void)? = nil) {
         _model = ObservedObject(wrappedValue: appModel)
         self.delegate = delegate
         self.homeScreen = homeScreen
+        self.homeEditing = homeEditing
         self.iconSide = iconSide
         self.showLabel = showLabel
         self.isDocked = isDocked
@@ -43,6 +45,7 @@ struct LCAppBanner: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = LCAppBannerViewController(delegate: delegate, config: LCAppBannerConfiguration(model: model, dynamicColors: dynamicColors, darkModeIcon: darkModeIcon), homeScreen: homeScreen, iconSide: iconSide, showLabel: showLabel)
+        viewController.homeEditing = homeEditing
         viewController.onToggleDock = onToggleDock
         viewController.isDocked = isDocked
         return viewController
@@ -58,6 +61,7 @@ struct LCAppBanner: UIViewControllerRepresentable {
             darkModeIcon: darkModeIcon
         )
         viewController.updateHomeIcon(side: iconSide, showLabel: showLabel)
+        viewController.homeEditing = homeEditing
         viewController.onToggleDock = onToggleDock
         viewController.isDocked = isDocked
     }

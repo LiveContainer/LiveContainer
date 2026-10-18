@@ -25,13 +25,20 @@ struct LCHomeScreenView: View {
     @State private var folderID: String?
     @State private var folderName = ""
     @State private var folderPage = 0
+    @State private var folderProgress: CGFloat = 0
+    @State private var folderFrames: [String: CGRect] = [:]
+    @State private var folderCloseTask: Task<Void, Never>?
+    @State private var folderExitTask: Task<Void, Never>?
+    #if DEBUG
+    @State private var previewMotionTask: Task<Void, Never>?
+    #endif
+    @GestureState private var folderPinch: CGFloat = 1
     @State private var hoveredID: String?
     @State private var folderCandidate: String?
     @State private var hoverTask: Task<Void, Never>?
     @State private var edgeTask: Task<Void, Never>?
     @State private var resetConfirmation = false
     @FocusState private var searchFocused: Bool
-    @Namespace private var folderAnimation
     private static let dragType = UTType(exportedAs: "org.livecontainer.desktop-app")
 
     private var available: [String] { apps.map(identifier) }
@@ -47,6 +54,9 @@ struct LCHomeScreenView: View {
         layoutJSON = string
     }
     private func animate(_ action: () -> Void) { withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82), action) }
+    private func animateFolder(_ action: () -> Void) {
+        withAnimation(reduceMotion ? .easeOut(duration: 0.15) : .spring(response: 0.42, dampingFraction: 0.86), action)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -92,20 +102,27 @@ struct LCHomeScreenView: View {
                         }.buttonStyle(.plain).padding(.bottom, 12)
                     }
                 }.frame(maxWidth: 900).frame(maxWidth: .infinity)
+                    .scaleEffect(reduceMotion ? 1 : 1 + 0.045 * folderProgress)
+                    .blur(radius: reduceMotion ? 0 : 8 * folderProgress)
+                    .allowsHitTesting(folderID == nil)
+                    .accessibilityHidden(folderID != nil)
                 if let id = folderID, let folder = layout.folders.first(where: { $0.id == id }) {
-                    folderOverlay(folder, width: geometry.size.width, side: side)
-                        .transition(reduceMotion ? .opacity : .scale(scale: 0.88).combined(with: .opacity)).zIndex(2)
+                    folderOverlay(folder, size: geometry.size, side: side).zIndex(2)
                 }
             }
+            .coordinateSpace(name: "LCOSDesktop")
+            .onPreferenceChange(LCHomeFolderFrames.self) { if folderID == nil { folderFrames = $0 } }
             .onChange(of: count) { page = min(page, $0 - 1) }
             .onChange(of: query) { _ in page = 0 }
         }
         .confirmationDialog("lcos.home.reset".loc, isPresented: $resetConfirmation) {
-            Button("lcos.home.reset".loc, role: .destructive) { save(LCHomeLayout()); page = 0; folderID = nil }
+            Button("lcos.home.reset".loc, role: .destructive) { save(LCHomeLayout()); page = 0; folderID = nil; folderProgress = 0 }
         }
         .onChange(of: layout.folders) { folders in
             guard let id = folderID else { return }
-            guard let folder = folders.first(where: { $0.id == id }) else { folderID = nil; return }
+            guard let folder = folders.first(where: { $0.id == id }) else {
+                folderCloseTask?.cancel(); animateFolder { folderID = nil; folderProgress = 0 }; return
+            }
             folderPage = min(folderPage, max(0, (folder.apps.count - 1) / 9))
         }
         .onAppear {
@@ -118,10 +135,31 @@ struct LCHomeScreenView: View {
                    let json = values["LCOSHomeLayout"] as? String { layoutJSON = json }
                 if let id = UserDefaults.standard.string(forKey: "LCOSPreviewFolder"),
                    let folder = layout.folders.first(where: { $0.id == id }) { folderID = id; folderName = folder.name }
+                if UserDefaults.standard.bool(forKey: "LCOSPreviewMotion"), let folder = layout.folders.first {
+                    previewMotionTask = Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 4_000_000_000)
+                        guard !Task.isCancelled else { return }
+                        openFolder(folder)
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        guard !Task.isCancelled else { return }
+                        closeFolder()
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        guard !Task.isCancelled else { return }
+                        openFolder(folder)
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        guard !Task.isCancelled else { return }
+                        closeFolder()
+                    }
+                }
             }
             #endif
         }
-        .onDisappear { clearHover(); edgeTask?.cancel(); draggedID = nil }
+        .onDisappear {
+            clearHover(); edgeTask?.cancel(); folderCloseTask?.cancel(); folderExitTask?.cancel(); draggedID = nil
+            #if DEBUG
+            previewMotionTask?.cancel()
+            #endif
+        }
     }
 
     private var header: some View {
@@ -218,16 +256,25 @@ struct LCHomeScreenView: View {
     }
 
     private func tile(_ id: String, side: CGFloat, container: String?) -> some View {
-        LCHomeDragSource(id: id, content: tileArtwork(id, side: side), begin: {
+        LCHomeDragSource(id: id, iconSide: side, content: tileArtwork(id, side: side), begin: {
             startEditing(); draggedID = id; clearHover()
         }, end: {
-            if draggedID == id { draggedID = nil }; clearHover(); edgeTask?.cancel()
+            if draggedID == id { draggedID = nil }; clearHover(); edgeTask?.cancel(); folderExitTask?.cancel()
         })
             .frame(height: side + 30)
             .rotationEffect(.degrees(editing && !reduceMotion ? (jiggle ? 1.3 : -1.3) : 0))
             .scaleEffect(folderCandidate == id ? 1.13 : 1)
             .opacity(draggedID == id ? 0.28 : 1)
             .contentShape(Rectangle())
+            .background {
+                if id.hasPrefix("folder:") {
+                    GeometryReader { proxy in
+                        Color.clear.preference(key: LCHomeFolderFrames.self,
+                            value: [id: CGRect(x: proxy.frame(in: .named("LCOSDesktop")).midX - side / 2,
+                                               y: proxy.frame(in: .named("LCOSDesktop")).minY, width: side, height: side)])
+                    }
+                }
+            }
             .onDrop(of: [Self.dragType], delegate: LCHomeDrop(
                 dragged: draggedID, target: id, iconSide: side,
                 hover: { source, center in hover(source: source, target: id, center: center, container: container) },
@@ -253,8 +300,7 @@ struct LCHomeScreenView: View {
     @ViewBuilder private func tileArtwork(_ id: String, side: CGFloat) -> some View {
         if let folder = layout.folders.first(where: { $0.id == id }) {
             Button {
-                folderName = folder.name; folderPage = 0
-                animate { folderID = id }
+                openFolder(folder)
             } label: {
                 VStack(spacing: 6) {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 3), spacing: 3) {
@@ -266,7 +312,6 @@ struct LCHomeScreenView: View {
                         }
                     }.padding(7).frame(width: side, height: side, alignment: .top)
                         .lcGlass(in: RoundedRectangle(cornerRadius: side * 0.235))
-                        .matchedGeometryEffect(id: id, in: folderAnimation, isSource: folderID != id)
                     Text(folder.name).font(.caption2).lineLimit(1).foregroundStyle(.primary)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }.buttonStyle(.plain)
@@ -275,21 +320,34 @@ struct LCHomeScreenView: View {
         }
     }
 
-    private func folderOverlay(_ folder: LCHomeLayout.Folder, width: CGFloat, side: CGFloat) -> some View {
+    private func folderOverlay(_ folder: LCHomeLayout.Folder, size: CGSize, side: CGFloat) -> some View {
         let count = max(1, (folder.apps.count + 8) / 9)
+        let panelWidth = min(size.width, 440) - 48
+        let panelHeight = 3 * (side + 30) + 2 * 22 + 48
+        let origin = folderFrames[folder.id] ?? CGRect(x: size.width / 2 - side / 2, y: size.height / 2 - side / 2, width: side, height: side)
+        let progress = reduceMotion ? 1 : folderProgress
         return ZStack {
-            Rectangle().fill(.regularMaterial).ignoresSafeArea().onTapGesture { closeFolder() }
-                .onDrop(of: [Self.dragType], isTargeted: nil) { _ in
-                    guard let id = draggedID, folder.apps.contains(id) else { return false }
+            Rectangle().fill(.regularMaterial).ignoresSafeArea()
+                .opacity(folderProgress).onTapGesture { closeFolder() }
+                .accessibilityLabel("lcos.home.done".loc).accessibilityAddTraits(.isButton)
+                .onDrop(of: [Self.dragType], delegate: LCHomeEdgeDrop(enter: {
+                    folderExitTask?.cancel()
+                    folderExitTask = Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 550_000_000)
+                        guard !Task.isCancelled, let id = draggedID, folder.apps.contains(id) else { return }
+                        var value = layout; value.moveItem(id, before: nil, available: available)
+                        animate { save(value) }; closeFolder()
+                    }
+                }, exit: { folderExitTask?.cancel() }, finish: {
+                    folderExitTask?.cancel()
+                    guard let id = draggedID, folder.apps.contains(id) else { return }
                     var value = layout; value.moveItem(id, before: nil, available: available)
-                    animate { save(value); folderID = nil }; draggedID = nil; return true
-                }
-            VStack(spacing: 24) {
-                HStack {
-                    TextField("lcos.home.folder".loc, text: $folderName).font(.largeTitle.weight(.semibold))
-                        .multilineTextAlignment(.center).submitLabel(.done).onSubmit { rename(folder.id) }
-                    Button { closeFolder() } label: { chromeIcon("xmark") }.accessibilityLabel("lcos.home.done".loc)
-                }.padding(.horizontal, 24)
+                    animate { save(value) }; closeFolder(); draggedID = nil
+                }))
+            TextField("lcos.home.folder".loc, text: $folderName).font(.largeTitle.weight(.semibold))
+                .multilineTextAlignment(.center).submitLabel(.done).onSubmit { rename(folder.id) }
+                .frame(width: panelWidth).position(x: size.width / 2, y: size.height / 2 - panelHeight / 2 - 46)
+                .opacity(folderProgress)
                 TabView(selection: $folderPage) {
                     ForEach(0..<count, id: \.self) { index in
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 22) {
@@ -305,19 +363,45 @@ struct LCHomeScreenView: View {
                         }.padding(24).frame(maxHeight: .infinity, alignment: .top).tag(index)
                     }
                 }.tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 3 * (side + 30) + 2 * 22 + 48)
+                .frame(width: panelWidth, height: panelHeight)
                 .lcGlass(in: RoundedRectangle(cornerRadius: 38))
-                .matchedGeometryEffect(id: folder.id, in: folderAnimation, isSource: true)
-                .padding(.horizontal, 24)
-                if count > 1 { pageDots(count, selection: $folderPage) }
-                if editing {
-                    Text("lcos.home.folderDragHint".loc).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.horizontal, 32)
+                .scaleEffect(x: (side / panelWidth + (1 - side / panelWidth) * progress) * folderPinch,
+                             y: (side / panelHeight + (1 - side / panelHeight) * progress) * folderPinch)
+                .position(x: size.width / 2 + (origin.midX - size.width / 2) * (1 - progress),
+                          y: size.height / 2 + (origin.midY - size.height / 2) * (1 - progress))
+                .opacity(reduceMotion ? folderProgress : 1)
+                .animation(reduceMotion ? nil : .interactiveSpring(response: 0.3, dampingFraction: 0.86), value: folderPinch)
+                if count > 1 {
+                    pageDots(count, selection: $folderPage)
+                        .position(x: size.width / 2, y: size.height / 2 + panelHeight / 2 + 32).opacity(folderProgress)
                 }
-            }.frame(maxWidth: min(width, 440))
-        }.gesture(MagnificationGesture().onEnded { if $0 < 0.85 { closeFolder() } })
+                if editing {
+                    Text("lcos.home.folderDragHint".loc).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        .frame(width: panelWidth).position(x: size.width / 2, y: size.height / 2 + panelHeight / 2 + 70).opacity(folderProgress)
+                }
+        }
+        .onAppear { animateFolder { folderProgress = 1 } }
+        .accessibilityAction(.escape) { closeFolder() }
+        .simultaneousGesture(MagnificationGesture()
+            .updating($folderPinch) { value, state, _ in state = reduceMotion ? 1 : min(1, max(0.7, value)) }
+            .onEnded { if $0 < 0.85 { closeFolder() } })
     }
     private func rename(_ id: String) { var value = layout; value.renameFolder(id, name: folderName); save(value) }
-    private func closeFolder() { if let id = folderID { rename(id) }; animate { folderID = nil }; clearHover() }
+    private func openFolder(_ folder: LCHomeLayout.Folder) {
+        folderCloseTask?.cancel()
+        folderName = folder.name; folderPage = 0; folderProgress = 0
+        folderID = folder.id
+    }
+    private func closeFolder() {
+        guard let id = folderID else { return }
+        rename(id); clearHover(); folderExitTask?.cancel(); folderCloseTask?.cancel()
+        animateFolder { folderProgress = 0 }
+        folderCloseTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: reduceMotion ? 150_000_000 : 420_000_000)
+            guard !Task.isCancelled, folderID == id else { return }
+            folderID = nil
+        }
+    }
     private func pageDots(_ count: Int, selection: Binding<Int>) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<count, id: \.self) { index in
@@ -345,6 +429,13 @@ struct LCHomeScreenView: View {
                 var value = layout; value.moveItem(id, before: direction < 0 ? roots.first : nil, available: available)
                 animate { save(value) }; draggedID = nil; edgeTask?.cancel()
             }))
+    }
+}
+
+private struct LCHomeFolderFrames: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
     }
 }
 

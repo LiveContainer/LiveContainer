@@ -18,7 +18,9 @@ App artwork is displayed normally so original icons and signing/lock states stay
 - Drag near another icon's edge to reorder with animated displacement.
 - Hold over its center until it expands, then release to create a folder or add to an existing folder.
 - Hold near the screen edge to change pages. UIKit handles lift previews and drag cancellation.
-- Tap a folder for its 3×3 paginated grid. Tap the title to rename it; tap outside, close, or pinch inward to dismiss.
+- Tap a folder for its 3×3 paginated grid. Tap the title to rename it; tap outside or pinch inward to dismiss. VoiceOver supports the Escape action. There is no close button.
+- The panel expands from its measured icon position and returns there, with a damped spring and animated backdrop blur. Reduce Motion uses a short fade instead.
+- Hold a dragged member outside the panel to close the folder and continue moving it on the desktop. Native lift/cancel previews show only the rounded icon.
 - Move an icon outside the open folder, use its minus control in edit mode, or its Move Out action to return it to the grid.
 - A folder with one remaining app dissolves. Nested folders are not supported.
 - **Done** exits editing. The menu can reset placement without deleting app data.

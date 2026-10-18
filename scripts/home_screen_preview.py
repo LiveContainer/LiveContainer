@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 import sys
+import signal
 
 root = pathlib.Path(__file__).resolve().parent.parent
 out = root / 'artifacts' / 'home-preview'
@@ -79,6 +80,17 @@ try:
         # On shared CI runners image decoding and SwiftUI's first frame can lag launch.
         time.sleep(25)
         run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=120)
+    # The debug host invokes the same open/close handlers to record the transition itself.
+    subprocess.run(['xcrun', 'simctl', 'terminate', udid, bundle], capture_output=True)
+    recording = subprocess.Popen(['xcrun', 'simctl', 'io', udid, 'recordVideo', '--codec=h264', str(out / 'folder-motion.mp4')])
+    try:
+        run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', 'YES',
+            '-LCOSPreviewEnabled', 'YES', '-LCOSPreviewFolder', '', '-LCOSPreviewMotion', 'YES',
+            '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
+        time.sleep(14)
+    finally:
+        recording.send_signal(signal.SIGINT)
+        recording.wait(timeout=30)
     scope = ('Screenshots render production Home Screen sources in a native component fixture host with test-only registry adapters. '
              'Original launch controllers are not exercised. ' if component else
              'Screenshots render the complete LiveContainer simulator host using test-only guest registry metadata. ')

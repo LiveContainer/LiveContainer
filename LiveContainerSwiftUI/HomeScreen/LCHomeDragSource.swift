@@ -5,15 +5,16 @@ import UniformTypeIdentifiers
 /// UIKit owns the lift/drop/cancellation lifecycle, so a cancelled drag cannot leave a dimmed icon.
 struct LCHomeDragSource<Content: View>: UIViewControllerRepresentable {
     let id: String
+    let iconSide: CGFloat
     let content: Content
     let begin: () -> Void
     let end: () -> Void
     func makeUIViewController(context: Context) -> LCHomeDragController {
-        LCHomeDragController(id: id, content: AnyView(content), begin: begin, end: end)
+        LCHomeDragController(id: id, iconSide: iconSide, content: AnyView(content), begin: begin, end: end)
     }
     func updateUIViewController(_ controller: LCHomeDragController, context: Context) {
         controller.host.rootView = AnyView(content)
-        controller.id = id; controller.begin = begin; controller.end = end
+        controller.id = id; controller.iconSide = iconSide; controller.begin = begin; controller.end = end
     }
     @available(iOS 16.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize, uiViewController: LCHomeDragController, context: Context) -> CGSize? {
@@ -24,10 +25,11 @@ struct LCHomeDragSource<Content: View>: UIViewControllerRepresentable {
 final class LCHomeDragController: UIViewController, UIDragInteractionDelegate {
     let host: UIHostingController<AnyView>
     var id: String
+    var iconSide: CGFloat
     var begin: () -> Void
     var end: () -> Void
-    init(id: String, content: AnyView, begin: @escaping () -> Void, end: @escaping () -> Void) {
-        self.id = id; self.begin = begin; self.end = end
+    init(id: String, iconSide: CGFloat, content: AnyView, begin: @escaping () -> Void, end: @escaping () -> Void) {
+        self.id = id; self.iconSide = iconSide; self.begin = begin; self.end = end
         host = UIHostingController(rootView: content)
         super.init(nibName: nil, bundle: nil)
     }
@@ -55,7 +57,15 @@ final class LCHomeDragController: UIViewController, UIDragInteractionDelegate {
     func dragInteraction(_ interaction: UIDragInteraction, sessionAllowsMoveOperation session: UIDragSession) -> Bool { true }
     func dragInteraction(_ interaction: UIDragInteraction, sessionIsRestrictedToDraggingApplication session: UIDragSession) -> Bool { true }
     func dragInteraction(_ interaction: UIDragInteraction, previewForLifting item: UIDragItem, session: UIDragSession) -> UITargetedDragPreview? {
+        iconPreview()
+    }
+    func dragInteraction(_ interaction: UIDragInteraction, previewForCancelling item: UIDragItem, withDefault defaultPreview: UITargetedDragPreview) -> UITargetedDragPreview? {
+        iconPreview()
+    }
+    private func iconPreview() -> UITargetedDragPreview {
         let parameters = UIDragPreviewParameters(); parameters.backgroundColor = .clear
+        let icon = CGRect(x: (host.view.bounds.width - iconSide) / 2, y: 0, width: iconSide, height: iconSide)
+        parameters.visiblePath = UIBezierPath(roundedRect: icon, cornerRadius: iconSide * 0.235)
         return UITargetedDragPreview(view: host.view, parameters: parameters)
     }
 }

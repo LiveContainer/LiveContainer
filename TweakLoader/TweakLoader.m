@@ -4,6 +4,28 @@
 #include <objc/runtime.h>
 #import "../LiveContainer/utils.h"
 
+static void recordManagedLoad(NSURL *url, NSString *status, NSString *message) {
+    NSURL *packageURL = url.URLByDeletingLastPathComponent;
+    if (![packageURL.lastPathComponent hasPrefix:@"lcos-"] ||
+        ![NSFileManager.defaultManager fileExistsAtPath:[packageURL URLByAppendingPathComponent:@"receipt.json"].path]) {
+        return;
+    }
+    NSURL *logURL = [packageURL URLByAppendingPathComponent:@"load-results.json"];
+    NSMutableDictionary *results = [NSMutableDictionary new];
+    NSData *previous = [NSData dataWithContentsOfURL:logURL];
+    if (previous.length > 0 && previous.length < 65536) {
+        id decoded = [NSJSONSerialization JSONObjectWithData:previous options:NSJSONReadingMutableContainers error:nil];
+        if ([decoded isKindOfClass:NSDictionary.class]) [results addEntriesFromDictionary:decoded];
+    }
+    results[url.lastPathComponent] = @{@"status": status, @"timestamp": @(NSDate.date.timeIntervalSince1970),
+                                       @"error": message ?: @""};
+    NSError *writeError = nil;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:results options:0 error:&writeError];
+    if (!data || ![data writeToURL:logURL options:NSDataWritingAtomic error:&writeError]) {
+        NSLog(@"Unable to record managed tweak load: %@", writeError.localizedDescription);
+    }
+}
+
 static NSString *loadTweakAtURL(NSURL *url) {
     NSString *tweakPath = url.path;
     NSString *tweak = tweakPath.lastPathComponent;
@@ -20,15 +42,20 @@ static NSString *loadTweakAtURL(NSURL *url) {
         tweakPath = [[url URLByAppendingPathComponent:binary] path];
     }
     
+    recordManagedLoad(url, @"attempting", nil);
+    dlerror(); // Clear a stale error before this specific load attempt.
     void *handle = dlopen(tweakPath.UTF8String, RTLD_LAZY | RTLD_GLOBAL);
     const char *error = dlerror();
     if (handle) {
+        recordManagedLoad(url, @"loaded", nil);
         NSLog(@"Loaded tweak %@", tweak);
         return nil;
     } else if (error) {
+        recordManagedLoad(url, @"failed", @(error));
         NSLog(@"Error: %s", error);
         return @(error);
     } else {
+        recordManagedLoad(url, @"failed", @"dlopen returned NULL without an error");
         NSLog(@"Error: dlopen(%@): Unknown error because dlerror() returns NULL", tweak);
         return [NSString stringWithFormat:@"dlopen(%@): unknown error, handle is NULL", tweakPath];
     }

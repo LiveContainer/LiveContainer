@@ -36,6 +36,10 @@ No shared dependency installation is attempted, so no shared file reference coun
 inventory, enable/disable and confirmed removal. It uses private, unlocked guests only. Existing
 shared folders are rejected when another guest references them. Package loading still belongs to
 the upstream loader; receipts explicitly say runtime testing has not occurred.
+The loader records actual per-library `attempting`/`loaded`/`failed` results and errors beside a managed
+package receipt. The package screen reads the last timestamped result separately from installation
+status. A load that crashes during initialization may leave `attempting`; this is not proof of a crash
+cause and is not an automatic recovery system. Native hook behavior still requires the controlled test.
 
 ## Remaining scope
 

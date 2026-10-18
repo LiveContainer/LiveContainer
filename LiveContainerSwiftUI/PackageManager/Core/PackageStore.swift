@@ -16,6 +16,12 @@ struct PackageReceipt: Codable, Identifiable {
     let runtimeStatus: String
 }
 
+struct PackageLibraryLoadResult: Codable {
+    let status: String
+    let timestamp: TimeInterval
+    let error: String
+}
+
 actor PackageStore {
     let root: URL
     private var busy = false
@@ -130,6 +136,21 @@ actor PackageStore {
             guard attributes[.type] as? FileAttributeType == .typeRegular,
                   PackageSHA256.hex(try Data(contentsOf: file)) == hash else { throw PackageFailure.invalid("Integrity check failed for \(name)") }
         }
+    }
+
+    func loadResults(_ identifier: String, enabled: Bool) throws -> [String: PackageLibraryLoadResult] {
+        try validateRoot()
+        let directory = try folder(identifier, enabled: enabled)
+        let receipt = try readReceipt(at: directory)
+        let url = directory.appendingPathComponent("load-results.json")
+        guard fm.fileExists(atPath: url.path) else { return [:] }
+        let attributes = try fm.attributesOfItem(atPath: url.path)
+        guard attributes[.type] as? FileAttributeType == .typeRegular,
+              (attributes[.size] as? NSNumber)?.intValue ?? Int.max < 65536 else {
+            throw PackageFailure.invalid("Invalid managed load report")
+        }
+        let results = try JSONDecoder().decode([String: PackageLibraryLoadResult].self, from: Data(contentsOf: url))
+        return results.filter { receipt.binaryNames.contains($0.key) }
     }
 
     func setEnabled(_ identifier: String, enabled: Bool) throws {

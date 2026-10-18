@@ -17,6 +17,7 @@ struct LCDebPackageView: View {
     @State private var runtimeFolder = ""
     @State private var removal: PackageReceipt?
     @State private var trusted = false
+    @State private var loadReports: [String: String] = [:]
 
     private var apps: [LCAppModel] {
         shared.apps.filter { !$0.uiIsShared && !$0.uiIsLocked && !$0.uiIs32bit &&
@@ -63,7 +64,7 @@ struct LCDebPackageView: View {
                         }))
                         Text("\(receipt.version) · \(receipt.origin) · \(receipt.signature)")
                             .font(.caption).foregroundStyle(.secondary)
-                        Text("Runtime: \(receipt.runtimeStatus). Confirm loading and behavior in the guest.")
+                        Text(loadReports[receipt.id] ?? "No recorded load attempt. Launch the guest to test loading.")
                             .font(.caption).foregroundStyle(.secondary)
                         Button("Uninstall", role: .destructive) { removal = receipt }
                     }
@@ -74,6 +75,7 @@ struct LCDebPackageView: View {
         .navigationTitle("Debian Packages")
         .disabled(working)
         .task(id: selectedApp) { await selectGuest() }
+        .onForeground { Task { do { try await refresh() } catch { report(error) } } }
         .fileImporter(isPresented: $importing, allowedContentTypes: [UTType(filenameExtension: "deb") ?? .data]) { result in
             switch result {
             case .success(let url): Task { await inspect(url) }
@@ -178,6 +180,18 @@ struct LCDebPackageView: View {
         let items = try await store.inventory()
         receipts = items.map { $0.0 }
         enabled = Set(items.filter { $0.1 }.map { $0.0.id })
+        var reports: [String: String] = [:]
+        for (receipt, active) in items {
+            let results = try await store.loadResults(receipt.id, enabled: active)
+            if !results.isEmpty {
+                reports[receipt.id] = results.keys.sorted().map { name in
+                    let result = results[name]!
+                    let date = Date(timeIntervalSince1970: result.timestamp).formatted(date: .abbreviated, time: .shortened)
+                    return "\(name): \(result.status) (\(date))\(result.error.isEmpty ? "" : " — " + result.error)"
+                }.joined(separator: "\n") + "\nLast recorded attempt; loaded does not verify hook behavior."
+            }
+        }
+        loadReports = reports
     }
     private func changeEnabled(_ receipt: PackageReceipt, value: Bool) async {
         guard let store else { return }

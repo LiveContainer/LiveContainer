@@ -6,6 +6,8 @@ on:
     paths:
       - 'LiveContainerSwiftUI/HomeScreen/**'
       - 'LiveContainerSwiftUI/Views/AppList/**'
+      - 'LiveContainerSwiftUI/Views/LCTabView.swift'
+      - 'LiveContainerSwiftUI/Views/Settings/LCSettingsView.swift'
       - 'Tests/HomeScreenPreview/**'
       - 'scripts/home_screen_preview.py'
       - '.github/workflows/home-screen-preview.yml'

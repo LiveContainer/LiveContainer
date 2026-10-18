@@ -39,6 +39,10 @@ jobs:
         run: |
           set -o pipefail
           LCOS_DEVICE_PROBE_DIR="$PWD/artifacts/device-probe" swift test --filter 'testActualDevice' 2>&1 | tee device-probe-tests.log
+      - name: Validate shared SideStore signing bridge
+        run: |
+          set -o pipefail
+          python3 scripts/test_signing_bridge.py 2>&1 | tee signing-bridge-tests.log
       - uses: actions/download-artifact@v4
         with:
           name: sidestore-source-build
@@ -64,6 +68,7 @@ jobs:
             SOURCE_COMMIT
             SUBMODULES
             build-evidence.json
+            artifacts/signing-bridge/signing-bridge-evidence.json
             artifacts/sidestore-source/SIDESTORE_SOURCE.json
             artifacts/device-probe/LCOSProbe.ipa
             artifacts/device-probe/LCOSProbe-rootful.deb
@@ -77,4 +82,5 @@ jobs:
             xcodebuild.log
             package-tests.log
             device-probe-tests.log
+            signing-bridge-tests.log
           if-no-files-found: warn

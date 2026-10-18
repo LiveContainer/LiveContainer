@@ -25,6 +25,13 @@ TweakLoader and required plist values; it does not execute any app.
 
 ## Physical device checklist — not run
 
+The integrated workflow also runs `python3 scripts/test_signing_bridge.py` on macOS.
+It compiles the production SideStore bridge against a test-only Objective-C shared-group getter,
+applies a preset to the SDK-built guest, verifies disabling restores the executable, then ad-hoc
+signs the injected library and application and verifies the complete signature. Its JSON evidence
+is included in the IPA artifact. This exercises shared configuration and signing preparation;
+Apple ID provisioning, installation, refresh and runtime hooks still require a physical device.
+
 The Actions artifact also contains `LCOSProbe.ipa` and rootful/rootless `LCOSProbe` DEBs, compiled from
 `Tests/DeviceProbe` using the actual iOS SDK. Install the guest IPA through LiveContainer. With the tweak
 disabled, **Run hook probe** must show **ORIGINAL**. After matching DEB installation and guest relaunch,

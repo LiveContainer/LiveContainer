@@ -63,6 +63,16 @@ struct PreviewDelegate: LCAppBannerDelegate {}
 @main
 struct PreviewHost: App {
     @StateObject private var shared = SharedModel()
+    init() {
+        // SwiftUI AppStorage may not observe the launch-argument defaults domain.
+        // Seed the fixture's persistent domain before constructing production views.
+        let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("preview-config.plist")
+        if let data = try? Data(contentsOf: url),
+           let values = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
+            for (key, value) in values { UserDefaults.standard.set(value, forKey: key) }
+        }
+    }
     private let apps: [LCAppModel] = {
         let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Applications")
         let urls = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []

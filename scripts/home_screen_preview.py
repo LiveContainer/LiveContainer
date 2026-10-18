@@ -63,6 +63,9 @@ try:
             shutil.copyfile(icons / f'{i}.png', target / f'LCAppIcon{style}.png')
         ids.append(identifier + ':' + folder)
     layout = json.dumps({'version': 1, 'order': ids, 'dock': ids[-4:]})
+    if component:
+        (data / 'Documents/preview-config.plist').write_bytes(plistlib.dumps({
+            'LCOSHomeScreenEnabled': True, 'LCOSHomeLayout': layout}))
     captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png')]
     if not component:
         captures.append(('light', 'NO', 'app-list.png'))
@@ -71,7 +74,8 @@ try:
         subprocess.run(['xcrun', 'simctl', 'terminate', udid, bundle], capture_output=True)
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', enabled,
             '-LCOSHomeLayout', layout, '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
-        time.sleep(7)
+        # On shared CI runners image decoding and SwiftUI's first frame can lag launch.
+        time.sleep(25)
         run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=30)
     (out / 'README.txt').write_text('Screenshots render the production Home Screen and icon artwork source in a native component fixture host with test-only registry adapters and generated SF Symbol icons. Fixture apps are not production-installed apps. Original launch controllers, guest signing and tweak injection are not tested by these screenshots. The full host compiles for simulator but its launch was denied by SBMainWorkspace.\n', encoding='utf-8')
 finally:

@@ -1,6 +1,12 @@
 name: Home Screen - Simulator Preview
 on:
   workflow_dispatch:
+    inputs:
+      host:
+        description: 'Native component fixtures or complete LiveContainer host'
+        type: choice
+        options: [component, full]
+        default: component
   push:
     branches: ['codex/**']
     paths:
@@ -26,11 +32,24 @@ jobs:
         with:
           xcode-version: '26.2'
       - name: Compile production desktop sources in a native component fixture host
+        if: inputs.host != 'full'
         run: |
           set -o pipefail
           python3 scripts/build_home_preview.py 2>&1 | tee simulator-build.log
+      - name: Compile complete LiveContainer simulator host
+        if: inputs.host == 'full'
+        run: |
+          set -o pipefail
+          xcodebuild -project LiveContainer.xcodeproj -scheme LiveContainer -configuration Debug -sdk iphonesimulator -arch arm64 -derivedDataPath preview-build build 2>&1 | tee simulator-build.log
       - name: Capture native light and dark desktop layouts with test fixture metadata
-        run: python3 scripts/home_screen_preview.py --component
+        env:
+          PREVIEW_HOST: '${{ inputs.host }}'
+        run: |
+          if [ "$PREVIEW_HOST" = full ]; then
+            python3 scripts/home_screen_preview.py
+          else
+            python3 scripts/home_screen_preview.py --component
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

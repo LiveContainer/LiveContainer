@@ -56,6 +56,13 @@ final class SigningInjectionTests: XCTestCase {
         try SigningInjectionApply.prepare(app: app, identifier: identifier, root: presets)
         XCTAssertEqual(try Data(contentsOf: app.appendingPathComponent("Main")), original)
         XCTAssertFalse(FileManager.default.fileExists(atPath: app.appendingPathComponent("Frameworks/LCOSInjected").path))
+        let outside = root.appendingPathComponent("Outside")
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        try FileManager.default.removeItem(at: app.appendingPathComponent("Frameworks"))
+        try FileManager.default.createSymbolicLink(at: app.appendingPathComponent("Frameworks"), withDestinationURL: outside)
+        preset.enabled = true; try preset.write(to: presets)
+        XCTAssertThrowsError(try SigningInjectionApply.prepare(app: app, identifier: identifier, root: presets))
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: outside.path).isEmpty)
     }
     func testActualDeviceExecutableInjection() throws {
         guard let path = ProcessInfo.processInfo.environment["LCOS_DEVICE_PROBE_DIR"] else { throw XCTSkip("Requires the Xcode-built device probe") }

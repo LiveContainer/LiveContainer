@@ -45,10 +45,16 @@ enum SigningInjectionApply {
         let preset = try SigningInjectionPreset.read(identifier, root: root)
         let frameworkRoot = app.appendingPathComponent("Frameworks")
         let destination = frameworkRoot.appendingPathComponent("LCOSInjected")
+        let bundlePath = app.resolvingSymlinksInPath().path + "/"
         let receipt = destination.appendingPathComponent("lcos-owned.json")
         let exists = manager.fileExists(atPath: destination.path)
-        if exists, !manager.fileExists(atPath: receipt.path) { throw SigningInjectionFailure.invalid("LCOSInjected folder belongs to the original app; refusing to overwrite it") }
-        guard preset?.enabled == true || exists else { return }
+        let owned = exists && manager.fileExists(atPath: receipt.path)
+        guard preset?.enabled == true || owned else { return }
+        guard frameworkRoot.resolvingSymlinksInPath().path.hasPrefix(bundlePath),
+              destination.resolvingSymlinksInPath().path.hasPrefix(bundlePath) else {
+            throw SigningInjectionFailure.invalid("Injection destination escapes the application bundle")
+        }
+        if exists, !owned { throw SigningInjectionFailure.invalid("LCOSInjected folder belongs to the original app; refusing to overwrite it") }
         let infoData = try Data(contentsOf: app.appendingPathComponent("Info.plist"))
         guard let info = try PropertyListSerialization.propertyList(from: infoData, format: nil) as? [String: Any],
               let executable = info["CFBundleExecutable"] as? String, !executable.isEmpty, !executable.contains("/"), !executable.contains("..") else {
@@ -56,6 +62,10 @@ enum SigningInjectionApply {
         }
         let binaryURL = app.appendingPathComponent(executable)
         let originalAttributes = try manager.attributesOfItem(atPath: binaryURL.path)
+        guard binaryURL.resolvingSymlinksInPath().path.hasPrefix(bundlePath),
+              originalAttributes[.type] as? FileAttributeType == .typeRegular else {
+            throw SigningInjectionFailure.invalid("Application executable escapes the bundle or is not a regular file")
+        }
         let original = try Data(contentsOf: binaryURL)
         let libraries = preset?.enabled == true ? preset!.libraries : []
         let changed = try SigningMachO.inject(original, libraries: libraries)

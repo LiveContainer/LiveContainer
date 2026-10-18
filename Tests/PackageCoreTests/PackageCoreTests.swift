@@ -3,7 +3,7 @@ import XCTest
 @testable import PackageCore
 
 final class PackageCoreTests: XCTestCase {
-    let target = "org.livecontainer.guest"
+    let target = "org.example.lcosguest"
     func data(_ name: String) throws -> Data {
         try Data(contentsOf: Bundle.module.url(forResource: name, withExtension: "deb", subdirectory: "Fixtures")!)
     }

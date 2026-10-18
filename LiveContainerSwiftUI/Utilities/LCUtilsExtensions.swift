@@ -44,6 +44,23 @@ extension LCUtils {
             let baseName = name.hasSuffix(".disabled") ? String(name.dropLast(".disabled".count)) : name
             if(fileType == FileAttributeType.typeDirectory) {
                 if(!baseName.hasSuffix(".framework")) {
+                    // Managed DEBs are nested in the selected per-app folder. Keep their
+                    // signatures current on the existing prelaunch signing path.
+                    if name.hasPrefix("lcos-"), !name.hasSuffix(".disabled"),
+                       fm.fileExists(atPath: fileURL.appendingPathComponent("receipt.json").path) {
+                        let identifier = String(name.dropFirst(5))
+                        let store = PackageStore(root: tweakFolderUrl.resolvingSymlinksInPath())
+                        try await store.verify(identifier, enabled: true)
+                        try await signTweaks(tweakFolderUrl: fileURL, force: force, progressHandler: progressHandler)
+                        let receipt = try JSONDecoder().decode(PackageReceipt.self, from: Data(contentsOf: fileURL.appendingPathComponent("receipt.json")))
+                        for binary in receipt.binaryNames {
+                            guard try DebianPackage.safePath(binary) == binary, !binary.contains("/"),
+                                  checkCodeSignature((fileURL.appendingPathComponent(binary).path as NSString).utf8String) else {
+                                throw PackageFailure.invalid("Managed package signature check failed")
+                            }
+                        }
+                        try await store.recordResigned(identifier)
+                    }
                     continue
                 }
                 guard let frameworkBundle = Bundle(url: fileURL), let executableURL = frameworkBundle.executableURL else {

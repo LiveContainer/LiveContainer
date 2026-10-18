@@ -8,7 +8,7 @@ struct PackageReceipt: Codable, Identifiable {
     let targetBundle: String
     let origin: String
     let installedAt: Date
-    let sha256: [String: String]
+    var sha256: [String: String]
     let binaryNames: [String]
     let warnings: [String]
     let signature: String
@@ -126,6 +126,24 @@ actor PackageStore {
         guard !busy else { throw PackageFailure.invalid("Another package transaction is running") }
         try verify(identifier, enabled: !enabled)
         try fm.moveItem(at: folder(identifier, enabled: !enabled), to: folder(identifier, enabled: enabled))
+    }
+
+    // Called only after the trusted upstream signer has re-signed and checked this package.
+    func recordResigned(_ identifier: String) throws {
+        guard !busy else { throw PackageFailure.invalid("Another package transaction is running") }
+        try validateRoot()
+        let directory = try folder(identifier, enabled: true)
+        var receipt = try readReceipt(at: directory)
+        guard receipt.id == identifier else { throw PackageFailure.invalid("Receipt identity mismatch") }
+        for name in receipt.sha256.keys {
+            guard try DebianPackage.safePath(name) == name, !name.contains("/") else { throw PackageFailure.invalid("Invalid receipt path") }
+            let file = directory.appendingPathComponent(name)
+            guard try fm.attributesOfItem(atPath: file.path)[.type] as? FileAttributeType == .typeRegular else {
+                throw PackageFailure.invalid("Invalid signed package file")
+            }
+            receipt.sha256[name] = PackageSHA256.hex(try Data(contentsOf: file))
+        }
+        try JSONEncoder().encode(receipt).write(to: directory.appendingPathComponent("receipt.json"), options: .atomic)
     }
 
     func remove(_ identifier: String, enabled: Bool) throws {

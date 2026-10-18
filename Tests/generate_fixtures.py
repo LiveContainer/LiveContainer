@@ -21,7 +21,7 @@ def macho(cpu=0x100000c, dependency=None, padding=0):
         commands += struct.pack('<IIIIII', 0xc, size, 24, 0, 0, 0) + name + bytes(size - 24 - len(name))
     return struct.pack('<IIIIIIII', 0xfeedfacf, cpu, 0, 6, 2 if dependency else 1, len(commands), 0, 0) + commands
 
-FILTER = plistlib.dumps({'Filter': {'Bundles': ['org.livecontainer.guest']}})
+FILTER = plistlib.dumps({'Filter': {'Bundles': ['org.example.lcosguest']}})
 
 def tar(entries):
     out = io.BytesIO()

@@ -23,7 +23,9 @@ jobs:
         with:
           xcode-version: '26.2'
       - name: Test package core
-        run: swift test 2>&1 | tee package-tests.log
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee package-tests.log
       - name: Archive using upstream configuration
         run: |
           set -o pipefail

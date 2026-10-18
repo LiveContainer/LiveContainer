@@ -45,7 +45,10 @@ try:
     run('open', '-a', 'Simulator', '--args', '-CurrentDeviceUDID', udid)
     run('xcrun', 'simctl', 'status_bar', udid, 'override', '--time', '9:41', '--batteryState', 'charged', '--batteryLevel', '100')
     run('xcrun', 'simctl', 'launch', udid, 'com.apple.Preferences')
-    run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'simulator-health.png'), timeout=30)
+    try:
+        run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / 'simulator-health.png'), timeout=120)
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as error:
+        print(f'Optional system health screenshot unavailable: {error}', flush=True)
     run('xcrun', 'simctl', 'install', udid, str(app))
     data = pathlib.Path(subprocess.check_output(['xcrun', 'simctl', 'get_app_container', udid, bundle, 'data'], text=True).strip())
     icons = out / 'fixture-icons'
@@ -76,8 +79,12 @@ try:
             '-LCOSHomeLayout', layout, '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
         # On shared CI runners image decoding and SwiftUI's first frame can lag launch.
         time.sleep(25)
-        run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=30)
-    (out / 'README.txt').write_text('Screenshots render the production Home Screen and icon artwork source in a native component fixture host with test-only registry adapters and generated SF Symbol icons. Fixture apps are not production-installed apps. Original launch controllers, guest signing and tweak injection are not tested by these screenshots. The full host compiles for simulator but its launch was denied by SBMainWorkspace.\n', encoding='utf-8')
+        run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=120)
+    scope = ('Screenshots render production Home Screen sources in a native component fixture host with test-only registry adapters. '
+             'Original launch controllers are not exercised. ' if component else
+             'Screenshots render the complete LiveContainer simulator host using test-only guest registry metadata. ')
+    (out / 'README.txt').write_text(scope + 'Generated SF Symbol icons and fixture bundles are not shipped in the release IPA. '
+        'Screenshots do not test guest signing or tweak execution on a physical device.\n', encoding='utf-8')
 finally:
     # Keep failure evidence before deleting the temporary device.
     try:

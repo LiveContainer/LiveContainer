@@ -23,11 +23,14 @@ New installations appear automatically; removed/hidden apps are filtered from di
 
 Five portable unit tests exercise persistence, duplicate versions, inventory reconciliation, dock capacity and invalid drags.
 The integrated IPA workflow compiles the full native UI and retains the package-manager regression checks.
-The full host compiled for ARM64 simulator, but SBMainWorkspace denied its launch. The separate Simulator
-Preview workflow therefore compiles the actual desktop/layout/icon artwork sources in a standard native
-fixture host and captures light/dark screenshots. Its registry adapters, sample metadata and generated
+The Simulator Preview workflow compiles the actual desktop/layout/icon artwork sources in a standard native
+fixture host and captures light/dark screenshots. Run [39150799409](https://github.com/CORBENDALLAS111/LiveContainer/actions/runs/39150799409)
+successfully captured both appearances on an iPhone 17 Pro simulator. Its registry adapters, sample metadata and generated
 icon caches exist only in the test harness, outside the release bundle. This checks component rendering,
 not the original launch controllers or the full application's runtime behavior.
+The workflow also offers a manual `full` host mode to compile and launch the complete application.
+Earlier simulator launch failures are retained in CI history; the harness now opens Simulator explicitly,
+tests system Settings, records diagnostics, and requires a runtime matching the selected SDK.
 Screenshots do not establish guest signing or tweak execution on a physical device.
 
 Manual/device checks remain necessary for drag/context-menu gestures, VoiceOver, narrow split views, and launch regressions.

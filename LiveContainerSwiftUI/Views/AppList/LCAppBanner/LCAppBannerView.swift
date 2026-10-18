@@ -11,7 +11,11 @@ final class LCAppBannerRootView: UIView {
 
     let runControl = LCAppBannerRunControl()
 
-    private let visualBackgroundView = UIView()
+    private let visualBackgroundView: UIView = {
+        if #available(iOS 26.0, *) { return UIVisualEffectView(effect: UIGlassEffect(style: .regular)) }
+        return UIView()
+    }()
+    private var glassTint: UIColor?
     private let iconImageView = UIImageView()
     private let nameLabel = UILabel()
     private let versionLabel = UILabel()
@@ -156,9 +160,22 @@ final class LCAppBannerRootView: UIView {
         bit32Badge.isHidden = !model.uiIs32bit
         bit32Badge.backgroundColor = UIColor(named: "32BitBadgeColor") ?? .systemBlue
 
-        visualBackgroundView.backgroundColor = dynamicColors
-            ? mainColor.withAlphaComponent(0.5)
-            : (UIColor(named: "AppBannerBG") ?? .secondarySystemBackground)
+        if #available(iOS 26.0, *), let effectView = visualBackgroundView as? UIVisualEffectView {
+            let tint = dynamicColors ? mainColor.withAlphaComponent(0.12) : UIColor.clear
+            if glassTint != tint {
+                let glass = UIGlassEffect(style: .regular)
+                glass.tintColor = dynamicColors ? tint : nil
+                effectView.effect = glass
+                glassTint = tint
+            }
+            versionLabel.textColor = .secondaryLabel
+            remarkLabel.textColor = .secondaryLabel
+            containerLabel.textColor = .secondaryLabel
+        } else {
+            visualBackgroundView.backgroundColor = dynamicColors
+                ? mainColor.withAlphaComponent(0.5)
+                : (UIColor(named: "AppBannerBG") ?? .secondarySystemBackground)
+        }
         runControl.update(
             color: accentColor,
             isSigning: model.isSigningInProgress,

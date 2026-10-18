@@ -106,6 +106,19 @@ struct LCHomeScreenView: View {
         .onChange(of: available) { _ in
             if let id = folderID, !layout.folders.contains(where: { $0.id == id }) { folderID = nil }
         }
+        .onAppear {
+            #if DEBUG
+            // Screenshot fixtures are explicitly gated and compiled out of distribution builds.
+            if UserDefaults.standard.bool(forKey: "LCOSPreviewEnabled") {
+                let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("preview-config.plist")
+                if let data = try? Data(contentsOf: url),
+                   let values = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+                   let json = values["LCOSHomeLayout"] as? String { layoutJSON = json }
+                if let id = UserDefaults.standard.string(forKey: "LCOSPreviewFolder"),
+                   let folder = layout.folders.first(where: { $0.id == id }) { folderID = id; folderName = folder.name }
+            }
+            #endif
+        }
         .onDisappear { clearHover(); edgeTask?.cancel(); draggedID = nil }
     }
 
@@ -197,25 +210,32 @@ struct LCHomeScreenView: View {
     }
 
     private func tile(_ id: String, side: CGFloat, container: String?) -> some View {
-        tileArtwork(id, side: side)
+        LCHomeDragSource(id: id, content: tileArtwork(id, side: side), begin: {
+            startEditing(); draggedID = id; clearHover()
+        }, end: {
+            if draggedID == id { draggedID = nil }; clearHover(); edgeTask?.cancel()
+        })
             .frame(height: side + 30)
             .rotationEffect(.degrees(editing && !reduceMotion ? (jiggle ? 1.3 : -1.3) : 0))
             .scaleEffect(folderCandidate == id ? 1.13 : 1)
             .opacity(draggedID == id ? 0.28 : 1)
             .contentShape(Rectangle())
-            .onDrag {
-                startEditing(); draggedID = id; clearHover()
-                let provider = NSItemProvider()
-                provider.registerDataRepresentation(forTypeIdentifier: Self.dragType.identifier, visibility: .ownProcess) { completion in
-                    completion(Data(id.utf8), nil); return nil
-                }
-                return provider
-            } preview: { tileArtwork(id, side: side).frame(width: side + 18, height: side + 30) }
             .onDrop(of: [Self.dragType], delegate: LCHomeDrop(
                 dragged: draggedID, target: id, iconSide: side,
                 hover: { source, center in hover(source: source, target: id, center: center, container: container) },
                 exit: { if hoveredID == id { clearHover() } },
                 finish: { completeDrop(target: id, container: container) }))
+            .overlay(alignment: .topLeading) {
+                if editing, container != nil {
+                    Button {
+                        var value = layout; value.moveItem(id, before: nil, available: available)
+                        animate { save(value) }
+                    } label: {
+                        Image(systemName: "minus").font(.system(size: 12, weight: .bold)).frame(width: 26, height: 26)
+                            .lcGlass(in: Circle(), interactive: true)
+                    }.buttonStyle(.plain).offset(x: -2, y: -8).accessibilityLabel("lcos.home.moveOut".loc)
+                }
+            }
             .accessibilityAction(named: Text("lcos.home.edit".loc)) { startEditing() }
             .accessibilityAction(named: Text("lcos.home.moveOut".loc)) {
                 guard container != nil else { return }

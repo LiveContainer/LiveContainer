@@ -9,9 +9,9 @@ app = root / 'artifacts/home-preview-build/LCOSHomePreview.app'
 app.mkdir(parents=True, exist_ok=True)
 sdk = subprocess.check_output(['xcrun', '--sdk', 'iphonesimulator', '--show-sdk-path'], text=True).strip()
 sources = ['Tests/HomeScreenPreview/PreviewHost.swift', 'LiveContainerSwiftUI/HomeScreen/Core/LCHomeLayout.swift',
-           'LiveContainerSwiftUI/HomeScreen/LCHomeIconArtwork.swift', 'LiveContainerSwiftUI/HomeScreen/LCHomeGlass.swift', 'LiveContainerSwiftUI/HomeScreen/LCHomeScreenView.swift']
+           'LiveContainerSwiftUI/HomeScreen/LCHomeIconArtwork.swift', 'LiveContainerSwiftUI/HomeScreen/LCHomeGlass.swift', 'LiveContainerSwiftUI/HomeScreen/LCHomeDragSource.swift', 'LiveContainerSwiftUI/HomeScreen/LCHomeScreenView.swift']
 subprocess.run(['xcrun', '--sdk', 'iphonesimulator', 'swiftc', '-target', 'arm64-apple-ios15.0-simulator', '-sdk', sdk,
-                '-parse-as-library', *[str(root / source) for source in sources], '-o', str(app / 'LCOSHomePreview')], check=True)
+                '-parse-as-library', '-D', 'DEBUG', *[str(root / source) for source in sources], '-o', str(app / 'LCOSHomePreview')], check=True)
 (app / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier': 'org.example.lcoshomepreview',
     'CFBundleExecutable': 'LCOSHomePreview', 'CFBundleName': 'Home Screen Preview', 'CFBundleVersion': '1',
     'CFBundleShortVersionString': '1.0', 'CFBundlePackageType': 'APPL', 'MinimumOSVersion': '15.0',

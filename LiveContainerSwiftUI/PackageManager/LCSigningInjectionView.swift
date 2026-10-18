@@ -9,7 +9,7 @@ struct LCSigningInjectionView: View {
     @State private var error: String?
     @State private var pending: Pending?
     @EnvironmentObject private var shared: SharedModel
-    private struct Pending: Identifiable {
+    private struct Pending: Identifiable, Sendable {
         let id = UUID()
         let target: String
         let files: [String: Data]
@@ -25,7 +25,7 @@ struct LCSigningInjectionView: View {
                 TextField("lcos.signing.bundle".loc, text: $target)
                     .textInputAutocapitalization(.never).disableAutocorrection(true).autocorrectionDisabled()
                 Menu("lcos.signing.chooseGuest".loc) {
-                    ForEach(shared.apps, id: \.bundleIdentifier) { app in
+                    ForEach(shared.apps, id: \.appInfo.relativeBundlePath) { app in
                         Button(app.displayName) { target = app.bundleIdentifier }
                     }
                 }
@@ -113,6 +113,13 @@ struct LCSigningInjectionView: View {
             var preset = try SigningInjectionPreset.read(pending.target, root: root)
                 ?? SigningInjectionPreset(bundleIdentifier: pending.target, files: [], libraries: [], packageNames: [])
             for (name, bytes) in pending.files {
+                let (_, inspection) = try MachOInspection.inspectAndAdapt(bytes)
+                let version = ProcessInfo.processInfo.operatingSystemVersion
+                let currentOS = UInt32(version.majorVersion << 16 | version.minorVersion << 8 | version.patchVersion)
+                guard inspection.minimumOS <= currentOS else { throw SigningInjectionFailure.invalid("Library requires a newer iOS version") }
+                let superseded = preset.libraries.filter { $0.hasSuffix("_" + name) }
+                preset.libraries.removeAll { superseded.contains($0) }
+                preset.files.removeAll { superseded.contains($0.path) }
                 let name = String(PackageSHA256.hex(bytes).prefix(12)) + "_" + name
                 guard !name.contains("/"), !name.contains("..") else { throw SigningInjectionFailure.invalid("Invalid library name") }
                 try bytes.write(to: folder.appendingPathComponent(name), options: .atomic)

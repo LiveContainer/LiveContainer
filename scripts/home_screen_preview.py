@@ -55,7 +55,8 @@ try:
     run('swift', str(root / 'Tests/HomeScreenPreview/MakeIcons.swift'), str(icons))
     names = ['Notes', 'Camera', 'Music', 'Maps', 'Books', 'Audio', 'Sketch', 'Mail', 'Files', 'Calendar', 'Photos', 'Player']
     ids = []
-    for i, name in enumerate(names):
+    for i in range(32):
+        name = names[i % len(names)] + (f" {i // len(names) + 1}" if i >= len(names) else "")
         folder = f'Preview{i}.app'
         identifier = f'org.example.homepreview.{i}'
         target = data / 'Documents/Applications' / folder
@@ -63,20 +64,18 @@ try:
         (target / 'Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier': identifier, 'CFBundleName': name,
             'CFBundleDisplayName': name, 'CFBundleExecutable': 'Preview', 'CFBundleVersion': '1', 'CFBundleShortVersionString': '1.0'}))
         for style in ['Light', 'Dark']:
-            shutil.copyfile(icons / f'{i}.png', target / f'LCAppIcon{style}.png')
+            shutil.copyfile(icons / f'{i % len(names)}.png', target / f'LCAppIcon{style}.png')
         ids.append(identifier + ':' + folder)
-    layout = json.dumps({'version': 1, 'order': ids, 'dock': ids[-4:]})
-    if component:
-        (data / 'Documents/preview-config.plist').write_bytes(plistlib.dumps({
-            'LCOSHomeScreenEnabled': True, 'LCOSHomeLayout': layout}))
-    captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png')]
+    layout = json.dumps({'version': 2, 'order': ['folder:preview'] + ids[10:], 'folders': [{'id': 'folder:preview', 'name': 'Utilities', 'apps': ids[:10]}]})
+    (data / 'Documents/preview-config.plist').write_bytes(plistlib.dumps({'LCOSHomeScreenEnabled': True, 'LCOSHomeLayout': layout}))
+    captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png'), ('dark', 'YES', 'folder-open.png')]
     if not component:
         captures.append(('light', 'NO', 'app-list.png'))
     for appearance, enabled, filename in captures:
         run('xcrun', 'simctl', 'ui', udid, 'appearance', appearance)
         subprocess.run(['xcrun', 'simctl', 'terminate', udid, bundle], capture_output=True)
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', enabled,
-            '-LCOSHomeLayout', layout, '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
+            '-LCOSHomeLayout', layout, '-LCOSPreviewEnabled', 'YES', '-LCOSPreviewFolder', 'folder:preview' if filename == 'folder-open.png' else '', '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
         # On shared CI runners image decoding and SwiftUI's first frame can lag launch.
         time.sleep(25)
         run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=120)

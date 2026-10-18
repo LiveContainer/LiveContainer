@@ -16,10 +16,9 @@ for (index, symbol) in symbols.enumerated() {
     colors[index].setFill()
     NSBezierPath(rect: NSRect(x: 0, y: 0, width: 180, height: 180)).fill()
     if let icon = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-        .withSymbolConfiguration(.init(pointSize: 84, weight: .medium)) {
+        .withSymbolConfiguration(.init(pointSize: 84, weight: .medium))?
+        .withSymbolConfiguration(.init(paletteColors: [.white])) {
         icon.draw(in: NSRect(x: 44, y: 44, width: 92, height: 92))
-        NSColor.white.setFill()
-        NSRect(x: 44, y: 44, width: 92, height: 92).fill(using: .sourceAtop)
     }
     NSGraphicsContext.restoreGraphicsState()
     try bitmap.representation(using: .png, properties: [:])!.write(to: directory.appendingPathComponent("\(index).png"))

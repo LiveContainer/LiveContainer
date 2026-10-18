@@ -25,7 +25,7 @@ jobs:
       - name: Build actual host for iOS Simulator
         run: |
           set -o pipefail
-          xcodebuild -project LiveContainer.xcodeproj -scheme LiveContainer -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath preview-build CODE_SIGNING_ALLOWED=NO build > simulator-build.log 2>&1
+          xcodebuild -project LiveContainer.xcodeproj -scheme LiveContainer -configuration Debug -sdk iphonesimulator -arch arm64 -destination 'generic/platform=iOS Simulator' -derivedDataPath preview-build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES build > simulator-build.log 2>&1
       - name: Capture native light, dark and list layouts with test fixture metadata
         run: python3 scripts/home_screen_preview.py
       - uses: actions/upload-artifact@v4

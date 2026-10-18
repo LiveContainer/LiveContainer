@@ -122,182 +122,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     }
     
     var body: some View {
-        NavigationView {
-            Group {
-                if homeScreenEnabled {
-                    LCHomeScreenView(apps: sortedApps, delegate: self, importing: installprogressVisible,
-                                     installProgress: installProgressPercentage,
-                                     importIPA: { choosingIPA = true },
-                                     importURL: { Task { await startInstallFromUrl() } },
-                                     openLink: { Task { await onOpenWebViewTapped() } },
-                                     openSideStore: UserDefaults.sideStoreExist() ? { LCUtils.openSideStore(delegate: self) } : nil)
-                } else {
-            ScrollView {
-                LazyVStack {
-                    ForEach(filteredApps, id: \.self) { app in
-                        LCAppBanner(appModel: app, delegate: self)
-                    }
-                    .transition(.scale)
-                }
-                .padding()
-                .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
-
-                VStack {
-                    if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
-                        if sharedModel.isHiddenAppUnlocked {
-                            LazyVStack {
-                                HStack {
-                                    Text("lc.appList.hiddenApps".loc)
-                                        .font(.system(.title2).bold())
-                                    Spacer()
-                                }
-                                
-                                ForEach(filteredHiddenApps, id: \.self) { app in
-                                    LCAppBanner(appModel: app, delegate: self)
-                                }
-                                .transition(.scale)
-                                
-                            }
-                            .padding()
-                            .transition(.opacity)
-                            .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
-                            
-                            if sharedModel.hiddenApps.count == 0 {
-                                Text("lc.appList.hideAppTip".loc)
-                                    .foregroundStyle(.gray)
-                            }
-                        }
-                    } else if sharedModel.hiddenApps.count > 0 {
-                        LazyVStack {
-                            HStack {
-                                Text("lc.appList.hiddenApps".loc)
-                                    .font(.system(.title2).bold())
-                                Spacer()
-                            }
-                            ForEach(filteredHiddenApps, id: \.self) { app in
-                                if sharedModel.isHiddenAppUnlocked {
-                                    LCAppBanner(appModel: app, delegate: self)
-                                } else {
-                                    LCAppSkeletonBanner()
-                                }
-                            }
-                            .animation(.easeInOut, value: sharedModel.isHiddenAppUnlocked)
-                            .onTapGesture {
-                                Task { await authenticateUser() }
-                            }
-                        }
-                        .padding()
-                        .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
-                    }
-
-                    let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
-                    Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
-                        .padding(.horizontal)
-                        .foregroundStyle(.gray)
-                        .animation(searchContext.isTyping ? nil : .easeInOut, value: appCount)
-                        .onTapGesture(count: 3) {
-                            Task { await authenticateUser() }
-                        }
-                }.animation(searchContext.isTyping ? nil : .easeInOut, value: LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding"))
-
-                if sharedModel.multiLCStatus == 2 {
-                    Text("lc.appList.manageInPrimaryTip".loc).foregroundStyle(.gray).padding()
-                }
-
-            }
-                }
-            }
-            .background(NavigationLink(destination: navigateTo, isActive: $isNavigationActive) { EmptyView() }.hidden())
-            .navigationBarHidden(homeScreenEnabled && !isNavigationActive)
-            .apply { content in
-                if #available(iOS 16.0, *) {
-                    content.toolbar(homeScreenEnabled ? .hidden : .visible, for: .tabBar)
-                } else { content }
-            }
-            .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
-            .coordinateSpace(name: "scroll")
-            .onAppear {
-                if !didAppear {
-                    onAppear()
-                }
-            }
-            
-            .navigationTitle("lc.appList.myApps".loc)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    if sharedModel.multiLCStatus != 2 {
-                        if !installprogressVisible {
-                            Menu {
-                                
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
-                                    choosingIPA = true
-                                })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
-                                    Task{ await startInstallFromUrl() }
-                                })
-                            } label: {
-                                Label("add", systemImage: "plus")
-                            }
-                            
-                        } else {
-                            ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    if(UserDefaults.sideStoreExist()) {
-                        Button {
-                            LCUtils.openSideStore(delegate: self)
-                        } label: {
-                            IconImageView(icon: BuiltInSideStoreAppInfo.shared.iconIsDarkIcon(darkModeIcon))
-                                .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
-
-                        }
-                    } else {
-                        Button("Help", systemImage: "questionmark") {
-                            helpPresent = true
-                        }
-                    }
-                    
-
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("lc.appList.openLink".loc, systemImage: "link", action: {
-                        Task { await onOpenWebViewTapped() }
-                    })
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Toggle("lcos.home.enabled".loc, isOn: $homeScreenEnabled)
-                        Divider()
-                        Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
-                            ForEach(AppSortType.allCases, id: \.self) { sortType in
-                                Label(sortType.displayName, systemImage: sortType.systemImage)
-                                    .tag(sortType)
-                            }
-                        }
-                        .onChange(of: sharedAppSortManager.appSortType) { newValue in
-                            if sharedAppSortManager.appSortType == .custom {
-                                customSortViewPresent = true
-                            }
-                        }
-                        if sharedAppSortManager.appSortType == .custom {
-                            Divider()
-                            
-                            Button {
-                                customSortViewPresent = true
-                            } label: {
-                                Label("lc.appList.sort.customManage".loc, systemImage: "slider.horizontal.3")
-                            }
-                        }
-                    } label: {
-                        Label("Sort by", systemImage: "line.3.horizontal.decrease.circle")
-                    }
-                }
-            }
-        }
+        appNavigation
         .navigationViewStyle(StackNavigationViewStyle())
         .alert("lc.common.error".loc, isPresented: $errorShow){
             Button("lc.common.ok".loc, action: {
@@ -451,6 +276,198 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     }
     
+    private var appNavigation: some View {
+        NavigationView {
+            appCollection
+            .background(NavigationLink(destination: navigateTo, isActive: $isNavigationActive) { EmptyView() }.hidden())
+            .navigationBarHidden(homeScreenEnabled && !isNavigationActive)
+            .apply { content in
+                if #available(iOS 16.0, *) {
+                    content.toolbar(homeScreenEnabled ? .hidden : .visible, for: .tabBar)
+                } else { content }
+            }
+            .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
+            .coordinateSpace(name: "scroll")
+            .onAppear {
+                if !didAppear {
+                    onAppear()
+                }
+            }
+            
+            .navigationTitle("lc.appList.myApps".loc)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if sharedModel.multiLCStatus != 2 {
+                        if !installprogressVisible {
+                            Menu {
+                                
+                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
+                                    choosingIPA = true
+                                })
+                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
+                                    Task{ await startInstallFromUrl() }
+                                })
+                            } label: {
+                                Label("add", systemImage: "plus")
+                            }
+                            
+                        } else {
+                            ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)
+                        }
+                    }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    if(UserDefaults.sideStoreExist()) {
+                        Button {
+                            LCUtils.openSideStore(delegate: self)
+                        } label: {
+                            IconImageView(icon: BuiltInSideStoreAppInfo.shared.iconIsDarkIcon(darkModeIcon))
+                                .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
+
+                        }
+                    } else {
+                        Button("Help", systemImage: "questionmark") {
+                            helpPresent = true
+                        }
+                    }
+                    
+
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("lc.appList.openLink".loc, systemImage: "link", action: {
+                        Task { await onOpenWebViewTapped() }
+                    })
+                }
+                
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Toggle("lcos.home.enabled".loc, isOn: $homeScreenEnabled)
+                        Divider()
+                        Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
+                            ForEach(AppSortType.allCases, id: \.self) { sortType in
+                                Label(sortType.displayName, systemImage: sortType.systemImage)
+                                    .tag(sortType)
+                            }
+                        }
+                        .onChange(of: sharedAppSortManager.appSortType) { newValue in
+                            if sharedAppSortManager.appSortType == .custom {
+                                customSortViewPresent = true
+                            }
+                        }
+                        if sharedAppSortManager.appSortType == .custom {
+                            Divider()
+                            
+                            Button {
+                                customSortViewPresent = true
+                            } label: {
+                                Label("lc.appList.sort.customManage".loc, systemImage: "slider.horizontal.3")
+                            }
+                        }
+                    } label: {
+                        Label("Sort by", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var appCollection: some View {
+        if homeScreenEnabled { desktop }
+        else { legacyAppList }
+    }
+
+    private var sideStoreAction: (() -> Void)? {
+        guard UserDefaults.sideStoreExist() else { return nil }
+        return { LCUtils.openSideStore(delegate: self) }
+    }
+
+    private var desktop: some View {
+        LCHomeScreenView(apps: sortedApps, delegate: self, importing: installprogressVisible,
+                         installProgress: installProgressPercentage,
+                         importIPA: { choosingIPA = true },
+                         importURL: { Task { await startInstallFromUrl() } },
+                         openLink: { Task { await onOpenWebViewTapped() } },
+                         openSideStore: sideStoreAction)
+    }
+
+    private var legacyAppList: some View {
+            ScrollView {
+                LazyVStack {
+                    ForEach(filteredApps, id: \.self) { app in
+                        LCAppBanner(appModel: app, delegate: self)
+                    }
+                    .transition(.scale)
+                }
+                .padding()
+                .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
+
+                VStack {
+                    if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
+                        if sharedModel.isHiddenAppUnlocked {
+                            LazyVStack {
+                                HStack {
+                                    Text("lc.appList.hiddenApps".loc)
+                                        .font(.system(.title2).bold())
+                                    Spacer()
+                                }
+                                
+                                ForEach(filteredHiddenApps, id: \.self) { app in
+                                    LCAppBanner(appModel: app, delegate: self)
+                                }
+                                .transition(.scale)
+                                
+                            }
+                            .padding()
+                            .transition(.opacity)
+                            .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
+                            
+                            if sharedModel.hiddenApps.count == 0 {
+                                Text("lc.appList.hideAppTip".loc)
+                                    .foregroundStyle(.gray)
+                            }
+                        }
+                    } else if sharedModel.hiddenApps.count > 0 {
+                        LazyVStack {
+                            HStack {
+                                Text("lc.appList.hiddenApps".loc)
+                                    .font(.system(.title2).bold())
+                                Spacer()
+                            }
+                            ForEach(filteredHiddenApps, id: \.self) { app in
+                                if sharedModel.isHiddenAppUnlocked {
+                                    LCAppBanner(appModel: app, delegate: self)
+                                } else {
+                                    LCAppSkeletonBanner()
+                                }
+                            }
+                            .animation(.easeInOut, value: sharedModel.isHiddenAppUnlocked)
+                            .onTapGesture {
+                                Task { await authenticateUser() }
+                            }
+                        }
+                        .padding()
+                        .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredHiddenApps)
+                    }
+
+                    let appCount = sharedModel.isHiddenAppUnlocked ? filteredApps.count + filteredHiddenApps.count : filteredApps.count
+                    Text(appCount > 0 || searchContext.debouncedQuery != "" ? "lc.appList.appCounter %lld".localizeWithFormat(appCount) : (sharedModel.multiLCStatus == 2 ? "lc.appList.convertToSharedToShowInLC2".loc : "lc.appList.installTip".loc))
+                        .padding(.horizontal)
+                        .foregroundStyle(.gray)
+                        .animation(searchContext.isTyping ? nil : .easeInOut, value: appCount)
+                        .onTapGesture(count: 3) {
+                            Task { await authenticateUser() }
+                        }
+                }.animation(searchContext.isTyping ? nil : .easeInOut, value: LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding"))
+
+                if sharedModel.multiLCStatus == 2 {
+                    Text("lc.appList.manageInPrimaryTip".loc).foregroundStyle(.gray).padding()
+                }
+
+            }
+    }
+
     var JITEnablingModal : some View {
         NavigationView {
             ScrollViewReader { proxy in

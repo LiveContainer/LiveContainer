@@ -7,7 +7,9 @@
 - Rootful `Library/MobileSubstrate/DynamicLibraries` and `usr/lib/TweakInject`; same paths below `var/jb`.
 - Bundles-only filter plists that explicitly match the chosen private arm64 guest.
 - Thin arm64 iOS MH_DYLIB; bounds-checked load commands and minimum device OS check.
-- System-library dependencies from a limited allowlist; upstream CydiaSubstrate framework install name.
+- System-library dependencies from a limited allowlist, including direct `/usr/lib/swift/libswift*.dylib`
+  runtime libraries supplied by iOS; upstream CydiaSubstrate framework install name. This accepts the
+  dependency path without bundling or rewriting Swift libraries; the device must provide the required runtime.
 - Substrate dependency rewriting only when the existing load-command string capacity is sufficient.
 - Per-package atomic publication after ZSign and upstream signature checks; post-signing SHA-256 receipts.
 - Per-guest enable, disable and uninstall through existing selected tweak folder behavior.

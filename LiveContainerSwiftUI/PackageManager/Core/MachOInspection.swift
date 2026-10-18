@@ -51,7 +51,12 @@ struct MachOInspection: Codable {
                     }
                     let system = (replacement.hasPrefix("/System/Library/Frameworks/") || replacement.hasPrefix("/System/Library/PrivateFrameworks/") || replacement.hasPrefix("/usr/lib/")) && !replacement.contains("..")
                     let allowedLibraries = ["libSystem.B.dylib", "libobjc.A.dylib", "libc++.1.dylib", "libc++abi.dylib", "libz.1.dylib", "libsqlite3.dylib", "libiconv.2.dylib"]
-                    let knownSystem = system && (!replacement.hasPrefix("/usr/lib/") || allowedLibraries.contains(String(replacement.dropFirst(9))))
+                    // Swift iOS apps and tweaks link these OS-provided runtime libraries.
+                    // Permit only a direct libswift*.dylib in the system Swift directory;
+                    // package-relative, nested and traversal paths still need resolution.
+                    let swiftRuntime = replacement.range(of: #"\A/usr/lib/swift/libswift[A-Za-z0-9_]+\.dylib\z"#,
+                                                         options: .regularExpression) != nil
+                    let knownSystem = system && (!replacement.hasPrefix("/usr/lib/") || allowedLibraries.contains(String(replacement.dropFirst(9))) || swiftRuntime)
                     guard knownSystem || replacement == "@rpath/CydiaSubstrate.framework/CydiaSubstrate" else {
                         throw PackageFailure.invalid("Unresolved or unsupported library: \(path)")
                     }

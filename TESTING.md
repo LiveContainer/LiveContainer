@@ -12,6 +12,12 @@ case-colliding paths, file/count/expanded limits, scripts, dependencies, platfor
 missing libraries, bounded substrate rewriting, truncated Mach-O commands, SHA-256 vectors, installation,
 enable/disable, integrity failure, signing failure rollback and uninstall preservation of unrelated files.
 
+System Swift runtime dependency tests accept direct `/usr/lib/swift/libswift*.dylib` paths and reject
+traversal, nested paths, relative paths and lookalike filenames. To additionally inspect an independently
+built Vitrine DEB through the real package/install-plan parsers, run
+`LCOS_VITRINE_DEB=/path/to/vitrine.deb swift test`. This validates compatibility inspection only;
+it does not sign the package, load it on iOS or prove its hooks work.
+
 Package store tests inject test signing closures to exercise transaction behavior. They do not claim
 to test Apple signing. Production uses ZSign followed by upstream signature checking and refuses a missing
 certificate. IPA verification checks ZIP integrity, expected root app/executable/frameworks, SideStore,

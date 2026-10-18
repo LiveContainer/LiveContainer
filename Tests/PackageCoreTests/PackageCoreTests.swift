@@ -82,6 +82,45 @@ final class PackageCoreTests: XCTestCase {
         corrupt.replaceSubrange(20..<24, with: [0xff, 0xff, 0xff, 0x7f])
         XCTAssertThrowsError(try MachOInspection.inspectAndAdapt(corrupt))
     }
+    private func binaryDepending(on path: String) -> Data {
+        let name = Array(path.utf8) + [UInt8(0)]
+        let commandSize = UInt32((24 + name.count + 7) / 8 * 8)
+        let words: [UInt32] = [0xfeedfacf, 0x0100000c, 0, 6, 2, 24 + commandSize, 0, 0,
+                               0x32, 24, 2, 0x100100, 0x1a0000, 0,
+                               0xc, commandSize, 24, 0, 0, 0]
+        var binary = Data(words.flatMap { word in (0..<4).map { UInt8(truncatingIfNeeded: word >> ($0 * 8)) } })
+        binary.append(contentsOf: name)
+        binary.append(contentsOf: repeatElement(UInt8(0), count: Int(commandSize) - 24 - name.count))
+        return binary
+    }
+    func testSystemSwiftRuntimeDependencies() throws {
+        for name in ["Core", "UIKit", "_Concurrency", "CoreFoundation", "Dispatch", "os", "simd"] {
+            let path = "/usr/lib/swift/libswift\(name).dylib"
+            let binary = binaryDepending(on: path)
+            let (adapted, inspection) = try MachOInspection.inspectAndAdapt(binary)
+            XCTAssertEqual(adapted, binary, "System runtime paths must not be rewritten")
+            XCTAssertEqual(inspection.dependencies, [path])
+        }
+    }
+    func testSwiftRuntimePathLookalikesRejected() {
+        for path in ["/usr/lib/swift/../libswiftCore.dylib", "/usr/lib/swift/nested/libswiftCore.dylib",
+                     "/usr/lib/swift/libswiftCore.dylib/extra", "/usr/lib/swift/libswiftCore.dylib\n",
+                     "/usr/lib/swift/libOther.dylib", "/usr/lib/swift/libswift.dylib",
+                     "/var/jb/usr/lib/swift/libswiftCore.dylib", "@rpath/libswiftCore.dylib",
+                     "/usr/lib/swift/libswiftCore.dylib.disabled"] {
+            XCTAssertThrowsError(try MachOInspection.inspectAndAdapt(binaryDepending(on: path)), path)
+        }
+    }
+    func testSuppliedVitrinePackage() throws {
+        guard let path = ProcessInfo.processInfo.environment["LCOS_VITRINE_DEB"] else {
+            throw XCTSkip("Set LCOS_VITRINE_DEB to inspect the independently built Vitrine package")
+        }
+        let package = try DebianPackage(data: Data(contentsOf: URL(fileURLWithPath: path)))
+        let plan = try TweakInstallPlan(package: package, targetBundle: "com.spotify.client")
+        let inspection = try XCTUnwrap(plan.binaries["spotifyglass.dylib"])
+        XCTAssertTrue(inspection.dependencies.contains("/usr/lib/swift/libswiftCore.dylib"))
+        XCTAssertFalse(inspection.dependencies.contains { $0.lowercased().contains("substrate") })
+    }
     func testSHA256Vectors() {
         XCTAssertEqual(PackageSHA256.hex(Data()), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
         XCTAssertEqual(PackageSHA256.hex(Data("abc".utf8)), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")

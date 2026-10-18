@@ -20,10 +20,20 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     private let bannerView = LCAppBannerRootView()
     private var configuration: LCAppBannerConfiguration
     private var exportTemporaryDirectory: URL?
+    private let homeScreen: Bool
+    private var iconSide: CGFloat
+    private var showLabel: Bool
+    private var iconHost: UIHostingController<LCHomeIconArtwork>?
+    var onToggleDock: (() -> Void)?
+    var isDocked = false
     
-    init(delegate: LCAppBannerDelegate, config: LCAppBannerConfiguration) {
+    init(delegate: LCAppBannerDelegate, config: LCAppBannerConfiguration, homeScreen: Bool = false,
+         iconSide: CGFloat = 62, showLabel: Bool = true) {
         self.delegate = delegate
         self.configuration = config
+        self.homeScreen = homeScreen
+        self.iconSide = iconSide
+        self.showLabel = showLabel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -32,12 +42,34 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     }
 
     override func loadView() {
-        view = bannerView
+        if homeScreen {
+            view = UIView()
+            view.backgroundColor = .clear
+            let host = UIHostingController(rootView: makeHomeIcon())
+            iconHost = host
+            addChild(host)
+            host.view.backgroundColor = .clear
+            host.view.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(host.view)
+            NSLayoutConstraint.activate([
+                host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                host.view.topAnchor.constraint(equalTo: view.topAnchor),
+                host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+            host.didMove(toParent: self)
+        } else {
+            view = bannerView
+        }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if homeScreen {
+            view.addInteraction(UIContextMenuInteraction(delegate: self))
+            return
+        }
         preferredContentSize = CGSize(width: 0, height: LCAppBannerRootView.bannerHeight)
         bannerView.runControl.addTarget(self, action: #selector(runButtonTapped), for: .touchUpInside)
         bannerView.addInteraction(UIContextMenuInteraction(delegate: self))
@@ -74,6 +106,10 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     }
 
     private func refreshView() {
+        if homeScreen {
+            iconHost?.rootView = makeHomeIcon()
+            return
+        }
         bannerView.update(
             model: configuration.model,
             appInfo: configuration.model.appInfo,
@@ -81,6 +117,18 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
             darkModeIcon: configuration.darkModeIcon,
             traitCollection: traitCollection
         )
+    }
+
+    private func makeHomeIcon() -> LCHomeIconArtwork {
+        LCHomeIconArtwork(model: configuration.model, darkIcon: configuration.darkModeIcon,
+                          side: iconSide, showLabel: showLabel, launch: { [weak self] in self?.runButtonTapped() })
+    }
+
+    func updateHomeIcon(side: CGFloat, showLabel: Bool) {
+        guard homeScreen else { return }
+        iconSide = side
+        self.showLabel = showLabel
+        iconHost?.rootView = makeHomeIcon()
     }
 
     @objc private func bannerDoubleTapped(_ gestureRecognizer: UITapGestureRecognizer) {
@@ -135,6 +183,12 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
         let model = configuration.model
         let appInfo = model.appInfo
         var menuChildren: [UIMenuElement] = []
+        if let onToggleDock {
+            menuChildren.append(UIAction(title: isDocked ? "lcos.home.removeDock".loc : "lcos.home.addDock".loc,
+                                         image: UIImage(systemName: isDocked ? "minus.circle" : "plus.circle")) { _ in
+                onToggleDock()
+            })
+        }
 
         // 1. Containers Picker (Equivalent to a Menu with single selection)
         if model.uiContainers.count > 1 {

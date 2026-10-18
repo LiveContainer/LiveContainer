@@ -52,6 +52,7 @@ struct LCSettingsView: View {
     @AppStorage("LCDontSignApp", store: LCUtils.appGroupUserDefault) var dontSignApp = false
     @AppStorage("LCStrictHiding", store: LCUtils.appGroupUserDefault) var strictHiding = false
     @AppStorage("dynamicColors", store: LCUtils.appGroupUserDefault) var dynamicColors = true
+    @AppStorage("LCOSHomeScreenEnabled", store: LCUtils.appGroupUserDefault) private var homeScreenEnabled = true
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) var darkModeIcon = false
     
     @AppStorage("LCSideJITServerAddress", store: LCUtils.appGroupUserDefault) var sideJITServerAddress : String = ""
@@ -202,6 +203,7 @@ struct LCSettingsView: View {
                 }
                 
                 Section{
+                    Toggle("lcos.home.enabled".loc, isOn: $homeScreenEnabled)
                     Toggle(isOn: $dynamicColors) {
                         Text("lc.settings.dynamicColors".loc)
                     }

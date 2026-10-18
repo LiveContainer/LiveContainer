@@ -10,5 +10,7 @@ let package = Package(
         .target(name: "PackageCore", dependencies: ["LCArchiveBridge"],
                 path: "LiveContainerSwiftUI/PackageManager/Core"),
         .testTarget(name: "PackageCoreTests", dependencies: ["PackageCore"], path: "Tests/PackageCoreTests",
-                    resources: [.copy("Fixtures")])
+                    resources: [.copy("Fixtures")]),
+        .target(name: "HomeScreenCore", path: "LiveContainerSwiftUI/HomeScreen/Core"),
+        .testTarget(name: "HomeScreenCoreTests", dependencies: ["HomeScreenCore"], path: "Tests/HomeScreenCoreTests")
     ])

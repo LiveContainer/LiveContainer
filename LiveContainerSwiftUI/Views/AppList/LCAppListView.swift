@@ -37,6 +37,7 @@ struct AppReplaceOption : Hashable {
 }
 
 struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
+    @AppStorage("LCOSHomeScreenEnabled", store: LCUtils.appGroupUserDefault) private var homeScreenEnabled = true
     @State var didAppear = false
     // ipa choosing stuff
     @State var choosingIPA = false
@@ -122,15 +123,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     var body: some View {
         NavigationView {
+            Group {
+                if homeScreenEnabled {
+                    LCHomeScreenView(apps: sortedApps, delegate: self, importing: installprogressVisible,
+                                     installProgress: installProgressPercentage,
+                                     importIPA: { choosingIPA = true },
+                                     importURL: { Task { await startInstallFromUrl() } },
+                                     openLink: { Task { await onOpenWebViewTapped() } },
+                                     openSideStore: UserDefaults.sideStoreExist() ? { LCUtils.openSideStore(delegate: self) } : nil)
+                } else {
             ScrollView {
-                NavigationLink(
-                    destination: navigateTo,
-                    isActive: $isNavigationActive,
-                    label: {
-                        EmptyView()
-                })
-                .hidden()
-                
                 LazyVStack {
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self)
@@ -203,6 +205,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
 
             }
+                }
+            }
+            .background(NavigationLink(destination: navigateTo, isActive: $isNavigationActive) { EmptyView() }.hidden())
+            .navigationBarHidden(homeScreenEnabled && !isNavigationActive)
+            .apply { content in
+                if #available(iOS 16.0, *) {
+                    content.toolbar(homeScreenEnabled ? .hidden : .visible, for: .tabBar)
+                } else { content }
+            }
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
             .coordinateSpace(name: "scroll")
             .onAppear {
@@ -259,6 +270,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        Toggle("lcos.home.enabled".loc, isOn: $homeScreenEnabled)
+                        Divider()
                         Picker("Sort by", selection: $sharedAppSortManager.appSortType) {
                             ForEach(AppSortType.allCases, id: \.self) { sortType in
                                 Label(sortType.displayName, systemImage: sortType.systemImage)
@@ -431,7 +444,10 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 Task { await installFromUrl(urlStr: installUrl.absoluteString) }
             }
         }
-        .searchable(text: $searchContext.query)
+        .apply { content in
+            if homeScreenEnabled { content }
+            else { content.searchable(text: $searchContext.query) }
+        }
 
     }
     

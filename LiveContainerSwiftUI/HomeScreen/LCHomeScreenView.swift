@@ -115,7 +115,8 @@ struct LCHomeScreenView: View {
                                 .background(.thinMaterial, in: Capsule())
                         }.buttonStyle(.plain)
                     }
-                    dock(pins, side: side, capacity: capacity)
+                    let dockSide = min(side, max(44, (min(geometry.size.width - 24, 540) - 32 - 14 * CGFloat(capacity - 1)) / CGFloat(capacity)))
+                    dock(pins, side: dockSide, capacity: capacity)
                 }
                 .frame(maxWidth: 900)
                 .frame(maxWidth: .infinity)
@@ -156,7 +157,9 @@ struct LCHomeScreenView: View {
                 Button("lc.appList.openLink".loc, action: openLink)
                 if let openSideStore { Button("SideStore", action: openSideStore) }
                 Divider()
-                Button("lc.tabView.tweaks".loc) { shared.selectedTab = .tweaks }
+                if shared.multiLCStatus != 2 {
+                    Button("lc.tabView.tweaks".loc) { shared.selectedTab = .tweaks }
+                }
                 Button("lc.tabView.settings".loc) { shared.selectedTab = .settings }
                 Button("lcos.home.reset".loc) { resetConfirmation = true }
             } label: { chromeIcon("ellipsis") }
@@ -201,7 +204,7 @@ struct LCHomeScreenView: View {
     private func homeIcon(_ id: String, side: CGFloat, docked: Bool, capacity: Int) -> some View {
         if let app = apps.first(where: { identifier($0) == id }) {
             LCAppBanner(appModel: app, delegate: delegate, homeScreen: true, iconSide: side,
-                        showLabel: !docked, isDocked: docked, onToggleDock: { toggleDock(id, capacity: capacity) })
+                        showLabel: !docked, isDocked: layout.dock.contains(id), onToggleDock: { toggleDock(id, capacity: capacity) })
                 .frame(height: side + (docked ? 8 : 30))
                 .onDrag {
                     draggedID = id

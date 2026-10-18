@@ -1,0 +1,38 @@
+name: Home Screen - Simulator Preview
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/**']
+    paths:
+      - 'LiveContainerSwiftUI/HomeScreen/**'
+      - 'LiveContainerSwiftUI/Views/AppList/**'
+      - 'Tests/HomeScreenPreview/**'
+      - 'scripts/home_screen_preview.py'
+      - '.github/workflows/home-screen-preview.yml'
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.2'
+      - name: Build actual host for iOS Simulator
+        run: |
+          set -o pipefail
+          xcodebuild -project LiveContainer.xcodeproj -scheme LiveContainer -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath preview-build CODE_SIGNING_ALLOWED=NO build > simulator-build.log 2>&1
+      - name: Capture native light, dark and list layouts with test fixture metadata
+        run: python3 scripts/home_screen_preview.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-home-screen-preview
+          path: |
+            simulator-build.log
+            artifacts/home-preview/
+          if-no-files-found: error

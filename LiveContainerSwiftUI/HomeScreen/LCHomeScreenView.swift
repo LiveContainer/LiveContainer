@@ -103,8 +103,10 @@ struct LCHomeScreenView: View {
         .confirmationDialog("lcos.home.reset".loc, isPresented: $resetConfirmation) {
             Button("lcos.home.reset".loc, role: .destructive) { save(LCHomeLayout()); page = 0; folderID = nil }
         }
-        .onChange(of: available) { _ in
-            if let id = folderID, !layout.folders.contains(where: { $0.id == id }) { folderID = nil }
+        .onChange(of: layout.folders) { folders in
+            guard let id = folderID else { return }
+            guard let folder = folders.first(where: { $0.id == id }) else { folderID = nil; return }
+            folderPage = min(folderPage, max(0, (folder.apps.count - 1) / 9))
         }
         .onAppear {
             #if DEBUG

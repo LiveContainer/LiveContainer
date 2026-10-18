@@ -17,6 +17,10 @@ struct SigningInjectionPreset: Codable, Equatable {
     }
     func write(to root: URL) throws {
         try Self.validateTarget(bundleIdentifier)
+        guard schema == 1, files.count <= 256, libraries.count <= 64,
+              Set(files.map(\.path)).count == files.count, Set(libraries).count == libraries.count else {
+            throw SigningInjectionFailure.invalid("Injection preset exceeds supported limits or contains duplicate entries")
+        }
         let folder = Self.directory(bundleIdentifier, root: root)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         try JSONEncoder().encode(self).write(to: folder.appendingPathComponent("preset.json"), options: .atomic)

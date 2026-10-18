@@ -42,6 +42,9 @@ struct LCSigningInjectionView: View {
                         Text(preset.packageNames.joined(separator: ", ")).font(.caption).foregroundStyle(.secondary)
                         Text("\(preset.libraries.count) dylib").font(.caption).foregroundStyle(.secondary)
                     }
+                    .swipeActions {
+                        Button(role: .destructive) { removePreset(preset.bundleIdentifier) } label: { Label("lc.common.delete".loc, systemImage: "trash") }
+                    }
                 }
                 if presets.isEmpty { Text("lcos.signing.empty".loc).foregroundStyle(.secondary) }
             } header: { Text("lcos.signing.configured".loc) }
@@ -71,6 +74,11 @@ struct LCSigningInjectionView: View {
             guard let data = try? Data(contentsOf: folder.appendingPathComponent("preset.json")), data.count < 1_048_576 else { return nil }
             return try? JSONDecoder().decode(SigningInjectionPreset.self, from: data)
         }.sorted { $0.bundleIdentifier < $1.bundleIdentifier }
+    }
+    private func removePreset(_ identifier: String) {
+        guard let root else { return }
+        do { try FileManager.default.removeItem(at: SigningInjectionPreset.directory(identifier, root: root)); reload() }
+        catch { self.error = error.localizedDescription }
     }
     private func setEnabled(_ identifier: String, _ enabled: Bool) {
         guard let root else { return }
@@ -107,7 +115,12 @@ struct LCSigningInjectionView: View {
     }
     private func configure(_ pending: Pending) {
         guard let root else { error = "Shared app group unavailable"; return }
-        do {
+        let substrateSource = Bundle.main.privateFrameworksURL?.appendingPathComponent("CydiaSubstrate.framework")
+        working = true
+        Task {
+          defer { working = false }
+          do {
+            try await Task.detached(priority: .userInitiated) {
             let folder = SigningInjectionPreset.directory(pending.target, root: root)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             var preset = try SigningInjectionPreset.read(pending.target, root: root)
@@ -128,7 +141,7 @@ struct LCSigningInjectionView: View {
                 preset.files.append(.init(path: name, sha256: PackageSHA256.hex(bytes)))
             }
             if pending.substrate {
-                guard let source = Bundle.main.privateFrameworksURL?.appendingPathComponent("CydiaSubstrate.framework"),
+                guard let source = substrateSource,
                       let enumerator = FileManager.default.enumerator(at: source, includingPropertiesForKeys: [.isRegularFileKey]) else {
                     throw SigningInjectionFailure.invalid("Bundled Substrate support is unavailable")
                 }
@@ -142,7 +155,10 @@ struct LCSigningInjectionView: View {
                 }
             }
             if !preset.packageNames.contains(pending.name) { preset.packageNames.append(pending.name) }
-            preset.enabled = true; try preset.write(to: root); reload()
-        } catch { self.error = error.localizedDescription }
+            preset.enabled = true; try preset.write(to: root)
+            }.value
+            reload()
+          } catch { self.error = error.localizedDescription }
+        }
     }
 }

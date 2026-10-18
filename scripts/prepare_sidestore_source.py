@@ -9,7 +9,7 @@ operation=source/'SideStore/Core/Operations/PipelineOperations/ResignAppOperatio
 s=operation.read_text(encoding='utf-8')
 anchor='        let appBundleURL = try await self.prepareAppBundle(for: appBundle, profiles: profiles, appexBundleIds: context.appexBundleIds ?? [:])'
 assert s.count(anchor)==1
-s=s.replace(anchor, '        let lcosOriginalBundleIdentifier = appBundle.bundleIdentifier\n'+anchor+'\n        try LCOSSigningInjection.prepare(at: appBundleURL, bundleIdentifier: lcosOriginalBundleIdentifier)')
+s=s.replace(anchor, '        let lcosOriginalBundleIdentifier = self.context.bundleIdentifier\n'+anchor+'\n        try LCOSSigningInjection.prepare(at: appBundleURL, bundleIdentifier: lcosOriginalBundleIdentifier)')
 operation.write_text(s,encoding='utf-8')
 destination=source/'SideStore/Core/LCOSSigningInjection';destination.mkdir(exist_ok=True)
 files=[root/'Integrations/SideStore/LCOSSigningInjection.swift']+[root/'LiveContainerSwiftUI/PackageManager/Core'/name for name in ['SigningMachO.swift','SigningInjectionPreset.swift','PackageSHA256.swift']]

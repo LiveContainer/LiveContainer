@@ -38,7 +38,7 @@ jobs:
       - name: Validate actual SDK-built rootful and rootless packages
         run: |
           set -o pipefail
-          LCOS_DEVICE_PROBE_DIR="$PWD/artifacts/device-probe" swift test --filter PackageCoreTests.testActualDeviceProbe 2>&1 | tee device-probe-tests.log
+          LCOS_DEVICE_PROBE_DIR="$PWD/artifacts/device-probe" swift test --filter 'testActualDevice' 2>&1 | tee device-probe-tests.log
       - uses: actions/download-artifact@v4
         with:
           name: sidestore-source-build

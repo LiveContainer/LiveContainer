@@ -64,5 +64,14 @@ final class SigningInjectionTests: XCTestCase {
         let changed = try SigningMachO.inject(original, libraries: ["LCOSProbe.dylib"])
         XCTAssertNotEqual(changed, original)
         XCTAssertEqual(try SigningMachO.inject(changed, libraries: []), original)
+        #if os(macOS)
+        let signed = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: signed) }
+        try changed.write(to: signed)
+        for arguments in [["--force", "--sign", "-", "--timestamp=none", signed.path], ["--verify", "--strict", signed.path]] {
+            let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/codesign"); process.arguments = arguments
+            try process.run(); process.waitUntilExit(); XCTAssertEqual(process.terminationStatus, 0)
+        }
+        #endif
     }
 }

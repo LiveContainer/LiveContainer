@@ -7,9 +7,12 @@ on:
 permissions:
   contents: read
 jobs:
+  sidestore:
+    uses: ./.github/workflows/build-sidestore-source.yml
   build:
+    needs: sidestore
     runs-on: macos-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       scheme: LiveContainer
       archive_path: archive
@@ -36,7 +39,13 @@ jobs:
         run: |
           set -o pipefail
           LCOS_DEVICE_PROBE_DIR="$PWD/artifacts/device-probe" swift test --filter PackageCoreTests.testActualDeviceProbe 2>&1 | tee device-probe-tests.log
+      - uses: actions/download-artifact@v4
+        with:
+          name: sidestore-source-build
+          path: artifacts/sidestore-source
       - name: Package using upstream SideStore integration
+        env:
+          SIDESTORE_IPA_PATH: ${{ github.workspace }}/artifacts/sidestore-source/SideStore.ipa
         run: bash .github/build_github.sh
       - name: Verify integrated IPA and record provenance
         run: |
@@ -55,6 +64,7 @@ jobs:
             SOURCE_COMMIT
             SUBMODULES
             build-evidence.json
+            artifacts/sidestore-source/SIDESTORE_SOURCE.json
             artifacts/device-probe/LCOSProbe.ipa
             artifacts/device-probe/LCOSProbe-rootful.deb
             artifacts/device-probe/LCOSProbe-rootless.deb

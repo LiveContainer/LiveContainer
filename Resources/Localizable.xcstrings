@@ -1,6 +1,176 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "lcos.signing.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "SideStore Injection"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Инъекция в SideStore"
+        }
+      }
+    }
+  },
+  "lcos.signing.bundle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Target bundle identifier"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bundle ID приложения"
+        }
+      }
+    }
+  },
+  "lcos.signing.chooseGuest": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose from LiveContainer Apps"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Выбрать из приложений LiveContainer"
+        }
+      }
+    }
+  },
+  "lcos.signing.import": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Import DEB or dylib"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Импорт DEB или dylib"
+        }
+      }
+    }
+  },
+  "lcos.signing.description": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure libraries for the integrated SideStore. They are injected before signing on the next installation or refresh of this exact bundle identifier."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Настройте библиотеки для встроенного SideStore. Они внедрятся перед подписью при следующей установке или обновлении подписи этого Bundle ID."
+        }
+      }
+    }
+  },
+  "lcos.signing.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No injection presets"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Инъекции не настроены"
+        }
+      }
+    }
+  },
+  "lcos.signing.configured": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configured Applications"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Настроенные приложения"
+        }
+      }
+    }
+  },
+  "lcos.signing.confirm": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enable signing injection?"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Включить инъекцию при подписи?"
+        }
+      }
+    }
+  },
+  "lcos.signing.enable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Trust and Enable"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Доверять и включить"
+        }
+      }
+    }
+  },
+  "lcos.signing.trust": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Only enable code you trust. Injected libraries run inside the target app and can access its data. Signing does not guarantee tweak compatibility."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Включайте только доверенный код. Библиотеки выполняются внутри приложения и получают доступ к его данным. Подпись не гарантирует совместимость твика."
+        }
+      }
+    }
+  },
   "lcos.home.done": {
     "extractionState": "manual",
     "localizations": {

@@ -24,6 +24,7 @@ struct LCTabView: View {
 
     var body: some View {
         tabContent
+        .lcSoftScrollEdges()
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)
         .alert("lc.common.error".loc, isPresented: $errorShow){

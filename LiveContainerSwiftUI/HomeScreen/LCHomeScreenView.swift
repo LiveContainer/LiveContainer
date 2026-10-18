@@ -78,7 +78,7 @@ struct LCHomeScreenView: View {
                                             tile(id, side: side, container: nil)
                                         }
                                     }.padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 12)
-                                }.tag(index)
+                                }.lcSoftScrollEdges().tag(index)
                             }
                         }.tabViewStyle(.page(indexDisplayMode: .never))
                         .overlay(alignment: .leading) { pageEdge(-1, count: count) }

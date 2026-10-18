@@ -1,0 +1,52 @@
+name: SideStore - Source Signing Integration
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sidestore:
+    runs-on: macos-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: LiveContainer/SideStore
+          ref: ee3cc16a67f9fed766f79a0ed70938f0f8ad5a07
+          submodules: recursive
+          path: sidestore-source
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.2'
+      - name: Apply reviewed signing overlay
+        run: python3 scripts/prepare_sidestore_source.py sidestore-source
+      - name: Archive custom SideStore
+        working-directory: sidestore-source
+        run: |
+          set -o pipefail
+          make build 2>&1 | tee ../sidestore-build.log
+      - name: Package source-built SideStore
+        run: |
+          python3 - <<'PY'
+          import pathlib, shutil, zipfile
+          source=pathlib.Path('sidestore-source')
+          app=source/'SideStore.xcarchive/Products/Applications/SideStore.app'
+          assert app.is_dir(), 'Missing SideStore archive application'
+          out=pathlib.Path('artifacts/sidestore-source');out.mkdir(parents=True,exist_ok=True)
+          with zipfile.ZipFile(out/'SideStore.ipa','w',zipfile.ZIP_DEFLATED) as archive:
+              for file in app.rglob('*'):
+                  if file.is_file(): archive.write(file,'Payload/SideStore.app/'+file.relative_to(app).as_posix())
+          shutil.copyfile(source/'LCOS_SOURCE.json',out/'SIDESTORE_SOURCE.json')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sidestore-source-build
+          path: artifacts/sidestore-source/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sidestore-source-logs
+          path: sidestore-build.log
+          if-no-files-found: warn

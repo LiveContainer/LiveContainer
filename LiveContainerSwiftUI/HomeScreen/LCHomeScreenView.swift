@@ -107,10 +107,9 @@ struct LCHomeScreenView: View {
                     .allowsHitTesting(folderID == nil)
                     .accessibilityHidden(folderID != nil)
                 if let id = folderID, let folder = layout.folders.first(where: { $0.id == id }) {
-                    folderOverlay(folder, size: geometry.size, side: side).zIndex(2)
+                    folderOverlay(folder, frame: geometry.frame(in: .global), side: side).zIndex(2)
                 }
             }
-            .coordinateSpace(name: "LCOSDesktop")
             .onPreferenceChange(LCHomeFolderFrames.self) { if folderID == nil { folderFrames = $0 } }
             .onChange(of: count) { page = min(page, $0 - 1) }
             .onChange(of: query) { _ in page = 0 }
@@ -270,8 +269,8 @@ struct LCHomeScreenView: View {
                 if id.hasPrefix("folder:") {
                     GeometryReader { proxy in
                         Color.clear.preference(key: LCHomeFolderFrames.self,
-                            value: [id: CGRect(x: proxy.frame(in: .named("LCOSDesktop")).midX - side / 2,
-                                               y: proxy.frame(in: .named("LCOSDesktop")).minY, width: side, height: side)])
+                            value: [id: CGRect(x: proxy.frame(in: .global).midX - side / 2,
+                                               y: proxy.frame(in: .global).minY, width: side, height: side)])
                     }
                 }
             }
@@ -320,11 +319,13 @@ struct LCHomeScreenView: View {
         }
     }
 
-    private func folderOverlay(_ folder: LCHomeLayout.Folder, size: CGSize, side: CGFloat) -> some View {
+    private func folderOverlay(_ folder: LCHomeLayout.Folder, frame: CGRect, side: CGFloat) -> some View {
+        let size = frame.size
         let count = max(1, (folder.apps.count + 8) / 9)
         let panelWidth = min(size.width, 440) - 48
         let panelHeight = 3 * (side + 30) + 2 * 22 + 48
-        let origin = folderFrames[folder.id] ?? CGRect(x: size.width / 2 - side / 2, y: size.height / 2 - side / 2, width: side, height: side)
+        let origin = folderFrames[folder.id]?.offsetBy(dx: -frame.minX, dy: -frame.minY)
+            ?? CGRect(x: size.width / 2 - side / 2, y: size.height / 2 - side / 2, width: side, height: side)
         let progress = reduceMotion ? 1 : folderProgress
         return ZStack {
             Rectangle().fill(.regularMaterial).ignoresSafeArea()
@@ -369,7 +370,7 @@ struct LCHomeScreenView: View {
                              y: (side / panelHeight + (1 - side / panelHeight) * progress) * folderPinch)
                 .position(x: size.width / 2 + (origin.midX - size.width / 2) * (1 - progress),
                           y: size.height / 2 + (origin.midY - size.height / 2) * (1 - progress))
-                .opacity(reduceMotion ? folderProgress : 1)
+                .opacity(folderProgress)
                 .animation(reduceMotion ? nil : .interactiveSpring(response: 0.3, dampingFraction: 0.86), value: folderPinch)
                 if count > 1 {
                     pageDots(count, selection: $folderPage)
@@ -380,6 +381,7 @@ struct LCHomeScreenView: View {
                         .frame(width: panelWidth).position(x: size.width / 2, y: size.height / 2 + panelHeight / 2 + 70).opacity(folderProgress)
                 }
         }
+        .frame(width: size.width, height: size.height)
         .onAppear { animateFolder { folderProgress = 1 } }
         .accessibilityAction(.escape) { closeFolder() }
         .simultaneousGesture(MagnificationGesture()

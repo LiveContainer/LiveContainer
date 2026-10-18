@@ -23,38 +23,7 @@ struct LCTabView: View {
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
     var body: some View {
-        TabView(selection: $sharedModel.selectedTab) {
-            if DataManager.shared.model.multiLCStatus != 2 {
-                LCSourcesView()
-                    .tabItem {
-                        Label("lc.tabView.sources".loc, systemImage: "books.vertical")
-                    }
-                    .tag(LCTabIdentifier.sources)
-            }
-            LCAppListView()
-                .tabItem {
-                    Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
-                }
-                .tag(LCTabIdentifier.apps)
-            if DataManager.shared.model.multiLCStatus != 2 {
-                LCTweaksView()
-                    .tabItem{
-                        Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
-                    }
-                    .tag(LCTabIdentifier.tweaks)
-            }
-            
-            LCSettingsView()
-                .tabItem {
-                    Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
-                }
-                .tag(LCTabIdentifier.settings)
-        }
-        .apply { content in
-            if #available(iOS 16.0, *) {
-                content.toolbar(homeScreenEnabled && sharedModel.selectedTab == .apps ? .hidden : .visible, for: .tabBar)
-            } else { content }
-        }
+        tabContent
         .downloadAlert(helper: downloadHelper)
         .environmentObject(downloadHelper)
         .alert("lc.common.error".loc, isPresented: $errorShow){
@@ -120,6 +89,41 @@ struct LCTabView: View {
         }
     }
     
+    private var tabContent: some View {
+        TabView(selection: $sharedModel.selectedTab) {
+            if DataManager.shared.model.multiLCStatus != 2 {
+                LCSourcesView()
+                    .tabItem {
+                        Label("lc.tabView.sources".loc, systemImage: "books.vertical")
+                    }
+                    .tag(LCTabIdentifier.sources)
+            }
+            LCAppListView()
+                .tabItem {
+                    Label("lc.tabView.apps".loc, systemImage: "square.stack.3d.up.fill")
+                }
+                .tag(LCTabIdentifier.apps)
+            if DataManager.shared.model.multiLCStatus != 2 {
+                LCTweaksView()
+                    .tabItem{
+                        Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
+                    }
+                    .tag(LCTabIdentifier.tweaks)
+            }
+            
+            LCSettingsView()
+                .tabItem {
+                    Label("lc.tabView.settings".loc, systemImage: "gearshape.fill")
+                }
+                .tag(LCTabIdentifier.settings)
+        }
+        .apply { content in
+            if #available(iOS 16.0, *) {
+                content.toolbar(homeScreenEnabled && sharedModel.selectedTab == .apps ? .hidden : .visible, for: .tabBar)
+            } else { content }
+        }
+    }
+
     func dispatchURL(url: URL) {
         repeat {
             if url.isFileURL {

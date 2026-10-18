@@ -145,6 +145,9 @@ struct LCDebPackageView: View {
         defer { working = false }
         do {
             guard !app.isAppRunning else { throw PackageFailure.invalid("Quit this guest before installing tweaks") }
+            guard !app.appInfo.dontLoadTweakLoader && !app.appInfo.dontInjectTweakLoader else {
+                throw PackageFailure.invalid("Enable TweakLoader injection in this guest's existing app settings first")
+            }
             guard LCSharedUtils.certificatePassword() != nil else { throw PackageFailure.invalid("Import a valid signing certificate through the existing LiveContainer settings first") }
             let names = plan.binaries.keys.sorted()
             _ = try await store.install(plan, targetBundle: app.bundleIdentifier) { stage in

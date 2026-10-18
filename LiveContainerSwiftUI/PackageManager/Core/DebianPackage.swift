@@ -62,7 +62,7 @@ struct DebianPackage {
               !path.split(separator: "/", omittingEmptySubsequences: false).contains("..") else {
             throw PackageFailure.invalid("Unsafe archive path: \(raw)")
         }
-        return path.split(separator: "/").filter { $0 != "." }.joined(separator: "/")
+        return path.split(separator: "/").filter { $0 != "." }.joined(separator: "/").precomposedStringWithCanonicalMapping
     }
 
     init(data: Data, limits: PackageLimits = PackageLimits()) throws {
@@ -114,6 +114,7 @@ struct DebianPackage {
             var files: [String: Data] = [:]
             var seen = Set<String>()
             var total = 0
+            var entryCount = 0
             while true {
                 var pathPointer: UnsafePointer<CChar>?
                 var size: Int64 = 0
@@ -121,6 +122,8 @@ struct DebianPackage {
                 let status = lc_archive_next(reader, &pathPointer, &size, &directory)
                 if status == 0 { break }
                 guard status == 1, let pathPointer else { throw PackageFailure.invalid(String(cString: lc_archive_error(reader))) }
+                entryCount += 1
+                guard entryCount <= limits.fileCount else { throw PackageFailure.invalid("Archive entry count limit exceeded") }
                 let path = try safePath(String(cString: pathPointer))
                 if path.isEmpty && directory == 1 { continue }
                 guard !path.isEmpty, seen.insert(path.lowercased()).inserted, seen.count <= limits.fileCount,

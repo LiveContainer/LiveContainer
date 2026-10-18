@@ -127,4 +127,31 @@ final class PackageCoreTests: XCTestCase {
         do { try await store.setEnabled(receipt.id, enabled: true); XCTFail("Tampering was ignored") }
         catch { XCTAssertTrue(error.localizedDescription.contains("Integrity")) }
     }
+
+    func testStorageSymlinkRejected() async throws {
+        let parent = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: parent) }
+        let actual = parent.appendingPathComponent("actual")
+        try FileManager.default.createDirectory(at: actual, withIntermediateDirectories: false)
+        let link = parent.appendingPathComponent("link")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: actual)
+        let store = PackageStore(root: link.appendingPathComponent("packages"))
+        do { _ = try await store.install(plan("valid-gz"), targetBundle: target) { _ in }; XCTFail("Storage symlink was followed") }
+        catch { XCTAssertTrue(error.localizedDescription.contains("symbolic link")) }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: actual.path).isEmpty)
+    }
+
+    func testResigningRefreshesIntegrityReceipt() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = PackageStore(root: root)
+        let receipt = try await store.install(plan("valid-gz"), targetBundle: target) { _ in }
+        let binary = root.appendingPathComponent("lcos-\(receipt.id)/Example.dylib")
+        var changed = try Data(contentsOf: binary)
+        changed.append(contentsOf: [0, 1, 2, 3]) // Simulates bytes changed by the trusted signer.
+        try changed.write(to: binary)
+        try await store.recordResigned(receipt.id)
+        try await store.verify(receipt.id, enabled: true)
+    }
 }

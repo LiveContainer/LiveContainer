@@ -10,6 +10,7 @@
 #include "../LiveContainer/LCSharedUtils.h"
 #include "Utilities/LCUtils.h"
 #include "Utilities/unarchive.h"
+#include "PackageManager/ArchiveBridge/LCArchive.h"
 #include "../MultitaskSupport/AppSceneViewController.h"
 #include "../MultitaskSupport/DecoratedAppSceneViewController.h"
 #include "../MultitaskSupport/LCStatusBarManager.h"

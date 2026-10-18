@@ -1,0 +1,58 @@
+name: LiveContainer OS - Integrated IPA
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 35
+    env:
+      scheme: LiveContainer
+      archive_path: archive
+      SIDESTORE_SHA256: f9d2d9af51285dcbdece08c51aadc02e8a2d756da6ca8dfca16724c801ae2fcd
+      DYLIBIFY_SHA256: 6d23f6a2fc4d8442f87caa1161aebe6ecaafd0e8c41ce205da007efb04fc82c7
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.2'
+      - name: Test package core
+        run: swift test 2>&1 | tee package-tests.log
+      - name: Archive using upstream configuration
+        run: |
+          set -o pipefail
+          xcodebuild archive -project LiveContainer.xcodeproj -scheme "$scheme" -archivePath "$archive_path" -sdk iphoneos -arch arm64 -configuration Release 2>&1 | tee xcodebuild.log
+      - name: Package using upstream SideStore integration
+        run: bash .github/build_github.sh
+      - name: Verify integrated IPA and record provenance
+        run: |
+          mv LiveContainer+SideStore.ipa LiveContainerOS+SideStore.ipa
+          mv LiveContainer.ipa LiveContainerOS-Standalone.ipa
+          python3 scripts/verify_ipa.py LiveContainerOS+SideStore.ipa --integrated --output build-evidence.json
+          shasum -a 256 LiveContainerOS+SideStore.ipa LiveContainerOS-Standalone.ipa > SHA256SUMS
+          git rev-parse HEAD > SOURCE_COMMIT
+          git submodule status > SUBMODULES
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LiveContainerOS+SideStore.ipa
+          path: |
+            LiveContainerOS+SideStore.ipa
+            SHA256SUMS
+            SOURCE_COMMIT
+            SUBMODULES
+            build-evidence.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs
+          path: |
+            xcodebuild.log
+            package-tests.log
+          if-no-files-found: warn

@@ -69,6 +69,15 @@ struct LCTweakFolderView : View {
 
     var body: some View {
         List {
+            if isRoot {
+                Section {
+                    NavigationLink {
+                        LCDebPackageView()
+                    } label: {
+                        Label("Debian Packages", systemImage: "shippingbox")
+                    }
+                }
+            }
             Section {
                 ForEach(tweakItems, id:\.self) { tweakItem in
                     HStack {

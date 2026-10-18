@@ -11,6 +11,16 @@
 
 Crowdin Project: [![Crowdin](https://badges.crowdin.net/livecontainer/localized.svg)](https://crowdin.com/project/livecontainer) &nbsp;| &nbsp; Documentation:[livecontainer.github.io](https://livecontainer.github.io/docs/intro)
 
+# LiveContainer OS — development branch
+
+This fork adds a first local Debian tweak-management slice to official LiveContainer. Open **Tweaks →
+Debian Packages**, select a private guest, import a supported app-specific DEB, inspect the result and
+install using the existing certificate. Package enable/disable and uninstall are available on the same screen.
+
+The full requested Home Screen, universal conversion, APT manager and device validation are still incomplete.
+See [ARCHITECTURE.md](ARCHITECTURE.md), [COMPATIBILITY.md](COMPATIBILITY.md), [BUILD.md](BUILD.md) and
+[TESTING.md](TESTING.md) for scope and real validation boundaries. All upstream attribution and license remain below.
+
 # LiveContainer
 
 - LiveContainer is an app launcher (not emulator or hypervisor) that allows you to run iOS apps inside it.

@@ -7,3 +7,7 @@ packages/
 xcuserdata
 Resources/Frameworks/OpenSSL.framework
 apps_nightly.json
+.build/
+.swiftpm/
+artifacts/
+__pycache__/

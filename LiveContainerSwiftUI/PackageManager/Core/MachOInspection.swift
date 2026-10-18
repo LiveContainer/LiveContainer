@@ -72,7 +72,13 @@ struct MachOInspection: Codable {
                 let offset = Int(try word(cursor + 8)), count = Int(try word(cursor + 12))
                 guard offset <= bytes.count, count <= bytes.count - offset else { throw PackageFailure.invalid("Code signature outside binary") }
                 signed = true
-            } else if command == 0x2c { throw PackageFailure.invalid("Encrypted dylibs are unsupported") }
+            } else if command == 0x2c || command == 0x21 {
+                guard length >= (command == 0x2c ? 24 : 20) else { throw PackageFailure.invalid("Truncated encryption command") }
+                // The linker emits this command for unencrypted binaries too.
+                guard try word(cursor + 16) == 0 else { throw PackageFailure.invalid("Encrypted dylibs are unsupported") }
+                let offset = Int(try word(cursor + 8)), count = Int(try word(cursor + 12))
+                guard offset <= bytes.count, count <= bytes.count - offset else { throw PackageFailure.invalid("Encryption range outside binary") }
+            }
             cursor += length
         }
         guard cursor == end, platformFound else { throw PackageFailure.invalid("Missing device platform or inconsistent Mach-O commands") }

@@ -87,6 +87,26 @@ final class PackageCoreTests: XCTestCase {
         XCTAssertEqual(PackageSHA256.hex(Data("abc".utf8)), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
         XCTAssertEqual(PackageSHA256.hex(Data(repeating: 97, count: 1000000)), "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0")
     }
+    func testUnencryptedMachOEncryptionCommand() throws {
+        var binary = try plan("valid-gz").files["Example.dylib"]!
+        binary.replaceSubrange(16..<20, with: [2, 0, 0, 0])
+        binary.replaceSubrange(20..<24, with: [48, 0, 0, 0])
+        binary.append(contentsOf: [0x2c,0,0,0, 24,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0])
+        _ = try MachOInspection.inspectAndAdapt(binary)
+        binary[binary.count - 8] = 1
+        XCTAssertThrowsError(try MachOInspection.inspectAndAdapt(binary))
+    }
+    func testActualDeviceProbe() throws {
+        guard let directory = ProcessInfo.processInfo.environment["LCOS_DEVICE_PROBE_DIR"] else {
+            throw XCTSkip("Actual iOS probe is validated after SDK compilation in Actions")
+        }
+        for layout in ["rootful", "rootless"] {
+            let url = URL(fileURLWithPath: directory).appendingPathComponent("LCOSProbe-\(layout).deb")
+            let p = try TweakInstallPlan(package: DebianPackage(data: Data(contentsOf: url)), targetBundle: target)
+            XCTAssertEqual(p.package.layout, layout)
+            XCTAssertNotNil(p.binaries["LCOSProbe.dylib"])
+        }
+    }
     func testAtomicInstallEnableAndRemove() async throws {
         let root = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }

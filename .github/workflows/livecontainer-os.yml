@@ -32,6 +32,10 @@ jobs:
           xcodebuild archive -project LiveContainer.xcodeproj -scheme "$scheme" -archivePath "$archive_path" -sdk iphoneos -arch arm64 -configuration Release 2>&1 | tee xcodebuild.log
       - name: Compile controlled device probe
         run: python3 scripts/build_device_probe.py
+      - name: Validate actual SDK-built rootful and rootless packages
+        run: |
+          set -o pipefail
+          LCOS_DEVICE_PROBE_DIR="$PWD/artifacts/device-probe" swift test --filter PackageCoreTests.testActualDeviceProbe 2>&1 | tee device-probe-tests.log
       - name: Package using upstream SideStore integration
         run: bash .github/build_github.sh
       - name: Verify integrated IPA and record provenance
@@ -62,4 +66,5 @@ jobs:
           path: |
             xcodebuild.log
             package-tests.log
+            device-probe-tests.log
           if-no-files-found: warn

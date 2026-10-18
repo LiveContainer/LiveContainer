@@ -43,5 +43,18 @@ cause and is not an automatic recovery system. Native hook behavior still requir
 
 ## Remaining scope
 
-See `COMPATIBILITY.md` and `TESTING.md`. Home Screen, folders, APT repositories, full Debian dependency
+See `COMPATIBILITY.md` and `TESTING.md`. Home Screen folders, APT repositories, full Debian dependency
 resolution, preference bundles, profiles and recovery are not implemented by this milestone.
+
+## Native desktop
+
+`HomeScreen/LCHomeScreenView.swift` renders the actual sorted guest registry in an adaptive paged grid,
+with a material dock, in-place search and light/dark procedural wallpapers. The toggle and layout persist
+in existing shared defaults. `HomeScreen/Core/LCHomeLayout.swift` is Foundation-only and tested separately.
+Desktop identifiers match the registry's version-specific bundle/path identity. Hidden applications remain
+in the original manager behind its existing authentication flow.
+
+`LCAppBanner` has an optional home-icon presentation, hosted as SwiftUI inside the original UIKit controller.
+The same controller handles authentication, existing multitask windows, launch, container selection,
+export and confirmed uninstall. No second guest-launch implementation is introduced. The original list
+remains available through the toggle; large SwiftUI compositions are split into named view/toolbar builders.

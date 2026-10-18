@@ -13,11 +13,14 @@ Crowdin Project: [![Crowdin](https://badges.crowdin.net/livecontainer/localized.
 
 # LiveContainer OS — development branch
 
-This fork adds a first local Debian tweak-management slice to official LiveContainer. Open **Tweaks →
+This fork adds a native Home Screen and a first local Debian tweak-management slice to official LiveContainer.
+Switch between the desktop and original list in **Settings → Interface → Home Screen**. The desktop has
+pages, search, a configurable material dock, persistent placement and adaptive wallpapers; original app actions are retained.
+See [HOME_SCREEN.md](HOME_SCREEN.md). Open **Tweaks →
 Debian Packages**, select a private guest, import a supported app-specific DEB, inspect the result and
 install using the existing certificate. Package enable/disable and uninstall are available on the same screen.
 
-The full requested Home Screen, universal conversion, APT manager and device validation are still incomplete.
+Folders, photo wallpapers, universal conversion, the APT manager and device validation are still incomplete.
 See [ARCHITECTURE.md](ARCHITECTURE.md), [COMPATIBILITY.md](COMPATIBILITY.md), [BUILD.md](BUILD.md) and
 [TESTING.md](TESTING.md) for scope and real validation boundaries. All upstream attribution and license remain below.
 

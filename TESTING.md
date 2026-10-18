@@ -19,6 +19,13 @@ TweakLoader and required plist values; it does not execute any app.
 
 ## Physical device checklist — not run
 
+The Actions artifact also contains `LCOSProbe.ipa` and rootful/rootless `LCOSProbe` DEBs, compiled from
+`Tests/DeviceProbe` using the actual iOS SDK. Install the guest IPA through LiveContainer. With the tweak
+disabled, **Run hook probe** must show **ORIGINAL**. After matching DEB installation and guest relaunch,
+it must show **TWEAK HOOK ACTIVE**. Disable, relaunch and repeat to verify it returns to **ORIGINAL**.
+The probe exercises a real method implementation replacement in a controlled guest; compilation alone
+does not establish that injection or hooks work on a device.
+
 - [ ] Install the combined IPA using a supported signed sideloading method.
 - [ ] Confirm existing guest IPA import, launch, multiple containers, JIT/JIT-less and multitasking.
 - [ ] Confirm original SideStore account/certificate/refresh and upgrade data preservation.

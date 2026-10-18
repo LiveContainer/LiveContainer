@@ -4,10 +4,9 @@ import hashlib
 import json
 import pathlib
 import plistlib
-import subprocess
 import zipfile
 
-def verify(path, integrated=False):
+def verify(path, integrated=False, source_commit=None):
     path = pathlib.Path(path)
     if not path.is_file() or path.stat().st_size == 0:
         raise ValueError('IPA is absent or empty')
@@ -31,7 +30,7 @@ def verify(path, integrated=False):
         if archive.read(executable)[:4] not in [bytes.fromhex('cffaedfe'), bytes.fromhex('cafebabe'), bytes.fromhex('bebafeca')]:
             raise ValueError('Missing Mach-O executable')
         for suffix in ['Frameworks/LiveContainerSwiftUI.framework/LiveContainerSwiftUI',
-                       'Frameworks/CydiaSubstrate.framework/CydiaSubstrate', 'TweakLoader.dylib']:
+                       'Frameworks/CydiaSubstrate.framework/CydiaSubstrate', 'Frameworks/TweakLoader.dylib']:
             if root + suffix not in names:
                 raise ValueError('Missing required component: ' + suffix)
         if integrated:
@@ -45,7 +44,7 @@ def verify(path, integrated=False):
                 raise ValueError('Missing SideStore app group declaration')
         return {'file': path.name, 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                 'bundle': info['CFBundleIdentifier'], 'integrated': integrated, 'entries': len(names),
-                'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+                'source_commit': source_commit,
                 'verification': 'ZIP integrity and expected components only', 'device_tested': False}
 
 if __name__ == '__main__':
@@ -53,8 +52,9 @@ if __name__ == '__main__':
     parser.add_argument('ipa')
     parser.add_argument('--integrated', action='store_true')
     parser.add_argument('--output')
+    parser.add_argument('--source-commit')
     args = parser.parse_args()
-    evidence = verify(args.ipa, args.integrated)
+    evidence = verify(args.ipa, args.integrated, args.source_commit)
     result = json.dumps(evidence, indent=2)
     if args.output:
         pathlib.Path(args.output).write_text(result + '\n', encoding='utf-8')

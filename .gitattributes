@@ -1,7 +1,8 @@
 *.deb binary
 *.sh text eol=lf
-*.swift text eol=lf
-*.c text eol=lf
-*.h text eol=lf
+LiveContainerSwiftUI/PackageManager/*.swift text eol=lf
+LiveContainerSwiftUI/PackageManager/**/*.swift text eol=lf
+LiveContainerSwiftUI/PackageManager/**/*.c text eol=lf
+LiveContainerSwiftUI/PackageManager/**/*.h text eol=lf
 *.yml text eol=lf
 *.py text eol=lf

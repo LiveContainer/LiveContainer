@@ -30,13 +30,15 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild archive -project LiveContainer.xcodeproj -scheme "$scheme" -archivePath "$archive_path" -sdk iphoneos -arch arm64 -configuration Release 2>&1 | tee xcodebuild.log
+      - name: Compile controlled device probe
+        run: python3 scripts/build_device_probe.py
       - name: Package using upstream SideStore integration
         run: bash .github/build_github.sh
       - name: Verify integrated IPA and record provenance
         run: |
           mv LiveContainer+SideStore.ipa LiveContainerOS+SideStore.ipa
           mv LiveContainer.ipa LiveContainerOS-Standalone.ipa
-          python3 scripts/verify_ipa.py LiveContainerOS+SideStore.ipa --integrated --output build-evidence.json
+          python3 scripts/verify_ipa.py LiveContainerOS+SideStore.ipa --integrated --source-commit "$GITHUB_SHA" --output build-evidence.json
           shasum -a 256 LiveContainerOS+SideStore.ipa LiveContainerOS-Standalone.ipa > SHA256SUMS
           git rev-parse HEAD > SOURCE_COMMIT
           git submodule status > SUBMODULES
@@ -49,6 +51,9 @@ jobs:
             SOURCE_COMMIT
             SUBMODULES
             build-evidence.json
+            artifacts/device-probe/LCOSProbe.ipa
+            artifacts/device-probe/LCOSProbe-rootful.deb
+            artifacts/device-probe/LCOSProbe-rootless.deb
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()

@@ -29,6 +29,10 @@ successfully captured both appearances and a populated Dock on an iPhone 17 Pro 
 icon caches exist only in the test harness, outside the release bundle. This checks component rendering,
 not the original launch controllers or the full application's runtime behavior.
 The workflow also offers a manual `full` host mode to compile and launch the complete application.
+Run [39153089121](https://github.com/CORBENDALLAS111/LiveContainer/actions/runs/39153089121)
+compiled and launched the complete host, captured both desktop appearances and the original app list,
+and verified that the desktop hides the system tab bar while list mode retains it. These captures use
+test-only registry metadata and icon caches with the original app controllers.
 Earlier simulator launch failures are retained in CI history; the harness now opens Simulator explicitly,
 tests system Settings, records diagnostics, and requires a runtime matching the selected SDK.
 Screenshots do not establish guest signing or tweak execution on a physical device.

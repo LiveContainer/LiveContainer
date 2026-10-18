@@ -14,6 +14,6 @@ operation.write_text(s,encoding='utf-8')
 destination=source/'SideStore/Core/LCOSSigningInjection';destination.mkdir(exist_ok=True)
 files=[root/'Integrations/SideStore/LCOSSigningInjection.swift']+[root/'LiveContainerSwiftUI/PackageManager/Core'/name for name in ['SigningMachO.swift','SigningInjectionPreset.swift','PackageSHA256.swift']]
 for file in files:shutil.copyfile(file,destination/file.name)
-manifest={'repository':'LiveContainer/SideStore','commit':actual,'overlay':{file.name:hashlib.sha256(file.read_bytes()).hexdigest() for file in files},'signing_phase':'after bundle preparation, before ALTSigner.signApp'}
+manifest={'schema':1,'resign_operation_sha256':hashlib.sha256(operation.read_bytes()).hexdigest(),'repository':'LiveContainer/SideStore','commit':actual,'overlay':{file.name:hashlib.sha256(file.read_bytes()).hexdigest() for file in files},'signing_phase':'after bundle preparation, before ALTSigner.signApp'}
 (source/'LCOS_SOURCE.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(json.dumps(manifest,indent=2))

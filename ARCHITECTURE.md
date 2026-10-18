@@ -3,8 +3,8 @@
 This branch starts at official LiveContainer `9108ae624ea001f7d7696d48407f890b48fa2653`.
 Observed on 2026-10-18: LiveContainer/SideStore HEAD `ee3cc16a67f9fed766f79a0ed70938f0f8ad5a07`;
 SideStore/SideStore HEAD `d97ec133719d79916675bdaf722b82a8d091d545`.
-These reference HEADs do not establish the source of the prebuilt SideStore release asset.
-The actual integrated dependency is pinned by SHA-256 in the OS workflow.
+The integrated OS workflow now builds SideStore from the commit pinned in Integrations/SideStore/SOURCE_COMMIT,
+with a recorded pre-signing overlay; the old nightly binary is only the upstream packaging script fallback.
 
 ## Reused components
 
@@ -43,13 +43,14 @@ cause and is not an automatic recovery system. Native hook behavior still requir
 
 ## Remaining scope
 
-See `COMPATIBILITY.md` and `TESTING.md`. Home Screen folders, APT repositories, full Debian dependency
+See `COMPATIBILITY.md` and `TESTING.md`. APT repositories, full Debian dependency
 resolution, preference bundles, profiles and recovery are not implemented by this milestone.
 
 ## Native desktop
 
 `HomeScreen/LCHomeScreenView.swift` renders the actual sorted guest registry in an adaptive paged grid,
-with a material dock, in-place search and light/dark procedural wallpapers. The toggle and layout persist
+with persistent folders, native drag sessions and monochrome light/dark backgrounds. Standard tabs remain visible.
+Liquid Glass surfaces and soft scroll edges use system APIs on iOS 26+. The toggle and layout persist
 in existing shared defaults. `HomeScreen/Core/LCHomeLayout.swift` is Foundation-only and tested separately.
 Desktop identifiers match the registry's version-specific bundle/path identity. Hidden applications remain
 in the original manager behind its existing authentication flow.
@@ -58,3 +59,12 @@ in the original manager behind its existing authentication flow.
 The same controller handles authentication, existing multitask windows, launch, container selection,
 export and confirmed uninstall. No second guest-launch implementation is introduced. The original list
 remains available through the toggle; large SwiftUI compositions are split into named view/toolbar builders.
+
+## SideStore signing integration
+
+The configuration UI stages validated DEB/dylib payloads in the shared app group, keyed by original bundle ID.
+SideStore's pinned ResignAppOperation invokes the same portable SigningInjectionApply and SigningMachO code
+after bundle preparation and before ALTSigner. Payload hashes are checked and code/header padding preserved;
+owned load commands are replaced idempotently, and disabling a preset removes them on a later refresh.
+SideStore continues to own certificate/provisioning, final recursive signing and installation.
+See Integrations/SideStore/README.md for the build overlay and constraints.

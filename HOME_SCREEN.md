@@ -1,41 +1,35 @@
-# Native Home Screen
+# Native App Grid
 
-The Home Screen is enabled by default. Switch it off or on in **Settings → Interface → Home Screen**.
-The same switch is available in the desktop's ellipsis menu and in the app list's sorting menu.
-The preference is persisted in LiveContainer's existing shared defaults.
+The **App Grid** toggle in Settings → Interface switches the existing app manager between list and grid.
+The same preference is available in the grid menu and the list sorting menu. Both retain the normal tab bar.
+Grid mode has a pure white background in light mode and pure black in dark mode, with no wallpaper or Dock.
+Version-one Dock placements migrate back into the grid without dropping installed applications.
 
-## Using the desktop
+## Apple-style controls
 
-- Tap an installed app to use LiveContainer's original launch/authentication/JIT path.
-- Touch and hold for the original context menu: containers, settings, alternate launch, export and confirmed uninstall.
-- Choose **Add to Dock** or **Remove from Dock** in that menu. The dock holds four apps on phones and six in wide windows.
-- Drag icons to reorder. Drop on another page's dot to move to that page. Drop onto the dock to pin an app.
-- Use **Search Apps** to search names and bundle identifiers, including apps pinned in the dock.
-- Choose **Dusk**, **Ocean** or **Dawn** in the wallpaper menu. Each has a native light/dark variant.
-- Open Settings, Tweaks or integrated SideStore from the desktop menu. An empty dock shows real navigation shortcuts.
-- Use **Show App List** for the original app manager, including hidden-app authentication and advanced sorting.
+On iOS 26+, header controls, search, folder surfaces and list cards use native Liquid Glass.
+Tabs, menus, navigation and forms retain the system appearance. Scroll edges use the soft system effect
+for progressive blur. Earlier iOS versions retain native material and standard navigation fallbacks.
+App artwork is displayed normally so original icons and signing/lock states stay recognizable.
 
-The desktop uses the actual guest registry and original icons. No fixture applications are shipped.
-Layout identifiers include the installed bundle path, so two versions of an app keep independent positions.
-New installations appear automatically; removed/hidden apps are filtered from display. Reset only changes icon placement.
+## Moving apps and folders
+
+- Use **Edit Apps**, or lift an icon with a long press. Icons jiggle while editing; Reduce Motion is respected.
+- Drag near another icon's edge to reorder with animated displacement.
+- Hold over its center until it expands, then release to create a folder or add to an existing folder.
+- Hold near the screen edge to change pages. UIKit handles lift previews and drag cancellation.
+- Tap a folder for its 3×3 paginated grid. Tap the title to rename it; tap outside, close, or pinch inward to dismiss.
+- Move an icon outside the open folder, use its minus control in edit mode, or its Move Out action to return it to the grid.
+- A folder with one remaining app dissolves. Nested folders are not supported.
+- **Done** exits editing. The menu can reset placement without deleting app data.
+
+The grid uses the actual registry and original launch/authentication/JIT/context-menu controllers.
+Fixture app metadata and generated icons are used only by simulator QA and are excluded from release bundles.
+Folder behavior follows SpringBoard conventions within the application; it does not embed Apple's private SpringBoard implementation.
 
 ## Validation
 
-Five portable unit tests exercise persistence, duplicate versions, inventory reconciliation, dock capacity and invalid drags.
-The integrated IPA workflow compiles the full native UI and retains the package-manager regression checks.
-The Simulator Preview workflow compiles the actual desktop/layout/icon artwork sources in a standard native
-fixture host and captures light/dark screenshots. Run [39151987409](https://github.com/CORBENDALLAS111/LiveContainer/actions/runs/39151987409)
-successfully captured both appearances and a populated Dock on an iPhone 17 Pro with iOS 26.2. Its registry adapters, sample metadata and generated
-icon caches exist only in the test harness, outside the release bundle. This checks component rendering,
-not the original launch controllers or the full application's runtime behavior.
-The workflow also offers a manual `full` host mode to compile and launch the complete application.
-Run [39153089121](https://github.com/CORBENDALLAS111/LiveContainer/actions/runs/39153089121)
-compiled and launched the complete host, captured both desktop appearances and the original app list,
-and verified that the desktop hides the system tab bar while list mode retains it. These captures use
-test-only registry metadata and icon caches with the original app controllers.
-Earlier simulator launch failures are retained in CI history; the harness now opens Simulator explicitly,
-tests system Settings, records diagnostics, and requires a runtime matching the selected SDK.
-Screenshots do not establish guest signing or tweak execution on a physical device.
-
-Manual/device checks remain necessary for drag/context-menu gestures, VoiceOver, narrow split views, and launch regressions.
-Folder creation, photo wallpapers and a categorized App Library are outside this desktop increment.
+Ten core tests cover old-layout migration, inventory reconciliation, folder persistence and membership,
+rename, moving out, duplicate versions, capacity and invalid destinations. Simulator QA captures light/dark
+modes, an open paginated folder and the original list using the actual UI sources. The full-host mode also
+uses the original app controllers. Physical-device gestures, VoiceOver and guest launch need device verification.

@@ -51,9 +51,11 @@ does not establish that injection or hooks work on a device.
 - [ ] Device-proven tweak loading and behavior.
 - [ ] Full rootful-to-rootless Debian converter/export and symbol analysis.
 - [ ] General dependency/version/alternative resolution and shared runtime libraries.
-- [x] Native Home Screen, toggle, app icons, pages, search, persistent ordering and dock; adaptive gradient wallpapers.
+- [x] Native app grid/list toggle, ordinary tabs, theme-dependent black/white background, native glass and soft scroll edges.
+- [x] Persistent folders, live reorder, native lift/cancel lifecycle and page-edge drag handling.
+- [x] SideStore source signing integration with validated DEB/dylib presets and load-command regression tests.
 - [ ] Desktop gesture/accessibility and guest-launch verification on a physical device.
-- [ ] Home Screen folders, photo wallpapers and categorized App Library.
+- [ ] Physical-device folder/drag gesture QA and categorized App Library.
 - [ ] APT sources, trust, search, downloads and updates.
 - [ ] Tweak preferences, profiles, recovery and structured diagnostic export.
 - [ ] Full regression and final acceptance criteria A–H.

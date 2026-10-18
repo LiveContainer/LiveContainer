@@ -51,7 +51,7 @@ jobs:
         run: |
           mv LiveContainer+SideStore.ipa LiveContainerOS+SideStore.ipa
           mv LiveContainer.ipa LiveContainerOS-Standalone.ipa
-          python3 scripts/verify_ipa.py LiveContainerOS+SideStore.ipa --integrated --source-commit "$GITHUB_SHA" --output build-evidence.json
+          python3 scripts/verify_ipa.py LiveContainerOS+SideStore.ipa --integrated --signing-injection --source-commit "$GITHUB_SHA" --output build-evidence.json
           shasum -a 256 LiveContainerOS+SideStore.ipa LiveContainerOS-Standalone.ipa > SHA256SUMS
           git rev-parse HEAD > SOURCE_COMMIT
           git submodule status > SUBMODULES

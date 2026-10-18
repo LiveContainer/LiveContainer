@@ -15,9 +15,9 @@ combined packaging, verifies the resulting ZIP and bundled components, and uploa
 `LiveContainerOS+SideStore.ipa` with `SHA256SUMS`, `SOURCE_COMMIT`, `SUBMODULES` and `build-evidence.json`.
 Compilation logs are uploaded even on failure. No developer credentials or provisioning secrets are supplied.
 
-The SideStore and dylibify download checksums are pinned. If a mutable nightly asset changes, packaging
-intentionally fails; review the new asset and update the checksum explicitly. The source of the SideStore
-prebuilt asset is not verified merely by recording the repository's current HEAD.
+The integrated workflow builds a pinned SideStore source revision with the signing overlay and records
+its source/overlay hashes in SIDESTORE_SOURCE.json and inside the IPA. The dylibify download checksum stays pinned.
+Source-built SideStore artifacts are cached by the source/overlay/build recipe hash, never by a mutable nightly tag.
 
 ## Local
 

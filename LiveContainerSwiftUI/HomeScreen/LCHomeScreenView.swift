@@ -130,7 +130,7 @@ struct LCHomeScreenView: View {
                 Text("lc.appList.myApps".loc).font(.title2.weight(.bold))
                 Spacer()
                 if editing {
-                    Button("lcos.home.done".loc) { animate { editing = false; draggedID = nil }; clearHover() }
+                    Button("lcos.home.done".loc) { finishEditing() }
                         .font(.body.weight(.semibold)).padding(.horizontal, 16).frame(height: 44)
                         .lcGlass(in: Capsule(), interactive: true)
                 } else {
@@ -177,7 +177,13 @@ struct LCHomeScreenView: View {
         }.padding(32).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private func finishEditing() {
+        var transaction = Transaction(animation: nil); transaction.disablesAnimations = true
+        withTransaction(transaction) { editing = false; jiggle = false; draggedID = nil }
+        clearHover(); edgeTask?.cancel()
+    }
     private func startEditing() {
+        guard !editing else { return }
         animate { editing = true }
         if !reduceMotion { withAnimation(.easeInOut(duration: 0.14).repeatForever(autoreverses: true)) { jiggle = true } }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -299,7 +305,7 @@ struct LCHomeScreenView: View {
                         }.padding(24).frame(maxHeight: .infinity, alignment: .top).tag(index)
                     }
                 }.tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 3 * (side + 52) + 20)
+                .frame(height: 3 * (side + 30) + 2 * 22 + 48)
                 .lcGlass(in: RoundedRectangle(cornerRadius: 38))
                 .matchedGeometryEffect(id: folder.id, in: folderAnimation, isSource: true)
                 .padding(.horizontal, 24)

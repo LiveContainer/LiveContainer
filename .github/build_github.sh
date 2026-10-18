@@ -65,6 +65,10 @@ mv ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore.dylib
 ldid -S"" ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/SideStore
 cp ./.github/sidelc/LCAppInfo.plist ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/
 
+if [ -n "${SIDESTORE_IPA_PATH:-}" ]; then
+  cp "$(dirname "$SIDESTORE_IPA_PATH")/SIDESTORE_SOURCE.json" ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/LCOSSigningIntegration.json
+fi
+
 # copy intents
 cp ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/Intents.intentdefinition ./Payload/LiveContainer.app/
 cp ./Payload/LiveContainer.app/Frameworks/SideStoreApp.framework/ViewApp.intentdefinition ./Payload/LiveContainer.app/

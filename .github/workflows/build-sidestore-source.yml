@@ -10,23 +10,33 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/cache@v4
+        id: signing-cache
+        with:
+          path: artifacts/sidestore-source
+          key: sidestore-xcode26.2-${{ hashFiles('Integrations/SideStore/**', 'scripts/prepare_sidestore_source.py', 'LiveContainerSwiftUI/PackageManager/Core/Signing*.swift', 'LiveContainerSwiftUI/PackageManager/Core/PackageSHA256.swift', '.github/workflows/build-sidestore-source.yml') }}
       - uses: actions/checkout@v6
+        if: steps.signing-cache.outputs.cache-hit != 'true'
         with:
           repository: LiveContainer/SideStore
           ref: ee3cc16a67f9fed766f79a0ed70938f0f8ad5a07
           submodules: recursive
           path: sidestore-source
       - uses: maxim-lobanov/setup-xcode@v1
+        if: steps.signing-cache.outputs.cache-hit != 'true'
         with:
           xcode-version: '26.2'
       - name: Apply reviewed signing overlay
+        if: steps.signing-cache.outputs.cache-hit != 'true'
         run: python3 scripts/prepare_sidestore_source.py sidestore-source
       - name: Archive custom SideStore
+        if: steps.signing-cache.outputs.cache-hit != 'true'
         working-directory: sidestore-source
         run: |
           set -o pipefail
           make build 2>&1 | tee ../sidestore-build.log
       - name: Package source-built SideStore
+        if: steps.signing-cache.outputs.cache-hit != 'true'
         run: |
           python3 - <<'PY'
           import pathlib, shutil, zipfile

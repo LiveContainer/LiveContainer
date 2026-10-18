@@ -6,7 +6,7 @@ import pathlib
 import plistlib
 import zipfile
 
-def verify(path, integrated=False, source_commit=None):
+def verify(path, integrated=False, source_commit=None, signing_injection=False):
     path = pathlib.Path(path)
     if not path.is_file() or path.stat().st_size == 0:
         raise ValueError('IPA is absent or empty')
@@ -42,8 +42,15 @@ def verify(path, integrated=False, source_commit=None):
                     raise ValueError('Missing integrated component: ' + suffix)
             if 'group.com.SideStore.SideStore' not in info.get('ALTAppGroups', []):
                 raise ValueError('Missing SideStore app group declaration')
+        if signing_injection:
+            side = root + 'Frameworks/SideStoreApp.framework/'
+            manifest = json.loads(archive.read(side + 'LCOSSigningIntegration.json'))
+            if manifest.get('schema') != 1 or len(manifest.get('commit', '')) != 40 or not manifest.get('resign_operation_sha256'):
+                raise ValueError('Missing SideStore signing overlay provenance')
+            if b'LCOSInjected' not in archive.read(side + 'SideStore'):
+                raise ValueError('SideStore binary lacks the signing injection implementation')
         return {'file': path.name, 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
-                'bundle': info['CFBundleIdentifier'], 'integrated': integrated, 'entries': len(names),
+                'bundle': info['CFBundleIdentifier'], 'signing_injection': signing_injection, 'integrated': integrated, 'entries': len(names),
                 'source_commit': source_commit,
                 'verification': 'ZIP integrity and expected components only', 'device_tested': False}
 
@@ -51,10 +58,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ipa')
     parser.add_argument('--integrated', action='store_true')
+    parser.add_argument('--signing-injection', action='store_true')
     parser.add_argument('--output')
     parser.add_argument('--source-commit')
     args = parser.parse_args()
-    evidence = verify(args.ipa, args.integrated, args.source_commit)
+    evidence = verify(args.ipa, args.integrated, args.source_commit, args.signing_injection)
     result = json.dumps(evidence, indent=2)
     if args.output:
         pathlib.Path(args.output).write_text(result + '\n', encoding='utf-8')

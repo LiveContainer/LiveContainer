@@ -22,10 +22,10 @@ info = plistlib.loads((app / 'Info.plist').read_bytes())
 bundle = info['CFBundleIdentifier']
 if component:
     run('codesign', '--force', '--sign', '-', str(app))
-else:
-    entitlements = out / 'simulator.entitlements'
-    entitlements.write_bytes(plistlib.dumps({'application-identifier': 'AAAAA11111.' + bundle, 'get-task-allow': True}))
-    run('codesign', '--force', '--deep', '--sign', '-', '--entitlements', str(entitlements), str(app))
+# Xcode already signs the full host and all nested code for Simulator. Preserve its
+# platform-specific entitlements; recursively re-signing with an invented app ID
+# can invalidate the launch signature or attach app entitlements to libraries.
+run('codesign', '--verify', '--deep', '--strict', '--verbose=2', str(app))
 devices = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '-j']))['devices']
 candidates = [(runtime, item) for runtime, items in devices.items() for item in items if 'iPhone' in item['name'] and item['isAvailable']]
 runtimes = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'runtimes', '-j']))['runtimes']

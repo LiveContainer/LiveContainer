@@ -400,9 +400,11 @@ struct LCHomeScreenView: View {
                             ForEach(Array(folder.apps.dropFirst(index * 9).prefix(9)), id: \.self) { id in
                                 tile(id, side: side, container: folder.id)
                                     .contextMenu {
+                                        if !editing {
                                         Button("lcos.home.moveOut".loc) {
                                             var value = layout; value.moveItem(id, before: nil, available: available)
                                             animate { save(value) }
+                                        }
                                         }
                                     }
                             }

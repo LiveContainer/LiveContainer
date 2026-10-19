@@ -284,7 +284,8 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
         _ interaction: UIContextMenuInteraction,
         configurationForMenuAtLocation location: CGPoint
     ) -> UIContextMenuConfiguration? {
-        UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+        guard !homeScreen || !homeEditing else { return nil }
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             self?.makeContextMenu()
         }
     }

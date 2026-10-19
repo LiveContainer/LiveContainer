@@ -28,6 +28,9 @@ final class LCHomeDragController: UIViewController, UIDragInteractionDelegate {
     var iconSide: CGFloat
     var begin: () -> Void
     var end: () -> Void
+    // Paging or closing a folder can remove the source view before UIKit ends the drag.
+    // Keep its delegate alive for that session so the same lifted icon can enter another folder.
+    private var activeSessionOwner: LCHomeDragController?
     init(id: String, iconSide: CGFloat, content: AnyView, begin: @escaping () -> Void, end: @escaping () -> Void) {
         self.id = id; self.iconSide = iconSide; self.begin = begin; self.end = end
         host = UIHostingController(rootView: content)
@@ -45,6 +48,7 @@ final class LCHomeDragController: UIViewController, UIDragInteractionDelegate {
         let interaction = UIDragInteraction(delegate: self); interaction.isEnabled = true; view.addInteraction(interaction)
     }
     func dragInteraction(_ interaction: UIDragInteraction, itemsForBeginning session: UIDragSession) -> [UIDragItem] {
+        activeSessionOwner = self
         begin()
         let provider = NSItemProvider()
         let data = Data(id.utf8)
@@ -53,14 +57,18 @@ final class LCHomeDragController: UIViewController, UIDragInteractionDelegate {
         }
         let item = UIDragItem(itemProvider: provider); item.localObject = id; return [item]
     }
-    func dragInteraction(_ interaction: UIDragInteraction, sessionDidEnd session: UIDragSession) { end() }
+    func dragInteraction(_ interaction: UIDragInteraction, sessionDidEnd session: UIDragSession) {
+        defer { activeSessionOwner = nil }
+        end()
+    }
     func dragInteraction(_ interaction: UIDragInteraction, sessionAllowsMoveOperation session: UIDragSession) -> Bool { true }
     func dragInteraction(_ interaction: UIDragInteraction, sessionIsRestrictedToDraggingApplication session: UIDragSession) -> Bool { true }
     func dragInteraction(_ interaction: UIDragInteraction, previewForLifting item: UIDragItem, session: UIDragSession) -> UITargetedDragPreview? {
         iconPreview()
     }
     func dragInteraction(_ interaction: UIDragInteraction, previewForCancelling item: UIDragItem, withDefault defaultPreview: UITargetedDragPreview) -> UITargetedDragPreview? {
-        iconPreview()
+        // The old folder/page may no longer be in a window. UIKit's fallback remains valid.
+        host.view.window == nil ? defaultPreview : iconPreview()
     }
     private func iconPreview() -> UITargetedDragPreview {
         let parameters = UIDragPreviewParameters(); parameters.backgroundColor = .clear

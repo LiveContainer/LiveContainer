@@ -41,11 +41,7 @@ struct LCHomeLayout: Codable, Equatable {
         result.order = (order + result.folders.map(\.id) + available).filter { id in
             (folderMap[id] != nil || (allowed.contains(id) && !assigned.contains(id))) && seen.insert(id).inserted
         }
-        // Like SpringBoard, moving the last-but-one app out dissolves the folder.
-        for folder in result.folders where folder.apps.count == 1 {
-            result.order = result.order.map { $0 == folder.id ? folder.apps[0] : $0 }
-        }
-        result.folders.removeAll { $0.apps.count < 2 }
+        // SpringBoard keeps one-app folders; only an empty folder disappears.
         return result
     }
 

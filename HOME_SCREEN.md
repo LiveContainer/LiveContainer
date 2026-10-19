@@ -38,6 +38,7 @@ uses the original app controllers. Physical-device gestures, VoiceOver and guest
 # Editing and drag refinements
 
 Hold an empty part of the desktop to enter editing; tap empty space or Done to finish.
+Folders remain with one app and disappear only after the last app leaves, matching Apple's documented behavior.
 Icons use independently timed rocking animations, disabled with Reduce Motion. The remove badge
 opens LC's existing uninstall confirmation and separate keep/delete-data choice. Shared guests keep
 their existing uninstall restriction. Drag cancellation restores the saved layout, reconciled with

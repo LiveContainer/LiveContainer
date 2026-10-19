@@ -28,6 +28,24 @@ guest startup on the user's phone remain device acceptance checks.
 
 ## Other permissions and extensions
 
+Guests execute within the host process and already share its kernel sandbox and actually granted
+entitlements. Their virtual home directories are path redirection, not a second iOS security sandbox.
+Removing that redirection cannot create broader kernel permissions. Stock iOS cannot grant the host
+arbitrary private entitlements merely because they appear in an IPA's entitlement plist.
+
+Per-guest **Open selected files and folders in place** enables the system file picker with the real
+host identity, preserves the guest's requested content types and copy/open semantics, and disables
+LC's legacy forced-copy / always-success security-scope workaround for that guest. It defaults off
+and survives guest updates. Restart the guest after changing it. The guest must itself handle
+security-scoped URLs and bookmarks correctly. It grants no access beyond the objects selected in Files.
+
+[Nugget Mobile's original repository](https://github.com/leminlimez/Nugget-Mobile) is archived and
+explicitly excludes recent iOS versions. Its SparseRestore dependency is separate from LC's path
+redirection. No compatible iOS 27 exploit is supplied by this fork. A generic “full access” toggle
+would not make that implementation work on the reported device.
+
+Runtime model reference: [Apple platform security](https://support.apple.com/guide/security/sec15bfe098e/web).
+
 Host `get-task-allow` and increased-memory-limit declarations are already present in entitlements.xml.
 The sideloader must obtain a profile that actually grants them. LC cannot confer arbitrary guest
 entitlements, register arbitrary guest extensions dynamically, or restore vulnerabilities patched in

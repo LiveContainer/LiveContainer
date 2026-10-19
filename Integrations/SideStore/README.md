@@ -35,6 +35,15 @@ Portable tests cover payload corruption, rollback, removal, idempotence and pres
 The Xcode-built controlled ARM64 device guest is also injected and ad-hoc signed/verified in macOS CI.
 These tests do not establish hook compatibility or a successful Apple-account install/refresh on a phone.
 
+## Extension bundle identifiers
+
+The single-profile path now fetches the profile under the effective target bundle ID and keys its
+extension map by the effective extension IDs used during resigning. Previously a custom target could
+miss that map and fall back to the parent profile's ID for every extension, causing IXErrorDomain
+Code 8 / mismatched bundle IDs. A missing mapping now fails explicitly; prepared PlugIns metadata
+is checked for parent-dot prefixes and duplicate IDs before signing. This does not override Apple's
+provisioning rules or recover already-corrupted extension IDs; reinstall such an app from a fresh IPA.
+
 ## SideBackup entitlement preservation
 
 The source build must run upstream `make build fakesign`, including `fakesign-sidebackup`.

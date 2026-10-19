@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "lcos.files.openInPlace" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open selected files and folders in place" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Доступ к выбранным файлам и папкам" } }
+      }
+    },
+    "lcos.files.openInPlaceDescription" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Uses the system Files picker and preserves the app’s request to open files in place instead of forcing copies. Select a file or folder inside the guest app. The app must support security-scoped URLs. Restart the guest after changing this setting. Access is limited to items granted by iOS; this does not unlock system folders or other apps’ data." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Системный выбор через Files сохраняет запрос приложения на открытие без принудительного копирования. Выберите файл или папку в гостевом приложении. Оно должно поддерживать security-scoped URL. После изменения перезапустите гостя. Доступ действует только для разрешённых iOS объектов: системные папки и данные других приложений не открываются." } }
+      }
+    },
   "lcos.signing.installDescription": {
     "extractionState": "manual",
     "localizations": {

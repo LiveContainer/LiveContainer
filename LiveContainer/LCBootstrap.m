@@ -438,7 +438,7 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     remove(newTmpPath.UTF8String);
     symlink(getenv("TMPDIR"), newTmpPath.UTF8String);
     
-    if([guestAppInfo[@"doSymlinkInbox"] boolValue]) {
+    if([guestAppInfo[@"doSymlinkInbox"] boolValue] && ![guestAppInfo[@"openFilesInPlace"] boolValue]) {
         NSString* inboxSymlinkPath = [NSString stringWithFormat:@"%s/%@-Inbox", getenv("TMPDIR"), [appBundle bundleIdentifier]];
         NSString* inboxPath = [newHomePath stringByAppendingPathComponent:@"Inbox"];
         

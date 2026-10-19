@@ -574,6 +574,15 @@
     }
 }
 
+- (bool)openFilesInPlace {
+    return [_info[@"openFilesInPlace"] boolValue];
+}
+
+- (void)setOpenFilesInPlace:(bool)value {
+    _info[@"openFilesInPlace"] = @(value);
+    [self save];
+}
+
 - (void)setFixFilePickerNew:(bool)fixFilePickerNew {
     _info[@"fixFilePickerNew"] = @(fixFilePickerNew);
     [self save];

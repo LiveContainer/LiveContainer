@@ -54,6 +54,8 @@ def verify(path, integrated=False, source_commit=None, signing_injection=False):
                 raise ValueError('Missing SideStore installation UI integration provenance')
             if b'LCOSSigningInjectionPresenter' not in archive.read(side + 'SideStore'):
                 raise ValueError('SideStore binary lacks the installation UI bridge')
+            if not manifest.get('extension_ids', {}).get('validate_before_signing') or 'SigningBundleIdentifiers.swift' not in manifest.get('overlay', {}):
+                raise ValueError('Missing extension bundle ID correction provenance')
             verify_embedded_sidebackup(archive)
         return {'file': path.name, 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                 'bundle': info['CFBundleIdentifier'], 'signing_injection': signing_injection, 'integrated': integrated, 'entries': len(names),

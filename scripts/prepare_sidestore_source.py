@@ -9,8 +9,30 @@ operation=source/'SideStore/Core/Operations/PipelineOperations/ResignAppOperatio
 s=operation.read_text(encoding='utf-8')
 anchor='        let appBundleURL = try await self.prepareAppBundle(for: appBundle, profiles: profiles, appexBundleIds: context.appexBundleIds ?? [:])'
 assert s.count(anchor)==1
-s=s.replace(anchor, '        let lcosOriginalBundleIdentifier = self.context.bundleIdentifier\n'+anchor+'\n        try LCOSSigningInjection.prepare(at: appBundleURL, bundleIdentifier: lcosOriginalBundleIdentifier)')
+s=s.replace(anchor, '        let lcosOriginalBundleIdentifier = self.context.bundleIdentifier\n'+anchor+'\n        try SigningBundleIdentifiers.validateBundle(at: appBundleURL)\n        try LCOSSigningInjection.prepare(at: appBundleURL, bundleIdentifier: lcosOriginalBundleIdentifier)')
+anchor='        let newBundleID = appexBundleIds[identifier] ?? profile.bundleIdentifier'
+assert s.count(anchor)==1
+s=s.replace(anchor, '''        if context.useMainProfile, identifier != context.targetBundleIdentifier, appexBundleIds[identifier] == nil {
+            throw OperationError.invalidParameters("Missing extension bundle ID mapping for " + identifier)
+        }
+'''+anchor)
 operation.write_text(s,encoding='utf-8')
+
+extension_operation=source/'SideStore/Core/Operations/PipelineOperations/PrepareAppExtensionBundleIDsOperation.swift'
+s=extension_operation.read_text(encoding='utf-8')
+start=s.index('        if self.context.useMainProfile {')
+end=s.index('        self.setProgress(100)',start)
+s=s[:start]+'''        if self.context.useMainProfile {
+            guard let appBundle = self.context.targetAppBundle,
+                  let profile = self.context.provisioningProfiles?[self.context.targetBundleIdentifier] else {
+                throw OperationError.invalidParameters("Missing main profile for extension bundle ID preparation")
+            }
+            self.context.appexBundleIds = try SigningBundleIdentifiers.extensionMap(
+                originalParent: appBundle.bundleIdentifier, targetParent: self.context.targetBundleIdentifier,
+                signedParent: profile.bundleIdentifier, extensions: appBundle.appExtensions.map { $0.bundleIdentifier })
+        }
+'''+s[end:]
+extension_operation.write_text(s,encoding='utf-8')
 
 executor=source/'SideStore/Core/Operations/PipelineExecutor.swift'
 s=executor.read_text(encoding='utf-8')
@@ -42,9 +64,10 @@ s=s.replace(anchor,'''    @MainActor
 '''+anchor)
 handler.write_text(s,encoding='utf-8')
 destination=source/'SideStore/Core/LCOSSigningInjection';destination.mkdir(exist_ok=True)
-files=[root/'Integrations/SideStore'/name for name in ['LCOSSigningInjection.swift','LCOSSigningInjectionUI.swift']]+[root/'LiveContainerSwiftUI/PackageManager/Core'/name for name in ['SigningMachO.swift','SigningInjectionPreset.swift','PackageSHA256.swift']]
+files=[root/'Integrations/SideStore'/name for name in ['LCOSSigningInjection.swift','LCOSSigningInjectionUI.swift']]+[root/'LiveContainerSwiftUI/PackageManager/Core'/name for name in ['SigningMachO.swift','SigningInjectionPreset.swift','SigningBundleIdentifiers.swift','PackageSHA256.swift']]
 for file in files:shutil.copyfile(file,destination/file.name)
 manifest={'schema':1,'resign_operation_sha256':hashlib.sha256(operation.read_bytes()).hexdigest(),'repository':'LiveContainer/SideStore','commit':actual,'overlay':{file.name:hashlib.sha256(file.read_bytes()).hexdigest() for file in files},'signing_phase':'after bundle preparation, before ALTSigner.signApp'}
 manifest['install_ui']={'executor_sha256':hashlib.sha256(executor.read_bytes()).hexdigest(),'handler_sha256':hashlib.sha256(handler.read_bytes()).hexdigest(),'phase':'manual install/update/reinstall customization; no background refresh UI'}
+manifest['extension_ids']={'prepare_sha256':hashlib.sha256(extension_operation.read_bytes()).hexdigest(),'validate_before_signing':True}
 (source/'LCOS_SOURCE.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(json.dumps(manifest,indent=2))

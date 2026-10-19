@@ -5,10 +5,12 @@
 #import "../LiveContainer/FoundationPrivate.h"
 
 BOOL fixFilePicker;
+static BOOL openFilesInPlace;
 __attribute__((constructor))
 static void NSFMGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
-    fixFilePicker = [NSUserDefaults.guestAppInfo[@"doSymlinkInbox"] boolValue];
+    openFilesInPlace = [NSUserDefaults.guestAppInfo[@"openFilesInPlace"] boolValue];
+    fixFilePicker = [NSUserDefaults.guestAppInfo[@"doSymlinkInbox"] boolValue] && !openFilesInPlace;
     
     swizzle(UIDocumentPickerViewController.class, @selector(initForOpeningContentTypes:asCopy:), @selector(hook_initForOpeningContentTypes:asCopy:));
     swizzle(UIDocumentPickerViewController.class, @selector(initWithDocumentTypes:inMode:), @selector(hook_initWithDocumentTypes:inMode:));
@@ -18,7 +20,7 @@ static void NSFMGuestHooksInit() {
         swizzle(NSURL.class, @selector(startAccessingSecurityScopedResource), @selector(hook_startAccessingSecurityScopedResource));
         swizzle(UIDocumentPickerViewController.class, @selector(setAllowsMultipleSelection:), @selector(hook_setAllowsMultipleSelection:));
     }
-    if ([NSUserDefaults.guestAppInfo[@"fixFilePickerNew"] boolValue] || NSUserDefaults.isSideStore) {
+    if (openFilesInPlace || [NSUserDefaults.guestAppInfo[@"fixFilePickerNew"] boolValue] || NSUserDefaults.isSideStore) {
         swizzle(DOCConfiguration.class, @selector(setHostIdentifier:), @selector(hook_setHostIdentifier:));
     }
 
@@ -27,6 +29,9 @@ static void NSFMGuestHooksInit() {
 @implementation UIDocumentPickerViewController(LiveContainerHook)
 
 - (instancetype)hook_initForOpeningContentTypes:(NSArray<UTType *> *)contentTypes asCopy:(BOOL)asCopy {
+    if (openFilesInPlace) {
+        return [self hook_initForOpeningContentTypes:contentTypes asCopy:asCopy];
+    }
     
     // prevent crash when selecting only folder
     BOOL shouldMultiselect = NO;
@@ -67,6 +72,7 @@ static void NSFMGuestHooksInit() {
 @implementation UIDocumentBrowserViewController(LiveContainerHook)
 
 - (instancetype)hook_initForOpeningContentTypes:(NSArray<UTType *> *)contentTypes {
+    if (openFilesInPlace) { return [self hook_initForOpeningContentTypes:contentTypes]; }
     NSArray<UTType *> * contentTypesNew = @[UTTypeItem, UTTypeFolder];
     return [self hook_initForOpeningContentTypes:contentTypesNew];
 }
@@ -108,7 +114,7 @@ static void NSFMGuestHooksInit() {
     CFTypeRef value = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("application-identifier"), &error);
     CFRelease(taskSelf);
     if (value) {
-        NSString *entStr = (__bridge NSString *)value;
+        NSString *entStr = [(__bridge NSString *)value copy];
         CFRelease(value);
         NSRange dotRange = [entStr rangeOfString:@"."];
         if (dotRange.location != NSNotFound) {
@@ -120,6 +126,8 @@ static void NSFMGuestHooksInit() {
     } else if (error) {
         NSLog(@"Error fetching entitlement: %@", error);
         CFRelease(error);
+        [self hook_setHostIdentifier:ignored];
+    } else {
         [self hook_setHostIdentifier:ignored];
     }
 }

@@ -57,6 +57,9 @@ class LCAppModel: ObservableObject, Hashable {
             appInfo.fixFilePickerNew = uiFixFilePickerNew
         }
     }
+    @Published var uiOpenFilesInPlace: Bool {
+        didSet { appInfo.openFilesInPlace = uiOpenFilesInPlace }
+    }
     @Published var uiFixLocalNotification : Bool {
         didSet {
             appInfo.fixLocalNotification = uiFixLocalNotification
@@ -181,6 +184,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.uiIsMultitaskModeSpecificed = appInfo.multitaskSpecified
         self.uiUseLCBundleId = appInfo.doUseLCBundleId
         self.uiFixFilePickerNew = appInfo.fixFilePickerNew
+        self.uiOpenFilesInPlace = appInfo.openFilesInPlace
         self.uiFixLocalNotification = appInfo.fixLocalNotification
         self.uiHideLiveContainer = appInfo.hideLiveContainer
         self.uiDontInjectTweakLoader = appInfo.dontInjectTweakLoader

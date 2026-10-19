@@ -34,6 +34,7 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property LCOrientationLock orientationLock;
 @property MultitaskSpecified multitaskSpecified;
 @property bool fixFilePickerNew;
+@property bool openFilesInPlace;
 @property bool fixLocalNotification;
 @property bool doUseLCBundleId;
 @property NSString* selectedLanguage;

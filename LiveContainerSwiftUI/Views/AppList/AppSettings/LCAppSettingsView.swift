@@ -327,6 +327,12 @@ struct LCAppSettingsView: View {
             } footer: {
                 Text("lc.appSettings.useLCBundleIdDesc".loc)
             }
+            Section {
+                Toggle("lcos.files.openInPlace".loc, isOn: $model.uiOpenFilesInPlace)
+                    .disabled(model.uiDontInjectTweakLoader)
+            } footer: {
+                Text("lcos.files.openInPlaceDescription".loc)
+            }
             
             if SharedModel.isPhone {
                 Section {

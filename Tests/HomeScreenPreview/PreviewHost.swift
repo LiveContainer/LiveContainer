@@ -44,7 +44,7 @@ struct LCAppBanner: View {
     var isDocked = false
     var onToggleDock: (() -> Void)?
     var body: some View {
-        LCHomeIconArtwork(model: appModel, darkIcon: false, side: iconSide, showLabel: showLabel, launch: {})
+        LCHomeIconArtwork(model: appModel, darkIcon: false, side: iconSide, showLabel: showLabel, launch: {}, remove: homeEditing ? {} : nil)
     }
 }
 final class BuiltInSideStoreAppInfo {

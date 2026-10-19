@@ -7,6 +7,7 @@ struct LCHomeIconArtwork: View {
     let side: CGFloat
     let showLabel: Bool
     let launch: () -> Void
+    var remove: (() -> Void)? = nil
 
     var body: some View {
         Button(action: launch) {
@@ -46,6 +47,21 @@ struct LCHomeIconArtwork: View {
         .accessibilityLabel(model.displayName)
         .accessibilityValue(model.isSigningInProgress ? "Signing" : model.uiIsLocked ? "Locked" : "")
         .accessibilityHint("lcos.home.iconHint".loc)
+        .overlay(alignment: .top) {
+            if let remove {
+                HStack {
+                    Button(action: remove) {
+                        Image(systemName: "xmark").font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.primary).frame(width: 24, height: 24)
+                            .background(.regularMaterial, in: Circle())
+                            .frame(width: 36, height: 36).contentShape(Circle())
+                    }.buttonStyle(.plain)
+                        .disabled(model.isSigningInProgress)
+                        .accessibilityLabel("lc.appBanner.uninstall".loc + " " + model.displayName)
+                    Spacer(minLength: 0)
+                }.frame(width: side + 12).offset(x: -6, y: -12)
+            }
+        }
     }
 }
 

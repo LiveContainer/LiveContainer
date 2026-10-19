@@ -60,8 +60,8 @@ struct LCAppBanner: UIViewControllerRepresentable {
             dynamicColors: dynamicColors,
             darkModeIcon: darkModeIcon
         )
-        viewController.updateHomeIcon(side: iconSide, showLabel: showLabel)
         viewController.homeEditing = homeEditing
+        viewController.updateHomeIcon(side: iconSide, showLabel: showLabel)
         viewController.onToggleDock = onToggleDock
         viewController.isDocked = isDocked
     }

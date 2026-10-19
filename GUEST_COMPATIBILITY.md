@@ -1,5 +1,21 @@
 # Privileged guests, Husk and cellular refresh
 
+## AirCard / Tendies quick review
+
+The screenshot identifies AirCard-iOS. Its upstream README lists LiveContainer installation and
+iOS 27.0 support, using a local device-service tunnel plus a pairing record. This is separate from
+direct filesystem permission inside the host sandbox. A NeoSpring respring alone does not establish
+that a wallpaper descriptor was installed.
+
+A limited review of upstream `ios-app/TendiesEngine.swift` found that extraction failures can `continue`,
+zero discovered descriptors are not rejected, and secondary modern-provider writes use `try?`.
+The function can therefore reach its final success message without every intended wallpaper write
+having succeeded. These are possible explanations, not a diagnosis of the user's installed version.
+The file also instructs selecting the installed wallpaper from Lock Screen settings after writing.
+No AirCard binary, exploit, pairing credentials or wallpaper data were changed by this fork.
+
+Source: https://github.com/Mak5er/AirCard-iOS (reviewed 2026-10-19).
+
 Target reported by the user: iPhone 16 Pro, iOS 27.0. Findings checked 2026-10-19.
 
 ## Husk

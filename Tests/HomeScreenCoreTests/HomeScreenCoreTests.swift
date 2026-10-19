@@ -79,4 +79,32 @@ final class HomeScreenCoreTests: XCTestCase {
         layout.toggleDock("outside", available: ["a", "b"], capacity: 4)
         XCTAssertEqual(layout, LCHomeLayout())
     }
+    func testDragAdvancesIntoAdjacentSlotInBothDirections() {
+        var layout = LCHomeLayout(order: ["a", "b", "c"])
+        layout.moveItem("a", toSlotOf: "b", available: ["a", "b", "c"])
+        XCTAssertEqual(layout.order, ["b", "a", "c"])
+        layout.moveItem("c", toSlotOf: "a", available: ["a", "b", "c"])
+        XCTAssertEqual(layout.order, ["b", "c", "a"])
+    }
+    func testDirectFolderToFolderDragAndSnapshotRestore() throws {
+        let available = ["a", "b", "c", "d", "e"]
+        let original = LCHomeLayout(order: ["folder:one", "folder:two"], folders: [
+            .init(id: "folder:one", name: "One", apps: ["a", "b", "e"]),
+            .init(id: "folder:two", name: "Two", apps: ["c", "d"])])
+        var moved = original
+        moved.moveItem("a", toSlotOf: "d", in: "folder:two", available: available)
+        XCTAssertEqual(moved.folders[0].apps, ["b", "e"])
+        XCTAssertEqual(moved.folders[1].apps, ["c", "a", "d"])
+        let restored = try JSONDecoder().decode(LCHomeLayout.self, from: JSONEncoder().encode(original))
+        XCTAssertEqual(restored.reconciled(available), original)
+    }
+    func testDragFromFolderCanCreateNewFolderWithoutIntermediateDrop() throws {
+        let available = ["a", "b", "c", "d"]
+        var layout = LCHomeLayout(order: ["folder:one", "d"], folders: [
+            .init(id: "folder:one", name: "One", apps: ["a", "b", "c"])])
+        let newID = try XCTUnwrap(layout.combine("a", with: "d", name: "New", available: available))
+        XCTAssertEqual(layout.folders.first { $0.id == newID }?.apps, ["d", "a"])
+        XCTAssertEqual(layout.folders.first { $0.id == "folder:one" }?.apps, ["b", "c"])
+        XCTAssertEqual(layout.folders.flatMap(\.apps).sorted(), available.sorted())
+    }
 }

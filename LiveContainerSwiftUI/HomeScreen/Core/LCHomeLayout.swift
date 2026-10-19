@@ -79,13 +79,25 @@ struct LCHomeLayout: Codable, Equatable {
             moveItem(source, before: nil, in: target, available: available)
             return target
         }
-        guard available.contains(target), order.contains(target), order.contains(source) else { return nil }
+        guard available.contains(target), order.contains(target) else { return nil }
+        // A drag may arrive directly from an open folder without an intermediate root drop.
+        if !order.contains(source) { moveItem(source, before: target, available: available) }
         let id = "folder:" + UUID().uuidString
         let position = order.firstIndex(of: target)!
         order[position] = id
         order.removeAll { $0 == source }
         folders.append(Folder(id: id, name: name, apps: [target, source]))
         return id
+    }
+
+    mutating func moveItem(_ source: String, toSlotOf target: String, in folderID: String? = nil, available: [String]) {
+        let current = reconciled(available)
+        let items = folderID.flatMap { id in current.folders.first { $0.id == id }?.apps } ?? current.order
+        guard let targetIndex = items.firstIndex(of: target), source != target else { return }
+        let sourceIndex = items.firstIndex(of: source)
+        let destination = sourceIndex.map { $0 < targetIndex } == true
+            ? (targetIndex + 1 < items.count ? items[targetIndex + 1] : nil) : target
+        moveItem(source, before: destination, in: folderID, available: available)
     }
 
     mutating func renameFolder(_ id: String, name: String) {

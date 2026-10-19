@@ -122,7 +122,10 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
 
     private func makeHomeIcon() -> LCHomeIconArtwork {
         LCHomeIconArtwork(model: configuration.model, darkIcon: configuration.darkModeIcon,
-                          side: iconSide, showLabel: showLabel, launch: { [weak self] in guard let self, !self.homeEditing else { return }; self.runButtonTapped() })
+                          side: iconSide, showLabel: showLabel, launch: { [weak self] in guard let self, !self.homeEditing else { return }; self.runButtonTapped() },
+                          remove: homeEditing && !configuration.model.uiIsShared ? { [weak self] in
+                              Task { await self?.uninstall() }
+                          } : nil)
     }
 
     func updateHomeIcon(side: CGFloat, showLabel: Bool) {
@@ -298,7 +301,11 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
         UIApplication.shared.open(url)
     }
 
+    private var uninstalling = false
     private func uninstall() async {
+        guard !uninstalling, !configuration.model.uiIsShared else { return }
+        uninstalling = true
+        defer { uninstalling = false }
         let appInfo = configuration.model.appInfo
         let displayName = appInfo.displayName() ?? configuration.model.displayName
         let shouldUninstall = await presentConfirmation(

@@ -35,3 +35,19 @@ Ten core tests cover old-layout migration, inventory reconciliation, folder pers
 rename, moving out, duplicate versions, capacity and invalid destinations. Simulator QA captures light/dark
 modes, an open paginated folder and the original list using the actual UI sources. The full-host mode also
 uses the original app controllers. Physical-device gestures, VoiceOver and guest launch need device verification.
+# Editing and drag refinements
+
+Hold an empty part of the desktop to enter editing; tap empty space or Done to finish.
+Icons use independently timed rocking animations, disabled with Reduce Motion. The remove badge
+opens LC's existing uninstall confirmation and separate keep/delete-data choice. Shared guests keep
+their existing uninstall restriction. Drag cancellation restores the saved layout, reconciled with
+the current installed inventory.
+
+Hold an app over a folder to open it without releasing the drag. Drag beyond the folder panel to
+close it, then enter another folder or drop on the desktop. Folder edge hovering turns folder pages;
+empty space accepts a drop at that page's end. Root and folder edge/dot changes use the native paged
+TabView with a short ease-in/out transition. Reordering respects movement in both directions.
+
+A masked system material softens the desktop's scroll boundaries. This is a composited blur/fade,
+not a private variable-radius blur API. Visual fixtures include root/folder editing and a second page.
+Fixture-driven animation recordings do not replace physical touch and drag acceptance testing.

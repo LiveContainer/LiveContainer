@@ -69,14 +69,20 @@ try:
         ids.append(identifier + ':' + folder)
     layout = json.dumps({'version': 2, 'order': ['folder:preview'] + ids[10:], 'folders': [{'id': 'folder:preview', 'name': 'Utilities', 'apps': ids[:10]}]})
     (data / 'Documents/preview-config.plist').write_bytes(plistlib.dumps({'LCOSHomeScreenEnabled': True, 'LCOSHomeLayout': layout}))
-    captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png'), ('dark', 'YES', 'folder-open.png')]
+    captures = [('light', 'YES', 'desktop-light.png'), ('dark', 'YES', 'desktop-dark.png'),
+                ('dark', 'YES', 'desktop-editing.png'), ('dark', 'YES', 'desktop-page-two.png'),
+                ('dark', 'YES', 'folder-open.png'), ('dark', 'YES', 'folder-editing.png')]
     if not component:
         captures.append(('light', 'NO', 'app-list.png'))
     for appearance, enabled, filename in captures:
         run('xcrun', 'simctl', 'ui', udid, 'appearance', appearance)
         subprocess.run(['xcrun', 'simctl', 'terminate', udid, bundle], capture_output=True)
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', enabled,
-            '-LCOSHomeLayout', layout, '-LCOSPreviewEnabled', 'YES', '-LCOSPreviewFolder', 'folder:preview' if filename == 'folder-open.png' else '', '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
+            '-LCOSHomeLayout', layout, '-LCOSPreviewEnabled', 'YES',
+            '-LCOSPreviewFolder', 'folder:preview' if filename in ('folder-open.png', 'folder-editing.png') else '',
+            '-LCOSPreviewEditing', 'YES' if 'editing' in filename else 'NO',
+            '-LCOSPreviewPage', '1' if filename == 'desktop-page-two.png' else '0',
+            '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
         # On shared CI runners image decoding and SwiftUI's first frame can lag launch.
         time.sleep(25)
         run('xcrun', 'simctl', 'io', udid, 'screenshot', str(out / filename), timeout=120)
@@ -87,7 +93,7 @@ try:
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', 'YES',
             '-LCOSPreviewEnabled', 'YES', '-LCOSPreviewFolder', '', '-LCOSPreviewMotion', 'YES',
             '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
-        time.sleep(14)
+        time.sleep(16)
     finally:
         recording.send_signal(signal.SIGINT)
         recording.wait(timeout=30)

@@ -13,6 +13,7 @@ struct SigningInjectionPreset: Codable, Equatable {
         guard identifier.count <= 255, identifier.contains("."),
               identifier.range(of: #"\A[A-Za-z0-9][A-Za-z0-9.-]+\z"#, options: .regularExpression) != nil,
               !identifier.hasPrefix("com.apple."), !identifier.lowercased().contains("sidestore"),
+              !identifier.lowercased().hasPrefix("com.rileytestut.altstore"),
               !identifier.lowercased().contains("livecontainer") else { throw SigningInjectionFailure.invalid("Choose an explicit third-party application bundle identifier") }
     }
     func write(to root: URL) throws {

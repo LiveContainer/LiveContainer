@@ -5,6 +5,7 @@ import json
 import pathlib
 import plistlib
 import zipfile
+from verify_sidebackup import verify_embedded_sidebackup
 
 def verify(path, integrated=False, source_commit=None, signing_injection=False):
     path = pathlib.Path(path)
@@ -49,6 +50,11 @@ def verify(path, integrated=False, source_commit=None, signing_injection=False):
                 raise ValueError('Missing SideStore signing overlay provenance')
             if b'LCOSInjected' not in archive.read(side + 'SideStore'):
                 raise ValueError('SideStore binary lacks the signing injection implementation')
+            if 'LCOSSigningInjectionUI.swift' not in manifest.get('overlay', {}) or not manifest.get('install_ui'):
+                raise ValueError('Missing SideStore installation UI integration provenance')
+            if b'LCOSSigningInjectionPresenter' not in archive.read(side + 'SideStore'):
+                raise ValueError('SideStore binary lacks the installation UI bridge')
+            verify_embedded_sidebackup(archive)
         return {'file': path.name, 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
                 'bundle': info['CFBundleIdentifier'], 'signing_injection': signing_injection, 'integrated': integrated, 'entries': len(names),
                 'source_commit': source_commit,

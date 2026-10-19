@@ -195,6 +195,19 @@ struct LCAppSettingsView: View {
                         }
                     }
                 }
+                if model.bundleIdentifier == "com.husk.app" || model.bundleIdentifier.hasPrefix("com.husk.app.") {
+                    Button("lcos.jit.useBundledScript".loc) {
+                        do {
+                            guard let path = appInfo.bundlePath(),
+                                  let data = try GuestJITSupport.bundledScript(in: URL(fileURLWithPath: path), bundleIdentifier: model.bundleIdentifier) else {
+                                throw SigningInjectionFailure.invalid("Husk does not contain husk-jit.js; import a compatible JIT script manually")
+                            }
+                            model.jitLaunchScriptJs = data.base64EncodedString()
+                            model.uiIsJITNeeded = true
+                        } catch { errorInfo = error.localizedDescription; errorShow = true }
+                    }
+                    Text("lcos.jit.huskExternal".loc).font(.footnote).foregroundStyle(.secondary)
+                }
                 if model.uiIs32bit {
                     Picker(selection: $model.uiSelected32BitEmulator) {
                         ForEach(sharedModel.arm32EmuApps, id: \.self) { app in

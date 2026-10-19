@@ -10,12 +10,15 @@ the integrated OS workflow requires its source-built signing implementation.
 
 ## Use
 
-Open **Settings → SideStore Injection** in LiveContainer. Enter the original app bundle identifier
-(before Apple's provisioning suffix), import a DEB or dylib, review the target and enable the preset.
-Install or refresh that application in the integrated SideStore. The libraries are copied into an owned
+During a foreground **Install / Update / Reinstall** in embedded SideStore, the injection sheet opens
+after application customization. Its target is the selected IPA's original bundle identifier, before
+Apple's provisioning suffix. Import a DEB or dylib, review and enable it, then choose Install.
+Continue without files for a normal installation; Cancel aborts the installation. This screen is no
+longer in LiveContainer Settings. The libraries are copied into an owned
 Frameworks/LCOSInjected directory and added as executable load commands before SideStore signs the result.
 Multiple libraries are supported. Re-importing a library with the same filename replaces its earlier version.
-Disable or delete the preset and refresh again to remove owned load commands from cached modified bundles.
+Disable or delete the preset and reinstall/sign again to remove owned load commands from modified bundles.
+Profile-only refresh does not alter executable contents or show the injection sheet.
 Previously installed applications change only after SideStore successfully signs and installs the refreshed copy.
 
 DEB extraction, maintainer-script rejection, bundle filters and Mach-O dependency adaptation reuse the
@@ -31,3 +34,12 @@ invalidate old signatures and must never be exported as an already-signed app be
 Portable tests cover payload corruption, rollback, removal, idempotence and preserved code bytes.
 The Xcode-built controlled ARM64 device guest is also injected and ad-hoc signed/verified in macOS CI.
 These tests do not establish hook compatibility or a successful Apple-account install/refresh on a phone.
+
+## SideBackup entitlement preservation
+
+The source build must run upstream `make build fakesign`, including `fakesign-sidebackup`.
+Without the initial entitlement declaration in the embedded SideBackup binary, SideSign drops the
+App Groups entitlement even when a profile contains it. The result is the purple “SideBackup could
+not start” screen. Both the source IPA and final integrated IPA now reject a missing declaration.
+This check does not grant entitlements: the final device installation still needs a valid provisioning
+profile granting the shared app group.

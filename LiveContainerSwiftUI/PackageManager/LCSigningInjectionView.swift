@@ -2,13 +2,14 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct LCSigningInjectionView: View {
-    @State private var target = ""
+    let target: String
+    let appName: String
+    let finish: (Bool) -> Void
     @State private var presets: [SigningInjectionPreset] = []
     @State private var importing = false
     @State private var working = false
     @State private var error: String?
     @State private var pending: Pending?
-    @EnvironmentObject private var shared: SharedModel
     private struct Pending: Identifiable, Sendable {
         let id = UUID()
         let target: String
@@ -22,16 +23,11 @@ struct LCSigningInjectionView: View {
     var body: some View {
         Form {
             Section {
-                TextField("lcos.signing.bundle".loc, text: $target)
-                    .textInputAutocapitalization(.never).disableAutocorrection(true).autocorrectionDisabled()
-                Menu("lcos.signing.chooseGuest".loc) {
-                    ForEach(shared.apps, id: \.appInfo.relativeBundlePath) { app in
-                        Button(app.displayName) { target = app.bundleIdentifier }
-                    }
-                }
-                Button { importing = true } label: { Label("lcos.signing.import".loc, systemImage: "doc.badge.plus") }
+                Text(appName).font(.headline)
+                Text(target).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                Button { importing = true } label: { Label("lcos.signing.import".signingLoc, systemImage: "doc.badge.plus") }
                     .disabled(working || target.isEmpty)
-            } header: { Text("lcos.signing.title".loc) } footer: { Text("lcos.signing.description".loc) }
+            } header: { Text("SideStore") } footer: { Text("lcos.signing.installDescription".signingLoc) }
             Section {
                 ForEach(presets, id: \.bundleIdentifier) { preset in
                     VStack(alignment: .leading, spacing: 8) {
@@ -43,36 +39,46 @@ struct LCSigningInjectionView: View {
                         Text("\(preset.libraries.count) dylib").font(.caption).foregroundStyle(.secondary)
                     }
                     .swipeActions {
-                        Button(role: .destructive) { removePreset(preset.bundleIdentifier) } label: { Label("lc.common.delete".loc, systemImage: "trash") }
+                        Button(role: .destructive) { removePreset(preset.bundleIdentifier) } label: { Label("lc.common.delete".signingLoc, systemImage: "trash") }
                     }
                 }
-                if presets.isEmpty { Text("lcos.signing.empty".loc).foregroundStyle(.secondary) }
-            } header: { Text("lcos.signing.configured".loc) }
+                if presets.isEmpty { Text("lcos.signing.empty".signingLoc).foregroundStyle(.secondary) }
+            } header: { Text("lcos.signing.configured".signingLoc) }
             if working { ProgressView() }
         }
         .lcSoftScrollEdges()
-        .navigationTitle("lcos.signing.title".loc)
+        .navigationTitle("lcos.signing.title".signingLoc)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("lc.common.cancel".signingLoc) { finish(false) }.disabled(working)
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("lcos.signing.continueInstall".signingLoc) { finish(true) }.disabled(working || pending != nil)
+            }
+        }
         .task { reload() }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.data], allowsMultipleSelection: false) { result in
             do { if let url = try result.get().first { Task { await inspect(url) } } }
             catch { self.error = error.localizedDescription }
         }
-        .alert("lc.common.error".loc, isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
-            Button("lc.common.ok".loc) { error = nil }
+        .alert("lc.common.error".signingLoc, isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+            Button("lc.common.ok".signingLoc) { error = nil }
         } message: { Text(error ?? "") }
-        .confirmationDialog("lcos.signing.confirm".loc, isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } })) {
+        .confirmationDialog("lcos.signing.confirm".signingLoc, isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } })) {
             if let pending {
-                Button("lcos.signing.enable".loc) { configure(pending); self.pending = nil }
+                Button("lcos.signing.enable".signingLoc) { configure(pending); self.pending = nil }
             }
-            Button("lc.common.cancel".loc, role: .cancel) { pending = nil }
-        } message: { Text("lcos.signing.trust".loc) }
+            Button("lc.common.cancel".signingLoc, role: .cancel) { pending = nil }
+        } message: { Text("lcos.signing.trust".signingLoc) }
     }
     private func reload() {
         guard let root else { return }
         let folders = (try? FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
         presets = folders.compactMap { folder in
             guard let data = try? Data(contentsOf: folder.appendingPathComponent("preset.json")), data.count < 1_048_576 else { return nil }
-            return try? JSONDecoder().decode(SigningInjectionPreset.self, from: data)
+            guard let preset = try? JSONDecoder().decode(SigningInjectionPreset.self, from: data),
+                  preset.bundleIdentifier == target else { return nil }
+            return preset
         }.sorted { $0.bundleIdentifier < $1.bundleIdentifier }
     }
     private func removePreset(_ identifier: String) {
@@ -115,7 +121,8 @@ struct LCSigningInjectionView: View {
     }
     private func configure(_ pending: Pending) {
         guard let root else { error = "Shared app group unavailable"; return }
-        let substrateSource = Bundle.main.privateFrameworksURL?.appendingPathComponent("CydiaSubstrate.framework")
+        let substrateSource = Bundle(for: LCOSSigningInjectionPresenter.self).bundleURL
+            .deletingLastPathComponent().appendingPathComponent("CydiaSubstrate.framework")
         working = true
         Task {
           defer { working = false }
@@ -141,8 +148,8 @@ struct LCSigningInjectionView: View {
                 preset.files.append(.init(path: name, sha256: PackageSHA256.hex(bytes)))
             }
             if pending.substrate {
-                guard let source = substrateSource,
-                      let enumerator = FileManager.default.enumerator(at: source, includingPropertiesForKeys: [.isRegularFileKey]) else {
+                let source = substrateSource
+                guard let enumerator = FileManager.default.enumerator(at: source, includingPropertiesForKeys: [.isRegularFileKey]) else {
                     throw SigningInjectionFailure.invalid("Bundled Substrate support is unavailable")
                 }
                 for case let file as URL in enumerator {
@@ -160,5 +167,45 @@ struct LCSigningInjectionView: View {
             reload()
           } catch { self.error = error.localizedDescription }
         }
+    }
+}
+
+/// Runtime boundary used by the embedded SideStore, which cannot link the LC SwiftUI module directly.
+@objc(LCOSSigningInjectionPresenter)
+final class LCOSSigningInjectionPresenter: NSObject {
+    @MainActor
+    @objc(configureBundleIdentifier:appName:presenter:completion:)
+    static func configure(bundleIdentifier: String, appName: String, presenter: UIViewController,
+                          completion: @escaping (Bool) -> Void) {
+        guard #available(iOS 16.1, *), presenter.viewIfLoaded?.window != nil,
+              presenter.presentedViewController == nil else { completion(false); return }
+        var completed = false
+        weak var sheet: UIViewController?
+        let content = NavigationView {
+            LCSigningInjectionView(target: bundleIdentifier, appName: appName) { accepted in
+                guard !completed else { return }
+                completed = true
+                sheet?.dismiss(animated: true) { completion(accepted) }
+            }
+        }.navigationViewStyle(.stack)
+        let controller = UIHostingController(rootView: content)
+        controller.isModalInPresentation = true
+        controller.modalPresentationStyle = .pageSheet
+        sheet = controller
+        presenter.present(controller, animated: true)
+    }
+}
+
+private extension String {
+    var signingLoc: String {
+        // Bundle.main belongs to SideStore while this view is presented there.
+        let url = Bundle(for: LCOSSigningInjectionPresenter.self).bundleURL.deletingLastPathComponent().deletingLastPathComponent()
+        let host = Bundle(url: url) ?? .main
+        let value = host.localizedString(forKey: self, value: nil, table: nil)
+        if value != self { return value }
+        if let path = host.path(forResource: "en", ofType: "lproj"), let english = Bundle(path: path) {
+            return english.localizedString(forKey: self, value: self, table: nil)
+        }
+        return self
     }
 }

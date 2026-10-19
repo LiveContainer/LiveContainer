@@ -12,7 +12,7 @@ stub = out / 'BridgeStub.o'
 subprocess.run(['xcrun', 'clang', '-fobjc-arc', '-c', str(root / 'Tests/SigningIntegration/BridgeStub.m'),
                 '-o', str(stub)], check=True)
 sources = [core / name for name in ['SigningMachO.swift', 'SigningInjectionPreset.swift', 'PackageSHA256.swift']]
-sources += [root / 'Integrations/SideStore/LCOSSigningInjection.swift', root / 'Tests/SigningIntegration/Main.swift']
+sources += [root / 'Integrations/SideStore/LCOSSigningInjection.swift', root / 'Integrations/SideStore/LCOSSigningInjectionUI.swift', root / 'Tests/SigningIntegration/Main.swift']
 binary = out / 'SigningBridgeTest'
 subprocess.run(['xcrun', 'swiftc', '-parse-as-library', *map(str, sources), str(stub),
                 '-framework', 'Foundation', '-o', str(binary)], check=True)

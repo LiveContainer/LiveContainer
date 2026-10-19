@@ -149,11 +149,6 @@ struct LCSettingsView: View {
                 }
                 
                 if #available(iOS 16.1, *) {
-                    Section {
-                    NavigationLink { LCSigningInjectionView() } label: {
-                        Label("lcos.signing.title".loc, systemImage: "signature")
-                    }
-                }
                 Section {
                         NavigationLink {
                             LCMultitaskSettingView()

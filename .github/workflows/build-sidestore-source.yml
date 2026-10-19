@@ -34,7 +34,10 @@ jobs:
         working-directory: sidestore-source
         run: |
           set -o pipefail
-          make build 2>&1 | tee ../sidestore-build.log
+          brew install ldid
+          # Preserve entitlement declarations in the embedded SideBackup IPA.
+          # SideSign filters profile entitlements against these declarations when signing later.
+          make build fakesign 2>&1 | tee ../sidestore-build.log
       - name: Package source-built SideStore
         if: steps.signing-cache.outputs.cache-hit != 'true'
         run: |
@@ -49,6 +52,7 @@ jobs:
                   if file.is_file(): archive.write(file,'Payload/SideStore.app/'+file.relative_to(app).as_posix())
           shutil.copyfile(source/'LCOS_SOURCE.json',out/'SIDESTORE_SOURCE.json')
           PY
+          python3 scripts/verify_sidebackup.py artifacts/sidestore-source/SideStore.ipa
       - uses: actions/upload-artifact@v4
         with:
           name: sidestore-source-build

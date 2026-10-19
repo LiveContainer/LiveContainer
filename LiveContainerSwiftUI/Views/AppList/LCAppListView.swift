@@ -785,6 +785,11 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         } else {
             // enable SDK version spoof by defalut
             finalNewApp.spoofSDKVersion = true
+            if let path = finalNewApp.bundlePath(),
+               let script = try? GuestJITSupport.bundledScript(in: URL(fileURLWithPath: path), bundleIdentifier: finalNewApp.bundleIdentifier()) {
+                finalNewApp.jitLaunchScriptJs = script.base64EncodedString()
+                finalNewApp.isJITNeeded = true
+            }
         }
         finalNewApp.installationDate = Date.now
 

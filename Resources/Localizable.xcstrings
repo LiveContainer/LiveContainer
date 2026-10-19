@@ -1,6 +1,74 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "lcos.signing.installDescription": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Optional: add DEB or dylib libraries to this IPA before SideStore signs it. Continue without files for a normal installation. Saved choices apply when this app is signed again."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Необязательно: добавьте библиотеки DEB или dylib в эту IPA перед подписанием SideStore. Без файлов будет обычная установка. Выбор сохраняется для следующего подписания приложения."
+        }
+      }
+    }
+  },
+  "lcos.signing.continueInstall": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Install"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Установить"
+        }
+      }
+    }
+  },
+  "lcos.jit.useBundledScript": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use bundled Husk JIT script"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Использовать JIT-скрипт из Husk"
+        }
+      }
+    }
+  },
+  "lcos.jit.huskExternal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use StikDebug as the LiveContainer JIT enabler. The guest app’s built-in helper extension is not registered by iOS. A valid pairing file and external loopback VPN are required."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Выберите StikDebug как способ JIT в LiveContainer. Встроенное helper-расширение гостя не регистрируется в iOS. Нужны действующий pairing-файл и отдельно установленный loopback VPN."
+        }
+      }
+    }
+  },
   "lcos.signing.title": {
     "extractionState": "manual",
     "localizations": {

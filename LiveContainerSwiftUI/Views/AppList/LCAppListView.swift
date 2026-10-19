@@ -1146,7 +1146,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     func jitLaunch(withPID pid: Int, withScript script: String? = nil, appName: String) async {
         await MainActor.run {
-            let encodedData = script?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+            // Base64 '+' must survive URL/form decoding in the external debugger.
+            let encodedData = script?.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
 
 
             if let jitEnabler = JITEnablerType(rawValue: LCUtils.appGroupUserDefault.integer(forKey: "LCJITEnablerType")) {

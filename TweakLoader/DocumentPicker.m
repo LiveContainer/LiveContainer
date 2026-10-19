@@ -56,6 +56,7 @@ static void NSFMGuestHooksInit() {
 }
 
 - (instancetype)hook_initWithDocumentTypes:(NSArray<UTType *> *)contentTypes inMode:(NSUInteger)mode {
+    if (openFilesInPlace) { return [self hook_initWithDocumentTypes:contentTypes inMode:mode]; }
     return [self initForOpeningContentTypes:contentTypes asCopy:(mode == 1 ? NO : YES)];
 }
 

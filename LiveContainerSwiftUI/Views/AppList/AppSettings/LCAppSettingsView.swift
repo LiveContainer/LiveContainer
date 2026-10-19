@@ -37,6 +37,7 @@ struct LCAppSettingsView: View {
     @State private var errorShow = false
     @State private var errorInfo = ""
     @State private var selectUnusedContainerSheetShow = false
+    @State private var grantingFolder = false
     
     @EnvironmentObject private var sharedModel : SharedModel
     
@@ -333,6 +334,30 @@ struct LCAppSettingsView: View {
             } footer: {
                 Text("lcos.files.openInPlaceDescription".loc)
             }
+            Section {
+                Button("lcos.access.systemSettings".loc) {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+                Button("lcos.access.chooseFolder".loc) { grantingFolder = true }
+                    .fileImporter(isPresented: $grantingFolder, allowedContentTypes: [.folder]) { result in
+                        do {
+                            let url = try result.get()
+                            let scoped = url.startAccessingSecurityScopedResource()
+                            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                            let bookmark = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
+                            appInfo.sharedFolderBookmark = bookmark
+                            appInfo.sharedFolderName = url.lastPathComponent
+                            model.uiSharedFolderName = url.lastPathComponent
+                        } catch { errorInfo = error.localizedDescription; errorShow = true }
+                    }
+                if let name = model.uiSharedFolderName {
+                    Text(name).foregroundStyle(.secondary)
+                    Button("lcos.access.revokeFolder".loc, role: .destructive) {
+                        appInfo.sharedFolderBookmark = nil; appInfo.sharedFolderName = nil
+                        model.uiSharedFolderName = nil
+                    }
+                }
+            } header: { Text("lcos.access.title".loc) } footer: { Text("lcos.access.description".loc) }
             
             if SharedModel.isPhone {
                 Section {
@@ -348,9 +373,11 @@ struct LCAppSettingsView: View {
             
             Section {
                 Toggle(isOn: $model.uiHideLiveContainer) {
-                    Text("lc.appSettings.hideLiveContainer".loc)
+                    Text("lcos.compat.conceal".loc)
                 }
+            } footer: { Text("lcos.compat.concealDescription".loc) }
 
+            Section {
                 Toggle(isOn: $model.uiDontInjectTweakLoader) {
                     Text("lc.appSettings.dontInjectTweakLoader".loc)
                 }.disabled(model.uiTweakLoaderInjectFailed)
@@ -361,8 +388,6 @@ struct LCAppSettingsView: View {
                     }
                 }
                 
-            } footer: {
-                Text("lc.appSettings.hideLiveContainerDesc".loc)
             }
             
             if #available(iOS 16.0, *) {

@@ -60,6 +60,7 @@ class LCAppModel: ObservableObject, Hashable {
     @Published var uiOpenFilesInPlace: Bool {
         didSet { appInfo.openFilesInPlace = uiOpenFilesInPlace }
     }
+    @Published var uiSharedFolderName: String?
     @Published var uiFixLocalNotification : Bool {
         didSet {
             appInfo.fixLocalNotification = uiFixLocalNotification
@@ -185,6 +186,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.uiUseLCBundleId = appInfo.doUseLCBundleId
         self.uiFixFilePickerNew = appInfo.fixFilePickerNew
         self.uiOpenFilesInPlace = appInfo.openFilesInPlace
+        self.uiSharedFolderName = appInfo.sharedFolderName
         self.uiFixLocalNotification = appInfo.fixLocalNotification
         self.uiHideLiveContainer = appInfo.hideLiveContainer
         self.uiDontInjectTweakLoader = appInfo.dontInjectTweakLoader

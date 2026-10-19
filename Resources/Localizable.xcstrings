@@ -1,6 +1,34 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "lcos.access.systemSettings" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "LiveContainer permissions in iOS Settings" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Разрешения LiveContainer в настройках iOS" } }
+    } },
+    "lcos.access.title" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Additional access" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Дополнительный доступ" } }
+    } },
+    "lcos.access.chooseFolder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Grant access to a folder…" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Разрешить доступ к папке…" } }
+    } },
+    "lcos.access.revokeFolder" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Revoke folder access" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отозвать доступ к папке" } }
+    } },
+    "lcos.access.description" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "The folder selected in Files is made available at Documents/LiveContainer Access/Shared inside the guest. The grant persists between launches; changes and revocation apply after restarting the guest. This does not unlock system folders or other apps’ private data." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбранная в Files папка появится у гостя в Documents/LiveContainer Access/Shared. Разрешение сохраняется между запусками; изменение и отзыв вступают в силу после перезапуска гостя. Системные каталоги и закрытые данные других приложений этим не разблокируются." } }
+    } },
+    "lcos.compat.conceal" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Conceal LiveContainer indicators" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Скрывать признаки LiveContainer" } }
+    } },
+    "lcos.compat.concealDescription" : { "localizations" : {
+      "en" : { "stringUnit" : { "state" : "translated", "value" : "Reduces visible container indicators but cannot guarantee that every app will accept the environment. It does not change the system signature or grant extra permissions. Restart the guest after changing this option." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Уменьшает видимость признаков контейнера, но не гарантирует совместимость со всеми проверками приложений. Не меняет системную подпись и разрешения. После изменения перезапустите гостя." } }
+    } },
     "lcos.files.openInPlace" : {
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Open selected files and folders in place" } },

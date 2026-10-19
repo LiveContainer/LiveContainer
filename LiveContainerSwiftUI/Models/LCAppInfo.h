@@ -35,6 +35,8 @@ typedef NS_ENUM(NSInteger, MultitaskSpecified){
 @property MultitaskSpecified multitaskSpecified;
 @property bool fixFilePickerNew;
 @property bool openFilesInPlace;
+@property NSData *sharedFolderBookmark;
+@property NSString *sharedFolderName;
 @property bool fixLocalNotification;
 @property bool doUseLCBundleId;
 @property NSString* selectedLanguage;

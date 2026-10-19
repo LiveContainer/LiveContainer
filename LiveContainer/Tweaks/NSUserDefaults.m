@@ -11,6 +11,7 @@
 #import "utils.h"
 #import "../../litehook/src/litehook.h"
 #include "Tweaks.h"
+#import "LCGuestEnvironment.h"
 @import ObjectiveC;
 @import MachO;
 
@@ -27,7 +28,19 @@ void swizzle2(Class class, SEL originalAction, Class class2, SEL swizzledAction)
 NSURL* appContainerURL = 0;
 NSString* appContainerPath = 0;
 
+@interface NSProcessInfo (LCGuestEnvironment)
+- (NSDictionary<NSString *, NSString *> *)lcos_environment;
+@end
+@implementation NSProcessInfo (LCGuestEnvironment)
+- (NSDictionary<NSString *, NSString *> *)lcos_environment {
+    return LCGuestEnvironment([self lcos_environment], YES);
+}
+@end
+
 void NUDGuestHooksInit(void) {
+    if ([NSUserDefaults.guestAppInfo[@"hideLiveContainer"] boolValue] && !NSUserDefaults.isSideStore) {
+        swizzle(NSProcessInfo.class, @selector(environment), @selector(lcos_environment));
+    }
     appContainerPath = [NSString stringWithUTF8String:getenv("HOME")];
     appContainerURL = [NSURL URLWithString:appContainerPath];
     

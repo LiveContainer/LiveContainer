@@ -776,6 +776,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             finalNewApp.doUseLCBundleId = appToReplace.appInfo.doUseLCBundleId
             finalNewApp.fixFilePickerNew = appToReplace.appInfo.fixFilePickerNew
             finalNewApp.openFilesInPlace = appToReplace.appInfo.openFilesInPlace
+            finalNewApp.sharedFolderBookmark = appToReplace.appInfo.sharedFolderBookmark
+            finalNewApp.sharedFolderName = appToReplace.appInfo.sharedFolderName
             finalNewApp.fixLocalNotification = appToReplace.appInfo.fixLocalNotification
             finalNewApp.lastLaunched = appToReplace.appInfo.lastLaunched
             finalNewApp.jitLaunchScriptJs = appToReplace.appInfo.jitLaunchScriptJs
@@ -1013,11 +1015,13 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
     func removeApp(app: LCAppModel) {
         DispatchQueue.main.async {
+            withAnimation(UIAccessibility.isReduceMotionEnabled ? nil : .easeInOut(duration: 0.25)) {
             sharedModel.apps.removeAll { now in
                 return app == now
             }
             sharedModel.hiddenApps.removeAll { now in
                 return app == now
+            }
             }
 
         }

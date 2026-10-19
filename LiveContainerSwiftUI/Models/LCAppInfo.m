@@ -577,6 +577,16 @@
 - (bool)openFilesInPlace {
     return [_info[@"openFilesInPlace"] boolValue];
 }
+- (NSData *)sharedFolderBookmark { return _info[@"sharedFolderBookmark"]; }
+- (void)setSharedFolderBookmark:(NSData *)value {
+    _info[@"sharedFolderBookmark"] = value;
+    [self save];
+}
+- (NSString *)sharedFolderName { return _info[@"sharedFolderName"]; }
+- (void)setSharedFolderName:(NSString *)value {
+    _info[@"sharedFolderName"] = value;
+    [self save];
+}
 
 - (void)setOpenFilesInPlace:(bool)value {
     _info[@"openFilesInPlace"] = @(value);

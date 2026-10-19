@@ -3,6 +3,7 @@
 #import "LCSharedUtils.h"
 #import "UIKitPrivate.h"
 #import "utils.h"
+#import "LCGrantedFolder.h"
 
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
@@ -29,6 +30,7 @@ NSDictionary* guestAppInfo;
 NSDictionary* guestContainerInfo;
 NSString* lcGuestAppId;
 NSString* lcLaunchURL;
+static NSURL *guestGrantedFolderLease;
 bool isLiveProcess = false;
 bool isSharedBundle = false;
 bool isSideStore = false;
@@ -480,6 +482,8 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
         NSString *dirPath = [newHomePath stringByAppendingPathComponent:dir];
         [fm createDirectoryAtPath:dirPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
+    NSString *folderAccessError = LCPrepareGrantedFolder(newHomePath, guestAppInfo[@"sharedFolderBookmark"], &guestGrantedFolderLease);
+    if (folderAccessError) return folderAccessError;
     
     NSString* containerInfoPath = [newHomePath stringByAppendingPathComponent:@"LCContainerInfo.plist"];
     guestContainerInfo = [NSDictionary dictionaryWithContentsOfFile:containerInfoPath];

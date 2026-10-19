@@ -59,6 +59,7 @@ enum SigningBridgeTest {
             }
         }
         let evidence = ["shared_group_bridge": true, "install_ui_bridge": true, "install_cancel": true, "guest_jit_routing": true, "injection": true, "disable_restores_binary": true,
+                        "granted_folder_mount_revoke": true, "granted_folder_preserves_unmanaged_data": true, "guest_environment_filter": true,
                         "adhoc_signature_verified": true, "physical_device_tested": false]
         try JSONSerialization.data(withJSONObject: evidence, options: [.prettyPrinted, .sortedKeys])
             .write(to: group.deletingLastPathComponent().appendingPathComponent("signing-bridge-evidence.json"))

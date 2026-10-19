@@ -26,12 +26,12 @@ private struct LCHomeScrollVeil: ViewModifier {
     func body(content: Content) -> some View {
         Group {
             if #available(iOS 18.0, *) {
-                content.scrollBounceBehavior(.basedOnSize, axes: .vertical)
+                content.scrollBounceBehavior(.always, axes: .vertical)
                     .onScrollGeometryChange(for: Bool.self) { geometry in
                         geometry.contentOffset.y + geometry.contentInsets.top > 0.5
                     } action: { _, value in scrolled = value }
             } else if #available(iOS 16.4, *) {
-                content.scrollBounceBehavior(.basedOnSize, axes: .vertical)
+                content.scrollBounceBehavior(.always, axes: .vertical)
             } else { content }
         }.overlay(alignment: .top) {
             Rectangle().fill(.ultraThinMaterial).frame(height: 32)

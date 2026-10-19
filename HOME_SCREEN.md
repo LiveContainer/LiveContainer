@@ -37,6 +37,18 @@ modes, an open paginated folder and the original list using the actual UI source
 uses the original app controllers. Physical-device gestures, VoiceOver and guest launch need device verification.
 # Editing and drag refinements
 
+Removal badges now fade/scale with their own transition. Holding an icon for its context menu does
+not enter editing: a drag activates editing only after more than eight points of actual movement.
+The whole-scroll-view long-press recognizer was removed; empty-space long press and Edit remain.
+Vertical scroll bounce is restored at the user's request, while the edge veil still reacts to scrolling.
+
+After confirmation and successful bundle removal, a window-level snapshot breaks into tiled particles,
+then the registry/grid removes the app. Cancellation or filesystem failure does not play a fake success
+animation. Reduce Motion uses a short fade. Folder transitions retain a tappable surface through the
+entire animation; tapping reverses the target, cancels obsolete completion tasks and retargets the spring.
+The debug animation fixture exercises the same particle animator without removing files, and reverses
+a folder opening twice before allowing it to settle.
+
 Hold an empty part of the desktop to enter editing; tap empty space or Done to finish.
 Folders remain with one app and disappear only after the last app leaves, matching Apple's documented behavior.
 Icons use independently timed rocking animations, disabled with Reduce Motion. The remove badge

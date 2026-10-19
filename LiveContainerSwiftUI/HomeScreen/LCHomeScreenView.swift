@@ -26,6 +26,8 @@ struct LCHomeScreenView: View {
     @State private var folderName = ""
     @State private var folderPage = 0
     @State private var folderProgress: CGFloat = 0
+    @State private var folderTargetOpen = true
+    @State private var folderAnimating = false
     @State private var folderFrames: [String: CGRect] = [:]
     @State private var folderCloseTask: Task<Void, Never>?
     @State private var folderExitTask: Task<Void, Never>?
@@ -138,7 +140,13 @@ struct LCHomeScreenView: View {
                         try? await Task.sleep(nanoseconds: 4_000_000_000)
                         guard !Task.isCancelled else { return }
                         openFolder(folder)
-                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        try? await Task.sleep(nanoseconds: 120_000_000)
+                        guard !Task.isCancelled else { return }
+                        closeFolder()
+                        try? await Task.sleep(nanoseconds: 120_000_000)
+                        guard !Task.isCancelled else { return }
+                        reverseFolder()
+                        try? await Task.sleep(nanoseconds: 1_760_000_000)
                         guard !Task.isCancelled else { return }
                         closeFolder()
                         try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -259,7 +267,6 @@ struct LCHomeScreenView: View {
                         .frame(minHeight: 28, maxHeight: .infinity)
                 }.frame(minHeight: proxy.size.height, alignment: .top)
             }.lcSoftScrollEdges().lcHomeScrollVeil()
-                .simultaneousGesture(LongPressGesture(minimumDuration: 0.5).onEnded { _ in startEditing() })
         }
     }
     private func dropAtPageEnd(_ index: Int, perPage: Int, folder: String?) {
@@ -368,7 +375,7 @@ struct LCHomeScreenView: View {
         let progress = reduceMotion ? 1 : folderProgress
         return ZStack {
             Rectangle().fill(.regularMaterial).ignoresSafeArea()
-                .opacity(folderProgress).onTapGesture { closeFolder() }
+                .opacity(folderProgress).onTapGesture { reverseFolder() }
                 .accessibilityLabel("lcos.home.done".loc).accessibilityAddTraits(.isButton)
                 .onDrop(of: [Self.dragType], delegate: LCHomeEdgeDrop(enter: {
                     folderExitTask?.cancel()
@@ -435,9 +442,13 @@ struct LCHomeScreenView: View {
                     Text("lcos.home.folderDragHint".loc).font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
                         .frame(width: panelWidth).position(x: size.width / 2, y: size.height / 2 + panelHeight / 2 + 70).opacity(folderProgress)
                 }
+            if folderAnimating {
+                Color.clear.contentShape(Rectangle()).onTapGesture { reverseFolder() }
+                    .allowsHitTesting(draggedID == nil).zIndex(20)
+            }
         }
         .frame(width: size.width, height: size.height)
-        .onAppear { animateFolder { folderProgress = 1 } }
+        .onAppear { transitionFolder(open: true) }
         .accessibilityAction(.escape) { closeFolder() }
         .simultaneousGesture(MagnificationGesture()
             .updating($folderPinch) { value, state, _ in state = reduceMotion ? 1 : min(1, max(0.7, value)) }
@@ -447,16 +458,27 @@ struct LCHomeScreenView: View {
     private func openFolder(_ folder: LCHomeLayout.Folder) {
         folderCloseTask?.cancel()
         folderName = folder.name; folderPage = 0; folderProgress = 0
+        folderTargetOpen = true; folderAnimating = true
         folderID = folder.id
     }
     private func closeFolder() {
         guard let id = folderID else { return }
         rename(id); clearHover(); folderExitTask?.cancel(); folderCloseTask?.cancel()
-        animateFolder { folderProgress = 0 }
+        transitionFolder(open: false)
+    }
+    private func reverseFolder() {
+        if folderTargetOpen { closeFolder() } else { transitionFolder(open: true) }
+    }
+    private func transitionFolder(open: Bool) {
+        guard let id = folderID else { return }
+        folderCloseTask?.cancel()
+        folderTargetOpen = open; folderAnimating = true
+        animateFolder { folderProgress = open ? 1 : 0 }
         folderCloseTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: reduceMotion ? 150_000_000 : 420_000_000)
             guard !Task.isCancelled, folderID == id else { return }
-            folderID = nil
+            folderAnimating = false
+            if !open { folderID = nil }
         }
     }
     private func pageDots(_ count: Int, selection: Binding<Int>) -> some View {

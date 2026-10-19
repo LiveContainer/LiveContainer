@@ -1,5 +1,22 @@
 # Privileged guests, Husk and cellular refresh
 
+## Persistent folder grants and concealment
+
+Guest settings can store one real Files folder bookmark. Bootstrap reacquires its security-scoped
+access for the guest lifetime and creates a managed alias at `Documents/LiveContainer Access/Shared`.
+Changing/revoking the grant requires restarting the guest. Expired grants report a launch error with
+reselection instructions. Recursive mounts, unmanaged directories and non-symlink replacement data
+are rejected/preserved. This exposes only a selected folder actually accessible to the host; it grants
+no private entitlements or system-wide filesystem access. CLI integration tests exercise the actual
+mount/revocation helper using controlled local bookmarks; file-provider access on the phone remains
+a device acceptance check.
+
+The per-guest **Conceal LiveContainer indicators** toggle retains upstream dyld masking and additionally
+filters LC/LP helper variables and DYLD_INSERT_LIBRARIES from `ProcessInfo.environment` for non-SideStore
+guests. Real `environ`/`getenv` values stay intact so internal helpers continue working. Runtime classes,
+kernel process information, code signatures and real container paths can still reveal the host.
+The toggle is a compatibility aid, not a guarantee of undetectability or extra privileges.
+
 ## AirCard / Tendies quick review
 
 The screenshot identifies AirCard-iOS. Its upstream README lists LiveContainer installation and

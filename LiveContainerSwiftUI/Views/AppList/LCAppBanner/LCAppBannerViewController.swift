@@ -336,7 +336,9 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
             }
 
             let fileManager = FileManager.default
+            let snapshot = homeScreen ? LCHomeDustAnimator.capture(view) : nil
             try fileManager.removeItem(atPath: bundlePath)
+            if let snapshot { await LCHomeDustAnimator.dissolve(snapshot, hiding: view) }
             delegate.removeApp(app: configuration.model)
 
             if shouldRemoveAppFolders {

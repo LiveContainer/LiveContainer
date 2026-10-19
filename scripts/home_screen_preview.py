@@ -92,6 +92,7 @@ try:
     try:
         run('xcrun', 'simctl', 'launch', udid, bundle, '-LCOSHomeScreenEnabled', 'YES',
             '-LCOSPreviewEnabled', 'YES', '-LCOSPreviewFolder', '', '-LCOSPreviewMotion', 'YES',
+            '-LCOSPreviewDust', 'YES',
             '-LCBundleIdChecked', 'YES', '-LCCertificateTeamId', 'AAAAA11111', '-AppleLanguages', '(en)')
         time.sleep(16)
     finally:

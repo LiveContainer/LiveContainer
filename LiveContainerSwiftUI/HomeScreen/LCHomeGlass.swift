@@ -2,7 +2,11 @@ import SwiftUI
 
 extension View {
     func lcHomeScrollVeil() -> some View {
-        self.overlay(alignment: .top) {
+        Group {
+            if #available(iOS 16.4, *) {
+                self.scrollBounceBehavior(.basedOnSize, axes: .vertical)
+            } else { self }
+        }.overlay(alignment: .top) {
             Rectangle().fill(.ultraThinMaterial).frame(height: 32)
                 .mask(LinearGradient(colors: [.black, .black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom))
                 .allowsHitTesting(false).accessibilityHidden(true)

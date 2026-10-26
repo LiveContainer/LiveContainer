@@ -1044,7 +1044,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
         
         if appFound == nil && bundleId == BuiltInSideStoreAppInfo.launchBundleName && UserDefaults.sideStoreExist() {
-            appFound = LCAppModel(appInfo: BuiltInSideStoreAppInfo.shared)
+            appFound = LCAppModel(appInfo: BuiltInSideStoreAppInfo.shared, delegate: self)
         }
         
         if isFoundAppLocked && !sharedModel.isHiddenAppUnlocked {

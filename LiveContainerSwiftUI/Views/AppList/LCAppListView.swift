@@ -131,7 +131,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 })
                 .hidden()
                 
-                LazyVStack {
+                LazyVStack(spacing: LCDesign.Spacing.list) {
                     ForEach(filteredApps, id: \.self) { app in
                         LCAppBanner(appModel: app, delegate: self)
                     }
@@ -143,12 +143,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 VStack {
                     if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                         if sharedModel.isHiddenAppUnlocked {
-                            LazyVStack {
-                                HStack {
-                                    Text("lc.appList.hiddenApps".loc)
-                                        .font(.system(.title2).bold())
-                                    Spacer()
-                                }
+                            LazyVStack(spacing: LCDesign.Spacing.list) {
+                                LCSectionHeader(title: "lc.appList.hiddenApps".loc, systemImage: "eye.slash")
                                 
                                 ForEach(filteredHiddenApps, id: \.self) { app in
                                     LCAppBanner(appModel: app, delegate: self)
@@ -166,12 +162,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             }
                         }
                     } else if sharedModel.hiddenApps.count > 0 {
-                        LazyVStack {
-                            HStack {
-                                Text("lc.appList.hiddenApps".loc)
-                                    .font(.system(.title2).bold())
-                                Spacer()
-                            }
+                        LazyVStack(spacing: LCDesign.Spacing.list) {
+                            LCSectionHeader(title: "lc.appList.hiddenApps".loc, systemImage: "eye.slash")
                             ForEach(filteredHiddenApps, id: \.self) { app in
                                 if sharedModel.isHiddenAppUnlocked {
                                     LCAppBanner(appModel: app, delegate: self)
@@ -210,7 +202,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     onAppear()
                 }
             }
-            
+            // Grouped background so the secondary-grouped cards read as raised surfaces.
+            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("lc.appList.myApps".loc)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

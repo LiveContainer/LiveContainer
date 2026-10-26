@@ -5,36 +5,38 @@
 
 import SwiftUI
 
+/// Placeholder shown for hidden apps while they are locked. Mirrors LCAppBannerRootView's layout.
 struct LCAppSkeletonBanner: View {
+    private let fill = Color.primary.opacity(0.08)
+
     var body: some View {
-        HStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 60, height: 60)
-            
-            VStack(alignment: .leading, spacing: 5) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 100, height: 16)
-                
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 150, height: 12)
-                
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 120, height: 8)
+        HStack(spacing: LCDesign.Spacing.iconToText) {
+            RoundedRectangle(cornerRadius: LCDesign.Radius.icon, style: .continuous)
+                .fill(fill)
+                .frame(width: LCDesign.Size.icon, height: LCDesign.Size.icon)
+                .overlay {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Capsule().fill(fill).frame(width: 110, height: 14)
+                Capsule().fill(fill).frame(width: 160, height: 10)
+                RoundedRectangle(cornerRadius: LCDesign.Radius.chip, style: .continuous)
+                    .fill(fill).frame(width: 80, height: 16)
             }
-            
-            Spacer()
-            
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 70, height: 32)
+
+            Spacer(minLength: 0)
+
+            Capsule()
+                .fill(fill)
+                .frame(width: LCDesign.Size.runButton.width, height: LCDesign.Size.runButton.height)
         }
-        .padding()
-        .frame(height: 88)
-        .background(RoundedRectangle(cornerRadius: 22).fill(Color.gray.opacity(0.1)))
+        .padding(.horizontal, LCDesign.Spacing.cardInset)
+        .frame(height: LCDesign.Size.bannerHeight)
+        .lcCard()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("lc.appList.hiddenApps".loc)
     }
-    
 }

@@ -26,7 +26,7 @@ struct LCTabView: View {
             if DataManager.shared.model.multiLCStatus != 2 {
                 LCSourcesView()
                     .tabItem {
-                        Label("lc.tabView.sources".loc, systemImage: "books.vertical")
+                        Label("lc.tabView.sources".loc, systemImage: "books.vertical.fill")
                     }
                     .tag(LCTabIdentifier.sources)
             }
@@ -38,7 +38,7 @@ struct LCTabView: View {
             if DataManager.shared.model.multiLCStatus != 2 {
                 LCTweaksView()
                     .tabItem{
-                        Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver")
+                        Label("lc.tabView.tweaks".loc, systemImage: "wrench.and.screwdriver.fill")
                     }
                     .tag(LCTabIdentifier.tweaks)
             }

@@ -5,6 +5,51 @@
 //  Created by s s on 2024/12/19.
 //
 import SwiftUI
+import os
+
+/// Snapshot of the process memory situation, used by the JIT-less diagnose page and its report.
+struct LCMemoryDiagnostics {
+    /// `com.apple.developer.kernel.increased-memory-limit` is present in LiveContainer's own signature.
+    let increasedLimitEntitlement: Bool
+    /// `com.apple.developer.kernel.extended-virtual-addressing` is present in LiveContainer's own signature.
+    let extendedVAEntitlement: Bool
+    /// What jetsam currently lets this process allocate on top of what it already uses, in MB.
+    let availableMB: Int
+    /// Physical RAM of the device, in MB.
+    let physicalMB: Int
+
+    /// Devices with 8GB+ RAM have a known window where large single allocations made by guest apps
+    /// (e.g. Java heaps in Amethyst) keep failing. See LiveContainer#852 / Amethyst-iOS#33.
+    static let deadZoneMB = 2048...4096
+
+    var isLargeRAMDevice: Bool { physicalMB >= 7 * 1024 }
+
+    static func current() -> LCMemoryDiagnostics {
+        let task = SecTaskCreateFromSelf(nil)
+        func boolEntitlement(_ key: String) -> Bool {
+            guard let value = SecTaskCopyValueForEntitlement(task, key as CFString, nil) else {
+                return false
+            }
+            return (value.takeRetainedValue() as? NSNumber)?.boolValue ?? false
+        }
+        return LCMemoryDiagnostics(
+            increasedLimitEntitlement: boolEntitlement("com.apple.developer.kernel.increased-memory-limit"),
+            extendedVAEntitlement: boolEntitlement("com.apple.developer.kernel.extended-virtual-addressing"),
+            availableMB: Int(os_proc_available_memory() / 1_048_576),
+            physicalMB: Int(ProcessInfo.processInfo.physicalMemory / 1_048_576)
+        )
+    }
+
+    var reportLines: [String] {
+        [
+            "Physical RAM: \(physicalMB) MB",
+            "Available to process: \(availableMB) MB",
+            "increased-memory-limit: \(increasedLimitEntitlement ? "yes" : "no")",
+            "extended-virtual-addressing: \(extendedVAEntitlement ? "yes" : "no")",
+            "Large-RAM dead zone applies: \(isLargeRAMDevice ? "yes (avoid \(Self.deadZoneMB.lowerBound)-\(Self.deadZoneMB.upperBound) MB heaps)" : "no")"
+        ]
+    }
+}
 
 struct LCEntitlementView : View {
     @State var isLiveProcess: Bool
@@ -174,7 +219,11 @@ struct LCJITLessDiagnoseView : View {
     @State var certificateValidateUntil : String? = nil
     
     @State var isJITLessTestInProgress = false
-    
+    @State var memory: LCMemoryDiagnostics? = nil
+    /// nil = not run yet, otherwise the outcome of the last "Test JIT-Less Mode" run.
+    @State var lastTestResult: String? = nil
+    @State var reportCopied = false
+
     @State var errorShow = false
     @State var errorInfo = ""
     @State var successShow = false
@@ -295,16 +344,64 @@ struct LCJITLessDiagnoseView : View {
                                 .foregroundStyle(certificateStatus == 0 ? .green : .red)
                         }
                     }
-                    
+
                 }
-                                
+
+                if let memory {
+                    Section {
+                        HStack {
+                            Text("lc.jitlessDiag.memoryEntitlement".loc)
+                            Spacer()
+                            Text(memory.increasedLimitEntitlement ? "lc.common.yes".loc : "lc.common.no".loc)
+                                .foregroundStyle(memory.increasedLimitEntitlement ? .green : .orange)
+                        }
+                        HStack {
+                            Text("lc.jitlessDiag.memoryAvailable".loc)
+                            Spacer()
+                            Text("\(memory.availableMB) / \(memory.physicalMB) MB")
+                                .monospacedDigit()
+                                .foregroundStyle(.gray)
+                        }
+                    } header: {
+                        Text("lc.jitlessDiag.memorySection".loc)
+                    } footer: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            if !memory.increasedLimitEntitlement {
+                                Text("lc.jitlessDiag.memoryNoEntitlementTip".loc)
+                            }
+                            if memory.isLargeRAMDevice {
+                                Text("lc.jitlessDiag.memoryDeadZoneTip %lld %lld".localizeWithFormat(
+                                    LCMemoryDiagnostics.deadZoneMB.lowerBound,
+                                    LCMemoryDiagnostics.deadZoneMB.upperBound))
+                            }
+                        }
+                    }
+                }
+
                 Section {
                     Button {
                         testJITLessMode()
                     } label: {
-                        Text("lc.settings.testJitLess".loc)
+                        HStack {
+                            Text("lc.settings.testJitLess".loc)
+                            Spacer()
+                            if isJITLessTestInProgress {
+                                ProgressView()
+                            }
+                        }
                     }
                     .disabled(isJITLessTestInProgress)
+
+                    Button {
+                        UIPasteboard.general.string = buildReport()
+                        reportCopied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            reportCopied = false
+                        }
+                    } label: {
+                        Label(reportCopied ? "lc.jitlessDiag.reportCopied".loc : "lc.jitlessDiag.copyReport".loc,
+                              systemImage: reportCopied ? "checkmark" : "doc.on.clipboard")
+                    }
                     
                     Button {
                         getHelp()
@@ -386,8 +483,55 @@ struct LCJITLessDiagnoseView : View {
         if certificateDataFound {
             validateCertificate()
         }
+        memory = LCMemoryDiagnostics.current()
 
         loaded = true
+    }
+
+    /// Plain-text dump of every check on this page, meant to be pasted into a GitHub issue.
+    func buildReport() -> String {
+        func yn(_ b: Bool) -> String { b ? "yes" : "no" }
+        let storeText: String
+        switch store {
+        case .AltStore: storeText = "AltStore"
+        case .SideStore: storeText = "SideStore"
+        case .ADP: storeText = "ADP"
+        default: storeText = "unknown"
+        }
+        var lines = [
+            "### LiveContainer JIT-less diagnose",
+            "LiveContainer: \(LCUtils.getVersionInfo() ?? "unknown")",
+            "iOS: \(UIDevice.current.systemVersion) (\(ProcessInfo.processInfo.operatingSystemVersionString))",
+            "Device: \(Self.hardwareModel())",
+            "",
+            "Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")",
+            "Expected team ID: \(expectedTeamId ?? "unknown")",
+            "App group: \(appGroupId) (accessible: \(yn(appGroupAccessible)))",
+            "Store: \(storeText)",
+            "",
+            "Certificate data: \(yn(certificateDataFound))",
+            "Certificate password: \(yn(certificatePasswordFound))",
+            "Certificate team ID: \(certTeamId ?? "unknown")\(certTeamId != nil && certTeamId != expectedTeamId ? "  <-- MISMATCH" : "")",
+            "Certificate status: \(certificateStatus == -1 ? "checking" : getStatusText(status: certificateStatus))",
+            "Certificate valid until: \(certificateValidateUntil ?? "unknown")",
+            "Certificate last imported: \(certLastUpdateDateStr ?? "unknown")",
+            "",
+            "JIT-less test: \(lastTestResult ?? "not run")",
+        ]
+        if let memory {
+            lines.append("")
+            lines.append(contentsOf: memory.reportLines)
+        }
+        // A fenced block keeps GitHub from mangling the report when it is pasted into an issue.
+        return "```\n" + lines.joined(separator: "\n") + "\n```"
+    }
+
+    static func hardwareModel() -> String {
+        var info = utsname()
+        uname(&info)
+        return withUnsafeBytes(of: &info.machine) { raw in
+            String(decoding: raw.prefix(while: { $0 != 0 }), as: UTF8.self)
+        }
     }
     
     func testJITLessMode() {
@@ -400,9 +544,11 @@ struct LCJITLessDiagnoseView : View {
         isJITLessTestInProgress = true
         LCUtils.validateJITLessSetup { success, error in
             if success {
+                lastTestResult = "passed"
                 successInfo = "lc.jitlessSetup.success".loc
                 successShow = true
             } else {
+                lastTestResult = "FAILED: " + (error?.localizedDescription ?? "no error description")
                 errorInfo = "lc.jitlessSetup.error.testLibLoadFailed %@ %@ %@".localizeWithFormat(storeName, storeName, storeName) + "\n" + (error?.localizedDescription ?? "")
                 errorShow = true
             }

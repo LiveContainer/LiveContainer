@@ -244,12 +244,17 @@
     return newIcon;
 }
 
+- (NSString *)homeScreenLaunchBundleName {
+    return self.bundlePath.lastPathComponent;
+}
+
 - (NSDictionary *)generateWebClipConfigWithContainerId:(NSString*)containerId iconStyle:(GeneratedIconStyle)style{
+    NSString* launchBundleName = [self homeScreenLaunchBundleName];
     NSString* appClipUrl;
     if(containerId) {
-        appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@&container-folder-name=%@", self.bundlePath.lastPathComponent, containerId];
+        appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@&container-folder-name=%@", launchBundleName, containerId];
     } else {
-        appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@", self.bundlePath.lastPathComponent];
+        appClipUrl = [NSString stringWithFormat:@"livecontainer://livecontainer-launch?bundle-name=%@", launchBundleName];
     }
     
     UIImage* icon = [self generateLiveContainerWrappedIconWithStyle:style];
@@ -260,7 +265,7 @@
         @"IgnoreManifestScope": @YES,
         @"IsRemovable": @YES,
         @"Label": self.displayName,
-        @"PayloadDescription": [NSString stringWithFormat:@"Web Clip for launching %@ (%@) in LiveContainer", self.displayName, self.bundlePath.lastPathComponent],
+        @"PayloadDescription": [NSString stringWithFormat:@"Web Clip for launching %@ (%@) in LiveContainer", self.displayName, launchBundleName],
         @"PayloadDisplayName": self.displayName,
         @"PayloadIdentifier": self.bundleIdentifier,
         @"PayloadType": @"com.apple.webClip.managed",
@@ -272,7 +277,7 @@
     };
     return @{
         @"ConsentText": @{
-            @"default": [NSString stringWithFormat:@"This profile installs a web clip which opens %@ (%@) in LiveContainer", self.displayName, self.bundlePath.lastPathComponent]
+            @"default": [NSString stringWithFormat:@"This profile installs a web clip which opens %@ (%@) in LiveContainer", self.displayName, launchBundleName]
         },
         @"PayloadContent": @[payload],
         @"PayloadDescription": payload[@"PayloadDescription"],

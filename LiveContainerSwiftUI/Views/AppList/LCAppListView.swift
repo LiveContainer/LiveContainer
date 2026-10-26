@@ -242,6 +242,18 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                                 .frame(width: UIFont.preferredFont(forTextStyle: .body).lineHeight, height: UIFont.preferredFont(forTextStyle: .body).lineHeight)
 
                         }
+                        .contextMenu {
+                            Menu {
+                                Button("lc.appBanner.copyLaunchUrl".loc, systemImage: "link") {
+                                    UIPasteboard.general.string = BuiltInSideStoreAppInfo.launchURL
+                                }
+                                Button("lc.appBanner.createAppClip".loc, systemImage: "appclip") {
+                                    Task { await createBuiltInSideStoreAppClip() }
+                                }
+                            } label: {
+                                Label("lc.appBanner.addToHomeScreen".loc, systemImage: "plus.app")
+                            }
+                        }
                     } else {
                         Button("Help", systemImage: "questionmark") {
                             helpPresent = true
@@ -1031,7 +1043,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             }
         }
         
-        if appFound == nil && bundleId == "builtinSideStore" {
+        if appFound == nil && bundleId == BuiltInSideStoreAppInfo.launchBundleName && UserDefaults.sideStoreExist() {
             appFound = LCAppModel(appInfo: BuiltInSideStoreAppInfo.shared)
         }
         
@@ -1157,6 +1169,26 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         return await runWhenMultitaskAlert.open()
     }
     
+    func createBuiltInSideStoreAppClip() async {
+        guard UserDefaults.sideStoreExist(),
+              let style = await promptForGeneratedIconStyle() else {
+            return
+        }
+        do {
+            guard let profile = BuiltInSideStoreAppInfo.shared.generateWebClipConfig(
+                withContainerId: nil,
+                iconStyle: style
+            ) else {
+                throw CocoaError(.propertyListWriteInvalid)
+            }
+            let data = try PropertyListSerialization.data(fromPropertyList: profile, format: .xml, options: 0)
+            installMdm(data: data)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+        }
+    }
+
     func installMdm(data: Data) {
         safariViewURL = URL(string:"data:application/x-apple-aspen-config;base64,\(data.base64EncodedString())")!
         safariViewOpened = true

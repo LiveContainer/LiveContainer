@@ -7,9 +7,16 @@
 
 final class BuiltInSideStoreAppInfo : LCAppInfo {
     static let shared = BuiltInSideStoreAppInfo()
+    static let launchBundleName = "builtinSideStore"
+    static let launchURL = "livecontainer://livecontainer-launch?bundle-name=\(launchBundleName)"
 
     private override init() {
         super.init(bundlePath: Bundle.main.bundleURL.appendingPathComponent("Frameworks/SideStoreApp.framework").path)
+        relativeBundlePath = Self.launchBundleName
+    }
+
+    override func homeScreenLaunchBundleName() -> String! {
+        return Self.launchBundleName
     }
     
     override func iconIsDarkIcon(_ isDarkIcon: Bool) -> UIImage! {

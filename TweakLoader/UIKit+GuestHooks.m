@@ -9,9 +9,28 @@ UIInterfaceOrientation LCOrientationLock = UIInterfaceOrientationUnknown;
 NSMutableArray<NSString*>* LCSupportedUrlSchemes = nil;
 BOOL launchURLProcessed = NO;
 
+// iOS 27 beta 1 UIKit can lack this public iOS 27 property while guest apps already call it.
+static id LCUnavailableNavigationBarMinimization(UINavigationItem *, SEL) {
+    return nil;
+}
+
+static void LCSetUnavailableNavigationBarMinimization(UINavigationItem *, SEL, id) {
+}
+
 __attribute__((constructor))
 static void UIKitGuestHooksInit() {
     if(!NSUserDefaults.lcGuestAppId) return;
+    if (@available(iOS 27.0, *)) {
+        Class navigationItemClass = UINavigationItem.class;
+        SEL getter = NSSelectorFromString(@"navigationBarMinimization");
+        SEL setter = NSSelectorFromString(@"setNavigationBarMinimization:");
+        if (![navigationItemClass instancesRespondToSelector:getter]) {
+            class_addMethod(navigationItemClass, getter, (IMP)LCUnavailableNavigationBarMinimization, "@@:");
+        }
+        if (![navigationItemClass instancesRespondToSelector:setter]) {
+            class_addMethod(navigationItemClass, setter, (IMP)LCSetUnavailableNavigationBarMinimization, "v@:@");
+        }
+    }
     swizzle(UIApplication.class, @selector(_applicationOpenURLAction:payload:origin:), @selector(hook__applicationOpenURLAction:payload:origin:));
     swizzle(UIApplication.class, @selector(_connectUISceneFromFBSScene:transitionContext:), @selector(hook__connectUISceneFromFBSScene:transitionContext:));
     swizzle(UIApplication.class, @selector(openURL:options:completionHandler:), @selector(hook_openURL:options:completionHandler:));

@@ -32674,6 +32674,125 @@
           }
         }
       }
+    },
+    "lc.jitlessDiag.memorySection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memory"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Память"
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.memoryEntitlement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increased Memory Limit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увеличенный лимит памяти"
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.memoryAvailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available / Physical"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно / Всего"
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.memoryNoEntitlementTip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer is not signed with the increased-memory-limit entitlement, so memory-heavy apps (emulators, Minecraft launchers) may be killed early. Enable it for LiveContainer's App ID with GetMoreRam, then refresh LiveContainer."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LiveContainer подписан без entitlement increased-memory-limit, поэтому тяжёлые приложения (эмуляторы, лаунчеры Minecraft) могут закрываться системой раньше. Включите его для App ID LiveContainer через GetMoreRam и обновите LiveContainer."
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.memoryDeadZoneTip %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On devices with 8 GB+ RAM, single allocations between %lld and %lld MB often fail. If an app reports insufficient memory, set its heap / RAM size outside this range."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На устройствах с 8 ГБ+ ОЗУ одиночные выделения от %lld до %lld МБ часто не проходят. Если приложение пишет о нехватке памяти, задайте размер heap / RAM вне этого диапазона."
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.copyReport" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Diagnostic Report"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировать отчёт диагностики"
+          }
+        }
+      }
+    },
+    "lc.jitlessDiag.reportCopied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировано"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

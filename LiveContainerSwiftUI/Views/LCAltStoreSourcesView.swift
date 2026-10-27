@@ -610,7 +610,6 @@ struct LCSourcesView: View {
         .searchable(text: $searchContext.query, placement: .navigationBarDrawer(displayMode: .always))
 
         .onAppear {
-            expandedSources = []
             if !isViewAppeared {
                 guard sharedModel.selectedTab == .sources, let link = sharedModel.deepLink else { return }
                 sharedModel.deepLink = nil

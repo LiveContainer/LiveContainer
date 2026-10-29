@@ -264,8 +264,7 @@ Nightly build from [{commit_sha}](https://github.com/LiveContainer/LiveContainer
             break
 
     if download_url is None or size is None:
-        print("Error: IPA file not found in release assets.")
-        return
+        raise RuntimeError("LiveContainer+SideStore.ipa not found in release assets; refusing to publish a stale source entry")
 
     version_entry = {
         "version": version,

@@ -71,6 +71,7 @@
 	<string>public.app-category.education</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>localdevvpn</string>
 		<string>sidestore</string>
 		<string>livecontainer</string>
 		<string>livecontainer2</string>

@@ -222,6 +222,19 @@
 		<string>nearby-interaction</string>
 		<string>remote-notification</string>
 		<string>voip</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.kdt.livecontainer.transfer.0</string>
+		<string>com.kdt.livecontainer.transfer.1</string>
+		<string>com.kdt.livecontainer.transfer.2</string>
+		<string>com.kdt.livecontainer.transfer.3</string>
+		<string>com.kdt.livecontainer.transfer.4</string>
+		<string>com.kdt.livecontainer.transfer.5</string>
+		<string>com.kdt.livecontainer.transfer.6</string>
+		<string>com.kdt.livecontainer.transfer.7</string>
+		<string>com.kdt.livecontainer.transfer.*</string>
 	</array>
 	<key>UIDeviceFamily</key>
 	<array>

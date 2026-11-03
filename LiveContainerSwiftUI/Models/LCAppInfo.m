@@ -293,6 +293,52 @@
 
 }
 
+- (BOOL)mergeHostBGTaskIdentifiersIntoInfoPlist {
+    NSArray *hostIDs = NSBundle.mainBundle.infoDictionary[@"BGTaskSchedulerPermittedIdentifiers"];
+    if (![hostIDs isKindOfClass:NSArray.class] || hostIDs.count == 0) {
+        return NO;
+    }
+
+    NSMutableArray *merged = [NSMutableArray array];
+    NSArray *guestIDs = _infoPlist[@"BGTaskSchedulerPermittedIdentifiers"];
+    if ([guestIDs isKindOfClass:NSArray.class]) {
+        [merged addObjectsFromArray:guestIDs];
+    }
+
+    BOOL changed = NO;
+    for (id hostID in hostIDs) {
+        if (![hostID isKindOfClass:NSString.class]) {
+            continue;
+        }
+        if (![merged containsObject:hostID]) {
+            [merged addObject:hostID];
+            changed = YES;
+        }
+    }
+
+    if (changed) {
+        _infoPlist[@"BGTaskSchedulerPermittedIdentifiers"] = merged;
+    }
+
+    NSMutableArray *modes = [NSMutableArray array];
+    NSArray *guestModes = _infoPlist[@"UIBackgroundModes"];
+    if ([guestModes isKindOfClass:NSArray.class]) {
+        [modes addObjectsFromArray:guestModes];
+    }
+    if (![modes containsObject:@"processing"]) {
+        [modes addObject:@"processing"];
+        _infoPlist[@"UIBackgroundModes"] = modes;
+        changed = YES;
+    }
+
+    if (!changed) {
+        return NO;
+    }
+
+    [_infoPlist writeBinToFile:[NSString stringWithFormat:@"%@/Info.plist", _bundlePath] atomically:YES];
+    return YES;
+}
+
 - (void)patchExecAndSignIfNeedWithCompletionHandler:(void(^)(bool success, NSString* errorInfo))completetionHandler progressHandler:(void(^)(NSProgress* progress))progressHandler forceSign:(BOOL)forceSign {
     [NSUserDefaults.standardUserDefaults setObject:@(YES) forKey:@"SigningInProgress"];
     NSString *appPath = self.bundlePath;
@@ -310,6 +356,11 @@
     // Update patch
     int currentPatchRev = 7;
     bool needPatch = [info[@"LCPatchRevision"] intValue] < currentPatchRev;
+
+    if ([self mergeHostBGTaskIdentifiersIntoInfoPlist]) {
+        forceSign = true; // Info.plist changed -> re-sign.
+    }
+
     if (needPatch || forceSign) {
         // copy-delete-move to avoid EXC_BAD_ACCESS (SIGKILL - CODESIGNING)
         NSString *backupPath = [NSString stringWithFormat:@"%@/%@_LiveContainerPatchBackUp", appPath, _infoPlist[@"CFBundleExecutable"]];

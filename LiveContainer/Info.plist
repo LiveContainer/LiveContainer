@@ -5,7 +5,7 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDisplayName</key>
-	<string>LiveContainer</string>
+	<string>TrollBox</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

@@ -376,6 +376,10 @@ struct LCSettingsView: View {
                         Text("lc.settings.injectLCItselfDesc".loc)
                     }
                 }
+
+                Section {
+                    Text("TrollBox TEST TXT")
+                }
             }
             .navigationBarTitle("lc.tabView.settings".loc)
             .alert("lc.common.error".loc, isPresented: $errorShow){

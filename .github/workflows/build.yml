@@ -1,14 +1,15 @@
 name: Xcode - Build
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
-    inputs: 
+    inputs:
       release__nightly:
         description: Create a nightly release
         type: boolean
         required: false
+        default: true
 
 jobs:
   build:
@@ -19,9 +20,11 @@ jobs:
       archive_path: archive
     outputs:
       scheme: ${{ steps.scheme.outputs.scheme }}
+
+
       archive_path: ${{ env.archive_path }}
-      artifact: ${{ env.scheme }}.ipa
-      artifact2: ${{ env.scheme }}+SideStore.ipa
+      artifact: LiveContainer.ipa
+      artifact2: LiveContainer+SideStore.ipa
     steps:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -75,7 +78,7 @@ jobs:
         with:
           name: ${{ env.scheme }}.ipa
           path: ${{ env.scheme }}.ipa
-      
+
       - name: Upload LiveContainer+SideStore
         uses: actions/upload-artifact@v7
         with:
@@ -124,11 +127,11 @@ jobs:
         uses: andelf/nightly-release@5834076edc55cc05975561c9722043f072ac5c26
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with: 
+        with:
           body: |
             **Commit:** [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            **Message:** ${{ github.event.head_commit.message }}
-            
+            **Message:** ${{ env.COMMIT_MSG }}
+
             This is a nightly release [created automatically with GitHub Actions workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}).
           files: |
             ${{ needs.build.outputs.artifact }}

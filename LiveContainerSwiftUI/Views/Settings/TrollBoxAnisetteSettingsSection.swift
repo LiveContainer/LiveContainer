@@ -39,9 +39,12 @@ struct TrollBoxAnisetteSettingsSection: View {
             }
 
             if let lastServer = manager.lastSuccessfulServer {
-                LabeledContent("Last Successful Server") {
+                HStack {
+                    Text("Last Successful Server")
+                    Spacer()
                     Text(URL(string: lastServer)?.host ?? lastServer)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
                 }
             }
 

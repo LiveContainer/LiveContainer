@@ -82,7 +82,14 @@ final class TrollBoxAnisetteManager: ObservableObject {
             statusMessage = "Could not load servers: \(error.localizedDescription)"
         }
     }
-
+private func recordSuccessfulServer(_ url: URL) {
+    UserDefaults.standard.set(
+        url.absoluteString,
+        forKey: lastServerKey
+    )
+    lastSuccessfulServer = url.absoluteString
+    statusMessage = "Connected using \(url.host ?? url.absoluteString)"
+}
     func fetchAnisetteData() async throws -> AnisetteData {
         if servers.isEmpty {
             await loadServers()
@@ -135,14 +142,9 @@ final class TrollBoxAnisetteManager: ObservableObject {
                 servers: urls,
                 identifier: identifier,
                 existingAdiBlob: existingBlob,
-                onSuccess: { url in
-                    Task { @MainActor in
-                        defaults.set(
-                            url.absoluteString,
-                            forKey: self.lastServerKey
-                        )
-                        self.lastSuccessfulServer = url.absoluteString
-                        self.statusMessage = "Connected using \(url.host ?? url.absoluteString)"
+                        onSuccess: { [weak self] url in
+                    Task { @MainActor [weak self] in
+                        self?.recordSuccessfulServer(url)
                     }
                 }
             )

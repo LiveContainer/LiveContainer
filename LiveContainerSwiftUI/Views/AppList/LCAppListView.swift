@@ -216,17 +216,32 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 ToolbarItem(placement: .topBarLeading) {
                     if sharedModel.multiLCStatus != 2 {
                         if !installprogressVisible {
-                            Menu {
-                                
-                                Button("lc.appList.installFromIpa".loc, systemImage: "doc.badge.plus", action: {
-                                    choosingIPA = true
-                                })
-                                Button("lc.appList.installFromUrl".loc, systemImage: "link.badge.plus", action: {
-                                    Task{ await startInstallFromUrl() }
-                                })
-                            } label: {
-                                Label("add", systemImage: "plus")
-                            }
+      Menu {
+    Menu {
+        Menu {
+            Button("Full", systemImage: "arrow.down.to.line") {
+                // Reserved for future full sideloading.
+            }
+            .disabled(true)
+
+            Button("Guest", systemImage: "person.crop.circle") {
+                choosingIPA = true
+            }
+        } label: {
+            Label("IPA", systemImage: "doc.badge.plus")
+        }
+
+        Button("Install from URL", systemImage: "link.badge.plus") {
+            Task {
+                await startInstallFromUrl()
+            }
+        }
+    } label: {
+        Label("Download", systemImage: "arrow.down.circle")
+    }
+} label: {
+    Label("add", systemImage: "plus")
+}
                             
                         } else {
                             ProgressView().progressViewStyle(.circular).padding(.horizontal, 8)

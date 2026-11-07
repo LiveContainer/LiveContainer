@@ -202,6 +202,8 @@ struct LCSettingsView: View {
                         Text("lc.settings.selected32BitEmulator".loc)
                     }
                 }
+
+                TrollBoxAnisetteSettingsSection()
                 
                 Section{
                     Toggle(isOn: $dynamicColors) {

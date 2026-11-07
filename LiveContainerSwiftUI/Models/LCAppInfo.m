@@ -592,6 +592,15 @@
     [self save];
 }
 
+- (bool)fixBackgroundTaskIdentifiers {
+    return [_info[@"fixBackgroundTaskIdentifiers"] boolValue];
+}
+
+- (void)setFixBackgroundTaskIdentifiers:(bool)fixBackgroundTaskIdentifiers {
+    _info[@"fixBackgroundTaskIdentifiers"] = @(fixBackgroundTaskIdentifiers);
+    [self save];
+}
+
 - (LCOrientationLock)orientationLock {
     return (LCOrientationLock) [((NSNumber*) _info[@"LCOrientationLock"]) intValue];
 }

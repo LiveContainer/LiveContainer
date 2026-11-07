@@ -222,6 +222,11 @@
 		<string>nearby-interaction</string>
 		<string>remote-notification</string>
 		<string>voip</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.kdt.livecontainer.bgtask.*</string>
 	</array>
 	<key>UIDeviceFamily</key>
 	<array>

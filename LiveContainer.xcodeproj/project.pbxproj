@@ -213,6 +213,7 @@
 		174140F52D9C1C9B00F3F928 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				BackgroundTasks.m,
 				DocumentPicker.m,
 				Notification.m,
 				TweakLoader.m,

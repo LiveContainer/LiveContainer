@@ -306,6 +306,11 @@ struct LCAppSettingsView: View {
                 Toggle(isOn: $model.uiFixLocalNotification) {
                     Text("lc.appSettings.fixLocalNotification".loc)
                 }
+                if #available(iOS 26.0, *) {
+                    Toggle(isOn: $model.uiFixBackgroundTaskIdentifiers) {
+                        Text("lc.appSettings.fixBackgroundTaskIdentifiers".loc)
+                    }
+                }
                 Toggle(isOn: $model.uiUseLCBundleId) {
                     Text("lc.appSettings.useLCBundleId".loc)
                 }

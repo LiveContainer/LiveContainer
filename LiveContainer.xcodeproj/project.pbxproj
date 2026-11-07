@@ -33,6 +33,10 @@
 		E16D95742E1CD2980068EB63 /* LCMachOUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = E16D94DE2E1CC8200068EB63 /* LCMachOUtils.m */; };
 		E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
 		E1946AD83041BFF8005CBEDD /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1946AD63041BFDD005CBEDD /* IOKit.framework */; };
+                A1B2C3D4E5F6071829300001 /* SideSign in Frameworks */ = {
+                        isa = PBXBuildFile;
+                        productRef = A1B2C3D4E5F6071829300002 /* SideSign */;
+                };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -343,6 +347,7 @@
 				E1946AD83041BFF8005CBEDD /* IOKit.framework in Frameworks */,
 				E16D95752E1CD2B90068EB63 /* LiveContainerShared.framework in Frameworks */,
 				174140D62D9C176F00F3F928 /* libarchive.tbd in Frameworks */,
+                                A1B2C3D4E5F6071829300001 /* SideSign in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -573,7 +578,9 @@
 			);
 			name = LiveContainerSwiftUI;
 			packageProductDependencies = (
-			);
+
+                                A1B2C3D4E5F6071829300002 /* SideSign */,
+                       );
 			productName = LiveContainerSwiftUI;
 			productReference = 17413FB52D9C0BAE00F3F928 /* LiveContainerSwiftUI.framework */;
 			productType = "com.apple.product-type.framework";
@@ -852,7 +859,9 @@
 			);
 			mainGroup = 17DCE9942C7067EC00731D42;
 			packageReferences = (
-			);
+
+                                A1B2C3D4E5F6071829300003 /* SideSign package */,
+                       );
 			preferredProjectObjectVersion = 56;
 			productRefGroup = 17DCE99E2C7067EC00731D42 /* Products */;
 			projectDirPath = "";
@@ -1072,6 +1081,21 @@
 			targetProxy = E1292BE92DCA3B670065E12D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCLocalSwiftPackageReference section */
+                A1B2C3D4E5F6071829300003 /* SideSign package */ = {
+                        isa = XCLocalSwiftPackageReference;
+                        relativePath = Dependencies/SideSign;
+                };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+                A1B2C3D4E5F6071829300002 /* SideSign */ = {
+                        isa = XCSwiftPackageProductDependency;
+                        package = A1B2C3D4E5F6071829300003 /* SideSign package */;
+                        productName = SideSign;
+                };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		173545B12E2C7913001B3B4C /* Debug */ = {

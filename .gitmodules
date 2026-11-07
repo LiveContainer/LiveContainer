@@ -7,3 +7,6 @@
 [submodule "litehook"]
 	path = litehook
 	url = https://github.com/LiveContainer/litehook
+[submodule "Dependencies/SideSign"]
+	path = Dependencies/SideSign
+	url = https://github.com/SideStore/SideSign

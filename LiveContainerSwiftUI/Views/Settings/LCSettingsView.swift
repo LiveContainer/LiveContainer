@@ -82,6 +82,8 @@ struct LCSettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                TrollBoxAppleAccountSection()
+
                 if sharedModel.multiLCStatus != 2 {
                     Section{
                         if !certificateDataFound {
@@ -377,9 +379,6 @@ struct LCSettingsView: View {
                     }
                 }
 
-                Section {
-                    Text("TrollBox TEST TXT")
-                }
             }
             .navigationBarTitle("lc.tabView.settings".loc)
             .alert("lc.common.error".loc, isPresented: $errorShow){

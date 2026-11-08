@@ -82,7 +82,7 @@ final class TrollBoxAnisetteManager: ObservableObject {
             statusMessage = "Could not load servers: \(error.localizedDescription)"
         }
     }
-private func recordSuccessfulServer(_ url: URL) {
+    private func recordSuccessfulServer(_ url: URL) {
     UserDefaults.standard.set(
         url.absoluteString,
         forKey: lastServerKey
@@ -136,27 +136,68 @@ private func recordSuccessfulServer(_ url: URL) {
         }
 
         let existingBlob = try TrollBoxKeychain.load(for: adiBlobKey)
+        var lastError: Error?
 
-        do {
-            let result = try await manager.fetchAnisetteDataWithFailover(
-                servers: urls,
-                identifier: identifier,
-                existingAdiBlob: existingBlob,
-                        onSuccess: { [weak self] url in
-                    Task { @MainActor [weak self] in
-                        self?.recordSuccessfulServer(url)
-                    }
+        for url in urls {
+            do {
+                let result = try await manager.fetchAnisetteData(
+                    mode: .remote(server: url),
+                    identifier: identifier,
+                    existingAdiBlob: existingBlob
+                )
+
+                if let newBlob = result.newAdiBlob {
+                    try TrollBoxKeychain.save(newBlob, for: adiBlobKey)
                 }
-            )
 
-            if let newBlob = result.newAdiBlob {
-                try TrollBoxKeychain.save(newBlob, for: adiBlobKey)
+                recordSuccessfulServer(url)
+                return result.data
+            } catch {
+                lastError = error
+
+                let needsReprovision: Bool
+
+                if let anisetteError = error as? AnisetteError,
+                   case let .badServerResponse(statusCode, payload) = anisetteError {
+                    needsReprovision =
+                        statusCode == -1 &&
+                        payload.localizedCaseInsensitiveContains(
+                            "not provisioned for this server"
+                        ) &&
+                        payload.localizedCaseInsensitiveContains(
+                            "reprovision required"
+                        )
+                } else {
+                    needsReprovision = false
+                }
+
+                guard needsReprovision, existingBlob != nil else {
+                    continue
+                }
+
+                statusMessage = "Reprovisioning with \(url.host ?? url.absoluteString)..."
+
+                do {
+                    let result = try await manager.fetchAnisetteData(
+                        mode: .remote(server: url),
+                        identifier: identifier,
+                        existingAdiBlob: nil
+                    )
+
+                    if let newBlob = result.newAdiBlob {
+                        try TrollBoxKeychain.save(newBlob, for: adiBlobKey)
+                    }
+
+                    recordSuccessfulServer(url)
+                    return result.data
+                } catch {
+                    lastError = error
+                }
             }
-
-            return result.data
-        } catch {
-            statusMessage = "Anisette connection failed: \(error.localizedDescription)"
-            throw error
         }
+
+        let finalError = lastError ?? AnisetteError.allServersFailed
+        statusMessage = "Anisette connection failed: \(finalError.localizedDescription)"
+        throw finalError
     }
 }

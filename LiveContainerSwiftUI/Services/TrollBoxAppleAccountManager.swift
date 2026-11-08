@@ -152,6 +152,18 @@ final class TrollBoxAppleAccountManager: ObservableObject {
         }
     }
 
+    func signingContext() throws -> (session: Session, team: Team) {
+        guard let authSession = session, authSession.session.isValid else {
+            throw SigningContextError.notSignedIn
+        }
+
+        guard let team = selectedTeam else {
+            throw SigningContextError.noTeamSelected
+        }
+
+        return (authSession.session, team)
+    }
+
     func signOut() {
         if let continuation = verificationContinuation {
             verificationContinuation = nil
@@ -168,6 +180,21 @@ final class TrollBoxAppleAccountManager: ObservableObject {
             try TrollBoxKeychain.delete(for: sessionKey)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+}
+
+
+private enum SigningContextError: LocalizedError {
+    case notSignedIn
+    case noTeamSelected
+
+    var errorDescription: String? {
+        switch self {
+        case .notSignedIn:
+            return "Sign in to your Apple Account before signing a Full app."
+        case .noTeamSelected:
+            return "Select an Apple Developer team before signing a Full app."
         }
     }
 }

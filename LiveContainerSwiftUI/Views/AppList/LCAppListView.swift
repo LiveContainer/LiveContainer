@@ -40,6 +40,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     @State var didAppear = false
     // ipa choosing stuff
     @State var choosingIPA = false
+    @State var choosingFullIPA = false
     @State var errorShow = false
     @State var errorInfo = ""
     
@@ -220,9 +221,8 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     Menu {
         Menu {
             Button("Full", systemImage: "arrow.down.to.line") {
-                // Reserved for future full sideloading.
+                choosingFullIPA = true
             }
-            .disabled(true)
 
             Button("Guest", systemImage: "person.crop.circle") {
                 choosingIPA = true
@@ -231,11 +231,6 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             Label("IPA", systemImage: "doc.badge.plus")
         }
 
-        Button("Install from URL", systemImage: "link.badge.plus") {
-            Task {
-                await startInstallFromUrl()
-            }
-        }
     } label: {
         Label("Download", systemImage: "arrow.down.circle")
     }
@@ -311,9 +306,16 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
             Text(errorInfo)
         }
         .betterFileImporter(isPresented: $choosingIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
-            Task { await startInstallApp(fileUrls[0]) }
+            guard let fileURL = fileUrls.first else { return }
+            Task { await startInstallApp(fileURL) }
         }, onDismiss: {
             choosingIPA = false
+        })
+        .betterFileImporter(isPresented: $choosingFullIPA, types: [.ipa, .tipa], multiple: false, callback: { fileUrls in
+            guard let fileURL = fileUrls.first else { return }
+            Task { await startInstallFullApp(fileURL) }
+        }, onDismiss: {
+            choosingFullIPA = false
         })
         .alert("lc.appList.installation".loc, isPresented: $installReplaceAlert.show) {
             ForEach(installOptions, id: \.self) { installOption in
@@ -795,6 +797,311 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
     }
     
+
+    func startInstallFullApp(_ fileURL: URL) async {
+        guard !installprogressVisible else { return }
+
+        installprogressVisible = true
+
+        do {
+            try await installFullIpaFile(fileURL)
+            try FileManager.default.removeItem(at: fileURL)
+        } catch {
+            errorInfo = error.localizedDescription
+            errorShow = true
+            installprogressVisible = false
+        }
+    }
+
+    func installFullIpaFile(_ url: URL) async throws {
+        let fm = FileManager.default
+
+        guard sharedModel.multiLCStatus != 2 else {
+            throw NSError(
+                domain: "TrollBox",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "lc.appList.manageInPrimaryTip".loc]
+            )
+        }
+
+        let tempRoot = fm.temporaryDirectory
+            .appendingPathComponent("TrollBoxFull-\(UUID().uuidString)",
+                                    isDirectory: true)
+
+        try fm.createDirectory(
+            at: tempRoot,
+            withIntermediateDirectories: true
+        )
+
+        defer {
+            try? fm.removeItem(at: tempRoot)
+            installObserver = nil
+            installprogressVisible = false
+        }
+
+        let installProgress = Progress.discreteProgress(totalUnitCount: 100)
+        installProgressPercentage = 0
+
+        installObserver = installProgress.observe(\.fractionCompleted) {
+            progress, _ in
+            DispatchQueue.main.async {
+                self.installProgressPercentage =
+                    Float(progress.fractionCompleted)
+            }
+        }
+
+        let decompressProgress = Progress.discreteProgress(totalUnitCount: 100)
+        installProgress.addChild(decompressProgress, withPendingUnitCount: 65)
+
+        // Extract into an isolated directory. Never use Guest's shared Payload.
+        guard await decompress(
+            url.path,
+            tempRoot.path,
+            decompressProgress
+        ) == 0 else {
+            throw NSError(
+                domain: "TrollBox",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "lc.appList.urlFileIsNotIpaError".loc]
+            )
+        }
+
+        let payload = tempRoot.appendingPathComponent("Payload")
+        let contents = try fm.contentsOfDirectory(
+            at: payload,
+            includingPropertiesForKeys: [.isDirectoryKey]
+        )
+
+        let appBundles = contents.filter {
+            $0.pathExtension == "app"
+        }
+
+        guard appBundles.count == 1,
+              let appFolder = appBundles.first,
+              let extractedInfo = LCAppInfo(bundlePath: appFolder.path),
+              let bundleID = extractedInfo.bundleIdentifier(),
+              !bundleID.isEmpty else {
+            throw NSError(
+                domain: "TrollBox",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "The IPA must contain exactly one valid main app bundle."]
+            )
+        }
+
+        // Patch first, but explicitly prevent LiveContainer/ZSigner signing.
+        extractedInfo.dontSign = true
+
+        let patchProgress = Progress.discreteProgress(totalUnitCount: 100)
+        installProgress.addChild(patchProgress, withPendingUnitCount: 15)
+
+        let patchResult: (Bool, String?) =
+            await withCheckedContinuation { continuation in
+                extractedInfo.patchExecAndSignIfNeed(
+                    completionHandler: { success, error in
+                        continuation.resume(returning: (success, error))
+                    },
+                    progressHandler: { progress in
+                        if let progress {
+                            patchProgress.addChild(
+                                progress,
+                                withPendingUnitCount: 100
+                            )
+                        }
+                    },
+                    forceSign: false
+                )
+            }
+
+        guard patchResult.0, patchResult.1 == nil else {
+            throw NSError(
+                domain: "TrollBox",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey:
+                    patchResult.1 ?? "Executable patching failed."]
+            )
+        }
+
+        // SideSign signs the main app and its embedded extensions.
+        try await TrollBoxSigningManager.shared.signApp(at: appFolder)
+
+        // Only consider replacing an existing app after signing succeeds.
+        var appRelativePath = "\(bundleID.sanitizeNonACSII()).app"
+        var outputFolder = LCPath.bundlePath
+            .appendingPathComponent(appRelativePath)
+
+        var matchingApps = sharedModel.apps.filter {
+            $0.appInfo.bundleIdentifier() == bundleID
+        }
+
+        if matchingApps.isEmpty {
+            matchingApps = sharedModel.hiddenApps.filter {
+                $0.appInfo.bundleIdentifier() == bundleID
+            }
+
+            if !matchingApps.isEmpty && !sharedModel.isHiddenAppUnlocked {
+                guard try await LCUtils.authenticateUser() else {
+                    return
+                }
+            }
+        }
+
+        var appToReplace: LCAppModel?
+
+        if fm.fileExists(atPath: outputFolder.path) ||
+            !matchingApps.isEmpty {
+
+            let newName =
+                "\(bundleID)_\(Int(CFAbsoluteTimeGetCurrent())).app"
+
+            installOptions = [
+                AppReplaceOption(
+                    isReplace: false,
+                    nameOfFolderToInstall: newName
+                )
+            ]
+
+            for app in matchingApps {
+                installOptions.append(
+                    AppReplaceOption(
+                        isReplace: true,
+                        nameOfFolderToInstall:
+                            app.appInfo.relativeBundlePath,
+                        appToReplace: app
+                    )
+                )
+            }
+
+            guard let choice = await installReplaceAlert.open() else {
+                return
+            }
+
+            appRelativePath = choice.nameOfFolderToInstall
+            appToReplace = choice.appToReplace
+
+            if let replacing = appToReplace, replacing.uiIsShared {
+                outputFolder = LCPath.lcGroupBundlePath
+                    .appendingPathComponent(appRelativePath)
+            } else {
+                outputFolder = LCPath.bundlePath
+                    .appendingPathComponent(appRelativePath)
+            }
+        }
+
+        try fm.createDirectory(
+            at: outputFolder.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+
+        // Keep the old installation available for rollback.
+        let backupFolder = outputFolder.deletingLastPathComponent()
+            .appendingPathComponent(".TrollBoxBackup-\(UUID().uuidString)")
+
+        var movedOldApp = false
+        var movedNewApp = false
+
+        do {
+            if appToReplace != nil &&
+                fm.fileExists(atPath: outputFolder.path) {
+                try fm.moveItem(at: outputFolder, to: backupFolder)
+                movedOldApp = true
+            }
+
+            try fm.moveItem(at: appFolder, to: outputFolder)
+            movedNewApp = true
+
+            guard let finalNewApp = LCAppInfo(
+                bundlePath: outputFolder.path
+            ) else {
+                throw NSError(
+                    domain: "TrollBox",
+                    code: 5,
+                    userInfo: [NSLocalizedDescriptionKey:
+                        "lc.appList.appInfoInitError".loc]
+                )
+            }
+
+            finalNewApp.relativeBundlePath = appRelativePath
+            finalNewApp.dontSign = true
+
+            if let replacing = appToReplace {
+                let old = replacing.appInfo
+
+                finalNewApp.autoSaveDisabled = true
+                finalNewApp.isLocked = old.isLocked
+                finalNewApp.isHidden = old.isHidden
+                finalNewApp.isJITNeeded = old.isJITNeeded
+                finalNewApp.isShared = old.isShared
+                finalNewApp.spoofSDKVersion = old.spoofSDKVersion
+                finalNewApp.doSymlinkInbox = old.doSymlinkInbox
+                finalNewApp.containerInfo = old.containerInfo
+                finalNewApp.tweakFolder = old.tweakFolder
+                finalNewApp.selectedLanguage = old.selectedLanguage
+                finalNewApp.dataUUID = old.dataUUID
+                finalNewApp.orientationLock = old.orientationLock
+                finalNewApp.dontInjectTweakLoader = old.dontInjectTweakLoader
+                finalNewApp.hideLiveContainer = old.hideLiveContainer
+                finalNewApp.dontLoadTweakLoader = old.dontLoadTweakLoader
+                finalNewApp.doUseLCBundleId = old.doUseLCBundleId
+                finalNewApp.fixFilePickerNew = old.fixFilePickerNew
+                finalNewApp.fixLocalNotification = old.fixLocalNotification
+                finalNewApp.fixBackgroundTaskIdentifiers =
+                    old.fixBackgroundTaskIdentifiers
+                finalNewApp.lastLaunched = old.lastLaunched
+                finalNewApp.jitLaunchScriptJs = old.jitLaunchScriptJs
+                finalNewApp.multitaskSpecified = old.multitaskSpecified
+                finalNewApp.classicMode = old.classicMode
+                finalNewApp.autoSaveDisabled = false
+            } else {
+                finalNewApp.spoofSDKVersion = true
+            }
+
+            finalNewApp.installationDate = Date.now
+            finalNewApp.save()
+
+            let newModel = LCAppModel(
+                appInfo: finalNewApp,
+                delegate: self
+            )
+
+            if let replacing = appToReplace {
+                if replacing.uiIsHidden {
+                    sharedModel.hiddenApps.removeAll { $0 == replacing }
+                    sharedModel.hiddenApps.append(newModel)
+                } else {
+                    sharedModel.apps.removeAll { $0 == replacing }
+                    sharedModel.apps.append(newModel)
+                }
+            } else {
+                sharedModel.apps.append(newModel)
+
+                if let schemes = finalNewApp.urlSchemes(),
+                   !schemes.isEmpty {
+                    UserDefaults.lcShared()
+                        .mutableArrayValue(forKey: "LCGuestURLSchemes")
+                        .addObjects(from: schemes as! [Any])
+                }
+            }
+
+            if movedOldApp {
+                try? fm.removeItem(at: backupFolder)
+            }
+
+        } catch {
+            if movedNewApp {
+                try? fm.removeItem(at: outputFolder)
+            }
+
+            if movedOldApp {
+                try? fm.moveItem(at: backupFolder, to: outputFolder)
+            }
+
+            throw error
+        }
+    }
+
     func startInstallFromUrl() async {
         guard let installUrlStr = await installUrlInput.open(), installUrlStr.count > 0 else {
             return

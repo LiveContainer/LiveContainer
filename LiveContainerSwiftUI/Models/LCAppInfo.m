@@ -354,6 +354,12 @@
             self.classicMode = YES;
             self.spoofSDKVersion = YES;
         }
+        error = [self patchGuestExtensions];
+        if (error) {
+            [NSUserDefaults.standardUserDefaults removeObjectForKey:@"SigningInProgress"];
+            completetionHandler(NO, error);
+            return;
+        }
         info[@"LCPatchRevision"] = @(currentPatchRev);
         forceSign = true;
         
@@ -410,12 +416,64 @@
             }
 }
 
+- (NSString *)patchGuestExtensions {
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSString *pluginsPath = [self.bundlePath stringByAppendingPathComponent:@"PlugIns"];
+    NSArray *plugins = [fm contentsOfDirectoryAtPath:pluginsPath error:nil];
+    for (NSString *name in plugins) {
+        if (![name.pathExtension isEqualToString:@"appex"]) continue;
+        NSString *bundlePath = [pluginsPath stringByAppendingPathComponent:name];
+        NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Info.plist"]];
+
+        // copy remove rename
+        NSString *executable = plist[@"CFBundleExecutable"];
+        NSString *path = [bundlePath stringByAppendingPathComponent:executable];
+        NSString *temporaryPath = [path stringByAppendingString:@".lcpatch"];
+        NSError *fileError = nil;
+        [fm removeItemAtPath:temporaryPath error:nil];
+        if (![fm copyItemAtPath:path toPath:temporaryPath error:&fileError]) return fileError.localizedDescription;
+        
+        __block BOOL hasARM64 = NO;
+        __block BOOL encrypted = NO;
+        __block BOOL mismatch = NO;
+        NSString *error = LCParseMachO(temporaryPath.fileSystemRepresentation, false, ^(const char *slicePath, struct mach_header_64 *header, int fd, void *filePtr) {
+            if (header->cputype != CPU_TYPE_ARM64) return;
+            hasARM64 = YES;
+            encrypted |= LCIsMachOEncrypted(header);
+            if (!encrypted) {
+                mismatch |= (LCPatchExecSlice(path.fileSystemRepresentation, header, false) & PATCH_EXEC_RESULT_SEG_COUNT_MISMATCH) != 0;
+            }
+        });
+        if (!error && (!hasARM64 || encrypted)) {
+            error = [NSString stringWithFormat:@"%@ requires a decrypted arm64 executable", name];
+        }
+        if (!error && ![fm replaceItemAtURL:[NSURL fileURLWithPath:path] withItemAtURL:[NSURL fileURLWithPath:temporaryPath] backupItemName:nil options:0 resultingItemURL:nil error:&fileError]) {
+            error = fileError.localizedDescription;
+        }
+        [fm removeItemAtPath:temporaryPath error:nil];
+        if (error) return error;
+        // Keep extension-specific loader information separate from the app's.
+        [@{@"segCountMismatch": @(mismatch)} writeToFile:[bundlePath stringByAppendingPathComponent:@"LCAppExtension.plist"] atomically:YES];
+    }
+    return nil;
+}
+
 - (bool)isJITNeeded {
     if(_info[@"isJITNeeded"] != nil) {
         return [_info[@"isJITNeeded"] boolValue];
     } else {
         return NO;
     }
+}
+
+- (bool)helperProcessesSupport {
+    // Preserve settings saved before this feature was renamed.
+    return [_info[@"helperProcessesSupport"] boolValue];
+}
+
+- (void)setHelperProcessesSupport:(bool)enabled {
+    _info[@"helperProcessesSupport"] = @(enabled);
+    [self save];
 }
 - (void)setIsJITNeeded:(bool)isJITNeeded {
     _info[@"isJITNeeded"] = [NSNumber numberWithBool:isJITNeeded];

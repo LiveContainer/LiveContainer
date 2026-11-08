@@ -7,7 +7,14 @@
 #include <dlfcn.h>
 
 BOOL isolateAppGroup = NO;
+static NSString *extensionParentContainerPath;
 void* webKitHeader = 0;
+void NSFMGuestExtensionHooksInit(NSString *parentContainerPath) {
+    extensionParentContainerPath = parentContainerPath;
+    isolateAppGroup = [NSUserDefaults.guestContainerInfo[@"isolateAppGroup"] boolValue];
+    swizzle(NSFileManager.class, @selector(containerURLForSecurityApplicationGroupIdentifier:), @selector(hook_containerURLForSecurityApplicationGroupIdentifier:));
+}
+
 void NSFMGuestHooksInit(void) {
     NSDictionary* infoDict = [NSUserDefaults guestContainerInfo];
     isolateAppGroup = [infoDict[@"isolateAppGroup"] boolValue];
@@ -40,7 +47,8 @@ void NSFMGuestHooksInit(void) {
     }
     NSURL *result;
     if(isolateAppGroup) {
-        result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%s/LCAppGroup/%@", getenv("HOME"), groupIdentifier]];
+        NSString *homePath = extensionParentContainerPath ?: @(getenv("HOME"));
+        result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@/LCAppGroup/%@", homePath, groupIdentifier]];
     } else if (NSUserDefaults.lcAppGroupPath){
         result = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@/LiveContainer/Data/AppGroup/%@", NSUserDefaults.lcAppGroupPath, groupIdentifier]];
     } else {

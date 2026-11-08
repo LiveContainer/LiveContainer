@@ -248,6 +248,74 @@ static void *getAppEntryPoint(void *handle) {
     return (void *)header + entryoff;
 }
 
+NSString *LCPrepareGuestExtension(NSDictionary *request) {
+    // Unlike an app launch, this process already has a live system extension
+    // context. Only prepare the guest environment and load its request handler.
+    lcMainBundle = NSBundle.mainBundle;
+    lcUserDefaults = NSUserDefaults.standardUserDefaults;
+    isLiveProcess = true;
+    lcAppUrlScheme = @"liveprocess";
+    lcSharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:LCSharedUtils.appGroupID];
+    lcAppGroupPath = [request[@"appGroupPath"] length] ? request[@"appGroupPath"] : nil;
+    guestAppInfo = request[@"guestAppInfo"];
+    guestContainerInfo = request[@"guestContainerInfo"];
+
+    static NSMutableArray<NSURL *> *accessedURLs;
+    accessedURLs = [NSMutableArray array];
+    for (NSData *bookmark in request[@"bookmarks"]) {
+        NSError *error = nil;
+        BOOL stale = NO;
+        NSURL *url = [NSURL URLByResolvingBookmarkData:bookmark options:0 relativeToURL:nil bookmarkDataIsStale:&stale error:&error];
+        if (!url || ![url startAccessingSecurityScopedResource]) {
+            return error.localizedDescription ?: @"Unable to access the guest extension or its container";
+        }
+        [accessedURLs addObject:url];
+    }
+    NSString *bundlePath = request[@"bundlePath"];
+    NSString *appPath = request[@"appBundlePath"];
+    NSString *homePath = request[@"containerPath"];
+    NSString *lcHomePath = request[@"lcHomePath"];
+
+    NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
+
+    lcGuestAppId = bundle.bundleIdentifier;
+    NSString *originalHome = NSHomeDirectory();
+    setenv("LP_HOME_PATH", originalHome.fileSystemRepresentation, 1);
+    setenv("LC_HOME_PATH", lcHomePath.fileSystemRepresentation, 1);
+    setenv("HOME", homePath.fileSystemRepresentation, 1);
+    setenv("CFFIXED_USER_HOME", homePath.fileSystemRepresentation, 1);
+    setenv("TMPDIR", [[homePath stringByAppendingPathComponent:@"tmp"] stringByAppendingString:@"/"].fileSystemRepresentation, 1);
+    overwriteMainNSBundle(bundle);
+    overwriteMainCFBundle();
+    const char *executablePath = strdup(bundle.executablePath.fileSystemRepresentation);
+    *_CFGetProcessPath() = executablePath;
+    overwriteExecPath(executablePath);
+    NUDGuestHooksInit();
+    NSFMGuestExtensionHooksInit(request[@"parentContainerPath"]);
+    NSURLSCGuestHooksInit();
+
+    if (checkJITEnabled()) init_bypassDyldLibValidation();
+    DyldHooksInit(false, true, 0);
+    appMainImageIndex = _dyld_image_count();
+    __block void *handle = NULL;
+    void (^load)(void) = ^{
+        handle = dlopen_nolock(bundle.executablePath.fileSystemRepresentation, RTLD_LAZY | RTLD_GLOBAL | RTLD_FIRST);
+    };
+    NSDictionary *patchInfo = [NSDictionary dictionaryWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"LCAppExtension.plist"]];
+    if (@available(iOS 27.0, *)) {
+        if ([patchInfo[@"segCountMismatch"] boolValue]) bypass_seg_count_check(load);
+        else load();
+    } else {
+        load();
+    }
+    if (!handle) {
+        const char *error = dlerror();
+        return error ? @(error) : @"Unable to load the guest extension";
+    }
+    appExecutableHandle = handle;
+    return nil;
+}
+
 static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContainer, int argc, char *argv[]) {
     NSString *appError = nil;
     if([[lcUserDefaults objectForKey:@"LCWaitForDebugger"] boolValue]) {
@@ -511,6 +579,9 @@ static NSString* invokeAppMain(NSString *selectedApp, NSString *selectedContaine
     
     // hook NSUserDefault before running libraries' initializers
     NUDGuestHooksInit();
+    if (!isLiveProcess && [guestAppInfo[@"helperProcessesSupport"] boolValue]) {
+        NSExtensionGuestHooksInit(appBundle.bundleURL, [NSURL fileURLWithPath:newHomePath isDirectory:YES]);
+    }
     if(!isSideStore) {
         SecItemGuestHooksInit();
         NSFMGuestHooksInit();

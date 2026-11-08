@@ -16,13 +16,24 @@
 @interface NSExtension : NSObject
 @property (nonatomic, strong, readwrite) NSArray *preferredLanguages;
 + (instancetype)extensionWithIdentifier:(NSString *)identifier error:(NSError **)error;
++ (instancetype)extensionWithIdentifier:(NSString *)identifier excludingDisabledExtensions:(BOOL)exclude error:(NSError **)error;
+- (NSUUID *)beginExtensionRequestWithInputItems:(NSArray *)items error:(NSError **)error;
 - (void)beginExtensionRequestWithInputItems:(NSArray *)items completion:(void(^)(NSUUID *))callback;
+- (void)cancelExtensionRequestWithIdentifier:(NSUUID *)identifier;
+- (NSExtensionContext *)_extensionContextForUUID:(NSUUID *)identifier;
+- (id)_plugIn;
 - (int)pidForRequestIdentifier:(NSUUID *)identifier;
 - (void)_kill:(int)arg1;
 - (void)setRequestCancellationBlock:(void(^)(NSUUID *uuid, NSError *error))callback;
 - (void)setRequestInterruptionBlock:(void(^)(NSUUID *))callback;
+- (void)setRequestCompletionBlock:(void(^)(NSUUID *uuid, NSArray *items))callback;
 - (void)_hostDidEnterBackgroundNote:(NSNotification *)note;
 - (void)_hostWillResignActiveNote:(NSNotification *)note;
+@end
+
+@interface NSExtensionContext (LCAuxiliaryConnection)
++ (NSXPCInterface *)_extensionAuxiliaryHostProtocol;
++ (NSXPCInterface *)_extensionAuxiliaryVendorProtocol;
 @end
 
 void* SecTaskCreateFromSelf(CFAllocatorRef allocator);

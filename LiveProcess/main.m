@@ -41,6 +41,10 @@ int LiveProcessMain(int argc, char *argv[]) {
     // Ensure app info is delivered
     NSDictionary *appInfo = LiveProcessHandler.retrievedAppInfo;
     NSCAssert(appInfo, @"Failed to retrieve app info");
+    NSDictionary *guestExtension = appInfo[@"LCGuestExtension"];
+    if (guestExtension) {
+        return LCRunGuestExtension(guestExtension, LiveProcessHandler.extensionContext);
+    }
     
     // Check if we received a request to execute a custom payload
     NSString *customPayloadDylib = appInfo[@"customPayloadDylib"];

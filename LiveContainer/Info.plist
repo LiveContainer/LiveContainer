@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>MusicHapticsSupported</key>
+	<true/>
 	<key>CFBundleDisplayName</key>
 	<string>LiveContainer</string>
 	<key>CFBundleDocumentTypes</key>

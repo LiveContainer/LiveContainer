@@ -1,3 +1,4 @@
+#if false
 import Foundation
 import SwiftUI
 import SideSign
@@ -198,3 +199,5 @@ private enum SigningContextError: LocalizedError {
         }
     }
 }
+
+#endif

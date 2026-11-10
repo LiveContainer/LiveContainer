@@ -98,8 +98,8 @@ final class TrollBoxSigningManager: ObservableObject {
         }
 
         do {
-            let context = try TrollBoxAppleAccountManager.shared
-                .signingContext()
+            let accountManager = TrollBoxAppleAccountManager.shared
+            let context = try await accountManager.signingContext()
 
             guard context.team.type != .unknown else {
                 throw SigningError.unknownTeamType
@@ -169,6 +169,7 @@ final class TrollBoxSigningManager: ObservableObject {
             )
 
         } catch {
+            TrollBoxAppleAccountManager.shared.handleSigningError(error)
             errorMessage = error.localizedDescription
             throw error
         }

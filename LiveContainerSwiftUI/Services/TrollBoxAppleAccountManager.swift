@@ -67,14 +67,27 @@ final class TrollBoxAppleAccountManager: ObservableObject {
                 }
             )
 
-            session = result
+            let fetchedAccount = try await DeveloperPortal.shared.fetchAccount(
+                session: result.session
+            )
+
+            let fetchedTeams = try await DeveloperPortal.shared.fetchTeams(
+                for: fetchedAccount,
+                session: result.session
+            )
 
             let encoded = try JSONEncoder().encode(result)
             try TrollBoxKeychain.save(encoded, for: sessionKey)
 
-            account = result.account
+            session = result
+            account = fetchedAccount
+            teams = fetchedTeams
 
-            try await refreshTeams()
+            if !teams.contains(where: {
+                $0.identifier == selectedTeamID
+            }) {
+                selectedTeamID = teams.first?.identifier
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -125,34 +138,96 @@ final class TrollBoxAppleAccountManager: ObservableObject {
         }
     }
 
-    func restoreSession() async {
-        guard !isBusy else { return }
+    private func isExpiredSessionError(_ error: Error) -> Bool {
+        guard let serverError = error as? ServerError else {
+            return false
+        }
+
+        if case .underlyingError(let code, _) = serverError {
+            return code == 1100
+        }
+
+        return false
+    }
+
+    private func clearRejectedSession() {
+        session = nil
+        account = nil
+        teams = []
 
         do {
-            guard let data = try TrollBoxKeychain.load(for: sessionKey) else {
-                return
-            }
-
-            let restored = try JSONDecoder().decode(
-                AuthSession.self,
-                from: data
-            )
-
-            guard restored.session.isValid else {
-                try TrollBoxKeychain.delete(for: sessionKey)
-                return
-            }
-
-            session = restored
-            account = restored.account
-
-            try await refreshTeams()
+            try TrollBoxKeychain.delete(for: sessionKey)
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func signingContext() throws -> (session: Session, team: Team) {
+    private func restoreSavedSession() async throws {
+        guard let data = try TrollBoxKeychain.load(for: sessionKey) else {
+            throw SigningContextError.notSignedIn
+        }
+
+        let restored = try JSONDecoder().decode(
+            AuthSession.self,
+            from: data
+        )
+
+        guard restored.session.isValid else {
+            clearRejectedSession()
+            throw SigningContextError.notSignedIn
+        }
+
+        do {
+            let fetchedAccount = try await DeveloperPortal.shared.fetchAccount(
+                session: restored.session
+            )
+
+            let fetchedTeams = try await DeveloperPortal.shared.fetchTeams(
+                for: fetchedAccount,
+                session: restored.session
+            )
+
+            session = restored
+            account = fetchedAccount
+            teams = fetchedTeams
+
+            if !teams.contains(where: {
+                $0.identifier == selectedTeamID
+            }) {
+                selectedTeamID = teams.first?.identifier
+            }
+        } catch {
+            if isExpiredSessionError(error) {
+                clearRejectedSession()
+                throw SigningContextError.sessionExpired
+            }
+
+            throw error
+        }
+    }
+
+    func restoreSession() async {
+        guard !isBusy else { return }
+
+        isBusy = true
+        defer { isBusy = false }
+
+        do {
+            if session == nil {
+                try await restoreSavedSession()
+            }
+        } catch SigningContextError.notSignedIn {
+            // No saved session is normal when the user has not signed in.
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func signingContext() async throws -> (session: Session, team: Team) {
+        if session == nil {
+            try await restoreSavedSession()
+        }
+
         guard let authSession = session, authSession.session.isValid else {
             throw SigningContextError.notSignedIn
         }
@@ -162,6 +237,15 @@ final class TrollBoxAppleAccountManager: ObservableObject {
         }
 
         return (authSession.session, team)
+    }
+
+    func handleSigningError(_ error: Error) {
+        guard isExpiredSessionError(error) else {
+            return
+        }
+
+        clearRejectedSession()
+        errorMessage = "Your Apple sign-in session expired. Please sign in again."
     }
 
     func signOut() {
@@ -188,6 +272,7 @@ final class TrollBoxAppleAccountManager: ObservableObject {
 private enum SigningContextError: LocalizedError {
     case notSignedIn
     case noTeamSelected
+    case sessionExpired
 
     var errorDescription: String? {
         switch self {
@@ -195,6 +280,8 @@ private enum SigningContextError: LocalizedError {
             return "Sign in to your Apple Account before signing a Full app."
         case .noTeamSelected:
             return "Select an Apple Developer team before signing a Full app."
+        case .sessionExpired:
+            return "Your Apple sign-in session expired. Please sign in again."
         }
     }
 }

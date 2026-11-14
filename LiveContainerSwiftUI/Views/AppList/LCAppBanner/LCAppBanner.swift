@@ -18,6 +18,7 @@ protocol LCAppBannerDelegate {
 
 struct LCAppBanner: UIViewControllerRepresentable {
     var delegate: LCAppBannerDelegate
+    var isGrid: Bool = false
 
     @ObservedObject var model: LCAppModel
 
@@ -25,13 +26,14 @@ struct LCAppBanner: UIViewControllerRepresentable {
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) private var darkModeIcon = false
     private let sharedModel = DataManager.shared.model
 
-    init(appModel: LCAppModel, delegate: LCAppBannerDelegate) {
+    init(appModel: LCAppModel, delegate: LCAppBannerDelegate, isGrid: Bool = false) {
         _model = ObservedObject(wrappedValue: appModel)
         self.delegate = delegate
+        self.isGrid = isGrid
     }
 
     func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = LCAppBannerViewController(delegate: delegate, config: LCAppBannerConfiguration(model: model, dynamicColors: dynamicColors, darkModeIcon: darkModeIcon))
+        let viewController = LCAppBannerViewController(delegate: delegate, config: LCAppBannerConfiguration(model: model, dynamicColors: dynamicColors, darkModeIcon: darkModeIcon, isGrid: isGrid))
         return viewController
     }
 
@@ -42,7 +44,8 @@ struct LCAppBanner: UIViewControllerRepresentable {
         viewController.update(
             model: model,
             dynamicColors: dynamicColors,
-            darkModeIcon: darkModeIcon
+            darkModeIcon: darkModeIcon,
+            isGrid: isGrid
         )
     }
 
@@ -51,6 +54,6 @@ struct LCAppBanner: UIViewControllerRepresentable {
         guard let width = proposal.width else {
             return nil
         }
-        return CGSize(width: width, height: LCAppBannerRootView.bannerHeight)
+        return CGSize(width: width, height: isGrid ? LCAppBannerRootView.gridBannerHeight : LCAppBannerRootView.bannerHeight)
     }
 }

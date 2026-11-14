@@ -80,6 +80,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
     
     @AppStorage("LCMultitaskMode", store: LCUtils.appGroupUserDefault) var multitaskMode: MultitaskMode = .virtualWindow
     @AppStorage("darkModeIcon", store: LCUtils.appGroupUserDefault) private var darkModeIcon = false
+    @AppStorage("LCAppListGrid", store: LCUtils.appGroupUserDefault) private var appListGrid = false
     
     @State private var isViewAppeared = false
     
@@ -131,29 +132,19 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 })
                 .hidden()
                 
-                LazyVStack {
-                    ForEach(filteredApps, id: \.self) { app in
-                        LCAppBanner(appModel: app, delegate: self)
-                    }
-                    .transition(.scale)
-                }
-                .padding()
-                .animation(searchContext.isTyping ? nil : .easeInOut, value: filteredApps)
+                appBannerCollection(filteredApps)
+                    .padding()
 
                 VStack {
                     if LCUtils.appGroupUserDefault.bool(forKey: "LCStrictHiding") {
                         if sharedModel.isHiddenAppUnlocked {
-                            LazyVStack {
+                            VStack {
                                 HStack {
                                     Text("lc.appList.hiddenApps".loc)
                                         .font(.system(.title2).bold())
                                     Spacer()
                                 }
-                                
-                                ForEach(filteredHiddenApps, id: \.self) { app in
-                                    LCAppBanner(appModel: app, delegate: self)
-                                }
-                                .transition(.scale)
+                                appBannerCollection(filteredHiddenApps)
                                 
                             }
                             .padding()
@@ -166,22 +157,36 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                             }
                         }
                     } else if sharedModel.hiddenApps.count > 0 {
-                        LazyVStack {
+                        VStack {
                             HStack {
                                 Text("lc.appList.hiddenApps".loc)
                                     .font(.system(.title2).bold())
                                 Spacer()
                             }
-                            ForEach(filteredHiddenApps, id: \.self) { app in
+                            if appListGrid {
                                 if sharedModel.isHiddenAppUnlocked {
-                                    LCAppBanner(appModel: app, delegate: self)
+                                    appBannerCollection(filteredHiddenApps)
                                 } else {
-                                    LCAppSkeletonBanner()
+                                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], spacing: 12) {
+                                        ForEach(filteredHiddenApps, id: \.self) { _ in
+                                            LCAppSkeletonBanner()
+                                                .frame(height: LCAppBannerRootView.gridBannerHeight)
+                                        }
+                                    }
+                                    .onTapGesture { Task { await authenticateUser() } }
                                 }
-                            }
-                            .animation(.easeInOut, value: sharedModel.isHiddenAppUnlocked)
-                            .onTapGesture {
-                                Task { await authenticateUser() }
+                            } else {
+                                ForEach(filteredHiddenApps, id: \.self) { app in
+                                    if sharedModel.isHiddenAppUnlocked {
+                                        LCAppBanner(appModel: app, delegate: self)
+                                    } else {
+                                        LCAppSkeletonBanner()
+                                    }
+                                }
+                                .animation(.easeInOut, value: sharedModel.isHiddenAppUnlocked)
+                                .onTapGesture {
+                                    Task { await authenticateUser() }
+                                }
                             }
                         }
                         .padding()
@@ -251,6 +256,15 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
 
                 }
                 
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation(.easeInOut) { appListGrid.toggle() }
+                    } label: {
+                        Label(appListGrid ? "List" : "Grid", systemImage: appListGrid ? "list.bullet" : "square.grid.2x2")
+                    }
+                    .accessibilityLabel(appListGrid ? "Show apps as a list" : "Show apps as a grid")
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("lc.appList.openLink".loc, systemImage: "link", action: {
                         Task { await onOpenWebViewTapped() }
@@ -433,6 +447,29 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
         }
         .searchable(text: $searchContext.query)
 
+    }
+
+    @ViewBuilder
+    private func appBannerCollection(_ apps: [LCAppModel]) -> some View {
+        if appListGrid {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 12)], spacing: 12) {
+                ForEach(apps, id: \.self) { app in
+                    LCAppBanner(appModel: app, delegate: self, isGrid: true)
+                        .id(appListGrid)
+                        .transition(.scale)
+                }
+            }
+            .animation(searchContext.isTyping ? nil : .easeInOut, value: apps)
+        } else {
+            LazyVStack {
+                ForEach(apps, id: \.self) { app in
+                    LCAppBanner(appModel: app, delegate: self)
+                        .id(appListGrid)
+                        .transition(.scale)
+                }
+            }
+            .animation(searchContext.isTyping ? nil : .easeInOut, value: apps)
+        }
     }
     
     var JITEnablingModal : some View {

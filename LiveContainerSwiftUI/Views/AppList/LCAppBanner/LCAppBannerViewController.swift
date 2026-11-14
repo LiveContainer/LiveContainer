@@ -11,19 +11,21 @@ struct LCAppBannerConfiguration {
     let model: LCAppModel
     let dynamicColors: Bool
     let darkModeIcon: Bool
+    let isGrid: Bool
 }
 
 
 final class LCAppBannerViewController: UIViewController, UIContextMenuInteractionDelegate, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
         
     private let delegate: LCAppBannerDelegate
-    private let bannerView = LCAppBannerRootView()
+    private let bannerView: LCAppBannerRootView
     private var configuration: LCAppBannerConfiguration
     private var exportTemporaryDirectory: URL?
     
     init(delegate: LCAppBannerDelegate, config: LCAppBannerConfiguration) {
         self.delegate = delegate
         self.configuration = config
+        self.bannerView = LCAppBannerRootView(isGrid: config.isGrid)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -38,7 +40,7 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        preferredContentSize = CGSize(width: 0, height: LCAppBannerRootView.bannerHeight)
+        preferredContentSize = CGSize(width: 0, height: configuration.isGrid ? LCAppBannerRootView.gridBannerHeight : LCAppBannerRootView.bannerHeight)
         bannerView.runControl.addTarget(self, action: #selector(runButtonTapped), for: .touchUpInside)
         bannerView.addInteraction(UIContextMenuInteraction(delegate: self))
 
@@ -62,13 +64,15 @@ final class LCAppBannerViewController: UIViewController, UIContextMenuInteractio
     func update(
         model: LCAppModel,
         dynamicColors: Bool,
-        darkModeIcon: Bool
+        darkModeIcon: Bool,
+        isGrid: Bool
     ) {
         loadViewIfNeeded()
         configuration = LCAppBannerConfiguration(
             model: model,
             dynamicColors: dynamicColors,
-            darkModeIcon: darkModeIcon
+            darkModeIcon: darkModeIcon,
+            isGrid: isGrid
         )
         refreshView()
     }

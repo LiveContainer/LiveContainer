@@ -8,6 +8,8 @@ import UIKit
 
 final class LCAppBannerRootView: UIView {
     static let bannerHeight: CGFloat = 88
+    static let gridBannerHeight: CGFloat = 190
+    private let isGrid: Bool
 
     let runControl = LCAppBannerRunControl()
 
@@ -26,15 +28,17 @@ final class LCAppBannerRootView: UIView {
     private let detailStack = UIStackView()
 
     override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: Self.bannerHeight)
+        CGSize(width: UIView.noIntrinsicMetric, height: isGrid ? Self.gridBannerHeight : Self.bannerHeight)
     }
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(isGrid: Bool) {
+        self.isGrid = isGrid
+        super.init(frame: .zero)
         setupView()
     }
 
     required init?(coder: NSCoder) {
+        self.isGrid = false
         super.init(coder: coder)
         setupView()
     }
@@ -95,26 +99,42 @@ final class LCAppBannerRootView: UIView {
         addSubview(detailStack)
         addSubview(runControl)
 
-        NSLayoutConstraint.activate([
+        var constraints = [
             visualBackgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
             visualBackgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
             visualBackgroundView.topAnchor.constraint(equalTo: topAnchor),
             visualBackgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
             iconImageView.widthAnchor.constraint(equalToConstant: 60),
             iconImageView.heightAnchor.constraint(equalToConstant: 60),
-
-            detailStack.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 10),
-            detailStack.trailingAnchor.constraint(lessThanOrEqualTo: runControl.leadingAnchor, constant: -10),
-            detailStack.centerYAnchor.constraint(equalTo: centerYAnchor),
-
-            runControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
-            runControl.centerYAnchor.constraint(equalTo: centerYAnchor),
             runControl.widthAnchor.constraint(equalToConstant: 70),
             runControl.heightAnchor.constraint(equalToConstant: 32)
-        ])
+        ]
+        if isGrid {
+            nameStack.alignment = .center
+            detailStack.alignment = .center
+            constraints += [
+                iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+                iconImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+                detailStack.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 8),
+                detailStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+                detailStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+                detailStack.bottomAnchor.constraint(lessThanOrEqualTo: runControl.topAnchor, constant: -6),
+                runControl.centerXAnchor.constraint(equalTo: centerXAnchor),
+                runControl.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
+            ]
+        } else {
+            constraints += [
+                iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+                iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+                detailStack.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 10),
+                detailStack.trailingAnchor.constraint(lessThanOrEqualTo: runControl.leadingAnchor, constant: -10),
+                detailStack.centerYAnchor.constraint(equalTo: centerYAnchor),
+                runControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+                runControl.centerYAnchor.constraint(equalTo: centerYAnchor)
+            ]
+        }
+        NSLayoutConstraint.activate(constraints)
     }
 
     private func configureLabel(_ label: UILabel, font: UIFont) {

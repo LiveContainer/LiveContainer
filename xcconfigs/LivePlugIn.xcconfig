@@ -1,0 +1,11 @@
+//
+//  LiveProcess.xcconfig
+//  LiveContainer
+//
+//  Created by s s on 2025/5/24.
+//
+
+#include "Global.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = $(LIVECONTAINER_BUNDLE_IDENTIFIER).LivePlugIm
+

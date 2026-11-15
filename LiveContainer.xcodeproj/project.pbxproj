@@ -16,6 +16,8 @@
 		17442EF63024306800E3F88A /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
 		17554B732DA16988004C6D90 /* OpenSSL.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 17554B712DA16988004C6D90 /* OpenSSL.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		17554B742DA169AA004C6D90 /* OpenSSL.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17554B712DA16988004C6D90 /* OpenSSL.xcframework */; };
+		1768B60130A9AA1E0037D5C8 /* LivePlugIn.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1768B5F630A9AA1E0037D5C8 /* LivePlugIn.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1768B60930A9AF4F0037D5C8 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
 		17CAE6262F230548008B1977 /* LiveContainerShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1292BD62DCA3B660065E12D /* LiveContainerShared.framework */; };
 		17CAED2C2F234814008B1977 /* LaunchAppExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 17CAE6172F230449008B1977 /* LaunchAppExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		17E23DE92F443A9300C55733 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 17E23DDF2F443A9300C55733 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -63,6 +65,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 174140532D9C0D6D00F3F928;
 			remoteInfo = ZSign;
+		};
+		1768B5FF30A9AA1E0037D5C8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 17DCE9952C7067EC00731D42 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1768B5F530A9AA1E0037D5C8;
+			remoteInfo = LivePlugIn;
 		};
 		17CAE61E2F230449008B1977 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -148,6 +157,7 @@
 				17E23DE92F443A9300C55733 /* ShareExtension.appex in Embed Foundation Extensions */,
 				17CAED2C2F234814008B1977 /* LaunchAppExtension.appex in Embed Foundation Extensions */,
 				E1292AF32DCA3A660065E12D /* LiveProcess.appex in Embed Foundation Extensions */,
+				1768B60130A9AA1E0037D5C8 /* LivePlugIn.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -174,6 +184,7 @@
 		174140AD2D9C0F4100F3F928 /* TestJITLess.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = TestJITLess.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		174140D52D9C176700F3F928 /* libarchive.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libarchive.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/lib/libarchive.tbd; sourceTree = DEVELOPER_DIR; };
 		17554B712DA16988004C6D90 /* OpenSSL.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:67RAULRX93:Marcin Krzyzanowski"; lastKnownFileType = wrapper.xcframework; name = OpenSSL.xcframework; path = OpenSSL/Frameworks/OpenSSL.xcframework; sourceTree = "<group>"; };
+		1768B5F630A9AA1E0037D5C8 /* LivePlugIn.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LivePlugIn.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		17CAE6172F230449008B1977 /* LaunchAppExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = LaunchAppExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		17DCE99D2C7067EC00731D42 /* LiveContainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveContainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17E23DDF2F443A9300C55733 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -220,6 +231,13 @@
 				"UIKit+GuestHooks.m",
 			);
 			target = 174140392D9C0D0000F3F928 /* TweakLoader */;
+		};
+		1768B60530A9AA1E0037D5C8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1768B5F530A9AA1E0037D5C8 /* LivePlugIn */;
 		};
 		17780E512E1C039D0077E636 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -319,6 +337,8 @@
 		174140162D9C0C1B00F3F928 /* TweakLoader */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (174140F52D9C1C9B00F3F928 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TweakLoader; sourceTree = "<group>"; };
 		174140552D9C0D6D00F3F928 /* ZSign */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ZSign; sourceTree = "<group>"; };
 		174140AE2D9C0F4100F3F928 /* TestJITLess */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = TestJITLess; sourceTree = "<group>"; };
+		1768B5F730A9AA1E0037D5C8 /* LivePlugIn */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1768B60530A9AA1E0037D5C8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LivePlugIn; sourceTree = "<group>"; };
+		1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LivePlugInSupport; sourceTree = "<group>"; };
 		17780D3B2E1C02420077E636 /* litehook */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17780E512E1C039D0077E636 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = litehook; sourceTree = "<group>"; };
 		17B0F8452DE16FE4008110EA /* xcconfigs */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = xcconfigs; sourceTree = "<group>"; };
 		17CAE6182F230449008B1977 /* LaunchAppExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17CAE6252F230449008B1977 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LaunchAppExtension; sourceTree = "<group>"; };
@@ -376,6 +396,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1768B5F330A9AA1E0037D5C8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1768B60930A9AF4F0037D5C8 /* LiveContainerShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		17CAE6142F230449008B1977 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -413,6 +441,7 @@
 		172CA85F2D9D721700CF6989 /* LiveContainer */ = {
 			isa = PBXGroup;
 			children = (
+				1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */,
 				E16D95762E1CD49E0068EB63 /* LCMachOUtils.h */,
 				E1292C032DCA3C160065E12D /* main.c */,
 				E1292C1A2DCA48F00065E12D /* Tweaks */,
@@ -461,6 +490,7 @@
 				173545A92E2C7913001B3B4C /* SideStoreSupport */,
 				17CAE6182F230449008B1977 /* LaunchAppExtension */,
 				17E23DE02F443A9300C55733 /* ShareExtension */,
+				1768B5F730A9AA1E0037D5C8 /* LivePlugIn */,
 				174140B82D9C0F9100F3F928 /* Frameworks */,
 				17DCE99E2C7067EC00731D42 /* Products */,
 				17780D3B2E1C02420077E636 /* litehook */,
@@ -480,6 +510,7 @@
 				173545A82E2C7913001B3B4C /* SideStoreSupport.framework */,
 				17CAE6172F230449008B1977 /* LaunchAppExtension.appex */,
 				17E23DDF2F443A9300C55733 /* ShareExtension.appex */,
+				1768B5F630A9AA1E0037D5C8 /* LivePlugIn.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -643,6 +674,28 @@
 			productReference = 174140AD2D9C0F4100F3F928 /* TestJITLess.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
+		1768B5F530A9AA1E0037D5C8 /* LivePlugIn */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1768B60430A9AA1E0037D5C8 /* Build configuration list for PBXNativeTarget "LivePlugIn" */;
+			buildPhases = (
+				1768B5F230A9AA1E0037D5C8 /* Sources */,
+				1768B5F330A9AA1E0037D5C8 /* Frameworks */,
+				1768B5F430A9AA1E0037D5C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1768B5F730A9AA1E0037D5C8 /* LivePlugIn */,
+			);
+			name = LivePlugIn;
+			packageProductDependencies = (
+			);
+			productName = LivePlugIn;
+			productReference = 1768B5F630A9AA1E0037D5C8 /* LivePlugIn.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		17CAE6162F230449008B1977 /* LaunchAppExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 17CAE6222F230449008B1977 /* Build configuration list for PBXNativeTarget "LaunchAppExtension" */;
@@ -688,6 +741,7 @@
 				173545AD2E2C7913001B3B4C /* PBXTargetDependency */,
 				17CAE61F2F230449008B1977 /* PBXTargetDependency */,
 				17E23DE82F443A9300C55733 /* PBXTargetDependency */,
+				1768B60030A9AA1E0037D5C8 /* PBXTargetDependency */,
 			);
 			name = LiveContainer;
 			productName = jump;
@@ -753,6 +807,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */,
 				E1292C1A2DCA48F00065E12D /* Tweaks */,
 			);
 			name = LiveContainerShared;
@@ -786,6 +841,9 @@
 					};
 					174140AC2D9C0F4100F3F928 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					1768B5F530A9AA1E0037D5C8 = {
+						CreatedOnToolsVersion = 27.2;
 					};
 					17CAE6162F230449008B1977 = {
 						CreatedOnToolsVersion = 26.1;
@@ -869,6 +927,7 @@
 				173545A72E2C7913001B3B4C /* SideStoreSupport */,
 				17CAE6162F230449008B1977 /* LaunchAppExtension */,
 				17E23DDE2F443A9300C55733 /* ShareExtension */,
+				1768B5F530A9AA1E0037D5C8 /* LivePlugIn */,
 			);
 		};
 /* End PBXProject section */
@@ -882,6 +941,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		17413FB32D9C0BAE00F3F928 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1768B5F430A9AA1E0037D5C8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -982,6 +1048,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1768B5F230A9AA1E0037D5C8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		17CAE6132F230449008B1977 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1046,6 +1119,11 @@
 			isa = PBXTargetDependency;
 			target = 174140532D9C0D6D00F3F928 /* ZSign */;
 			targetProxy = 174140FF2D9C1EDA00F3F928 /* PBXContainerItemProxy */;
+		};
+		1768B60030A9AA1E0037D5C8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1768B5F530A9AA1E0037D5C8 /* LivePlugIn */;
+			targetProxy = 1768B5FF30A9AA1E0037D5C8 /* PBXContainerItemProxy */;
 		};
 		17CAE61F2F230449008B1977 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1372,6 +1450,68 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		1768B60230A9AA1E0037D5C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 17B0F8452DE16FE4008110EA /* xcconfigs */;
+			baseConfigurationReferenceRelativePath = LivePlugIn.xcconfig;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LivePlugIn/LivePlugIn.entitlements;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LivePlugIn/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LivePlugIn;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1768B60330A9AA1E0037D5C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 17B0F8452DE16FE4008110EA /* xcconfigs */;
+			baseConfigurationReferenceRelativePath = LivePlugIn.xcconfig;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LivePlugIn/LivePlugIn.entitlements;
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LivePlugIn/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LivePlugIn;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -2008,6 +2148,15 @@
 			buildConfigurations = (
 				174140B42D9C0F4100F3F928 /* Debug */,
 				174140B52D9C0F4100F3F928 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1768B60430A9AA1E0037D5C8 /* Build configuration list for PBXNativeTarget "LivePlugIn" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1768B60230A9AA1E0037D5C8 /* Debug */,
+				1768B60330A9AA1E0037D5C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -667,6 +667,7 @@ struct LCAppSettingsView: View {
             appInfo.setBundlePath(LCPath.lcGroupBundlePath.appendingPathComponent(appInfo.relativeBundlePath).path)
             appInfo.isShared = true
             model.uiIsShared = true
+            LCPath.reconcileBackupPolicy()
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true
@@ -728,6 +729,7 @@ struct LCAppSettingsView: View {
             for container in model.uiContainers {
                 container.isShared = false
             }
+            LCPath.reconcileBackupPolicy()
         } catch {
             errorInfo = error.localizedDescription
             errorShow = true

@@ -319,6 +319,7 @@
 		174140162D9C0C1B00F3F928 /* TweakLoader */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (174140F52D9C1C9B00F3F928 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TweakLoader; sourceTree = "<group>"; };
 		174140552D9C0D6D00F3F928 /* ZSign */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ZSign; sourceTree = "<group>"; };
 		174140AE2D9C0F4100F3F928 /* TestJITLess */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = TestJITLess; sourceTree = "<group>"; };
+		1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LivePlugInSupport; sourceTree = "<group>"; };
 		17780D3B2E1C02420077E636 /* litehook */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17780E512E1C039D0077E636 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = litehook; sourceTree = "<group>"; };
 		17B0F8452DE16FE4008110EA /* xcconfigs */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = xcconfigs; sourceTree = "<group>"; };
 		17CAE6182F230449008B1977 /* LaunchAppExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (17CAE6252F230449008B1977 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LaunchAppExtension; sourceTree = "<group>"; };
@@ -413,6 +414,7 @@
 		172CA85F2D9D721700CF6989 /* LiveContainer */ = {
 			isa = PBXGroup;
 			children = (
+				1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */,
 				E16D95762E1CD49E0068EB63 /* LCMachOUtils.h */,
 				E1292C032DCA3C160065E12D /* main.c */,
 				E1292C1A2DCA48F00065E12D /* Tweaks */,
@@ -753,6 +755,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				1768BBF030A9B61D0037D5C8 /* LivePlugInSupport */,
 				E1292C1A2DCA48F00065E12D /* Tweaks */,
 			);
 			name = LiveContainerShared;

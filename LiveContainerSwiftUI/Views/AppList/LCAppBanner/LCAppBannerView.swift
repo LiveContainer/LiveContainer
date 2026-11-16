@@ -7,22 +7,24 @@ import Foundation
 import UIKit
 
 final class LCAppBannerRootView: UIView {
-    static let bannerHeight: CGFloat = 88
+    static let bannerHeight: CGFloat = LCDesign.Size.bannerHeight
 
     let runControl = LCAppBannerRunControl()
 
     private let visualBackgroundView = UIView()
+    private let washLayer = CAGradientLayer()
     private let iconImageView = UIImageView()
     private let nameLabel = UILabel()
     private let versionLabel = UILabel()
     private let remarkLabel = UILabel()
-    private let containerLabel = UILabel()
+    private let containerChip = LCAppBannerChipView()
     private let sharedBadge = LCAppBannerBadgeView(symbolName: "arrowshape.turn.up.left.fill")
     private let jitBadge = LCAppBannerBadgeView(symbolName: "bolt.fill")
     private let lockBadge = LCAppBannerBadgeView(symbolName: "lock.fill")
     private let bit32Badge = LCAppBannerBadgeView(text: "32")
     private let nameSpacer = UIView()
     private let nameStack = UIStackView()
+    private let chipRow = UIStackView()
     private let detailStack = UIStackView()
 
     override var intrinsicContentSize: CGSize {
@@ -42,50 +44,67 @@ final class LCAppBannerRootView: UIView {
     private func setupView() {
         isOpaque = false
         backgroundColor = .clear
-        layer.cornerRadius = 22
+        layer.cornerRadius = LCDesign.Radius.card
         layer.cornerCurve = .continuous
+        layer.borderWidth = 1 / UIScreen.main.scale
         clipsToBounds = true
 
         visualBackgroundView.translatesAutoresizingMaskIntoConstraints = false
         visualBackgroundView.isOpaque = false
         visualBackgroundView.isUserInteractionEnabled = false
+        washLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        washLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        visualBackgroundView.layer.addSublayer(washLayer)
 
         iconImageView.translatesAutoresizingMaskIntoConstraints = false
         iconImageView.contentMode = .scaleAspectFit
-        iconImageView.layer.cornerRadius = 16
+        iconImageView.layer.cornerRadius = LCDesign.Radius.icon
         iconImageView.layer.cornerCurve = .continuous
+        iconImageView.layer.borderWidth = 1 / UIScreen.main.scale
         iconImageView.clipsToBounds = true
         iconImageView.isAccessibilityElement = false
 
-        configureLabel(nameLabel, font: .systemFont(ofSize: 16, weight: .bold))
-        configureLabel(versionLabel, font: .systemFont(ofSize: 12))
-        configureLabel(remarkLabel, font: .systemFont(ofSize: 10))
-        configureLabel(containerLabel, font: .systemFont(ofSize: 8))
+        configureLabel(nameLabel, font: Self.roundedFont(size: 16, weight: .semibold))
+        configureLabel(versionLabel, font: .monospacedDigitSystemFont(ofSize: 12, weight: .regular))
+        configureLabel(remarkLabel, font: .italicSystemFont(ofSize: 11))
 
         nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         nameLabel.setContentHuggingPriority(.required, for: .horizontal)
         nameSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         nameSpacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        nameStack.translatesAutoresizingMaskIntoConstraints = false
         nameStack.axis = .horizontal
         nameStack.alignment = .center
-        nameStack.spacing = 8
+        nameStack.spacing = 5
         nameStack.addArrangedSubview(nameLabel)
+        nameStack.setCustomSpacing(7, after: nameLabel)
         nameStack.addArrangedSubview(sharedBadge)
         nameStack.addArrangedSubview(jitBadge)
         nameStack.addArrangedSubview(bit32Badge)
         nameStack.addArrangedSubview(lockBadge)
         nameStack.addArrangedSubview(nameSpacer)
 
+        // Container chip sits on its own row; remark (if any) follows it so a long remark
+        // gets truncated instead of pushing the chip away.
+        let chipSpacer = UIView()
+        chipSpacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        chipRow.axis = .horizontal
+        chipRow.alignment = .center
+        chipRow.spacing = 6
+        chipRow.addArrangedSubview(containerChip)
+        chipRow.addArrangedSubview(remarkLabel)
+        chipRow.addArrangedSubview(chipSpacer)
+        containerChip.setContentCompressionResistancePriority(.required, for: .horizontal)
+        remarkLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
         detailStack.translatesAutoresizingMaskIntoConstraints = false
         detailStack.axis = .vertical
         detailStack.alignment = .fill
         detailStack.distribution = .fill
-        detailStack.spacing = 1
+        detailStack.spacing = 3
         detailStack.addArrangedSubview(nameStack)
         detailStack.addArrangedSubview(versionLabel)
-        detailStack.addArrangedSubview(remarkLabel)
-        detailStack.addArrangedSubview(containerLabel)
+        detailStack.setCustomSpacing(6, after: versionLabel)
+        detailStack.addArrangedSubview(chipRow)
         detailStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         detailStack.isAccessibilityElement = true
 
@@ -101,20 +120,36 @@ final class LCAppBannerRootView: UIView {
             visualBackgroundView.topAnchor.constraint(equalTo: topAnchor),
             visualBackgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: LCDesign.Spacing.cardInset),
             iconImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 60),
-            iconImageView.heightAnchor.constraint(equalToConstant: 60),
+            iconImageView.widthAnchor.constraint(equalToConstant: LCDesign.Size.icon),
+            iconImageView.heightAnchor.constraint(equalToConstant: LCDesign.Size.icon),
 
-            detailStack.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 10),
+            detailStack.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: LCDesign.Spacing.iconToText),
             detailStack.trailingAnchor.constraint(lessThanOrEqualTo: runControl.leadingAnchor, constant: -10),
             detailStack.centerYAnchor.constraint(equalTo: centerYAnchor),
 
-            runControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            runControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -LCDesign.Spacing.cardInset),
             runControl.centerYAnchor.constraint(equalTo: centerYAnchor),
-            runControl.widthAnchor.constraint(equalToConstant: 70),
-            runControl.heightAnchor.constraint(equalToConstant: 32)
+            runControl.widthAnchor.constraint(equalToConstant: LCDesign.Size.runButton.width),
+            runControl.heightAnchor.constraint(equalToConstant: LCDesign.Size.runButton.height)
         ])
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        washLayer.frame = visualBackgroundView.bounds
+        CATransaction.commit()
+    }
+
+    static func roundedFont(size: CGFloat, weight: UIFont.Weight) -> UIFont {
+        let base = UIFont.systemFont(ofSize: size, weight: weight)
+        guard let descriptor = base.fontDescriptor.withDesign(.rounded) else {
+            return base
+        }
+        return UIFont(descriptor: descriptor, size: size)
     }
 
     private func configureLabel(_ label: UILabel, font: UIFont) {
@@ -136,16 +171,25 @@ final class LCAppBannerRootView: UIView {
         let accentColor = dynamicColors ? mainColor : (UIColor(named: "FontColor") ?? .systemBlue)
         let textColor = Self.readableTextColor(for: accentColor, traitCollection: traitCollection)
 
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let washColor = (dynamicColors ? mainColor : LCDesign.fallbackAccent).resolvedColor(with: traitCollection)
+        let alphas = LCDesign.washAlphas(isDark: isDark)
+
         iconImageView.image = icon
+        iconImageView.layer.borderColor = UIColor.label.withAlphaComponent(isDark ? 0.14 : 0.08).resolvedColor(with: traitCollection).cgColor
         nameLabel.text = model.displayName
         nameLabel.textColor = .label
-        versionLabel.text = "\(model.version) - \(model.bundleIdentifier)"
-        versionLabel.textColor = textColor
+        versionLabel.text = "\(model.version)  ·  \(model.bundleIdentifier)"
+        versionLabel.textColor = .secondaryLabel
         remarkLabel.text = model.uiRemark
-        remarkLabel.textColor = textColor.withAlphaComponent(0.8)
+        remarkLabel.textColor = .secondaryLabel
         remarkLabel.isHidden = model.uiRemark.isEmpty
-        containerLabel.text = model.uiSelectedContainer?.name ?? "lc.appBanner.noDataFolder".loc
-        containerLabel.textColor = textColor
+        let hasContainer = model.uiSelectedContainer != nil
+        containerChip.update(
+            symbolName: hasContainer ? "folder.fill" : "folder.badge.questionmark",
+            text: model.uiSelectedContainer?.name ?? "lc.appBanner.noDataFolder".loc,
+            tint: hasContainer ? textColor : .systemOrange
+        )
 
         sharedBadge.isHidden = !model.uiIsShared
         sharedBadge.backgroundColor = UIColor(named: "BadgeColor") ?? .systemOrange
@@ -156,9 +200,14 @@ final class LCAppBannerRootView: UIView {
         bit32Badge.isHidden = !model.uiIs32bit
         bit32Badge.backgroundColor = UIColor(named: "32BitBadgeColor") ?? .systemBlue
 
-        visualBackgroundView.backgroundColor = dynamicColors
-            ? mainColor.withAlphaComponent(0.5)
-            : (UIColor(named: "AppBannerBG") ?? .secondarySystemBackground)
+        // Neutral grouped surface + a horizontal wash of the icon colour, instead of a flat 50% fill.
+        // Keeps text contrast stable whatever the icon colour is.
+        visualBackgroundView.backgroundColor = .secondarySystemGroupedBackground
+        washLayer.colors = [
+            washColor.withAlphaComponent(alphas.start).cgColor,
+            washColor.withAlphaComponent(alphas.end).cgColor
+        ]
+        layer.borderColor = washColor.withAlphaComponent(isDark ? 0.30 : 0.22).cgColor
         runControl.update(
             color: accentColor,
             isSigning: model.isSigningInProgress,
@@ -166,7 +215,7 @@ final class LCAppBannerRootView: UIView {
             isEnabled: !model.isAppRunning
         )
 
-        var accessibilityParts = [model.displayName, "\(model.version) - \(model.bundleIdentifier)"]
+        var accessibilityParts = [model.displayName, "\(model.version), \(model.bundleIdentifier)"]
         if !model.uiRemark.isEmpty {
             accessibilityParts.append(model.uiRemark)
         }
@@ -266,7 +315,7 @@ private final class LCAppBannerBadgeView: UIView {
     convenience init(symbolName: String) {
         let imageView = UIImageView(image: UIImage(
             systemName: symbolName,
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 8)
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 9, weight: .bold)
         ))
         imageView.tintColor = .white
         imageView.contentMode = .center
@@ -277,7 +326,7 @@ private final class LCAppBannerBadgeView: UIView {
         let label = UILabel()
         label.text = text
         label.textColor = .white
-        label.font = .systemFont(ofSize: 8)
+        label.font = LCAppBannerRootView.roundedFont(size: 9, weight: .heavy)
         label.textAlignment = .center
         self.init(contentView: label)
     }
@@ -294,20 +343,66 @@ private final class LCAppBannerBadgeView: UIView {
 
     private func setupView() {
         translatesAutoresizingMaskIntoConstraints = false
-        layer.cornerRadius = 8
+        layer.cornerRadius = LCDesign.Size.badge / 2
         clipsToBounds = true
         isAccessibilityElement = false
 
         contentView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(contentView)
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: 16),
-            heightAnchor.constraint(equalToConstant: 16),
+            widthAnchor.constraint(equalToConstant: LCDesign.Size.badge),
+            heightAnchor.constraint(equalToConstant: LCDesign.Size.badge),
             contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
             contentView.topAnchor.constraint(equalTo: topAnchor),
             contentView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
+    }
+}
+
+/// Small rounded "folder · container name" tag shown under the version line.
+private final class LCAppBannerChipView: UIView {
+    private let iconView = UIImageView()
+    private let label = UILabel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.cornerRadius = LCDesign.Radius.chip
+        layer.cornerCurve = .continuous
+        isAccessibilityElement = false
+
+        iconView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 9, weight: .semibold)
+        iconView.contentMode = .center
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+        label.font = .systemFont(ofSize: 11, weight: .medium)
+        label.lineBreakMode = .byTruncatingMiddle
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+
+        let stack = UIStackView(arrangedSubviews: [iconView, label])
+        stack.axis = .horizontal
+        stack.spacing = 4
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 6),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -7),
+            stack.topAnchor.constraint(equalTo: topAnchor, constant: 2),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -2),
+            label.widthAnchor.constraint(lessThanOrEqualToConstant: 140)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        return nil
+    }
+
+    func update(symbolName: String, text: String, tint: UIColor) {
+        iconView.image = UIImage(systemName: symbolName)
+        iconView.tintColor = tint
+        label.text = text
+        label.textColor = tint
+        backgroundColor = tint.withAlphaComponent(0.14)
     }
 }
 
@@ -319,7 +414,7 @@ final class LCAppBannerRunControl: UIControl {
     private var progress = 0.0
 
     override var intrinsicContentSize: CGSize {
-        CGSize(width: 70, height: 32)
+        LCDesign.Size.runButton
     }
 
     override init(frame: CGRect) {
@@ -338,9 +433,16 @@ final class LCAppBannerRunControl: UIControl {
         layer.addSublayer(progressCircleLayer)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "lc.appBanner.run".loc
-        titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        let titleFont = LCAppBannerRootView.roundedFont(size: 15, weight: .bold)
+        let playIcon = NSTextAttachment()
+        playIcon.image = UIImage(
+            systemName: "play.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+        )?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let title = NSMutableAttributedString(attachment: playIcon)
+        title.append(NSAttributedString(string: " " + "lc.appBanner.run".loc,
+                                        attributes: [.font: titleFont, .foregroundColor: UIColor.white]))
+        titleLabel.attributedText = title
         titleLabel.textAlignment = .center
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.minimumScaleFactor = 0.1
@@ -386,9 +488,18 @@ final class LCAppBannerRunControl: UIControl {
         bounds.insetBy(dx: -4, dy: -6).contains(point)
     }
 
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
+                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.94, y: 0.94) : .identity
+            }
+        }
+    }
+
     func update(color: UIColor, isSigning: Bool, progress: Double, isEnabled: Bool) {
         self.progress = min(max(progress, 0), 1)
         self.isEnabled = isEnabled
+        alpha = isEnabled || isSigning ? 1 : 0.45
 
         baseLayer.backgroundColor = color.withAlphaComponent(isSigning ? 0.2 : 1).cgColor
         progressCircleLayer.backgroundColor = color.cgColor

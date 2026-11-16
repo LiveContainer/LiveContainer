@@ -11,6 +11,8 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
+        // S2Arm look for the navigation and tab bars; has to run before the first bar is created.
+        MainActor.assumeIsolated { LCShellTheme.applyAppearance() }
         let fm = FileManager()
         var tempAppDataFolderNames : [String] = []
         var tempTweakFolderNames : [String] = []

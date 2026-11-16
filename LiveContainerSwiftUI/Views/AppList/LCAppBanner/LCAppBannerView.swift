@@ -40,10 +40,13 @@ final class LCAppBannerRootView: UIView {
     }
 
     private func setupView() {
+        // S2Arm card (ShellStyle.shellCard): surface fill, 1 pt white-8 % hairline, 16 pt radius.
         isOpaque = false
-        backgroundColor = .clear
-        layer.cornerRadius = 22
+        backgroundColor = LCShellTheme.surface
+        layer.cornerRadius = 16
         layer.cornerCurve = .continuous
+        layer.borderWidth = 1
+        layer.borderColor = LCShellTheme.hairline.cgColor
         clipsToBounds = true
 
         visualBackgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -57,10 +60,11 @@ final class LCAppBannerRootView: UIView {
         iconImageView.clipsToBounds = true
         iconImageView.isAccessibilityElement = false
 
-        configureLabel(nameLabel, font: .systemFont(ofSize: 16, weight: .bold))
-        configureLabel(versionLabel, font: .systemFont(ofSize: 12))
-        configureLabel(remarkLabel, font: .systemFont(ofSize: 10))
-        configureLabel(containerLabel, font: .systemFont(ofSize: 8))
+        // Manrope, with S2Arm's card-title weight and its meta-line sizes.
+        configureLabel(nameLabel, font: LCShellTheme.font(16, .bold))
+        configureLabel(versionLabel, font: LCShellTheme.font(12, .medium))
+        configureLabel(remarkLabel, font: LCShellTheme.font(10, .regular))
+        configureLabel(containerLabel, font: LCShellTheme.font(9, .regular))
 
         nameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         nameLabel.setContentHuggingPriority(.required, for: .horizontal)
@@ -133,8 +137,12 @@ final class LCAppBannerRootView: UIView {
     ) {
         let icon = appInfo.iconIsDarkIcon(darkModeIcon) ?? UIImage()
         let mainColor = Self.extractMainHueColor(appInfo: appInfo, icon: icon, darkModeIcon: darkModeIcon)
-        let accentColor = dynamicColors ? mainColor : (UIColor(named: "FontColor") ?? .systemBlue)
-        let textColor = Self.readableTextColor(for: accentColor, traitCollection: traitCollection)
+        // Dynamic colours tint the card from the icon, as the shelf does; otherwise the plain S2Arm card with the cream
+        // Run pill and muted grey meta text.
+        let accentColor = dynamicColors ? mainColor : LCShellTheme.cream
+        let textColor = dynamicColors
+            ? Self.readableTextColor(for: accentColor, traitCollection: traitCollection)
+            : LCShellTheme.muted
 
         iconImageView.image = icon
         nameLabel.text = model.displayName
@@ -156,9 +164,10 @@ final class LCAppBannerRootView: UIView {
         bit32Badge.isHidden = !model.uiIs32bit
         bit32Badge.backgroundColor = UIColor(named: "32BitBadgeColor") ?? .systemBlue
 
+        // The card's own surface colour is set in setupView; the icon tint is laid over it.
         visualBackgroundView.backgroundColor = dynamicColors
-            ? mainColor.withAlphaComponent(0.5)
-            : (UIColor(named: "AppBannerBG") ?? .secondarySystemBackground)
+            ? mainColor.withAlphaComponent(0.30)
+            : .clear
         runControl.update(
             color: accentColor,
             isSigning: model.isSigningInProgress,
@@ -339,8 +348,8 @@ final class LCAppBannerRunControl: UIControl {
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "lc.appBanner.run".loc
-        titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
+        titleLabel.textColor = .black // the pill is cream (S2Arm's PrimaryPillStyle); update() flips it for dark tints
+        titleLabel.font = LCShellTheme.font(15, .bold)
         titleLabel.textAlignment = .center
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.minimumScaleFactor = 0.1
@@ -390,6 +399,8 @@ final class LCAppBannerRunControl: UIControl {
         self.progress = min(max(progress, 0), 1)
         self.isEnabled = isEnabled
 
+        titleLabel.textColor = LCShellTheme.prefersDarkText(on: color) ? .black : .white
+        activityIndicator.color = .white
         baseLayer.backgroundColor = color.withAlphaComponent(isSigning ? 0.2 : 1).cgColor
         progressCircleLayer.backgroundColor = color.cgColor
         progressCircleLayer.isHidden = !isSigning

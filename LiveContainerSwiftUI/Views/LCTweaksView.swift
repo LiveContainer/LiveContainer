@@ -139,6 +139,7 @@ struct LCTweakFolderView : View {
                 }
             }
         }
+        .lcShellScreen()
         .navigationTitle(isRoot ? "lc.tabView.tweaks".loc : baseUrl.lastPathComponent)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

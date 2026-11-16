@@ -145,11 +145,10 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                         if sharedModel.isHiddenAppUnlocked {
                             LazyVStack {
                                 HStack {
-                                    Text("lc.appList.hiddenApps".loc)
-                                        .font(.system(.title2).bold())
+                                    SectionHeading(title: "lc.appList.hiddenApps".loc)
                                     Spacer()
                                 }
-                                
+
                                 ForEach(filteredHiddenApps, id: \.self) { app in
                                     LCAppBanner(appModel: app, delegate: self)
                                 }
@@ -168,8 +167,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                     } else if sharedModel.hiddenApps.count > 0 {
                         LazyVStack {
                             HStack {
-                                Text("lc.appList.hiddenApps".loc)
-                                    .font(.system(.title2).bold())
+                                SectionHeading(title: "lc.appList.hiddenApps".loc)
                                 Spacer()
                             }
                             ForEach(filteredHiddenApps, id: \.self) { app in
@@ -203,6 +201,7 @@ struct LCAppListView : View, LCAppBannerDelegate, LCAppModelDelegate {
                 }
 
             }
+            .lcShellScreen()
             .navigationBarProgressBar(show:$installprogressVisible, progress: $installProgressPercentage)
             .coordinateSpace(name: "scroll")
             .onAppear {

@@ -543,6 +543,7 @@ struct LCSourcesView: View {
                     }
                 }
             }
+            .lcShellScreen()
             .navigationTitle("lc.tabView.sources".loc)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -795,7 +796,7 @@ private struct ManageSourcesSheet: View {
                                     .frame(maxWidth: .infinity)
                             }
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(PrimaryPillStyle(expands: true)) // S2Arm's one primary action: cream capsule, black type
                         .disabled(manualSourceValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isAddingManual)
                     }
                     .padding(.vertical, 4)

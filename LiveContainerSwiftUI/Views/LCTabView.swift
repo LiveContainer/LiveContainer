@@ -35,12 +35,17 @@ struct LCTabView: View {
                 }
             }
         }
+        .lcShellTheme()
         .overlay(alignment: .bottomTrailing) {
             if #available(iOS 18.0, *) {
                 if !shelfVisible {
+                    // Same look as the shelf's round buttons (RoundIconButtonStyle): 10 % white disc, 14 % hairline.
                     Button { withAnimation(.smooth(duration: 0.25)) { shelfVisible = true } } label: {
-                        Image(systemName: "gamecontroller.fill").font(.title3).padding(12)
+                        Image(systemName: "gamecontroller.fill").font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 50, height: 50)
                             .background(.ultraThinMaterial, in: Circle())
+                            .overlay(Circle().strokeBorder(.white.opacity(0.14)))
                     }
                     .padding(.trailing, 14).padding(.bottom, 70)
                 }

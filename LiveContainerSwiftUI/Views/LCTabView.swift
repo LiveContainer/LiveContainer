@@ -21,7 +21,34 @@ struct LCTabView: View {
 
     let pub = NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)
     
+    /// The S2Arm-style shelf sits over LiveContainer's normal tabs, so their alerts, URL handling and
+    /// launch plumbing keep running underneath. The "LC" chip on the shelf drops down to the classic screens.
+    @State private var shelfVisible = true
+
     var body: some View {
+        ZStack {
+            classicTabs
+            if #available(iOS 18.0, *) {
+                if shelfVisible {
+                    LCShelfView(openClassic: { withAnimation(.smooth(duration: 0.25)) { shelfVisible = false } })
+                        .transition(.opacity)
+                }
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if #available(iOS 18.0, *) {
+                if !shelfVisible {
+                    Button { withAnimation(.smooth(duration: 0.25)) { shelfVisible = true } } label: {
+                        Image(systemName: "gamecontroller.fill").font(.title3).padding(12)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding(.trailing, 14).padding(.bottom, 70)
+                }
+            }
+        }
+    }
+
+    var classicTabs: some View {
         TabView(selection: $sharedModel.selectedTab) {
             if DataManager.shared.model.multiLCStatus != 2 {
                 LCSourcesView()

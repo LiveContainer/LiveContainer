@@ -1,0 +1,17 @@
+NX2Apple notice
+
+This file records where the project comes from. The license text is in LICENSE.
+
+NX2Apple is derived from the reference port (, MIT,
+Copyright (c) 2026 seedds), which grew out of d2r-mobile
+(https://github.com/jhaizhou-ops/d2r-mobile, MIT, Copyright (c) 2026 jhaizhou).
+Their copyright notices are kept in LICENSE as the MIT License requires.
+
+LNPANDY wrote the RomFS archive subsystem: dm/host/romfs_arc.*,
+dm/tools/romfs_arc.py, dm/host/tests/t_romfs_arc.c and the integration in
+dm/host/hle_fs.c, dm/host/Makefile, dm/ios/Sources/main.m and
+dm/ios/tools/build_ipa.sh. In the patch queue it is patches/0002-romfsarc.patch,
+which open pull request #162 may remove.
+
+Third-party code under dm/third_party keeps its own licenses, listed in
+dm/third_party/README.md.

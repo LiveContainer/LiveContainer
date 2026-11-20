@@ -8,7 +8,7 @@
 #import "LCUtils.h"
 #import "../../LiveContainer/LCSharedUtils.h"
 #import "LCAppInfo.h"
-#import "../../MultitaskSupport/DecoratedAppSceneViewController.h"
+#import "../MultitaskSupport/DecoratedAppSceneViewController.h"
 #import "../../ZSign/zsigner.h"
 #import "LiveContainerSwiftUI-Swift.h"
 

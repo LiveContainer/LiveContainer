@@ -53,6 +53,9 @@ jobs:
           file_to_build=`ls -A | grep -i \\.xcworkspace\$ || ls -A | grep -i \\.xcodeproj\$`
           file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
           echo "file_to_build=$file_to_build" >> $GITHUB_OUTPUT
+      - name: Prepare Dependencies
+        run: |
+          sh .github/prepare_dependencies.sh
       - name: Archive
         env:
           scheme: ${{ steps.scheme.outputs.scheme }}

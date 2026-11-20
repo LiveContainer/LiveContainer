@@ -1,9 +1,3 @@
-# download openssl
-curl -LO https://github.com/krzyzanowskim/OpenSSL/releases/download/3.6.5000/OpenSSL.xcframework.zip
-unzip OpenSSL.xcframework.zip
-rm OpenSSL.xcframework.zip
-mv OpenSSL.xcframework Dependencies/OpenSSL.xcframework
-
 # copy lc
 wget https://github.com/LiveContainer/dylibify/releases/download/1.0/dylibify
 chmod +x dylibify

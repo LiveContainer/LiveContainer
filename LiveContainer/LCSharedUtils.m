@@ -162,7 +162,6 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
         [workspace openApplicationWithBundleIdentifier:NSUserDefaults.lcMainBundle.bundleIdentifier
                                          configuration:configuration
                                      completionHandler:^(BOOL success, NSError* error) {
-            NSLog(@"success=%d error=%@", success, error);
             completionHandler(success);
         }];
     }

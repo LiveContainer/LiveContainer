@@ -47,7 +47,8 @@
     }
     
     // in LC2, attempt to guess LC1's LiveProcess extension
-    NSString *bundleID = [NSString stringWithFormat:@"com.kdt.livecontainer.%@.LiveProcess", LCSharedUtils.teamIdentifier];
+    NSString *bundleID = [[@"com.kdt.livecontainer" stringByAppendingPathExtension:LCSharedUtils.teamIdentifier]
+                          stringByAppendingPathExtension:@"LiveProcess"];
     if([NSExtension extensionWithIdentifier:bundleID error:nil]) {
         return bundleID;
     }

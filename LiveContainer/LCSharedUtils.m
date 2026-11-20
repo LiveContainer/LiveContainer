@@ -21,7 +21,7 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
         void* taskSelf = SecTaskCreateFromSelf(NULL);
         CFErrorRef error = NULL;
         CFTypeRef cfans = SecTaskCopyValueForEntitlement(taskSelf, CFSTR("com.apple.developer.team-identifier"), &error);
-        if(CFGetTypeID(cfans) == CFStringGetTypeID()) {
+        if(cfans && CFGetTypeID(cfans) == CFStringGetTypeID()) {
             ans = (__bridge NSString*)cfans;
         }
         CFRelease(taskSelf);
@@ -58,8 +58,8 @@ NSString* FBSOpenApplicationOptionKeyPayloadURL = @"__PayloadURL";
     static NSString *appGroupID = @"Unknown";
     dispatch_once(&once, ^{
         NSArray* possibleAppGroups = @[
-            [@"group.com.SideStore.SideStore." stringByAppendingString:[self teamIdentifier]],
-            [@"group.com.rileytestut.AltStore." stringByAppendingString:[self teamIdentifier]]
+            [@"group.com.SideStore.SideStore" stringByAppendingPathExtension:[self teamIdentifier]],
+            [@"group.com.rileytestut.AltStore" stringByAppendingPathExtension:[self teamIdentifier]]
         ];
         
         // we prefer app groups with "Apps" in it, which indicate this app group is actually used by the store.

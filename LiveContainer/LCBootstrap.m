@@ -959,10 +959,3 @@ int LiveContainerMain(int argc, char *argv[]) {
     return LiveContainerSwiftUIMain();
 
 }
-
-#ifdef DEBUG
-int callAppMain(int argc, char *argv[], char *envp[]) {
-    assert(appMain != NULL);
-    __attribute__((musttail)) return appMain(argc, argv, envp);
-}
-#endif

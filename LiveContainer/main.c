@@ -38,15 +38,3 @@ loadlc:
     lcMain = dlsym(lcShared, "LiveContainerMain");
     __attribute__((musttail)) return lcMain(argc, argv, envp);
 }
-
-#ifdef DEBUG
-int main(int argc, char *argv[], char *envp[]) {
-
-    if(lcShared == NULL) {
-        __attribute__((musttail)) return LiveContainerMainC(argc, argv, envp);
-    }
-    int (*callAppMain)(int argc, char *argv[], char *envp[]) = dlsym(lcShared, "callAppMain");
-    __attribute__((musttail)) return callAppMain(argc, argv, envp);
-
-}
-#endif

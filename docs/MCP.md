@@ -64,7 +64,7 @@ Self-check (no device needed):
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python3 lc_mcp.py
 ```
 
-## 3. Tools (40)
+## 3. Tools (43)
 
 ### Device / install / launch
 
@@ -79,6 +79,9 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python3 lc_m
 | `lc_launch_app` | `bundle_id`, `container?`, `url?`, `multitask?` | launch an app. `multitask=true` runs it in a container window (recommended for debugging, otherwise the host yields to the guest and the server drops) |
 | `lc_open_app` | `bundle_id`, `container?`, `url?` | **one-shot**: open in a multitask window, wait for the guest side, return window + guest pid |
 | `lc_close_app` | `bundle_id` | close an app by firing the window close button and confirming the process exited |
+| `lc_app_detail` | `bundle_id` | AppInfo flags, local vs shared tweaks, and a Mach-O summary of the main executable |
+| `lc_app_config` | `bundle_id`, `classicMode?`, `multitask?`, `isJITNeeded?`, `isLocked?`, `isHidden?`, `dontLoadTweakLoader?`, `dontInjectTweakLoader?`, `tweakFolder?` | flip AppInfo switches and persist them |
+| `lc_inspect_macho` | `path` | static Mach-O inspection: archs, file type, linked dylibs (incl. TweakLoader), rpaths, `__PAGEZERO`, encryption, code signature (cdhash / adhoc / CMS / teamId) |
 | `lc_window_chrome` | `window_id` | selectors bound to the three title-bar buttons |
 | `lc_window_press` | `window_id`, `selector` | fire a title-bar button selector (`closeWindow`, `maximizeWindow`, `minimizeWindow`) |
 
@@ -205,6 +208,9 @@ GET    /api/v1/health
 GET    /api/v1/config
 GET    /api/v1/self                     # bundle / PlugIns (.appex) / Frameworks, for install problems
 GET    /api/v1/apps
+GET    /api/v1/apps/{bundleId}          # flags + tweaks + Mach-O summary
+PATCH  /api/v1/apps/{bundleId}          # classicMode / multitask / isJITNeeded / isLocked / isHidden / tweakFolder
+GET    /api/v1/macho?path=              # static Mach-O inspection of any file
 POST   /api/v1/apps                     # multipart or raw body IPA upload
 POST   /api/v1/apps/from-url            # {url, replace} -> 202 jobId
 POST   /api/v1/apps/open                # {bundleId} -> window + guest pid

@@ -76,6 +76,27 @@ enum LCRemoteAPI {
                 let removed = LCRemoteGuestLogs.clear(name: req.query["name"])
                 return .json(["removed": removed])
 
+            case ("GET", "/api/v1/macho"):
+                // ?path=/abs/path/to/binary   (read-only static inspection)
+                let raw = req.query["path"] ?? ""
+                guard !raw.isEmpty else {
+                    return .error("path is required (absolute path to a Mach-O file)", status: 400, code: "bad_request")
+                }
+                let path = raw.removingPercentEncoding ?? raw
+                return .json(LCRemoteMachO.inspect(path: path))
+
+            case ("GET", let p) where p.hasPrefix("/api/v1/apps/") && !p.contains("/launch"):
+                var bundleId = String(p.dropFirst("/api/v1/apps/".count))
+                guard !bundleId.isEmpty, !bundleId.contains("/") else {
+                    return .error("GET /api/v1/apps/{bundleId} takes a bundle id", status: 400, code: "bad_request")
+                }
+                bundleId = bundleId.removingPercentEncoding ?? bundleId
+                return await appDetail(bundleId: bundleId)
+
+            case ("PATCH", let p) where p.hasPrefix("/api/v1/apps/"):
+                let bundleId = String(p.dropFirst("/api/v1/apps/".count)).removingPercentEncoding ?? ""
+                return await appConfig(req, bundleId: bundleId)
+
             case ("DELETE", let p) where p.hasPrefix("/api/v1/apps/"):
                 let bundleId = String(p.dropFirst("/api/v1/apps/".count)).removingPercentEncoding ?? ""
                 return try await uninstall(bundleId: bundleId, keepData: req.query["keepData"] == "1" || req.query["keepData"] == "true")
@@ -198,6 +219,109 @@ enum LCRemoteAPI {
             try LCAppInstaller.uninstall(bundleId: bundleId, removeData: !keepData)
         }
         return .json(result)
+    }
+
+    /// GET /api/v1/apps/{bundleId}: everything needed to reason about one app before launching it:
+    /// AppInfo flags, its tweaks split local/shared with enabled state, and a static Mach-O summary of the
+    /// main executable (architecture, tweak-loader linkage, code-signature validity).
+    @MainActor
+    private static func appDetail(bundleId: String) async -> LCRemoteResponse {
+        let model = (DataManager.shared.model.apps + DataManager.shared.model.hiddenApps)
+            .first { $0.appInfo.bundleIdentifier() == bundleId }
+        guard let model else {
+            return .error("app not found: \(bundleId)", status: 404, code: "not_found")
+        }
+        let info = model.appInfo
+        var out = LCAppInstaller.summary(of: model)
+        out["dataUUID"] = info.dataUUID ?? ""
+        out["tweakFolder"] = info.tweakFolder ?? ""
+        out["flags"] = [
+            "classicMode": info.classicMode,
+            "multitaskSpecified": Int(info.multitaskSpecified.rawValue),
+            "isJITNeeded": info.isJITNeeded,
+            "isLocked": info.isLocked,
+            "isHidden": info.isHidden,
+            "dontLoadTweakLoader": info.dontLoadTweakLoader,
+            "dontInjectTweakLoader": info.dontInjectTweakLoader,
+            "isShared": info.isShared
+        ]
+
+        // tweaks: local folder vs shared library
+        var local: [[String: Any]] = []
+        var shared: [[String: Any]] = []
+        if let folder = info.tweakFolder, !folder.isEmpty {
+            local = (try? LCTweakManager.list(folder: folder))?.map { $0.json } ?? []
+        }
+        shared = (try? LCTweakManager.list(folder: ""))?.map { $0.json } ?? []
+        out["localTweaks"] = local
+        out["sharedTweaks"] = shared
+
+        // static Mach-O summary of the executable
+        if let bundlePath = info.bundlePath() {
+            let execPath = (bundlePath as NSString).appendingPathComponent(
+                (info.info()["CFBundleExecutable"] as? String) ?? "")
+            if FileManager.default.fileExists(atPath: execPath) {
+                let macho = LCRemoteMachO.inspect(path: execPath)
+                let slices = macho["slices"] as? [[String: Any]] ?? []
+                out["executable"] = execPath
+                out["machO"] = [
+                    "fat": macho["fat"] ?? false,
+                    "architectures": slices.compactMap { $0["cpu"] as? String },
+                    "fileType": slices.first?["fileType"] ?? "",
+                    "tweakLoaderLinked": slices.contains { ($0["tweakLoaderLinked"] as? Bool) == true },
+                    "signatureValid": slices.allSatisfy { (($0["codeSignature"] as? [String: Any])?["valid"] as? Bool) == true },
+                    "adhoc": slices.allSatisfy { (($0["codeSignature"] as? [String: Any])?["adhoc"] as? Bool) == true },
+                    "cdhash": (slices.first?["codeSignature"] as? [String: Any])?["cdhash"] ?? ""
+                ]
+            }
+        }
+        return .json(out)
+    }
+
+    /// PATCH /api/v1/apps/{bundleId}: flip the AppInfo switches the UI exposes (launch mode, JIT, lock, hidden,
+    /// per-app tweak folder) and persist them.
+    @MainActor
+    private static func appConfig(_ req: LCRemoteRequest, bundleId: String) async -> LCRemoteResponse {
+        let obj = jsonBody(req)
+        guard !bundleId.isEmpty else { return .error("bundleId is empty", status: 400, code: "bad_request") }
+        let model = (DataManager.shared.model.apps + DataManager.shared.model.hiddenApps)
+            .first { $0.appInfo.bundleIdentifier() == bundleId }
+        guard let model else {
+            return .error("app not found: \(bundleId)", status: 404, code: "not_found")
+        }
+        let info = model.appInfo
+        var applied: [String] = []
+        func bool(_ key: String) -> Bool? {
+            if let b = obj[key] as? Bool { return b }
+            if let s = obj[key] as? String { return s == "1" || s.lowercased() == "true" }
+            if let q = req.query[key] { return q == "1" || q.lowercased() == "true" }
+            return nil
+        }
+        if let v = bool("classicMode") { info.classicMode = v; applied.append("classicMode") }
+        if let v = bool("isJITNeeded") { info.isJITNeeded = v; applied.append("isJITNeeded") }
+        if let v = bool("isLocked") { info.isLocked = v; applied.append("isLocked") }
+        if let v = bool("isHidden") { info.isHidden = v; applied.append("isHidden") }
+        if let v = bool("dontLoadTweakLoader") { info.dontLoadTweakLoader = v; applied.append("dontLoadTweakLoader") }
+        if let v = bool("dontInjectTweakLoader") { info.dontInjectTweakLoader = v; applied.append("dontInjectTweakLoader") }
+        if let raw = (obj["multitask"] as? String) ?? req.query["multitask"] {
+            let map: [String: Int] = ["default": 0, "no": 1, "yes": 2]
+            if let rawValue = map[raw.lowercased()],
+               let m = MultitaskSpecified(rawValue: rawValue) {
+                info.multitaskSpecified = m
+                applied.append("multitaskSpecified")
+            }
+        }
+        if let folder = (obj["tweakFolder"] as? String) ?? req.query["tweakFolder"] {
+            info.tweakFolder = folder.isEmpty ? nil : folder
+            applied.append("tweakFolder")
+        }
+        guard !applied.isEmpty else {
+            return .error("nothing to change: send classicMode / multitask / isJITNeeded / isLocked / isHidden / tweakFolder",
+                          status: 400, code: "bad_request")
+        }
+        info.save()
+        LCRemoteLogStore.shared.append("app \(bundleId) config updated: \(applied.joined(separator: ","))", src: "api")
+        return await appDetail(bundleId: bundleId)
     }
 
     /// One-shot: open an installed app in a multitask window, wait for the guest sidecar, return window + guest pid.

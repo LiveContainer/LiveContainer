@@ -440,6 +440,36 @@ def tool_log_push(args):
                     data=json.dumps(body).encode(), content_type="application/json")
 
 
+def tool_inspect_macho(args):
+    path = args.get("path", "")
+    if not path:
+        raise RuntimeError("path is required (absolute path on device)")
+    return api_get("/api/v1/macho?path=" + quote(path))
+
+
+def tool_app_detail(args):
+    bundle_id = args.get("bundle_id", "")
+    if not bundle_id:
+        raise RuntimeError("bundle_id is required")
+    return api_get("/api/v1/apps/" + quote(bundle_id))
+
+
+def tool_app_config(args):
+    bundle_id = args.get("bundle_id", "")
+    if not bundle_id:
+        raise RuntimeError("bundle_id is required")
+    body = {}
+    for key in ("classicMode", "isJITNeeded", "isLocked", "isHidden",
+                "dontLoadTweakLoader", "dontInjectTweakLoader", "multitask", "tweakFolder"):
+        if args.get(key) is not None:
+            body[key] = args[key]
+    if not body:
+        raise RuntimeError("nothing to change: send classicMode / multitask / isJITNeeded / isLocked / "
+                           "isHidden / dontLoadTweakLoader / dontInjectTweakLoader / tweakFolder")
+    return _request("PATCH", "/api/v1/apps/" + quote(bundle_id),
+                    data=json.dumps(body).encode(), content_type="application/json")
+
+
 TOOLS = [
     {
         "name": "lc_window_chrome",
@@ -472,6 +502,35 @@ TOOLS = [
             },
             "required": ["bundle_id"],
         },
+    },
+    {
+        "name": "lc_app_detail",
+        "description": "One app in depth: AppInfo flags (classic/multitask/JIT/lock/hidden/tweakFolder), local vs shared tweaks with enabled state, and a static Mach-O summary of the main executable.",
+        "inputSchema": {"type": "object", "properties": {"bundle_id": {"type": "string"}}, "required": ["bundle_id"]},
+    },
+    {
+        "name": "lc_app_config",
+        "description": "Flip AppInfo switches and persist them: classicMode, multitask (default|no|yes), isJITNeeded, isLocked, isHidden, dontLoadTweakLoader, dontInjectTweakLoader, tweakFolder.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "bundle_id": {"type": "string"},
+                "classicMode": {"type": "boolean"},
+                "multitask": {"type": "string", "description": "default | no | yes"},
+                "isJITNeeded": {"type": "boolean"},
+                "isLocked": {"type": "boolean"},
+                "isHidden": {"type": "boolean"},
+                "dontLoadTweakLoader": {"type": "boolean"},
+                "dontInjectTweakLoader": {"type": "boolean"},
+                "tweakFolder": {"type": "string"},
+            },
+            "required": ["bundle_id"],
+        },
+    },
+    {
+        "name": "lc_inspect_macho",
+        "description": "Static Mach-O inspection of any file on device: archs, file type, linked dylibs (incl. TweakLoader), rpaths, __PAGEZERO, encryption, code signature (cdhash / adhoc / CMS / teamId).",
+        "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
     },
     {
         "name": "lc_health",
@@ -835,6 +894,9 @@ HANDLERS = {
     "lc_window_press": tool_window_press,
     "lc_close_app": tool_close_app,
     "lc_open_app": tool_open_app,
+    "lc_app_detail": tool_app_detail,
+    "lc_app_config": tool_app_config,
+    "lc_inspect_macho": tool_inspect_macho,
     "lc_health": tool_health,
     "lc_apps": tool_apps,
     "lc_install_ipa": tool_install,

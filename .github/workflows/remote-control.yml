@@ -1,0 +1,150 @@
+name: Build LiveContainer (remote-control)
+
+on:
+  push:
+    branches: [remote-control]
+  pull_request:
+    branches: [remote-control]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rc-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build IPA (unsigned)
+    # This workflow only serves the fork's sideload builds (it publishes to the rc-latest release).
+    # It never runs in the upstream repository, even if this file is merged.
+    if: github.repository == 'congyong/LiveContainer'
+    runs-on: xcode-27
+    steps:
+      # Same setup as upstream: the macos-15 Xcode 16.4 (iOS 18.5 SDK) cannot build it
+      # (LCWebView uses the iOS 26 glassEffect), Xcode 26+ is required.
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '27.2'
+
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Toolchain info
+        run: |
+          set -x
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          xcodebuild -list -project LiveContainer.xcodeproj | head -40
+
+      - name: Prepare Dependencies
+        run: |
+          sh .github/prepare_dependencies.sh
+
+      - name: Archive
+        id: archive
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/rc"
+          LOG="$RUNNER_TEMP/rc/xcodebuild.log"
+          xcodebuild archive \
+            -project LiveContainer.xcodeproj \
+            -scheme LiveContainer \
+            -configuration Release \
+            -sdk iphoneos \
+            -arch arm64 \
+            -archivePath "$PWD/build/LiveContainer.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            > "$LOG" 2>&1
+          rc=$?
+          echo "xcodebuild rc=$rc"
+          exit $rc
+
+      - name: Package IPA
+        if: success()
+        run: |
+          set -euo pipefail
+          APP=$(find build/LiveContainer.xcarchive/Products/Applications -maxdepth 1 -name "*.app" | head -1)
+          echo "APP=$APP"
+          mkdir -p out/Payload
+          cp -R "$APP" out/Payload/
+          (cd out && zip -qry LiveContainer-remote.ipa Payload)
+          ls -lh out/LiveContainer-remote.ipa
+
+      # Upstream's packaging script also produces LiveContainer+SideStore.ipa
+      # (SideStore.app dylibified into Frameworks + plist/settings patches).
+      # It consumes the xcarchive, so the standalone IPA above is packaged first.
+      - name: Package SideStore IPA
+        id: ss
+        run: |
+          set -uo pipefail
+          export scheme=LiveContainer
+          export archive_path="build/LiveContainer"
+          if sh .github/build_github.sh && [ -f "LiveContainer+SideStore.ipa" ]; then
+            mv "LiveContainer+SideStore.ipa" out/LiveContainer-remote-SideStore.ipa
+            echo "built=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "SideStore packaging failed (non-fatal); standalone IPA is unaffected"
+            echo "built=0" >> "$GITHUB_OUTPUT"
+          fi
+          ls -lh out
+
+      - name: Upload IPAs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiveContainer-remote-ipas
+          path: out/*.ipa
+          if-no-files-found: error
+
+      # Artifacts require auth to download; publishing to a rolling release allows anonymous curl
+      - name: Publish IPA to rolling release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rc-latest
+          name: remote-control latest
+          body: "Built from ${{ github.sha }} (branch remote-control). Two unsigned packages: LiveContainer-remote.ipa (standalone) and LiveContainer-remote-SideStore.ipa (bundles SideStore, same as upstream's +SideStore build). Sign with Sideloadly / SideStore / TrollStore when sideloading."
+
+          prerelease: true
+          files: out/*.ipa
+
+      # -- mirror the result into the ci-logs branch ----------------------
+      # The anonymous api.github.com quota for this machine (same egress IP as CI) is often exhausted,
+      # so run status is unreadable; results and compiler errors are mirrored over git instead, which is not rate limited.
+      - name: Publish status to ci-logs branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          LOG="$RUNNER_TEMP/rc/xcodebuild.log"
+          REPORT="$RUNNER_TEMP/rc/status.txt"
+          {
+            echo "run: $GITHUB_RUN_ID"
+            echo "sha: $GITHUB_SHA"
+            echo "ref: $GITHUB_REF"
+            echo "job_status: ${{ job.status }}"
+            echo "archive_outcome: ${{ steps.archive.outcome }}"
+            echo
+            echo "===== error: lines ====="
+            grep -n "error:" "$LOG" 2>/dev/null | head -60 || echo "(none)"
+            echo
+            echo "===== log tail (400) ====="
+            tail -400 "$LOG" 2>/dev/null || echo "(no log)"
+          } > "$REPORT"
+
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git checkout --orphan ci-logs-report-tmp || true
+          git rm -rf . --quiet >/dev/null 2>&1 || true
+          cp "$REPORT" ./status.txt
+          git add -A status.txt
+          git commit -q -m "ci: run $GITHUB_RUN_ID (${{ job.status }})" || echo "nothing to commit"
+          git push --force origin HEAD:ci-logs >/dev/null 2>&1 && echo "status published to ci-logs" || echo "failed to publish status"

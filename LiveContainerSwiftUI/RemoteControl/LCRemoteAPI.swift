@@ -256,23 +256,39 @@ enum LCRemoteAPI {
         out["localTweaks"] = local
         out["sharedTweaks"] = shared
 
-        // static Mach-O summary of the executable
+        // static Mach-O summary of the main executable.
+        // Note: info.info() is LiveContainer's own metadata, not the app's Info.plist, so the
+        // executable name has to come from <bundle>/Info.plist (or Bundle.executablePath).
         if let bundlePath = info.bundlePath() {
-            let execPath = (bundlePath as NSString).appendingPathComponent(
-                (info.info()["CFBundleExecutable"] as? String) ?? "")
-            if FileManager.default.fileExists(atPath: execPath) {
+            let plist = NSDictionary(contentsOfFile: (bundlePath as NSString).appendingPathComponent("Info.plist"))
+            let execName = (plist?["CFBundleExecutable"] as? String)
+                ?? Bundle(path: bundlePath)?.infoDictionary?["CFBundleExecutable"] as? String
+                ?? ""
+            let execPath = execName.isEmpty ? "" : (bundlePath as NSString).appendingPathComponent(execName)
+            if !execName.isEmpty, FileManager.default.fileExists(atPath: execPath) {
                 let macho = LCRemoteMachO.inspect(path: execPath)
                 let slices = macho["slices"] as? [[String: Any]] ?? []
+                let sigs = slices.compactMap { $0["codeSignature"] as? [String: Any] }
                 out["executable"] = execPath
                 out["machO"] = [
                     "fat": macho["fat"] ?? false,
+                    "slices": slices.count,
                     "architectures": slices.compactMap { $0["cpu"] as? String },
                     "fileType": slices.first?["fileType"] ?? "",
+                    "pageZero": slices.contains { ($0["pageZero"] as? Bool) == true },
+                    "encrypted": slices.contains { ($0["encrypted"] as? Bool) == true },
                     "tweakLoaderLinked": slices.contains { ($0["tweakLoaderLinked"] as? Bool) == true },
-                    "signatureValid": slices.allSatisfy { (($0["codeSignature"] as? [String: Any])?["valid"] as? Bool) == true },
-                    "adhoc": slices.allSatisfy { (($0["codeSignature"] as? [String: Any])?["adhoc"] as? Bool) == true },
-                    "cdhash": (slices.first?["codeSignature"] as? [String: Any])?["cdhash"] ?? ""
+                    "signaturePresent": sigs.contains { ($0["present"] as? Bool) == true },
+                    // empty slices must not look "valid"
+                    "signatureValid": !sigs.isEmpty && sigs.allSatisfy { ($0["valid"] as? Bool) == true },
+                    "adhoc": !sigs.isEmpty && sigs.allSatisfy { ($0["adhoc"] as? Bool) == true },
+                    "cdhash": sigs.first?["cdhash"] ?? "",
+                    "identifier": sigs.first?["identifier"] ?? "",
+                    "teamId": sigs.first?["teamId"] ?? ""
                 ]
+            } else {
+                out["executable"] = execPath.isEmpty ? (bundlePath as NSString).appendingPathComponent("?") : execPath
+                out["machO"] = ["error": "CFBundleExecutable not found in Info.plist"]
             }
         }
         return .json(out)

@@ -31,6 +31,12 @@ import Intents
             LCUtils.appGroupUserDefault.setValue(UIDevice.current.buildVersion, forKey: "LCLastIOSBuildVersion")
         }
         
+        // Remote control (HTTP API): off by default, started from the Settings switch
+        Task { @MainActor in
+            LCRemoteControl.shared.installLifecycleHooks()
+            LCRemoteControl.shared.startIfEnabled()
+        }
+
         return true
     }
     

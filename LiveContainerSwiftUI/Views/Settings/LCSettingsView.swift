@@ -147,6 +147,17 @@ struct LCSettingsView: View {
                     }
                 }
                 
+                Section {
+                    NavigationLink {
+                        LCRemoteSettingsView()
+                    } label: {
+                        // Match the other rows on this page: plain text, no icon/emoji
+                        Text("Remote Control (HTTP API)")
+                    }
+                } footer: {
+                    Text("Runs a local HTTP server so curl / MCP can install IPAs and read logs remotely. Off by default.")
+                }
+
                 if #available(iOS 16.1, *) {
                     Section {
                         NavigationLink {

@@ -25,6 +25,65 @@ Crowdin Project: [![Crowdin](https://badges.crowdin.net/livecontainer/localized.
 > Furthermore, please note that we do not provide any support for issues of these third-party builds.
 
 
+# MCP / HTTP remote control (`remote-control` branch)
+
+> **LiveContainer is an open-source project**: upstream is [LiveContainer/LiveContainer](https://github.com/LiveContainer/LiveContainer), licensed **AGPL-3.0**. This branch only adds a remote-control layer on top (HTTP API + MCP bridge); every change is released under the same AGPL-3.0, and this fork is not affiliated with upstream.
+
+A bearer-authenticated HTTP server runs inside the app and exposes IPA install, app launch, multitask windows, UI taps, screenshots, tweak management and logs; a dependency-free MCP bridge lets agents such as Claude or Hermes drive the device.
+
+```
+MCP client (Claude / Hermes / ...) --stdio--> tools/mcp/lc_mcp.py --HTTP + Bearer--> device :8848 (inside LiveContainer)
+```
+
+> No third-party libraries on device; the MCP bridge is a single Python file (standard library only). Full reference: [docs/MCP.md](docs/MCP.md)
+>
+> Guest apps run in their own process (LiveProcess), so a second server listens on `127.0.0.1:8850` inside it and the host proxies `/api/v1/guest/*` to it. That is what makes it possible to tap buttons **inside** the guest app and capture its own screen.
+
+## Quick start
+
+1. Sideload the IPA built from this branch (unsigned; sign it with your own certificate). **Keep App Extensions when installing**, otherwise launching an app fails with `LiveProcess extension not found`.
+2. In the app: **Settings -> Remote Control** -> enable "Enable HTTP server" (default port 8848, "Silent audio" keep-alive recommended) and copy the **token**.
+3. Register the MCP bridge on the PC:
+
+```json
+{
+  "mcpServers": {
+    "livecontainer": {
+      "command": "python3",
+      "args": ["/path/to/tools/mcp/lc_mcp.py"],
+      "env": {
+        "LC_REMOTE_URL": "http://<device-ip>:8848",
+        "LC_REMOTE_TOKEN": "<token from the settings page>"
+      }
+    }
+  }
+}
+```
+
+## MCP tools (40)
+
+The remote-control API is also exposed as MCP tools through a single-file Python bridge
+([tools/mcp/lc_mcp.py](tools/mcp/lc_mcp.py), standard library only).
+
+| Group | Tools |
+| --- | --- |
+| Device / install / launch | `lc_health` `lc_apps` `lc_install_ipa` `lc_install_from_url` `lc_jobs` `lc_uninstall_app` `lc_launch_app` `lc_open_app` (= list then open) `lc_close_app` `lc_window_chrome` `lc_window_press` |
+| Tweaks (dylib / framework) | `lc_tweaks` `lc_tweak_import` `lc_tweak_toggle` `lc_tweak_sign` `lc_tweak_delete` `lc_tweak_folder` |
+| Multitask windows | `lc_windows` `lc_window_action` (scale / pip / maximize / close) |
+| UI automation (container) | `lc_ui_tree` `lc_ui_activate` `lc_ui_tap` `lc_ui_taps` (tap sequence) `lc_ui_tab` `lc_ui_text` `lc_screenshot` |
+| UI automation (inside the guest app) | `lc_guest_info` `lc_guest_tree` `lc_guest_activate` `lc_guest_taps` `lc_guest_text` `lc_guest_screenshot` `lc_guest_ocr` `lc_guest_ocr_history` `lc_guest_inspect` |
+| Logs | `lc_logs` `lc_log_push` (container) `lc_guest_logs` `lc_guest_logs_clear` (guest app + injected tweaks) |
+| Keep-alive | `lc_keepalive` (off / audio / screenAwake / audioAndScreen) |
+
+Every tool's parameters, response shape and curl equivalent are documented in [docs/MCP.md](docs/MCP.md).
+
+## Limitations
+
+- The server is only reachable while LiveContainer is in the foreground, or while silent-audio keep-alive is active (iOS suspends the process otherwise).
+- For debugging prefer `lc_open_app` / `lc_launch_app(..., multitask: true)`: launching without multitask hands the foreground to the guest app and the server briefly goes away.
+- Tweaks are only loaded after the device re-signs them; `lc_tweak_sign` returning `changedCount=0` means the certificate is unusable (wrong p12 password or expired).
+- `lc_guest_logs` covers stderr/stdout (NSLog / printf / Swift print); logs written through `os_log()` are not included.
+
 # Installation
 **LiveContainer comes with a standalone version and a version with built-in SideStore. [Please read the install guide here](https://livecontainer.github.io/docs/installation)**
 

@@ -76,12 +76,30 @@ jobs:
           (cd out && zip -qry LiveContainer-remote.ipa Payload)
           ls -lh out/LiveContainer-remote.ipa
 
-      - name: Upload IPA
+      # Upstream's packaging script also produces LiveContainer+SideStore.ipa
+      # (SideStore.app dylibified into Frameworks + plist/settings patches).
+      # It consumes the xcarchive, so the standalone IPA above is packaged first.
+      - name: Package SideStore IPA
+        id: ss
+        run: |
+          set -uo pipefail
+          export scheme=LiveContainer
+          export archive_path="build/LiveContainer"
+          if sh .github/build_github.sh && [ -f "LiveContainer+SideStore.ipa" ]; then
+            mv "LiveContainer+SideStore.ipa" out/LiveContainer-remote-SideStore.ipa
+            echo "built=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "SideStore packaging failed (non-fatal); standalone IPA is unaffected"
+            echo "built=0" >> "$GITHUB_OUTPUT"
+          fi
+          ls -lh out
+
+      - name: Upload IPAs
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: LiveContainer-remote-ipa
-          path: out/LiveContainer-remote.ipa
+          name: LiveContainer-remote-ipas
+          path: out/*.ipa
           if-no-files-found: error
 
       # Artifacts require auth to download; publishing to a rolling release allows anonymous curl
@@ -91,10 +109,10 @@ jobs:
         with:
           tag_name: rc-latest
           name: remote-control latest
-          body: "Built from ${{ github.sha }} (branch remote-control). Unsigned IPA: sign it with Sideloadly / SideStore / TrollStore when sideloading."
+          body: "Built from ${{ github.sha }} (branch remote-control). Two unsigned packages: LiveContainer-remote.ipa (standalone) and LiveContainer-remote-SideStore.ipa (bundles SideStore, same as upstream's +SideStore build). Sign with Sideloadly / SideStore / TrollStore when sideloading."
 
           prerelease: true
-          files: out/LiveContainer-remote.ipa
+          files: out/*.ipa
 
       # -- mirror the result into the ci-logs branch ----------------------
       # The anonymous api.github.com quota for this machine (same egress IP as CI) is often exhausted,

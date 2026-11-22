@@ -55,7 +55,7 @@
               "appearance" : "dark",
               "value" : {
                 "linear-gradient" : [
-                  "gray:0.80000,1.00000",
+                  "gray:0.50000,1.00000",
                   "gray:0.50000,0.50000"
                 ]
               }

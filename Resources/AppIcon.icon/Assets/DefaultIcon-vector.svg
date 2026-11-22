@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 180 180">
+  <title>Default app icon — geometric vector reconstruction</title>
+  <defs><clipPath id="icon-clip"><path d="M 45.5,0.5 H 134.5 C 163.65,0.5 179.5,16.35 179.5,45.5 V 134.5 C 179.5,163.65 163.65,179.5 134.5,179.5 H 45.5 C 16.35,179.5 0.5,163.65 0.5,134.5 V 45.5 C 0.5,16.35 16.35,0.5 45.5,0.5 Z"/></clipPath></defs>
+  <g id="background"><path fill="#fff" d="M 45.5,0.5 H 134.5 C 163.65,0.5 179.5,16.35 179.5,45.5 V 134.5 C 179.5,163.65 163.65,179.5 134.5,179.5 H 45.5 C 16.35,179.5 0.5,163.65 0.5,134.5 V 45.5 C 0.5,16.35 16.35,0.5 45.5,0.5 Z"/></g>
+  <g id="grid" clip-path="url(#icon-clip)" fill="none" stroke="#9a9a9a" stroke-width="1">
+    <g id="circles">
+      <circle id="outer-circle" cx="90" cy="90" r="79.5"/>
+      <circle id="middle-circle" cx="90" cy="90" r="47.5"/>
+      <circle id="inner-circle" cx="90" cy="90" r="34.5"/>
+    </g>
+    <g id="diagonals"><path d="M 0.5,0.5 L 179.5,179.5"/><path d="M 179.5,0.5 L 0.5,179.5"/></g>
+    <g id="orthogonal-grid">
+      <path id="v0" d="M 10.5,0 V 180"/><path id="h0" d="M 0,10.5 H 180"/>
+      <path id="v1" d="M 55.5,0 V 180"/><path id="h1" d="M 0,55.5 H 180"/>
+      <path id="v2" d="M 89.5,0 V 180"/><path id="h2" d="M 0,89.5 H 180"/>
+      <path id="v3" d="M 124.5,0 V 180"/><path id="h3" d="M 0,124.5 H 180"/>
+      <path id="v4" d="M 169.5,0 V 180"/><path id="h4" d="M 0,169.5 H 180"/>
+    </g>
+  </g>
+  <g id="outline"><path fill="none" stroke="#999" stroke-width="1" d="M 45.5,0.5 H 134.5 C 163.65,0.5 179.5,16.35 179.5,45.5 V 134.5 C 179.5,163.65 163.65,179.5 134.5,179.5 H 45.5 C 16.35,179.5 0.5,163.65 0.5,134.5 V 45.5 C 0.5,16.35 16.35,0.5 45.5,0.5 Z"/></g>
+</svg>

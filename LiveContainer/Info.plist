@@ -7,7 +7,7 @@
 	<key>MusicHapticsSupported</key>
 	<true/>
 	<key>CFBundleDisplayName</key>
-	<string>LiveContainer</string>
+	<string>Echo</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

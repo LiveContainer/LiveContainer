@@ -42,6 +42,7 @@ when that renderer is selected; nothing is installed while the game is running.
 - [x] Fork branch, display name
 - [x] Bundle identifier rename (com.godbot100.echolauncher)
 - [ ] URL scheme rename
-- [ ] Manifest model, downloader, single-game home screen
-- [ ] Renderer setting
+- [x] Echo tab: manifest check, client library updates, game IPA download with integrity check
+- [ ] Paks, command line, locking the app list to the one game
+- [x] Renderer setting (switches the tagged client libraries)
 - [ ] Mods

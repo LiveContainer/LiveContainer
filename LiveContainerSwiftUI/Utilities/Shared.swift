@@ -53,7 +53,7 @@ struct LCPath {
 }
 
 class SharedModel: ObservableObject {
-    @Published var selectedTab: LCTabIdentifier = .apps
+    @Published var selectedTab: LCTabIdentifier = .echo
     @Published var deepLink: URL?
     
     @Published var isHiddenAppUnlocked = false
@@ -305,6 +305,7 @@ extension NSNotification {
 }
 
 public enum LCTabIdentifier: Hashable {
+    case echo
     case sources
     case apps
     case tweaks

@@ -43,7 +43,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.kdt.livecontainer.urlscheme</string>
+			<string>com.godbot100.echolauncher.urlscheme</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>livecontainer</string>
@@ -228,7 +228,7 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.kdt.livecontainer.bgtask.*</string>
+		<string>com.godbot100.echolauncher.bgtask.*</string>
 	</array>
 	<key>UIDeviceFamily</key>
 	<array>

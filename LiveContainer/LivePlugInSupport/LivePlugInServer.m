@@ -85,7 +85,7 @@ static NSError *LCProcessError(NSString *description) {
             listenerError = LCProcessError([NSString stringWithFormat:@"Unable to register the LivePlugIn service (bootstrap_check_in: %d)", status]);
             return;
         }
-        dispatch_queue_t xpcQueue = dispatch_queue_create("com.kdt.livecontainer.LivePlugIn.xpc.handling", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_t xpcQueue = dispatch_queue_create("com.godbot100.echolauncher.LivePlugIn.xpc.handling", DISPATCH_QUEUE_SERIAL);
         listener = xpc_connection_create(NULL, xpcQueue);
         if (!listener) {
             mach_port_mod_refs(mach_task_self(), service, MACH_PORT_RIGHT_RECEIVE, -1);
@@ -151,7 +151,7 @@ static NSError *LCProcessError(NSString *description) {
         // bootstrap_check_in supplies the receive right. libxpc's named listener
         // registration is unavailable here, so hand out an anonymous endpoint over a pipe.
         xpc_endpoint_t endpoint = xpc_endpoint_create(listener);
-        dispatch_queue_t queue = dispatch_queue_create("com.kdt.livecontainer.LivePlugIn.bootstrap", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_t queue = dispatch_queue_create("com.godbot100.echolauncher.LivePlugIn.bootstrap", DISPATCH_QUEUE_SERIAL);
         bootstrapSource = endpoint ? dispatch_source_create(DISPATCH_SOURCE_TYPE_MACH_RECV, service, 0, queue) : nil;
         if (!bootstrapSource) {
             xpc_connection_cancel(listener);

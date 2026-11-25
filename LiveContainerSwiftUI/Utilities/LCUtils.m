@@ -47,7 +47,7 @@
     }
     
     // in LC2, attempt to guess LC1's LiveProcess extension
-    NSString *bundleID = [[@"com.kdt.livecontainer" stringByAppendingPathExtension:LCSharedUtils.teamIdentifier]
+    NSString *bundleID = [[@"com.godbot100.echolauncher" stringByAppendingPathExtension:LCSharedUtils.teamIdentifier]
                           stringByAppendingPathExtension:@"LiveProcess"];
     if([NSExtension extensionWithIdentifier:bundleID error:nil]) {
         return bundleID;
@@ -250,7 +250,7 @@
 }
 
 + (void)changeMainExecutableTo:(NSString *)exec error:(NSError **)error {
-    NSURL *infoPath = [LCSharedUtils.appGroupPath URLByAppendingPathComponent:@"Apps/com.kdt.livecontainer/App.app/Info.plist"];
+    NSURL *infoPath = [LCSharedUtils.appGroupPath URLByAppendingPathComponent:@"Apps/com.godbot100.echolauncher/App.app/Info.plist"];
     NSMutableDictionary *infoDict = [NSMutableDictionary dictionaryWithContentsOfURL:infoPath];
     if (!infoDict) return;
 

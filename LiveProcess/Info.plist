@@ -10,7 +10,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.kdt.livecontainer.extensionurlscheme</string>
+			<string>com.godbot100.echolauncher.extensionurlscheme</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>liveprocess</string>

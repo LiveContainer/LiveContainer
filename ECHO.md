@@ -40,7 +40,8 @@ when that renderer is selected; nothing is installed while the game is running.
 ## Status
 
 - [x] Fork branch, display name
-- [ ] Bundle identifier and URL scheme rename
+- [x] Bundle identifier rename (com.godbot100.echolauncher)
+- [ ] URL scheme rename
 - [ ] Manifest model, downloader, single-game home screen
 - [ ] Renderer setting
 - [ ] Mods

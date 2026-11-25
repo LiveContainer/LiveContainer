@@ -59,7 +59,7 @@ static xpc_connection_t hostConnection;
     // The pipe retains its own send reference.
     mach_port_deallocate(mach_task_self(), port);
 
-    dispatch_queue_t queue = dispatch_queue_create("com.kdt.livecontainer.liveprocess.launch", DISPATCH_QUEUE_SERIAL);
+    dispatch_queue_t queue = dispatch_queue_create("com.godbot100.echolauncher.liveprocess.launch", DISPATCH_QUEUE_SERIAL);
 //    dispatch_time_t deadline = dispatch_time(DISPATCH_TIME_NOW, LCLiveProcessLaunchTimeout * NSEC_PER_SEC);
     dispatch_time_t deadline = DISPATCH_TIME_FOREVER;
     dispatch_semaphore_t connected = dispatch_semaphore_create(0);

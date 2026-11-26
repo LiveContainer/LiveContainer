@@ -9,26 +9,9 @@ import SwiftUI
 
 struct LCHelpView : View {
     @Binding var isPresent : Bool
+    @State var helpURL = URL(string: "https://livecontainer.github.io/docs/faq")!
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    Text("lc.helpView.text1")
-                    Text("")
-                    Text("lc.helpView.text2")
-                }
-                .padding()
-            }
-            .navigationTitle("lc.helpView.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem {
-                    Button("lc.common.done") {
-                        isPresent = false
-                    }
-                }
-            }
-        }
+        SafariView(url: $helpURL)
     }
 }

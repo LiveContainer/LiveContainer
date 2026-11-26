@@ -6609,6 +6609,29 @@
         }
       }
     },
+    "lc.appSettings.fixBackgroundTaskIdentifiers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fix Background Processing Tasks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修复后台处理任务"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修復后台處理任務"
+          }
+        }
+      }
+    },
     "lc.appSettings.fixes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7402,6 +7425,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偽裝 SDK 版本使系統庫以應用程式建置時的 SDK 版本運行。"
+          }
+        }
+      }
+    },
+    "lc.appSettings.helperProcessesSupport" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helper Process Support"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "启用应用辅助进程"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "啟用 App 輔助處理程序"
           }
         }
       }

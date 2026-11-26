@@ -5,6 +5,7 @@ typedef void (^LCParseMachOCallback)(const char *path, struct mach_header_64 *he
 
 #define PATCH_EXEC_RESULT_NO_SPACE_FOR_TWEAKLOADER 1
 #define PATCH_EXEC_RESULT_SEG_COUNT_MISMATCH 2
+#define PATCH_EXEC_RESULT_MISALIGNED_LINKEDIT_STRING_POOL 4
 
 void LCPatchAppBundleFixupARM64eSlice(NSURL *bundleURL);
 NSString *LCParseMachO(const char *path, bool readOnly, NS_NOESCAPE LCParseMachOCallback callback);

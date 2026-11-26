@@ -16,6 +16,11 @@ struct LCWebView: View {
     @State private var loadStatus = 0.0
     @State private var uiLoadStatus = 0.0
     @State private var pageTitle = ""
+    @State private var pageURL: URL?
+    @State private var canGoBack = false
+    @State private var canGoForward = false
+    @State private var isLoading = false
+    @State private var showShareSheet = false
     
     @State private var runAppAlert = YesNoHelper()
     @State private var runAppAlertMsg = ""
@@ -27,6 +32,9 @@ struct LCWebView: View {
     @State private var errorInfo = ""
     
     @EnvironmentObject private var sharedModel : SharedModel
+
+    private let navigationBarHeight: CGFloat = 60
+    private let bottomBarHeight: CGFloat = 64
     
     var itmsServicesHandler: ((String) async -> Void)?
     
@@ -39,65 +47,36 @@ struct LCWebView: View {
     
     var body: some View {
         
-        VStack(spacing: 0) {
-            HStack {
-                HStack {
-                    Button(action: {
-                        webView.goBack()
-                    }, label: {
-                        Image(systemName: "chevron.backward")
-                    })
-                    
-                    Button(action: {
-                        webView.goForward()
-                    }, label: {
-                        Image(systemName: "chevron.forward")
-                    }).padding(.horizontal)
+        GeometryReader { geometry in
+            ZStack {
+                // Extend the web view itself under the bars and the home indicator.
+                // Scroll insets keep the first and last page content reachable.
+                webView.withContentInsets(UIEdgeInsets(
+                    top: geometry.safeAreaInsets.top + navigationBarHeight,
+                    left: geometry.safeAreaInsets.leading,
+                    bottom: geometry.safeAreaInsets.bottom + bottomBarHeight,
+                    right: geometry.safeAreaInsets.trailing
+                ))
+                .ignoresSafeArea(.container)
+
+                VStack(spacing: 0) {
+                    navigationBar
+                    Spacer(minLength: 0)
+                    bottomBar
                 }
-                
-                Spacer()
-                Text(pageTitle)
-                    .lineLimit(1)
-                Spacer()
-                Button(action: {
-                    webView.reload()
-                }, label: {
-                    Image(systemName: "arrow.clockwise")
-                }).padding(.horizontal)
-                Button(action: {
-                    isPresent = false
-                }, label: {
-                    Text("lc.common.done".loc)
-                })
-                
             }
-            .padding([.bottom, .horizontal])
-            .background(Color(.systemGray6))
-            .overlay(alignment: .bottomTrailing) {
-                ProgressView(value: uiLoadStatus)
-                    .opacity(loadStatus == 1.0 ? 0 : 1)
-                    .scaleEffect(y: 0.5)
-                    .offset(y: 1)
-                    .onChange(of: loadStatus) { newValue in
-                        if newValue > uiLoadStatus {
-                            withAnimation(.easeIn(duration: 0.3)) {
-                                uiLoadStatus = newValue
-                            }
-                        } else {
-                            uiLoadStatus = newValue
-                        }
-                    }
-                
-            }
-            webView
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .onAppear(){
-            webView.loadURL(url: url)
+        .background(Color(.systemBackground))
+        .onAppear {
             if !didAppear {
                 onViewAppear()
                 didAppear = true
+                webView.loadURL(url: url)
             }
-
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ActivityViewController(activityItems: [currentURL])
         }
         .alert("lc.webView.runApp".loc, isPresented: $runAppAlert.show) {
             Button("lc.appBanner.run".loc, action: {
@@ -129,13 +108,131 @@ struct LCWebView: View {
         
     }
     
+    private var currentURL: URL {
+        pageURL ?? url
+    }
+
+    private var navigationBar: some View {
+        HStack(spacing: 8) {
+            Button {
+                isPresent = false
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 17, weight: .medium))
+                    .frame(width: 44, height: 44)
+                    .modifier(LCWebViewGlassBackground(shape: Circle(), isInteractive: true))
+            }
+
+            VStack(spacing: 3) {
+                Text(pageTitle.isEmpty ? (currentURL.host ?? currentURL.absoluteString) : pageTitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .accessibilityAddTraits(.isHeader)
+                HStack(spacing: 4) {
+                    if currentURL.scheme == "https" {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 9))
+                    }
+                    Text(currentURL.host ?? currentURL.absoluteString)
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+            }
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .padding(.horizontal, 12)
+            .modifier(LCWebViewGlassBackground(shape: Capsule()))
+            Button {
+                if isLoading {
+                    webView.webView.stopLoading()
+                } else {
+                    webView.reload()
+                }
+            } label: {
+                if isLoading {
+                    Image(systemName: "xmark")
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+            .font(.system(size: 20, weight: .medium))
+            .frame(width: 44, height: 44)
+            .modifier(LCWebViewGlassBackground(shape: Circle(), isInteractive: true))
+            
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .buttonStyle(.plain)
+        .overlay(alignment: .bottom) {
+            ProgressView(value: uiLoadStatus)
+                .progressViewStyle(.linear)
+                .opacity(isLoading ? 1 : 0)
+                .scaleEffect(y: 0.5, anchor: .bottom)
+                .allowsHitTesting(false)
+        }
+        .onChange(of: loadStatus) { newValue in
+            if newValue > uiLoadStatus {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    uiLoadStatus = newValue
+                }
+            } else {
+                uiLoadStatus = newValue
+            }
+        }
+    }
+
+    private var bottomBar: some View {
+        HStack {
+            Button(action: webView.goBack) {
+                Image(systemName: "chevron.backward")
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(!canGoBack)
+
+            Spacer(minLength: 0)
+            Button(action: webView.goForward) {
+                Image(systemName: "chevron.forward")
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(!canGoForward)
+
+            Spacer(minLength: 0)
+            Button {
+                showShareSheet = true
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .frame(width: 44, height: 44)
+            }
+
+            Spacer(minLength: 0)
+            Button {
+                UIApplication.shared.open(currentURL)
+            } label: {
+                Image(systemName: "safari")
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(!["http", "https"].contains(currentURL.scheme ?? ""))
+        }
+        .font(.system(size: 20))
+        .frame(maxWidth: 420)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 2)
+        .modifier(LCWebViewGlassBackground(shape: Capsule(), isInteractive: true))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .buttonStyle(.plain)
+    }
+
     func onViewAppear() {
-        let observer = WebViewLoadObserver(loadStatus: $loadStatus, webView: self.webView.webView)
-        let webViewDelegate = WebViewDelegate(pageTitle: $pageTitle, urlSchemeHandler:onURLSchemeDetected, universalLinkHandler: onUniversalLinkDetected,)
+        let observer = WebViewLoadObserver(loadStatus: $loadStatus, pageURL: $pageURL, canGoBack: $canGoBack, canGoForward: $canGoForward, isLoading: $isLoading, webView: webView.webView)
+        let webViewDelegate = WebViewDelegate(pageTitle: $pageTitle, urlSchemeHandler: onURLSchemeDetected, universalLinkHandler: onUniversalLinkDetected)
         webView.setDelegate(delegete: webViewDelegate)
         webView.setObserver(observer: observer)
     }
-    
+
     func launchToApp(app: LCAppModel, url: URL) async {
         let bundleId = app.appInfo.relativeBundlePath!
         if let runningLC = LCSharedUtils.getContainerUsingLCScheme(withFolderName: app.uiDefaultDataFolder){
@@ -261,24 +358,43 @@ struct LCWebView: View {
     }
 }
 
-class WebViewLoadObserver : NSObject {
-    private var loadStatus: Binding<Double>
-    private var webView: WKWebView
-    
-    init(loadStatus: Binding<Double>, webView: WKWebView) {
-        self.loadStatus = loadStatus
-        self.webView = webView
-        super.init()
-        self.webView.addObserver(self, forKeyPath: "estimatedProgress", options: .new, context: nil);
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "estimatedProgress" {
-            loadStatus.wrappedValue = self.webView.estimatedProgress
+private struct LCWebViewGlassBackground<S: Shape>: ViewModifier {
+    let shape: S
+    var isInteractive = false
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular.interactive(isInteractive), in: shape)
+        } else {
+            content.background(.regularMaterial, in: shape)
         }
     }
-    
+}
 
+class WebViewLoadObserver: NSObject {
+    private var observations: [NSKeyValueObservation] = []
+
+    init(loadStatus: Binding<Double>, pageURL: Binding<URL?>, canGoBack: Binding<Bool>, canGoForward: Binding<Bool>, isLoading: Binding<Bool>, webView: WKWebView) {
+        super.init()
+        observations = [
+            webView.observe(\.estimatedProgress, options: [.initial, .new]) { webView, _ in
+                loadStatus.wrappedValue = webView.estimatedProgress
+            },
+            webView.observe(\.url, options: [.initial, .new]) { webView, _ in
+                pageURL.wrappedValue = webView.url
+            },
+            webView.observe(\.canGoBack, options: [.initial, .new]) { webView, _ in
+                canGoBack.wrappedValue = webView.canGoBack
+            },
+            webView.observe(\.canGoForward, options: [.initial, .new]) { webView, _ in
+                canGoForward.wrappedValue = webView.canGoForward
+            },
+            webView.observe(\.isLoading, options: [.initial, .new]) { webView, _ in
+                isLoading.wrappedValue = webView.isLoading
+            }
+        ]
+    }
 }
 
 class WebViewDelegate : NSObject,WKNavigationDelegate {
@@ -318,7 +434,7 @@ class WebViewDelegate : NSObject,WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        self.pageTitle.wrappedValue = webView.title!
+        self.pageTitle.wrappedValue = webView.title ?? ""
     }
     
     
@@ -378,6 +494,7 @@ struct WebView: UIViewRepresentable {
     let webView: WKWebView
     var observer: WebViewLoadObserver?
     var delegate: WKNavigationDelegate?
+    private var contentInsets: UIEdgeInsets = .zero
     
     init() {
         self.webView = WKWebView()
@@ -394,12 +511,29 @@ struct WebView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> WKWebView {
         webView.allowsBackForwardNavigationGestures = true
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
+        webView.scrollView.automaticallyAdjustsScrollIndicatorInsets = false
         webView.customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1"
         return webView
     }
     
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        
+        let scrollView = uiView.scrollView
+        guard scrollView.contentInset != contentInsets else {
+            return
+        }
+        let isAtTop = scrollView.contentOffset.y <= -scrollView.contentInset.top
+        scrollView.contentInset = contentInsets
+        scrollView.scrollIndicatorInsets = contentInsets
+        if isAtTop {
+            scrollView.contentOffset.y = -contentInsets.top
+        }
+    }
+
+    func withContentInsets(_ insets: UIEdgeInsets) -> WebView {
+        var view = self
+        view.contentInsets = insets
+        return view
     }
     
     func reload() {

@@ -78,13 +78,9 @@ class SharedModel: ObservableObject {
         UIDevice.current.userInterfaceIdiom == .phone
     }()
     
-    static let isLiquidGlassEnabled = {
-        if #available(iOS 19.0, *), (dyld_get_program_sdk_version() >= 0x1a0000 || UserDefaults.standard.bool(forKey: "com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")) {
-            if let compatibilityEnabled = Bundle.main.infoDictionary?["UIDesignRequiresCompatibility"] as? Bool, compatibilityEnabled {
-                return false
-            }
-            
-            return true
+    static let isLiquidGlassEnabled: Bool = {
+        if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern:-2), "_UISolariumEnabled") {
+            return unsafeBitCast(symbol, to: (@convention(c) () -> Bool).self)()
         }
         return false
     }()

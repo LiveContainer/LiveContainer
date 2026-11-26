@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>MusicHapticsSupported</key>
+	<true/>
 	<key>CFBundleDisplayName</key>
 	<string>LiveContainer</string>
 	<key>CFBundleDocumentTypes</key>
@@ -34,7 +36,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.8.11</string>
+	<string>3.8.14</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -49,7 +51,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.8.11</string>
+	<string>3.8.14</string>
 	<key>GCSupportedGameControllers</key>
 	<array>
 		<dict>
@@ -222,6 +224,11 @@
 		<string>nearby-interaction</string>
 		<string>remote-notification</string>
 		<string>voip</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.kdt.livecontainer.bgtask.*</string>
 	</array>
 	<key>UIDeviceFamily</key>
 	<array>

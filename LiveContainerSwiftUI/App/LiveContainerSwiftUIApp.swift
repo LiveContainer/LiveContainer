@@ -12,9 +12,6 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
     
     init() {
         let fm = FileManager()
-        var tempAppDataFolderNames : [String] = []
-        var tempTweakFolderNames : [String] = []
-        
         var tempApps: [LCAppModel] = []
         var tempArm32EmuApps: [LCAppModel] = []
         var tempHiddenApps: [LCAppModel] = []
@@ -64,6 +61,26 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
                     }
                 }
             }
+        } catch {
+            NSLog("[LC] error:\(error)")
+        }
+        
+        DataManager.shared.model.apps = tempApps
+        DataManager.shared.model.arm32EmuApps = tempArm32EmuApps
+        DataManager.shared.model.hiddenApps = tempHiddenApps
+        if let tempURLSchemes {
+            UserDefaults.lcShared().set(Array(tempURLSchemes), forKey: "LCGuestURLSchemes")
+        }
+        Task {
+            await Self.initMiscellaneous()
+        }
+    }
+    private static func initMiscellaneous() async {
+        let fm = FileManager()
+        var tempAppDataFolderNames : [String] = []
+        var tempTweakFolderNames : [String] = []
+
+        do {
             // load document folders
             try fm.createDirectory(at: LCPath.dataPath, withIntermediateDirectories: true)
             let dataDirs = try fm.contentsOfDirectory(atPath: LCPath.dataPath.path)
@@ -90,14 +107,8 @@ struct LiveContainerSwiftUIApp : SwiftUI.App {
             NSLog("[LC] error:\(error)")
         }
         
-        DataManager.shared.model.apps = tempApps
-        DataManager.shared.model.arm32EmuApps = tempArm32EmuApps
-        DataManager.shared.model.hiddenApps = tempHiddenApps
         DataManager.shared.model.appDataFolderNames = tempAppDataFolderNames
         DataManager.shared.model.tweakFolderNames = tempTweakFolderNames
-        if let tempURLSchemes {
-            UserDefaults.lcShared().set(Array(tempURLSchemes), forKey: "LCGuestURLSchemes")
-        }
     }
     
     var body: some Scene {

@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>MusicHapticsSupported</key>
+	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

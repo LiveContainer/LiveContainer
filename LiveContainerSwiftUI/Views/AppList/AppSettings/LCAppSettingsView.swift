@@ -144,6 +144,10 @@ struct LCAppSettingsView: View {
             
             
             Section {
+                Toggle(isOn: $model.uiHelperProcessesSupport) {
+                    Text("lc.appSettings.helperProcessesSupport".loc)
+                }
+                .disabled(model.uiIs32bit)
                 Toggle(isOn: $model.uiIsJITNeeded) {
                     Text("lc.appSettings.launchWithJit".loc)
                 }
@@ -206,14 +210,12 @@ struct LCAppSettingsView: View {
                     }
                 }
             } footer: {
-
                     if #available(iOS 26.0, *), model.uiIsJITNeeded {
                         Text("lc.appSettings.launchWithJitDesc".loc + "\n" + "lc.appSettings.jit26.scriptDesc".loc)
 
                     } else {
                         Text("lc.appSettings.launchWithJitDesc".loc)
                     }
-                
             }
 
             Section {
@@ -305,6 +307,11 @@ struct LCAppSettingsView: View {
                 }
                 Toggle(isOn: $model.uiFixLocalNotification) {
                     Text("lc.appSettings.fixLocalNotification".loc)
+                }
+                if #available(iOS 26.0, *) {
+                    Toggle(isOn: $model.uiFixBackgroundTaskIdentifiers) {
+                        Text("lc.appSettings.fixBackgroundTaskIdentifiers".loc)
+                    }
                 }
                 Toggle(isOn: $model.uiUseLCBundleId) {
                     Text("lc.appSettings.useLCBundleId".loc)

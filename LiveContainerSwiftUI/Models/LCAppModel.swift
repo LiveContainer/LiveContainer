@@ -23,6 +23,11 @@ class LCAppModel: ObservableObject, Hashable {
             appInfo.isJITNeeded = uiIsJITNeeded
         }
     }
+    @Published var uiHelperProcessesSupport: Bool {
+        didSet {
+            appInfo.helperProcessesSupport = uiHelperProcessesSupport
+        }
+    }
     @Published var uiClassicMode : Bool {
         didSet {
             appInfo.classicMode = uiClassicMode
@@ -60,6 +65,11 @@ class LCAppModel: ObservableObject, Hashable {
     @Published var uiFixLocalNotification : Bool {
         didSet {
             appInfo.fixLocalNotification = uiFixLocalNotification
+        }
+    }
+    @Published var uiFixBackgroundTaskIdentifiers : Bool {
+        didSet {
+            appInfo.fixBackgroundTaskIdentifiers = uiFixBackgroundTaskIdentifiers
         }
     }
     
@@ -168,6 +178,7 @@ class LCAppModel: ObservableObject, Hashable {
         }
         
         self.uiIsJITNeeded = appInfo.isJITNeeded
+        self.uiHelperProcessesSupport = appInfo.helperProcessesSupport
         self.uiClassicMode = appInfo.classicMode
         self.uiIsHidden = appInfo.isHidden
         self.uiIsLocked = appInfo.isLocked
@@ -182,6 +193,7 @@ class LCAppModel: ObservableObject, Hashable {
         self.uiUseLCBundleId = appInfo.doUseLCBundleId
         self.uiFixFilePickerNew = appInfo.fixFilePickerNew
         self.uiFixLocalNotification = appInfo.fixLocalNotification
+        self.uiFixBackgroundTaskIdentifiers = appInfo.fixBackgroundTaskIdentifiers
         self.uiHideLiveContainer = appInfo.hideLiveContainer
         self.uiDontInjectTweakLoader = appInfo.dontInjectTweakLoader
         self.uiTweakLoaderInjectFailed = appInfo.info()["LCTweakLoaderCantInject"] as? Bool ?? false
@@ -535,5 +547,43 @@ class LCAppModel: ObservableObject, Hashable {
             }
             return found
         }
+    }
+    
+    static func copy(fromApp: LCAppModel, toAppInfo: LCAppInfo) {
+        // copy previous configration to new app
+        toAppInfo.autoSaveDisabled = true
+        toAppInfo.isLocked = fromApp.appInfo.isLocked
+        toAppInfo.isHidden = fromApp.appInfo.isHidden
+        toAppInfo.isShared = fromApp.appInfo.isShared
+        
+        toAppInfo.containerInfo = fromApp.appInfo.containerInfo
+        toAppInfo.tweakFolder = fromApp.appInfo.tweakFolder
+        toAppInfo.dataUUID = fromApp.appInfo.dataUUID
+        
+        toAppInfo.spoofSDKVersion = fromApp.appInfo.spoofSDKVersion
+        toAppInfo.doSymlinkInbox = fromApp.appInfo.doSymlinkInbox
+
+        toAppInfo.selectedLanguage = fromApp.appInfo.selectedLanguage
+
+        toAppInfo.orientationLock = fromApp.appInfo.orientationLock
+        toAppInfo.dontInjectTweakLoader = fromApp.appInfo.dontInjectTweakLoader
+        toAppInfo.hideLiveContainer = fromApp.appInfo.hideLiveContainer
+        toAppInfo.dontLoadTweakLoader = fromApp.appInfo.dontLoadTweakLoader
+        toAppInfo.doUseLCBundleId = fromApp.appInfo.doUseLCBundleId
+        toAppInfo.fixFilePickerNew = fromApp.appInfo.fixFilePickerNew
+        toAppInfo.fixLocalNotification = fromApp.appInfo.fixLocalNotification
+        toAppInfo.fixBackgroundTaskIdentifiers = fromApp.appInfo.fixBackgroundTaskIdentifiers
+        
+        toAppInfo.isJITNeeded = fromApp.appInfo.isJITNeeded
+        toAppInfo.jitLaunchScriptJs = fromApp.appInfo.jitLaunchScriptJs
+        toAppInfo.helperProcessesSupport = fromApp.appInfo.helperProcessesSupport
+        
+        toAppInfo.multitaskSpecified = fromApp.appInfo.multitaskSpecified
+        toAppInfo.classicMode = fromApp.appInfo.classicMode
+        
+        toAppInfo.lastLaunched = fromApp.appInfo.lastLaunched
+        
+        toAppInfo.autoSaveDisabled = false
+        toAppInfo.save()
     }
 }

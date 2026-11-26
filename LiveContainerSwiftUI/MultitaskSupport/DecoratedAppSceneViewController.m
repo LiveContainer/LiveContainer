@@ -5,7 +5,7 @@
 #import "UIKitPrivate+MultitaskSupport.h"
 #import "PiPManager.h"
 #import "VirtualWindowsHostView.h"
-#import "../LiveContainer/Localization.h"
+#import "../../LiveContainer/Localization.h"
 #import "utils.h"
 
 @interface DecoratedAppSceneViewController()

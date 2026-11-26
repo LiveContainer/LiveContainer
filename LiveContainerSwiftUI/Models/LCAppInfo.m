@@ -331,7 +331,7 @@
                     info[@"LCTweakLoaderCantInject"] = @YES;
                     info[@"dontInjectTweakLoader"] = @YES;
                 }
-                if(patchResult & PATCH_EXEC_RESULT_SEG_COUNT_MISMATCH) {
+                if(patchResult & (PATCH_EXEC_RESULT_SEG_COUNT_MISMATCH | PATCH_EXEC_RESULT_MISALIGNED_LINKEDIT_STRING_POOL)) {
                     info[@"segCountMismatch"] = @YES;
                 }
             }
@@ -353,6 +353,12 @@
             self.isJITNeeded = YES;
             self.classicMode = YES;
             self.spoofSDKVersion = YES;
+        }
+        error = [self patchGuestExtensions];
+        if (error) {
+            [NSUserDefaults.standardUserDefaults removeObjectForKey:@"SigningInProgress"];
+            completetionHandler(NO, error);
+            return;
         }
         info[@"LCPatchRevision"] = @(currentPatchRev);
         forceSign = true;
@@ -410,12 +416,65 @@
             }
 }
 
+- (NSString *)patchGuestExtensions {
+    NSFileManager *fm = NSFileManager.defaultManager;
+    NSString *pluginsPath = [self.bundlePath stringByAppendingPathComponent:@"PlugIns"];
+    NSArray *plugins = [fm contentsOfDirectoryAtPath:pluginsPath error:nil];
+    for (NSString *name in plugins) {
+        if (![name.pathExtension isEqualToString:@"appex"]) continue;
+        NSString *bundlePath = [pluginsPath stringByAppendingPathComponent:name];
+        NSDictionary *plist = [NSDictionary dictionaryWithContentsOfFile:[bundlePath stringByAppendingPathComponent:@"Info.plist"]];
+
+        // copy remove rename
+        NSString *executable = plist[@"CFBundleExecutable"];
+        NSString *path = [bundlePath stringByAppendingPathComponent:executable];
+        NSString *temporaryPath = [path stringByAppendingString:@".lcpatch"];
+        NSError *fileError = nil;
+        [fm removeItemAtPath:temporaryPath error:nil];
+        if (![fm copyItemAtPath:path toPath:temporaryPath error:&fileError]) return fileError.localizedDescription;
+        
+        __block BOOL hasARM64 = NO;
+        __block BOOL encrypted = NO;
+        __block BOOL mismatch = NO;
+        NSString *error = LCParseMachO(temporaryPath.fileSystemRepresentation, false, ^(const char *slicePath, struct mach_header_64 *header, int fd, void *filePtr) {
+            if (header->cputype != CPU_TYPE_ARM64) return;
+            hasARM64 = YES;
+            encrypted |= LCIsMachOEncrypted(header);
+            if (!encrypted) {
+                int patchResult = LCPatchExecSlice(path.fileSystemRepresentation, header, false);
+                mismatch |= (patchResult & (PATCH_EXEC_RESULT_SEG_COUNT_MISMATCH | PATCH_EXEC_RESULT_MISALIGNED_LINKEDIT_STRING_POOL)) != 0;
+            }
+        });
+        if (!error && (!hasARM64 || encrypted)) {
+            error = [NSString stringWithFormat:@"%@ requires a decrypted arm64 executable", name];
+        }
+        if (!error && ![fm replaceItemAtURL:[NSURL fileURLWithPath:path] withItemAtURL:[NSURL fileURLWithPath:temporaryPath] backupItemName:nil options:0 resultingItemURL:nil error:&fileError]) {
+            error = fileError.localizedDescription;
+        }
+        [fm removeItemAtPath:temporaryPath error:nil];
+        if (error) return error;
+        // Keep extension-specific loader information separate from the app's.
+        [@{@"segCountMismatch": @(mismatch)} writeToFile:[bundlePath stringByAppendingPathComponent:@"LCAppExtension.plist"] atomically:YES];
+    }
+    return nil;
+}
+
 - (bool)isJITNeeded {
     if(_info[@"isJITNeeded"] != nil) {
         return [_info[@"isJITNeeded"] boolValue];
     } else {
         return NO;
     }
+}
+
+- (bool)helperProcessesSupport {
+    // Preserve settings saved before this feature was renamed.
+    return [_info[@"helperProcessesSupport"] boolValue];
+}
+
+- (void)setHelperProcessesSupport:(bool)enabled {
+    _info[@"helperProcessesSupport"] = @(enabled);
+    [self save];
 }
 - (void)setIsJITNeeded:(bool)isJITNeeded {
     _info[@"isJITNeeded"] = [NSNumber numberWithBool:isJITNeeded];
@@ -589,6 +648,15 @@
 
 - (void)setFixLocalNotification:(bool)fixLocalNotification {
     _info[@"fixLocalNotification"] = @(fixLocalNotification);
+    [self save];
+}
+
+- (bool)fixBackgroundTaskIdentifiers {
+    return [_info[@"fixBackgroundTaskIdentifiers"] boolValue];
+}
+
+- (void)setFixBackgroundTaskIdentifiers:(bool)fixBackgroundTaskIdentifiers {
+    _info[@"fixBackgroundTaskIdentifiers"] = @(fixBackgroundTaskIdentifiers);
     [self save];
 }
 

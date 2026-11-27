@@ -13,7 +13,7 @@ protocol LCAppBannerDelegate {
     func removeApp(app: LCAppModel)
     func installMdm(data: Data)
     func openNavigationView(view: AnyView)
-    func promptForGeneratedIconStyle() async -> GeneratedIconStyle?
+    func promptForGeneratedIconStyle(hasCustomIcon: Bool) async -> GeneratedIconStyle?
 }
 
 struct LCAppBanner: UIViewControllerRepresentable {

@@ -5,6 +5,7 @@
 #import "PlugInKitPrivate.h"
 #import "LivePlugInServer.h"
 #import "../utils.h"
+#import "../LCSharedUtils.h"
 #import "Tweaks.h"
 
 static NSURL *guestExtensionsAppURL;
@@ -94,18 +95,18 @@ void hook_discoverPlugInsForAttributes(id self, SEL _cmd, NSDictionary* attribut
         return;
     }
     
-    NSBundle *liveProcessBundle;
+    NSString *liveProcessBundleId;
     if(NSUserDefaults.isLiveProcess) {
-        liveProcessBundle = [NSBundle bundleWithURL:[NSUserDefaults.lcMainBundle.bundleURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"LiveProcess.appex"]];
+        liveProcessBundleId = [NSBundle bundleWithURL:[NSUserDefaults.lcMainBundle.bundleURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"LiveProcess.appex"]].bundleIdentifier;
     } else {
-        liveProcessBundle = [NSBundle bundleWithURL:[NSUserDefaults.lcMainBundle.builtInPlugInsURL URLByAppendingPathComponent:@"LiveProcess.appex"]];
+        liveProcessBundleId = [NSBundle bundleWithURL:[NSUserDefaults.lcMainBundle.builtInPlugInsURL URLByAppendingPathComponent:@"LiveProcess.appex"]].bundleIdentifier;
     }
-    if (!liveProcessBundle.bundleIdentifier) {
-        NSLog(@"LivePlugIn is missing. Reinstall LiveContainer and keep its extensions.");
-        orig_discoverPlugInsForAttributes(self, _cmd, attributes, flags, found);
-        return;
+    if (!liveProcessBundleId) {
+        // can't find liveprocess, we might be in LC2, or liveprocess is not installed, attempt to guess LC1's LiveProcess extension
+        liveProcessBundleId = [[@"com.kdt.livecontainer" stringByAppendingPathExtension:LCSharedUtils.teamIdentifier]
+                              stringByAppendingPathExtension:@"LiveProcess"];
     }
-    NSDictionary* newAttributes = @{@"NSExtensionIdentifier":liveProcessBundle.bundleIdentifier};
+    NSDictionary* newAttributes = @{@"NSExtensionIdentifier":liveProcessBundleId};
     orig_discoverPlugInsForAttributes(self, _cmd, newAttributes, flags, ^(NSSet* result, NSError* err) {
         if([result count] == 1) {
             NSMutableSet* result2 = [result mutableCopy];

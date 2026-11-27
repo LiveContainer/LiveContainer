@@ -616,7 +616,6 @@ struct LCSourcesView: View {
             if sharedModel.selectedTab == .sources {
                 viewModel.loadSourcesIfNeeded()
             }
-            expandedSources = []
             if !isViewAppeared {
                 guard sharedModel.selectedTab == .sources, let link = sharedModel.deepLink else { return }
                 sharedModel.deepLink = nil

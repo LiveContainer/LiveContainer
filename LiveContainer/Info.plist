@@ -148,6 +148,7 @@
 		<string>_stikpairprobe._tcp</string>
 		<string>_flux._udp</string>
 		<string>_dicom._tcp</string>
+		<string>_nxnative._udp</string>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The guest app is requesting for this permission.</string>
